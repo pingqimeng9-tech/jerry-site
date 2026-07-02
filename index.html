@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Jerry · 个人身份主页</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --glass:rgba(255,255,255,.10);
+    --glass-strong:rgba(255,255,255,.16);
+    --glass-border:rgba(255,255,255,.28);
+    --ink:#ffffff;
+    --muted:#c9c6e8;
+    --coral:#FF7A5C;
+    --aqua:#5CE1E6;
+    --violet:#B18CFF;
+    --pink:#FF8CD9;
+  }
+
+  *{box-sizing:border-box;}
+
+  html{scroll-behavior:smooth;}
+
+  body{
+    margin:0;
+    min-height:100vh;
+    color:var(--ink);
+    font-family:'Noto Sans SC',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(circle at 15% 20%, #6A5CFF66, transparent 45%),
+      radial-gradient(circle at 85% 15%, #FF8CD966, transparent 45%),
+      radial-gradient(circle at 75% 80%, #5CE1E655, transparent 45%),
+      radial-gradient(circle at 20% 85%, #FF7A5C55, transparent 45%),
+      linear-gradient(135deg,#12102b,#1b1440,#0e1a3a,#1a1030);
+    background-size:200% 200%,200% 200%,200% 200%,200% 200%,400% 400%;
+    animation:bgshift 22s ease-in-out infinite;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  @keyframes bgshift{
+    0%{background-position:0% 0%,100% 0%,100% 100%,0% 100%,0% 50%;}
+    50%{background-position:40% 60%,60% 40%,40% 60%,60% 40%,100% 50%;}
+    100%{background-position:0% 0%,100% 0%,100% 100%,0% 100%,0% 50%;}
+  }
+
+  /* ================= HANDS REVEAL BG ================= */
+  .hands-bg{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    overflow:hidden;
+    pointer-events:none;
+  }
+  .hands-base, .hands-reveal{
+    position:absolute;
+    inset:0;
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+  }
+  .hands-base{
+    background-image:url('images/hands-base.png');
+  }
+  .hands-reveal{
+    background-image:url('images/hands-reveal.png');
+    --mx:-999px;
+    --my:-999px;
+    --r:260px;
+    -webkit-mask-image: radial-gradient(circle var(--r) at var(--mx) var(--my),
+      rgba(255,255,255,1) 0%,
+      rgba(255,255,255,1) 40%,
+      rgba(255,255,255,.75) 60%,
+      rgba(255,255,255,.4) 75%,
+      rgba(255,255,255,.12) 88%,
+      rgba(255,255,255,0) 100%);
+    mask-image: radial-gradient(circle var(--r) at var(--mx) var(--my),
+      rgba(255,255,255,1) 0%,
+      rgba(255,255,255,1) 40%,
+      rgba(255,255,255,.75) 60%,
+      rgba(255,255,255,.4) 75%,
+      rgba(255,255,255,.12) 88%,
+      rgba(255,255,255,0) 100%);
+    -webkit-mask-repeat:no-repeat;
+    mask-repeat:no-repeat;
+  }
+
+  #stars{z-index:0;}
+
+  .blob{
+    position:fixed;
+    border-radius:50%;
+    filter:blur(60px);
+    opacity:.22;
+    pointer-events:none;
+    z-index:0;
+  }
+  .blob1{width:380px;height:380px;background:var(--violet);top:-100px;left:-100px;animation:float1 16s ease-in-out infinite;}
+  .blob2{width:320px;height:320px;background:var(--aqua);bottom:-80px;right:-60px;animation:float2 19s ease-in-out infinite;}
+  .blob3{width:260px;height:260px;background:var(--pink);top:40%;left:60%;animation:float3 14s ease-in-out infinite;}
+
+  @keyframes float1{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,80px)}}
+  @keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(-50px,-70px)}}
+  @keyframes float3{0%,100%{transform:translate(0,0)}50%{transform:translate(-80px,50px)}}
+
+  /* stars */
+  #stars{position:fixed;inset:0;z-index:0;pointer-events:none;}
+  .star{
+    position:absolute;
+    width:2px;height:2px;
+    background:#fff;
+    border-radius:50%;
+    opacity:.8;
+    animation:twinkle 3s ease-in-out infinite;
+  }
+  @keyframes twinkle{0%,100%{opacity:.15}50%{opacity:.9}}
+
+  a{color:inherit;}
+
+  .mono{font-family:'JetBrains Mono',monospace;letter-spacing:.04em;}
+  .serif{font-family:'Noto Serif SC',serif;}
+
+  /* ================= NAV ================= */
+  nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:18px clamp(20px,5vw,56px);
+    position:sticky;
+    top:0;
+    background:rgba(20,16,45,.45);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    border-bottom:1px solid var(--glass-border);
+    z-index:50;
+  }
+  nav .logo{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;}
+  nav .links{display:flex;align-items:center;gap:8px;}
+  nav .links a{
+    margin-left:6px;
+    padding:8px 14px;
+    border-radius:100px;
+    font-size:14px;
+    text-decoration:none;
+    opacity:.75;
+    transition:.2s;
+    cursor:pointer;
+  }
+  nav .links a:hover{opacity:1;background:var(--glass);}
+  nav .cta{
+    padding:10px 20px;
+    border-radius:100px;
+    background:linear-gradient(120deg,var(--coral),var(--pink));
+    color:#1a0f2b;
+    font-weight:700;
+    font-size:13.5px;
+    text-decoration:none;
+    box-shadow:0 8px 24px -8px #FF7A5C88;
+    transition:.25s;
+  }
+  nav .cta:hover{transform:translateY(-2px);box-shadow:0 12px 28px -6px #FF7A5Caa;}
+
+  @media (max-width:820px){
+    nav .links a{display:none;}
+  }
+
+  /* ================= LAYOUT ================= */
+  .wrap{max-width:1080px;margin:0 auto;padding:0 clamp(20px,5vw,56px);position:relative;z-index:1;}
+
+  /* ================= HERO ================= */
+  .hero{
+    display:grid;
+    grid-template-columns:1.25fr 1fr;
+    gap:48px;
+    align-items:center;
+    padding:72px 0 56px;
+    min-height:70vh;
+  }
+
+  .eyebrow{
+    font-size:12px;color:var(--aqua);font-weight:700;
+    margin-bottom:18px;display:flex;align-items:center;gap:8px;
+  }
+  .eyebrow::before{content:'';width:6px;height:6px;background:var(--aqua);border-radius:50%;box-shadow:0 0 10px var(--aqua);}
+
+  h1.headline{
+    font-size:clamp(32px,4.6vw,52px);
+    line-height:1.3;
+    margin:0 0 20px;
+    font-weight:900;
+    min-height:3.4em;
+  }
+  .typecursor{
+    display:inline-block;
+    width:3px;height:.9em;
+    background:var(--aqua);
+    margin-left:4px;
+    animation:blink 1s step-end infinite;
+    vertical-align:middle;
+  }
+  @keyframes blink{50%{opacity:0;}}
+
+  .hl-coral{background:linear-gradient(90deg,var(--coral),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .hl-aqua{background:linear-gradient(90deg,var(--aqua),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent;}
+
+  .subhead{font-size:15.5px;line-height:1.9;color:var(--muted);max-width:48ch;margin-bottom:32px;}
+
+  .btnrow{display:flex;gap:12px;flex-wrap:wrap;}
+  .btn{
+    padding:12px 24px;border-radius:100px;
+    cursor:pointer;font-size:14px;font-weight:600;
+    text-decoration:none;display:inline-block;
+    transition:.25s;
+  }
+  .btn.solid{background:linear-gradient(120deg,var(--violet),var(--aqua));color:#12102b;}
+  .btn.solid:hover{transform:translateY(-2px);box-shadow:0 12px 30px -8px #B18CFFaa;}
+  .btn.line{background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(10px);color:#fff;}
+  .btn.line:hover{background:var(--glass-strong);transform:translateY(-2px);}
+
+  /* character panel */
+  .char-frame{
+    position:relative;
+    border-radius:24px;
+    background:var(--glass);
+    border:1px solid var(--glass-border);
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    aspect-ratio:3/4;
+    display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+    box-shadow:0 30px 70px -25px rgba(107,92,255,.5);
+    transform-style:preserve-3d;
+    transform:perspective(900px);
+    transition:transform .25s ease, box-shadow .4s ease;
+    animation:framepulse 5s ease-in-out infinite;
+  }
+  @keyframes framepulse{
+    0%,100%{box-shadow:0 30px 70px -25px rgba(107,92,255,.5);}
+    50%{box-shadow:0 30px 80px -20px rgba(92,225,230,.55);}
+  }
+  .char-img{
+    width:100%;height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .char-tag{
+    position:absolute;top:14px;left:14px;
+    background:rgba(0,0,0,.4);
+    padding:5px 12px;border-radius:100px;
+    font-size:10.5px;
+    z-index:2;
+  }
+
+  /* ================= SECTION ================= */
+  section{padding:64px 0;}
+
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease, transform .7s ease;}
+  .reveal.show{opacity:1;transform:translateY(0);}
+
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:28px;}
+  .sec-num{font-family:'JetBrains Mono',monospace;color:var(--aqua);font-size:13px;font-weight:700;}
+  .sec-title{font-size:24px;font-weight:700;font-family:'Noto Serif SC',serif;}
+
+  .glass-card{
+    background:var(--glass);
+    border:1px solid var(--glass-border);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    border-radius:18px;
+    padding:26px 28px;
+    font-size:15px;
+    line-height:1.9;
+    color:#e8e6fb;
+    transition:.3s;
+  }
+  .glass-card:hover{transform:translateY(-4px);background:var(--glass-strong);box-shadow:0 20px 45px -20px rgba(107,92,255,.5);}
+
+  /* commits */
+  .commits{position:relative;}
+  .commits::before{content:'';position:absolute;left:9px;top:6px;bottom:6px;width:2px;background:var(--glass-border);}
+  .commit{position:relative;padding-left:36px;margin-bottom:26px;}
+  .commit:last-child{margin-bottom:0;}
+  .commit::before{
+    content:'';position:absolute;left:3px;top:4px;width:14px;height:14px;border-radius:50%;
+    background:#12102b;border:2.5px solid var(--violet);
+  }
+  .commit.now::before{border-color:var(--coral);background:var(--coral);box-shadow:0 0 12px var(--coral);}
+  .commit-tag{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--aqua);font-weight:700;margin-bottom:4px;display:block;}
+  .commit-title{font-weight:700;font-size:15.5px;margin-bottom:4px;color:#fff;}
+  .commit-desc{font-size:14px;color:var(--muted);line-height:1.75;}
+
+  .quote-block{
+    background:linear-gradient(135deg,rgba(177,140,255,.22),rgba(92,225,230,.14));
+    border:1px solid var(--glass-border);
+    backdrop-filter:blur(18px);
+    border-radius:20px;padding:38px 34px;
+    font-family:'Noto Serif SC',serif;font-size:18px;line-height:2.1;
+  }
+  .quote-block strong{color:var(--coral);}
+
+  .linkgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;}
+  .linkcard{
+    background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(16px);
+    border-radius:18px;padding:22px;text-decoration:none;color:#fff;transition:.3s;display:block;
+  }
+  .linkcard:hover{transform:translateY(-5px) scale(1.02);border-color:var(--aqua);box-shadow:0 20px 45px -20px rgba(92,225,230,.4);}
+  .linkcard .lc-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:8px;display:block;}
+  .linkcard .lc-title{font-weight:700;font-size:15px;margin-bottom:4px;}
+  .linkcard .lc-desc{font-size:13px;color:var(--muted);}
+
+  /* ================= CONTACT ================= */
+  .contact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;}
+  .contact-card{
+    background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(18px);
+    border-radius:20px;padding:26px;transition:.3s;
+  }
+  .contact-card:hover{transform:translateY(-5px);background:var(--glass-strong);}
+  .contact-icon{
+    width:44px;height:44px;border-radius:12px;
+    background:linear-gradient(135deg,var(--violet),var(--aqua));
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;margin-bottom:16px;
+  }
+  .contact-title{font-weight:700;font-size:16px;margin-bottom:6px;}
+  .contact-desc{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:18px;}
+  .copy-row{
+    display:flex;align-items:center;justify-content:space-between;
+    background:rgba(0,0,0,.3);border:1px solid var(--glass-border);
+    border-radius:12px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:13px;
+  }
+  .copy-btn{
+    background:linear-gradient(120deg,var(--coral),var(--pink));
+    border:none;color:#1a0f2b;font-weight:700;font-size:12px;
+    padding:6px 12px;border-radius:100px;cursor:pointer;transition:.2s;
+    font-family:'Noto Sans SC',sans-serif;
+  }
+  .copy-btn:hover{transform:translateY(-1px);}
+  .copy-btn.copied{background:linear-gradient(120deg,#7CFFB2,#5CE1E6);}
+
+  footer{
+    padding:40px clamp(20px,5vw,56px) 60px;
+    text-align:center;font-size:12.5px;color:var(--muted);
+    font-family:'JetBrains Mono',monospace;position:relative;z-index:1;
+  }
+
+  @media (max-width:760px){
+    .hero{grid-template-columns:1fr;padding-top:36px;min-height:auto;}
+    .char-frame{max-width:280px;margin:0 auto;order:-1;}
+  }
+</style>
+</head>
+
+<body>
+
+<div class="hands-bg" aria-hidden="true">
+  <div class="hands-base"></div>
+  <div class="hands-reveal" id="handsReveal"></div>
+</div>
+
+<div id="stars"></div>
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+<div class="blob blob3"></div>
+
+<nav>
+  <div class="logo">JERRY.DEV</div>
+  <div class="links">
+    <a href="#about">我是谁</a>
+    <a href="#timeline">经历</a>
+    <a href="#reflect">反思</a>
+    <a href="/blog">博客</a>
+  </div>
+  <a href="#contact" class="cta">联系我</a>
+</nav>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div>
+      <div class="eyebrow mono">PERSONAL SPACE · 2026</div>
+      <h1 class="headline" id="typewriter"></h1>
+      <div class="subhead">
+        Jerry · AI 英语动画创作者 / 抖音教育内容 / 外卖餐饮实践者。<br>
+        在现实与表达之间寻找平衡，正在从"被指引的人"变成"自己定义方向的人"。
+      </div>
+      <div class="btnrow">
+        <a href="#about" class="btn solid">了解我</a>
+        <a href="#contact" class="btn line">联系我</a>
+      </div>
+    </div>
+
+    <div class="char-frame" id="charFrame">
+      <div class="char-tag mono">// MR. JERRY</div>
+      <img class="char-img" src="images/cover.jpg" alt="Jerry cover">
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <section id="about" class="reveal">
+    <div class="sec-head">
+      <span class="sec-num mono">01</span>
+      <span class="sec-title">我是谁</span>
+    </div>
+    <div class="glass-card">
+      我是 Jerry，现在在做 <strong>AI 英语动画</strong> + <strong>抖音教育内容</strong>，同时也在餐饮行业（外卖创业）实践现实生存能力。我相信内容和现实经营是同一件事的两面——一边探索表达和 IP，一边在具体生意里验证自己的判断力。
+    </div>
+  </section>
+
+  <!-- TIMELINE -->
+  <section id="timeline" class="reveal">
+    <div class="sec-head">
+      <span class="sec-num mono">02</span>
+      <span class="sec-title">我的经历</span>
+    </div>
+    <div class="glass-card">
+      <div class="commits">
+        <div class="commit">
+          <span class="commit-tag">v2022</span>
+          <div class="commit-title">漫剪起号成功</div>
+          <div class="commit-desc">第一次实现内容变现，验证了"内容 = 生产力"这件事。</div>
+        </div>
+        <div class="commit">
+          <span class="commit-tag">v2023</span>
+          <div class="commit-title">AI 爆发期 · 出海尝试 · 现实崩塌</div>
+          <div class="commit-desc">赶上 AI 浪潮尝试出海项目，也第一次真实感受到理想和现实之间的落差。</div>
+        </div>
+        <div class="commit">
+          <span class="commit-tag">v2024</span>
+          <div class="commit-title">农村重建 · 自我实验 · 技能学习</div>
+          <div class="commit-desc">退回原点，重新搭建基础能力，把这段时间当成一次自我实验。</div>
+        </div>
+        <div class="commit">
+          <span class="commit-tag">v2024.12</span>
+          <div class="commit-title">回苏州，转向 AI 英语动画</div>
+          <div class="commit-desc">找到一个能长期投入的方向，开始系统性产出。</div>
+        </div>
+        <div class="commit now">
+          <span class="commit-tag">v2025 · now</span>
+          <div class="commit-title">外卖与内容并行</div>
+          <div class="commit-desc">开始理解"生存优先"——先靠真实生意站稳，再让内容长出来。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REFLECTION -->
+  <section id="reflect" class="reveal">
+    <div class="sec-head">
+      <span class="sec-num mono">03</span>
+      <span class="sec-title">深层反思</span>
+    </div>
+    <div class="quote-block">
+      所有目标最初都不是自己定义的，而是外部输入的结果。<br><br>
+      在 AI 时代，真正稀缺的不是执行力，而是<strong>自我定义能力</strong>。<br><br>
+      我正在从"被指引的人"，变成"自己定义方向的人"。
+    </div>
+  </section>
+
+  <!-- LINKS -->
+  <section id="links" class="reveal">
+    <div class="sec-head">
+      <span class="sec-num mono">04</span>
+      <span class="sec-title">我的系统</span>
+    </div>
+    <div class="linkgrid">
+      <a class="linkcard" href="/blog">
+        <span class="lc-label mono">BLOG</span>
+        <div class="lc-title">📘 思维输出</div>
+        <div class="lc-desc">公开博客，长文与思考记录</div>
+      </a>
+      <a class="linkcard" href="https://v.douyin.com/R4yJTAsI9wI/" target="_blank">
+        <span class="lc-label mono">VIDEO · 抖音</span>
+        <div class="lc-title">🎬 AI 英语动画</div>
+        <div class="lc-desc">内容作品主阵地</div>
+      </a>
+      <a class="linkcard" href="https://app.notion.com/p/37e39abe704780898b56f087061d9d48" target="_blank">
+        <span class="lc-label mono">NOTES · TECH</span>
+        <div class="lc-title">📚 技术分享</div>
+        <div class="lc-desc">AI 工具与实践记录</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="reveal">
+    <div class="sec-head">
+      <span class="sec-num mono">05</span>
+      <span class="sec-title">联系我</span>
+    </div>
+    <div class="glass-card" style="margin-bottom:20px;">
+      联系页只做承接，不做堆砌。普通交流先走 QQ 或微信，深度沟通或长期合作直接加微信，减少重复沟通成本。
+    </div>
+
+    <div class="contact-grid">
+      <div class="contact-card">
+        <div class="contact-icon">💬</div>
+        <div class="contact-title">微信</div>
+        <div class="contact-desc">深度沟通、长期合作时使用</div>
+        <div class="copy-row">
+          <span id="wxid">wxid_1h6phvw1kr9022</span>
+          <button class="copy-btn" onclick="copyText('wxid', this)">复制</button>
+        </div>
+      </div>
+
+      <div class="contact-card">
+        <div class="contact-icon">💭</div>
+        <div class="contact-title">QQ</div>
+        <div class="contact-desc">普通交流、快速提问都可以先走这里</div>
+        <div class="copy-row">
+          <span id="qqid">1179884054</span>
+          <button class="copy-btn" onclick="copyText('qqid', this)">复制</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  © 2026 Jerry · built with intent, not templates
+</footer>
+
+<script>
+/* character card 3D tilt on hover */
+(function(){
+  const frame = document.getElementById('charFrame');
+  if(!frame) return;
+  const MAX_TILT = 10;
+  frame.addEventListener('mousemove', (e)=>{
+    const rect = frame.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width;
+    const py = (e.clientY - rect.top) / rect.height;
+    const rotY = (px - 0.5) * MAX_TILT * 2;
+    const rotX = (0.5 - py) * MAX_TILT * 2;
+    frame.style.transform = `perspective(900px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
+  });
+  frame.addEventListener('mouseleave', ()=>{
+    frame.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) scale(1)';
+  });
+})();
+
+/* hands mouse-reveal spotlight */
+(function(){
+  const revealEl = document.getElementById('handsReveal');
+  const mouse = {x:-999, y:-999};
+  const smooth = {x:-999, y:-999};
+
+  window.addEventListener('mousemove', (e)=>{
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+  });
+
+  // fade the spotlight out gracefully when the cursor leaves the window
+  window.addEventListener('mouseleave', ()=>{
+    mouse.x = -999; mouse.y = -999;
+  });
+
+  function loop(){
+    smooth.x += (mouse.x - smooth.x) * 0.1;
+    smooth.y += (mouse.y - smooth.y) * 0.1;
+    revealEl.style.setProperty('--mx', smooth.x + 'px');
+    revealEl.style.setProperty('--my', smooth.y + 'px');
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+
+/* stars */
+const starsEl = document.getElementById('stars');
+for(let i=0;i<70;i++){
+  const s = document.createElement('div');
+  s.className='star';
+  s.style.left = Math.random()*100+'%';
+  s.style.top = Math.random()*100+'%';
+  s.style.animationDelay = (Math.random()*3)+'s';
+  s.style.width = s.style.height = (Math.random()*2+1)+'px';
+  starsEl.appendChild(s);
+}
+
+/* typewriter */
+const tw = document.getElementById('typewriter');
+const twText = [
+  {t:'AI 搭建长期', cls:''},
+  {t:'复利资产', cls:'hl-aqua'},
+  {t:'，', cls:''},
+  {t:'经历化作撬动人生', cls:''},
+  {t:'杠杆', cls:'hl-coral'},
+  {t:'。', cls:''}
+];
+let segIdx=0, charIdx=0;
+tw.innerHTML = '<span class="typecursor"></span>';
+function typeStep(){
+  if(segIdx >= twText.length){ return; }
+  const seg = twText[segIdx];
+  if(charIdx===0){
+    const span = document.createElement('span');
+    if(seg.cls) span.className = seg.cls;
+    span.id = 'seg'+segIdx;
+    tw.insertBefore(span, tw.querySelector('.typecursor'));
+  }
+  const span = document.getElementById('seg'+segIdx);
+  if(charIdx < seg.t.length){
+    span.textContent += seg.t[charIdx];
+    charIdx++;
+    setTimeout(typeStep, 65);
+  } else {
+    segIdx++; charIdx=0;
+    setTimeout(typeStep, 40);
+  }
+}
+typeStep();
+
+/* scroll reveal */
+const observer = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){ e.target.classList.add('show'); }
+  });
+},{threshold:.15});
+document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+
+/* copy to clipboard */
+function copyText(id, btn){
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    const original = btn.textContent;
+    btn.textContent = '已复制';
+    btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent = original; btn.classList.remove('copied'); }, 1600);
+  });
+}
+</script>
+
+</body>
+</html>
