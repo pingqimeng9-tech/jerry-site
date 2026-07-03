@@ -1,40 +1,28 @@
-# Jerry Blog · Notion API 集成（字段已按真实数据库配置完成）
+# Jerry Blog · 全功能版
 
-## 文件清单
-```
-api/posts.js   → 接口：获取已发布文章列表
-api/post.js    → 接口：获取单篇文章详情（正文自动转 Markdown）
-blog.html      → 页面：博客列表页
-post.html      → 页面：文章详情页
-package.json   → 依赖清单（@notionhq/client, notion-to-md）
-```
+## 这次做完的功能
+1. 左侧栏「最近更新」列表（取最新6篇）
+2. 真搜索（标题/摘要实时过滤，命中词高亮）
+3. 按 category 分区显示（技术分享/心情随笔/思维日记 固定排在前面，其他分类自动排后面）
+4. 顶部 Tab 快速跳转到对应分类分区
+5. 侧栏「归档」按年月分组，点击筛选当月文章
+6. 文章详情页右侧目录（TOC），自动扫描正文里的 h1/h2/h3，点击跳转+滚动高亮当前章节
+7. 背景换成 Simplex Noise 紫色流体效果（鼠标交互）
 
-## 字段映射（已按你的数据库截图配置好，无需再改）
-type / slug / status / title / summary / category / date / tags
-- status 列判断依据：值等于 "Published"
-- type 列判断依据：值等于 "Post"（用来排除数据库里的导航菜单/页面类行）
+## 字段变更同步说明
+- 数据库删除了 tags 字段，代码已同步移除，不会再读取
+- 新增 "Files & media" 字段用于提取文章封面图（如果某篇文章这一栏没传文件，会自动跳过，不影响显示）
 
-如果实际测试发现值不是这两个英文词，回来告诉我，改字段值就是两行代码的事。
+## 部署步骤（跟之前一样）
+1. `api/posts.js`、`api/post.js` 传到仓库 `api/` 文件夹（覆盖旧文件）
+2. `blog.html`、`post.html` 传到仓库根目录（覆盖旧文件）
+3. 确认 Vercel 环境变量 NOTION_TOKEN / NOTION_DATABASE_ID 已经配置好
+4. 上传后 Vercel 自动重新部署
 
-## 部署步骤
-
-### 1. 上传文件到 jerry-site 仓库
-- 仓库根目录新建 `api` 文件夹，把 `posts.js`、`post.js` 传进去
-- `blog.html`、`post.html` 传到仓库根目录（跟 index.html 同级）
-- `package.json`：如果仓库里还没有这个文件，直接传上去；如果已经有了，把里面 dependencies 那两行手动合并进现有文件
-
-### 2. Vercel 环境变量
-Settings → Environment Variables，添加：
-- `NOTION_TOKEN` = 你的 Integration Token（密钥，不要发给任何人/AI）
-- `NOTION_DATABASE_ID` = 77739abe70478264b65f81227260905c
-
-### 3. 触发部署
-文件传完 GitHub 会自动触发 Vercel 重新构建，等 1-2 分钟
-
-### 4. 验证
-1. 打开 `https://你的域名/api/posts`
-   - `{"ok":true,"posts":[...]}` 有内容 → 成功
-   - `posts` 空数组 → status/type 的值可能不是 Published/Post，回来告诉我
-   - `ok:false` 带 error → 把 error 文本发我
-2. 没问题后打开 `https://你的域名/blog.html` 看页面
-3. 点进一篇文章，确认 `post.html` 详情页正文渲染正常
+## 验证清单
+- [ ] `/blog.html` 左侧能看到「最近更新」「分类导航」「归档」都有内容
+- [ ] 搜索框输入关键词，列表实时过滤，命中文字有高亮
+- [ ] 点顶部分类 Tab，页面平滑滚动到对应分区
+- [ ] 点归档某个月份，列表只显示当月文章
+- [ ] 点进一篇文章，右侧出现目录，点目录项能跳转，往下滚动目录项会高亮当前位置
+- [ ] 背景能看到紫色流体效果，鼠标移动有交互

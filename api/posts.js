@@ -21,17 +21,18 @@ async function getDataSourceId() {
   return dataSourceId;
 }
 
-// ✅ 已按你数据库截图（type/slug/status/title/summary/category/date/tags）替换成真实字段名
+// ✅ 字段已按最新数据库截图更新：type/status/title/summary/category/date/Files & media
+// 注意：tags 字段已被删除，不再读取
 const FIELD = {
   title: 'title',
   status: 'status',
-  statusValue: 'Published',   // ⚠️ 请打开你的status列，确认选项文字是不是精确等于 "Published"（区分大小写），不是就照实改这里
+  statusValue: 'Published',
   type: 'type',
-  typeValue: 'Post',          // ⚠️ 同上，确认你的type列里"文章"这个选项具体叫什么（可能是 Post / Post-文章 等）
+  typeValue: 'Post',
   date: 'date',
   category: 'category',
-  tags: 'tags',
-  excerpt: 'summary'
+  excerpt: 'summary',
+  cover: 'Files & media'   // 文件类型属性，用来当文章封面图（如果这一行没传文件，会自动回退成空）
 };
 
 module.exports = async (req, res) => {
@@ -62,9 +63,8 @@ module.exports = async (req, res) => {
         title: getText(props[FIELD.title]),
         date: props[FIELD.date]?.date?.start || null,
         category: props[FIELD.category]?.select?.name || null,
-        tags: (props[FIELD.tags]?.multi_select || []).map(t => t.name),
         excerpt: getText(props[FIELD.excerpt]) || '',
-        cover: page.cover?.external?.url || page.cover?.file?.url || null
+        cover: getFileUrl(props[FIELD.cover]) || page.cover?.external?.url || page.cover?.file?.url || null
       };
     });
 
@@ -80,4 +80,12 @@ function getText(prop) {
   if (!prop) return '';
   const arr = prop.title || prop.rich_text || [];
   return arr.map(t => t.plain_text).join('');
+}
+
+// "Files & media" 类型属性取第一个文件的URL（外链文件和上传文件结构不一样，都兼容一下）
+function getFileUrl(prop) {
+  const files = prop?.files;
+  if (!files || files.length === 0) return null;
+  const first = files[0];
+  return first.external?.url || first.file?.url || null;
 }

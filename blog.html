@@ -10,44 +10,24 @@
 
 <style>
   :root{
-    --glass:rgba(255,255,255,.10);
-    --glass-strong:rgba(255,255,255,.16);
-    --glass-border:rgba(255,255,255,.28);
-    --ink:#ffffff;
-    --muted:#c9c6e8;
-    --coral:#FF7A5C;
-    --aqua:#5CE1E6;
-    --violet:#B18CFF;
-    --pink:#FF8CD9;
+    --glass:rgba(255,255,255,.10); --glass-strong:rgba(255,255,255,.16); --glass-border:rgba(255,255,255,.28);
+    --ink:#ffffff; --muted:#c9c6e8; --coral:#FF7A5C; --aqua:#5CE1E6; --violet:#B18CFF; --pink:#FF8CD9;
   }
   *{box-sizing:border-box;}
-  body{
-    margin:0; min-height:100vh; color:var(--ink);
-    font-family:'Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased;
-    background:
-      radial-gradient(circle at 15% 20%, #6A5CFF66, transparent 45%),
-      radial-gradient(circle at 85% 15%, #FF8CD966, transparent 45%),
-      radial-gradient(circle at 75% 80%, #5CE1E655, transparent 45%),
-      radial-gradient(circle at 20% 85%, #FF7A5C55, transparent 45%),
-      linear-gradient(135deg,#12102b,#1b1440,#0e1a3a,#1a1030);
-    background-size:200% 200%,200% 200%,200% 200%,200% 200%,400% 400%;
-    animation:bgshift 22s ease-in-out infinite;
-  }
-  @keyframes bgshift{
-    0%{background-position:0% 0%,100% 0%,100% 100%,0% 100%,0% 50%;}
-    50%{background-position:40% 60%,60% 40%,40% 60%,60% 40%,100% 50%;}
-    100%{background-position:0% 0%,100% 0%,100% 100%,0% 100%,0% 50%;}
-  }
+  body{ margin:0; min-height:100vh; color:var(--ink); font-family:'Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased; background:#12102b; }
+  #canvas-container{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+  #noise-canvas{ width:100%; height:100%; display:block; }
+
   a{color:inherit;text-decoration:none;}
   .mono{font-family:'JetBrains Mono',monospace;}
+  .serif{font-family:'Noto Serif SC',serif;}
 
   nav{
-    display:flex; justify-content:space-between; align-items:center;
-    padding:18px clamp(20px,5vw,56px); position:sticky; top:0;
-    background:rgba(20,16,45,.45); backdrop-filter:blur(18px);
+    display:flex; justify-content:space-between; align-items:center; padding:18px clamp(20px,5vw,56px);
+    position:sticky; top:0; background:rgba(20,16,45,.45); backdrop-filter:blur(18px);
     -webkit-backdrop-filter:blur(18px); border-bottom:1px solid var(--glass-border); z-index:50;
   }
-  nav .logo{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;}
+  nav .logo{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;cursor:pointer;}
   nav .links{display:flex;align-items:center;gap:8px;}
   nav .links a{margin-left:6px;padding:8px 14px;border-radius:100px;font-size:14px;opacity:.75;transition:.2s;}
   nav .links a:hover{opacity:1;background:var(--glass);}
@@ -59,36 +39,77 @@
   nav .cta:hover{transform:translateY(-2px);}
   @media (max-width:820px){ nav .links a{display:none;} }
 
-  .wrap{max-width:840px;margin:0 auto;padding:48px clamp(20px,5vw,56px) 80px;}
-  .page-title{font-family:'Noto Serif SC',serif;font-weight:900;font-size:32px;margin-bottom:8px;}
-  .page-sub{color:var(--muted);font-size:14px;margin-bottom:36px;}
+  .shell{ display:flex; max-width:1180px; margin:32px auto 40px; gap:22px; padding:0 20px; align-items:flex-start; position:relative; z-index:1; }
 
-  .post-card{
-    background:var(--glass); border:1px solid var(--glass-border);
-    backdrop-filter:blur(16px); border-radius:18px; padding:24px 26px;
-    margin-bottom:16px; transition:.3s; display:block;
+  .sidebar{ width:250px; flex-shrink:0; background:var(--glass); border:1px solid var(--glass-border); backdrop-filter:blur(18px); border-radius:20px; padding:22px; position:sticky; top:88px; }
+  .avatar-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+  .avatar-circle{width:46px;height:46px;border-radius:50%;background:linear-gradient(120deg,var(--violet),var(--aqua));display:flex;align-items:center;justify-content:center;font-family:'Noto Serif SC',serif;font-weight:900;font-size:18px;color:#1a0f2b;flex-shrink:0;}
+  .avatar-name{font-family:'Noto Serif SC',serif;font-weight:900;font-size:17px;}
+  .avatar-tag{font-size:11px;color:var(--muted);margin-top:2px;}
+
+  .search-box{position:relative;margin-bottom:20px;}
+  .search-box input{
+    width:100%; background:rgba(0,0,0,.3); border:1px solid var(--glass-border); border-radius:12px;
+    padding:10px 14px 10px 34px; font-size:13px; color:#fff; font-family:'JetBrains Mono',monospace; outline:none;
   }
+  .search-box input:focus{border-color:var(--aqua);}
+  .search-box input::placeholder{color:var(--muted);}
+  .search-box .icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:13px;opacity:.6;}
+  .search-count{font-size:11px;color:var(--aqua);margin-top:6px;font-family:'JetBrains Mono',monospace;display:none;}
+
+  .cat-jump{display:flex;flex-direction:column;gap:4px;margin-bottom:20px;}
+  .cat-jump-label, .recent-label, .archive-label{font-size:11px;color:var(--aqua);font-family:'JetBrains Mono',monospace;font-weight:700;margin-bottom:8px;letter-spacing:.05em;}
+  .cat-jump a{font-size:13px;color:var(--muted);padding:6px 10px;border-radius:8px;transition:.2s;display:flex;justify-content:space-between;}
+  .cat-jump a:hover{background:var(--glass);color:#fff;}
+  .cat-jump a .count{font-family:'JetBrains Mono',monospace;font-size:11px;opacity:.6;}
+
+  .recent-list{margin-bottom:20px;}
+  .recent-list a{display:block;font-size:12.5px;color:var(--muted);line-height:1.6;padding:6px 0;border-bottom:1px dashed var(--glass-border);transition:.2s;}
+  .recent-list a:hover{color:var(--aqua);padding-left:4px;}
+  .recent-list a:last-child{border-bottom:none;}
+
+  .archive-list a{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);padding:5px 0;transition:.2s;}
+  .archive-list a:hover{color:var(--aqua);}
+  .archive-list .count{font-family:'JetBrains Mono',monospace;font-size:11px;opacity:.6;}
+
+  .main{flex:1;min-width:0;}
+  .page-title{font-family:'Noto Serif SC',serif;font-weight:900;font-size:30px;margin-bottom:6px;}
+  .page-sub{color:var(--muted);font-size:13px;margin-bottom:22px;}
+
+  .tabbar{ display:flex; gap:8px; background:var(--glass); border:1px solid var(--glass-border); backdrop-filter:blur(16px); border-radius:100px; padding:6px; margin-bottom:30px; width:fit-content; flex-wrap:wrap; }
+  .tabbar a{ padding:9px 18px; border-radius:100px; font-size:13.5px; color:var(--muted); transition:.2s; }
+  .tabbar a.active{background:linear-gradient(120deg,var(--coral),var(--pink));color:#1a0f2b;font-weight:700;}
+  .tabbar a:not(.active):hover{background:rgba(255,255,255,.08);color:#fff;}
+
+  .cat-section{margin-bottom:44px;scroll-margin-top:90px;}
+  .cat-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+  .cat-header .dot{width:8px;height:8px;border-radius:50%;background:linear-gradient(120deg,var(--coral),var(--pink));}
+  .cat-header h2{font-family:'Noto Serif SC',serif;font-size:20px;font-weight:700;margin:0;}
+  .cat-header .cat-count{font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+  .post-grid{display:grid;grid-template-columns:1fr;gap:14px;}
+  .post-card{ background:var(--glass); border:1px solid var(--glass-border); backdrop-filter:blur(16px); border-radius:18px; padding:22px 24px; transition:.3s; display:block; }
   .post-card:hover{transform:translateY(-4px);background:var(--glass-strong);box-shadow:0 20px 45px -20px rgba(107,92,255,.5);}
-  .post-title{font-family:'Noto Serif SC',serif;font-weight:700;font-size:19px;margin-bottom:8px;}
+  .post-title{font-family:'Noto Serif SC',serif;font-weight:700;font-size:18px;margin-bottom:8px;}
   .post-excerpt{font-size:13.5px;color:var(--muted);line-height:1.75;margin-bottom:12px;}
-  .post-meta{display:flex;gap:14px;font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;flex-wrap:wrap;}
-  .post-meta .tag{background:var(--glass);border:1px solid var(--glass-border);padding:2px 10px;border-radius:100px;}
+  .post-meta{display:flex;gap:14px;font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
 
-  .state-box{
-    text-align:center;padding:60px 20px;color:var(--muted);
-    background:var(--glass);border:1px solid var(--glass-border);border-radius:18px;
-  }
+  .state-box{ text-align:center;padding:60px 20px;color:var(--muted); background:var(--glass);border:1px solid var(--glass-border);border-radius:18px; }
   .state-box.error{color:#FF9E8A;}
-
-  .spinner{
-    width:26px;height:26px;border-radius:50%;
-    border:3px solid var(--glass-border);border-top-color:var(--aqua);
-    margin:0 auto 14px;animation:spin .8s linear infinite;
-  }
+  .spinner{width:26px;height:26px;border-radius:50%;border:3px solid var(--glass-border);border-top-color:var(--aqua);margin:0 auto 14px;animation:spin .8s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg);}}
+
+  mark{background:linear-gradient(120deg,var(--coral),var(--pink));color:#1a0f2b;padding:0 2px;border-radius:3px;}
+
+  @media (max-width:900px){
+    .shell{flex-direction:column;}
+    .sidebar{width:100%;position:static;}
+  }
 </style>
 </head>
 <body>
+
+<div id="canvas-container"><canvas id="noise-canvas"></canvas></div>
 
 <nav>
   <a class="logo" href="/">JERRY.DEV</a>
@@ -101,59 +122,338 @@
   <a href="/#contact" class="cta">联系我</a>
 </nav>
 
-<div class="wrap">
-  <div class="page-title">思维输出</div>
-  <div class="page-sub mono">// 长文与思考记录，数据来自 Notion，实时同步</div>
+<div class="shell">
 
-  <div id="post-list">
-    <div class="state-box">
-      <div class="spinner"></div>
-      正在加载文章…
+  <aside class="sidebar">
+    <div class="avatar-row">
+      <div class="avatar-circle">J</div>
+      <div>
+        <div class="avatar-name">Jerry</div>
+        <div class="avatar-tag mono">思维输出 · 长期记录</div>
+      </div>
     </div>
-  </div>
+
+    <div class="search-box">
+      <span class="icon">🔍</span>
+      <input id="search-input" type="text" placeholder="搜索文章标题/摘要..." />
+      <div class="search-count mono" id="search-count"></div>
+    </div>
+
+    <div class="cat-jump" id="cat-jump">
+      <div class="cat-jump-label">分类导航</div>
+    </div>
+
+    <div class="recent-list" id="recent-list">
+      <div class="recent-label">最近更新</div>
+    </div>
+
+    <div class="archive-list" id="archive-list">
+      <div class="archive-label">归档</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="page-title">思维输出</div>
+    <div class="page-sub mono">// 长文与思考记录，数据来自 Notion，实时同步</div>
+
+    <div class="tabbar mono" id="tabbar">
+      <a href="#all" class="active" data-filter="all">全部</a>
+    </div>
+
+    <div id="content-area">
+      <div class="state-box">
+        <div class="spinner"></div>
+        正在加载文章…
+      </div>
+    </div>
+  </main>
+
 </div>
 
 <script>
+let allPosts = [];
+const CATEGORY_ORDER = ['技术分享', '心情随笔', '思维日记'];
+
 async function loadPosts(){
-  const container = document.getElementById('post-list');
+  const contentArea = document.getElementById('content-area');
   try {
     const res = await fetch('/api/posts');
     const data = await res.json();
 
     if(!data.ok){
-      container.innerHTML = `<div class="state-box error">加载失败：${escapeHtml(data.error || '未知错误')}</div>`;
+      contentArea.innerHTML = `<div class="state-box error">加载失败：${escapeHtml(data.error || '未知错误')}</div>`;
       return;
     }
-
     if(!data.posts || data.posts.length === 0){
-      container.innerHTML = `<div class="state-box">还没有发布任何文章，去 Notion 里写第一篇吧 ✍️</div>`;
+      contentArea.innerHTML = `<div class="state-box">还没有发布任何文章，去 Notion 里写第一篇吧 ✍️</div>`;
       return;
     }
 
-    container.innerHTML = data.posts.map(post => `
-      <a class="post-card" href="/post.html?id=${post.id}">
-        <div class="post-title">${escapeHtml(post.title || '无标题')}</div>
-        ${post.excerpt ? `<div class="post-excerpt">${escapeHtml(post.excerpt)}</div>` : ''}
-        <div class="post-meta">
-          ${post.date ? `<span>📅 ${post.date}</span>` : ''}
-          ${post.category ? `<span class="tag">${escapeHtml(post.category)}</span>` : ''}
-          ${(post.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
-        </div>
-      </a>
-    `).join('');
+    allPosts = data.posts;
+    buildCategoryTabs(allPosts);
+    buildCategoryJump(allPosts);
+    buildRecentList(allPosts);
+    buildArchive(allPosts);
+    renderSections(allPosts);
 
   } catch (err) {
-    container.innerHTML = `<div class="state-box error">网络请求失败：${escapeHtml(err.message)}</div>`;
+    contentArea.innerHTML = `<div class="state-box error">网络请求失败：${escapeHtml(err.message)}</div>`;
   }
 }
 
+function groupByCategory(posts){
+  const groups = {};
+  posts.forEach(p => {
+    const cat = p.category || '未分类';
+    if(!groups[cat]) groups[cat] = [];
+    groups[cat].push(p);
+  });
+  const orderedKeys = [
+    ...CATEGORY_ORDER.filter(c => groups[c]),
+    ...Object.keys(groups).filter(c => !CATEGORY_ORDER.includes(c))
+  ];
+  return orderedKeys.map(key => ({ category: key, posts: groups[key] }));
+}
+
+function renderSections(posts){
+  const contentArea = document.getElementById('content-area');
+  const sections = groupByCategory(posts);
+
+  contentArea.innerHTML = sections.map(sec => `
+    <div class="cat-section" id="cat-${slugify(sec.category)}">
+      <div class="cat-header">
+        <span class="dot"></span>
+        <h2>${escapeHtml(sec.category)}</h2>
+        <span class="cat-count mono">${sec.posts.length} 篇</span>
+      </div>
+      <div class="post-grid">
+        ${sec.posts.map(postCardHtml).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function postCardHtml(post){
+  return `
+    <a class="post-card" href="/post.html?id=${post.id}">
+      <div class="post-title">${escapeHtml(post.title || '无标题')}</div>
+      ${post.excerpt ? `<div class="post-excerpt">${escapeHtml(post.excerpt)}</div>` : ''}
+      <div class="post-meta">
+        ${post.date ? `<span>📅 ${post.date}</span>` : ''}
+      </div>
+    </a>
+  `;
+}
+
+function buildCategoryTabs(posts){
+  const tabbar = document.getElementById('tabbar');
+  const sections = groupByCategory(posts);
+  const tabsHtml = sections.map(sec => `<a href="#cat-${slugify(sec.category)}" data-filter="${escapeHtml(sec.category)}">${escapeHtml(sec.category)}</a>`).join('');
+  tabbar.innerHTML = `<a href="#all" class="active" data-filter="all">全部</a>` + tabsHtml;
+
+  tabbar.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', (e) => {
+      tabbar.querySelectorAll('a').forEach(x => x.classList.remove('active'));
+      a.classList.add('active');
+      e.preventDefault();
+      if(a.dataset.filter !== 'all'){
+        document.getElementById('cat-' + slugify(a.dataset.filter))?.scrollIntoView({behavior:'smooth', block:'start'});
+      } else {
+        document.getElementById('content-area')?.scrollIntoView({behavior:'smooth', block:'start'});
+      }
+    });
+  });
+}
+
+function buildCategoryJump(posts){
+  const el = document.getElementById('cat-jump');
+  const sections = groupByCategory(posts);
+  el.innerHTML = `<div class="cat-jump-label">分类导航</div>` + sections.map(sec => `
+    <a href="#cat-${slugify(sec.category)}">
+      <span>${escapeHtml(sec.category)}</span>
+      <span class="count">${sec.posts.length}</span>
+    </a>
+  `).join('');
+}
+
+function buildRecentList(posts){
+  const el = document.getElementById('recent-list');
+  const recent = [...posts]
+    .filter(p => p.date)
+    .sort((a,b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 6);
+  el.innerHTML = `<div class="recent-label">最近更新</div>` + recent.map(p => `
+    <a href="/post.html?id=${p.id}">${escapeHtml(p.title || '无标题')}</a>
+  `).join('');
+}
+
+function buildArchive(posts){
+  const el = document.getElementById('archive-list');
+  const groups = {};
+  posts.forEach(p => {
+    if(!p.date) return;
+    const ym = p.date.slice(0,7);
+    groups[ym] = (groups[ym] || 0) + 1;
+  });
+  const keys = Object.keys(groups).sort().reverse();
+  el.innerHTML = `<div class="archive-label">归档</div>` + keys.map(ym => `
+    <a href="#" data-ym="${ym}">
+      <span>${ym}</span>
+      <span class="count">${groups[ym]}</span>
+    </a>
+  `).join('');
+
+  el.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const ym = a.dataset.ym;
+      const filtered = allPosts.filter(p => p.date && p.date.slice(0,7) === ym);
+      renderSections(filtered);
+      document.getElementById('content-area')?.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
+}
+
+function setupSearch(){
+  const input = document.getElementById('search-input');
+  const countEl = document.getElementById('search-count');
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim();
+    if(!q){
+      countEl.style.display = 'none';
+      renderSections(allPosts);
+      return;
+    }
+    const qLower = q.toLowerCase();
+    const matched = allPosts.filter(p =>
+      (p.title || '').toLowerCase().includes(qLower) ||
+      (p.excerpt || '').toLowerCase().includes(qLower)
+    );
+    countEl.style.display = 'block';
+    countEl.textContent = `找到 ${matched.length} 篇`;
+
+    const contentArea = document.getElementById('content-area');
+    if(matched.length === 0){
+      contentArea.innerHTML = `<div class="state-box">没有找到匹配"${escapeHtml(q)}"的文章</div>`;
+      return;
+    }
+    contentArea.innerHTML = `
+      <div class="cat-section">
+        <div class="post-grid">
+          ${matched.map(p => postCardHtml({...p, title: highlight(p.title, q), excerpt: highlight(p.excerpt, q)})).join('')}
+        </div>
+      </div>
+    `;
+  });
+}
+
+function highlight(text, q){
+  if(!text) return text;
+  const escaped = escapeHtml(text);
+  const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return escaped.replace(new RegExp('(' + escapedQ + ')', 'gi'), '<mark>$1</mark>');
+}
+
+function slugify(str){
+  return str.replace(/\s+/g, '-').toLowerCase();
+}
 function escapeHtml(str){
   const div = document.createElement('div');
-  div.textContent = str;
+  div.textContent = str == null ? '' : str;
   return div.innerHTML;
 }
 
 loadPosts();
+setupSearch();
+</script>
+
+<script>
+(function() {
+    'use strict';
+    const F3 = 1.0 / 3.0, G3 = 1.0 / 6.0;
+    const p = new Uint8Array(256);
+    for (let i = 0; i < 256; i++) p[i] = Math.floor(Math.random() * 256);
+    const perm = new Uint8Array(512), permMod12 = new Uint8Array(512);
+    for (let i = 0; i < 512; i++) { perm[i] = p[i & 255]; permMod12[i] = (perm[i] % 12); }
+    const grad3 = new Float32Array([1,1,0,-1,1,0,1,-1,0,-1,-1,0,1,0,1,-1,0,1,1,0,-1,-1,0,-1,0,1,1,0,-1,1,0,1,-1,0,-1,-1]);
+    window.simplexNoise3D = function(xin, yin, zin) {
+        let n0, n1, n2, n3;
+        let s = (xin + yin + zin) * F3;
+        let i = Math.floor(xin + s), j = Math.floor(yin + s), k = Math.floor(zin + s);
+        let t = (i + j + k) * G3;
+        let X0 = i - t, Y0 = j - t, Z0 = k - t;
+        let x0 = xin - X0, y0 = yin - Y0, z0 = zin - Z0;
+        let i1, j1, k1, i2, j2, k2;
+        if (x0 >= y0) { if (y0 >= z0) { i1=1;j1=0;k1=0;i2=1;j2=1;k2=0; } else if (x0 >= z0) { i1=1;j1=0;k1=0;i2=1;j2=0;k2=1; } else { i1=0;j1=0;k1=1;i2=1;j2=0;k2=1; } }
+        else { if (y0 < z0) { i1=0;j1=0;k1=1;i2=0;j2=1;k2=1; } else if (x0 < z0) { i1=0;j1=1;k1=0;i2=0;j2=1;k2=1; } else { i1=0;j1=1;k1=0;i2=1;j2=1;k2=0; } }
+        let x1=x0-i1+G3,y1=y0-j1+G3,z1=z0-k1+G3, x2=x0-i2+2*G3,y2=y0-j2+2*G3,z2=z0-k2+2*G3, x3=x0-1+3*G3,y3=y0-1+3*G3,z3=z0-1+3*G3;
+        let ii=i&255,jj=j&255,kk=k&255;
+        let gi0=permMod12[ii+perm[jj+perm[kk]]], gi1=permMod12[ii+i1+perm[jj+j1+perm[kk+k1]]], gi2=permMod12[ii+i2+perm[jj+j2+perm[kk+k2]]], gi3=permMod12[ii+1+perm[jj+1+perm[kk+1]]];
+        let t0=0.6-x0*x0-y0*y0-z0*z0; n0=t0<0?0:(t0*=t0,t0*t0*(grad3[gi0*3]*x0+grad3[gi0*3+1]*y0+grad3[gi0*3+2]*z0));
+        let t1=0.6-x1*x1-y1*y1-z1*z1; n1=t1<0?0:(t1*=t1,t1*t1*(grad3[gi1*3]*x1+grad3[gi1*3+1]*y1+grad3[gi1*3+2]*z1));
+        let t2=0.6-x2*x2-y2*y2-z2*z2; n2=t2<0?0:(t2*=t2,t2*t2*(grad3[gi2*3]*x2+grad3[gi2*3+1]*y2+grad3[gi2*3+2]*z2));
+        let t3=0.6-x3*x3-y3*y3-z3*z3; n3=t3<0?0:(t3*=t3,t3*t3*(grad3[gi3*3]*x3+grad3[gi3*3+1]*y3+grad3[gi3*3+2]*z3));
+        return 32.0 * (n0+n1+n2+n3);
+    };
+})();
+
+const canvas = document.getElementById('noise-canvas');
+const ctx = canvas.getContext('2d');
+const pixelRatio = 0.15;
+let width, height;
+let mouse = { x: 0.5, y: 0.5, targetX: 0.5, targetY: 0.5 };
+const colors = { bg:{r:18,g:16,b:43}, purple:{r:107,g:92,b:255}, blue:{r:92,g:225,b:230}, light:{r:255,g:140,b:217} };
+
+function resize() {
+    width = canvas.width = Math.floor(window.innerWidth * pixelRatio);
+    height = canvas.height = Math.floor(window.innerHeight * pixelRatio);
+    ctx.filter = `blur(${Math.floor(25 * pixelRatio)}px)`;
+}
+window.addEventListener('resize', resize);
+resize();
+window.addEventListener('mousemove', e => {
+    mouse.targetX = e.clientX / window.innerWidth;
+    mouse.targetY = e.clientY / window.innerHeight;
+});
+
+let time = 0;
+const speed = 0.003;
+function animate() {
+    time += speed;
+    mouse.x += (mouse.targetX - mouse.x) * 0.08;
+    mouse.y += (mouse.targetY - mouse.y) * 0.08;
+    ctx.fillStyle = `rgb(${colors.bg.r}, ${colors.bg.g}, ${colors.bg.b})`;
+    ctx.fillRect(0, 0, width, height);
+    const imgData = ctx.getImageData(0, 0, width, height);
+    const data = imgData.data;
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const idx = (y * width + x) * 4;
+            const nx = x * 0.012, ny = y * 0.012;
+            let n = window.simplexNoise3D(nx + mouse.x * 0.8, ny + mouse.y * 0.8, time) * 0.8;
+            n += window.simplexNoise3D((nx + mouse.x * 0.8) * 2, (ny + mouse.y * 0.8) * 2, time * 1.5) * 0.2;
+            let ratio = (n + 1) * 0.5;
+            const centerX = width * 0.55, centerY = height * 0.45;
+            const dist = Math.hypot(x - centerX, y - centerY);
+            const radial = Math.max(0, 1 - dist / (width * 0.5));
+            ratio = ratio * 0.7 + radial * 0.3;
+            let r, g, b;
+            if (ratio < 0.5) {
+                const t = ratio * 2;
+                r = colors.bg.r*(1-t) + colors.purple.r*t; g = colors.bg.g*(1-t) + colors.purple.g*t; b = colors.bg.b*(1-t) + colors.purple.b*t;
+            } else {
+                const t = (ratio - 0.5) * 2;
+                r = colors.purple.r*(1-t) + colors.blue.r*t; g = colors.purple.g*(1-t) + colors.blue.g*t; b = colors.purple.b*(1-t) + colors.blue.b*t;
+            }
+            r += (colors.light.r - r) * ratio * 0.1; g += (colors.light.g - g) * ratio * 0.1; b += (colors.light.b - b) * ratio * 0.1;
+            data[idx]=r; data[idx+1]=g; data[idx+2]=b; data[idx+3]=255;
+        }
+    }
+    ctx.putImageData(imgData, 0, 0);
+    requestAnimationFrame(animate);
+}
+animate();
 </script>
 
 </body>

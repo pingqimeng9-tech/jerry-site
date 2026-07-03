@@ -12,8 +12,7 @@ const n2m = new NotionToMarkdown({ notionClient: notion });
 const FIELD = {
   title: 'title',
   date: 'date',
-  category: 'category',
-  tags: 'tags'
+  category: 'category'
 };
 
 module.exports = async (req, res) => {
@@ -41,7 +40,6 @@ module.exports = async (req, res) => {
         title: getText(props[FIELD.title]),
         date: props[FIELD.date]?.date?.start || null,
         category: props[FIELD.category]?.select?.name || null,
-        tags: (props[FIELD.tags]?.multi_select || []).map(t => t.name),
         markdown: mdString.parent || ''
       }
     });
