@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>博客 · Jerry</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --glass:rgba(255,255,255,.10);
+    --glass-strong:rgba(255,255,255,.16);
+    --glass-border:rgba(255,255,255,.28);
+    --ink:#ffffff;
+    --muted:#c9c6e8;
+    --coral:#FF7A5C;
+    --aqua:#5CE1E6;
+    --violet:#B18CFF;
+    --pink:#FF8CD9;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; color:var(--ink);
+    font-family:'Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(circle at 15% 20%, #6A5CFF66, transparent 45%),
+      radial-gradient(circle at 85% 15%, #FF8CD966, transparent 45%),
+      radial-gradient(circle at 75% 80%, #5CE1E655, transparent 45%),
+      radial-gradient(circle at 20% 85%, #FF7A5C55, transparent 45%),
+      linear-gradient(135deg,#12102b,#1b1440,#0e1a3a,#1a1030);
+    background-size:200% 200%,200% 200%,200% 200%,200% 200%,400% 400%;
+    animation:bgshift 22s ease-in-out infinite;
+  }
+  @keyframes bgshift{
+    0%{background-position:0% 0%,100% 0%,100% 100%,0% 100%,0% 50%;}
+    50%{background-position:40% 60%,60% 40%,40% 60%,60% 40%,100% 50%;}
+    100%{background-position:0% 0%,100% 0%,100% 100%,0% 100%,0% 50%;}
+  }
+  a{color:inherit;text-decoration:none;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+
+  nav{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:18px clamp(20px,5vw,56px); position:sticky; top:0;
+    background:rgba(20,16,45,.45); backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px); border-bottom:1px solid var(--glass-border); z-index:50;
+  }
+  nav .logo{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;}
+  nav .links{display:flex;align-items:center;gap:8px;}
+  nav .links a{margin-left:6px;padding:8px 14px;border-radius:100px;font-size:14px;opacity:.75;transition:.2s;}
+  nav .links a:hover{opacity:1;background:var(--glass);}
+  nav .links a.active{opacity:1;background:var(--glass-strong);}
+  nav .cta{
+    padding:10px 20px;border-radius:100px;background:linear-gradient(120deg,var(--coral),var(--pink));
+    color:#1a0f2b;font-weight:700;font-size:13.5px;box-shadow:0 8px 24px -8px #FF7A5C88;transition:.25s;
+  }
+  nav .cta:hover{transform:translateY(-2px);}
+  @media (max-width:820px){ nav .links a{display:none;} }
+
+  .wrap{max-width:840px;margin:0 auto;padding:48px clamp(20px,5vw,56px) 80px;}
+  .page-title{font-family:'Noto Serif SC',serif;font-weight:900;font-size:32px;margin-bottom:8px;}
+  .page-sub{color:var(--muted);font-size:14px;margin-bottom:36px;}
+
+  .post-card{
+    background:var(--glass); border:1px solid var(--glass-border);
+    backdrop-filter:blur(16px); border-radius:18px; padding:24px 26px;
+    margin-bottom:16px; transition:.3s; display:block;
+  }
+  .post-card:hover{transform:translateY(-4px);background:var(--glass-strong);box-shadow:0 20px 45px -20px rgba(107,92,255,.5);}
+  .post-title{font-family:'Noto Serif SC',serif;font-weight:700;font-size:19px;margin-bottom:8px;}
+  .post-excerpt{font-size:13.5px;color:var(--muted);line-height:1.75;margin-bottom:12px;}
+  .post-meta{display:flex;gap:14px;font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;flex-wrap:wrap;}
+  .post-meta .tag{background:var(--glass);border:1px solid var(--glass-border);padding:2px 10px;border-radius:100px;}
+
+  .state-box{
+    text-align:center;padding:60px 20px;color:var(--muted);
+    background:var(--glass);border:1px solid var(--glass-border);border-radius:18px;
+  }
+  .state-box.error{color:#FF9E8A;}
+
+  .spinner{
+    width:26px;height:26px;border-radius:50%;
+    border:3px solid var(--glass-border);border-top-color:var(--aqua);
+    margin:0 auto 14px;animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="/">JERRY.DEV</a>
+  <div class="links">
+    <a href="/#about">我是谁</a>
+    <a href="/#timeline">经历</a>
+    <a href="/#reflect">反思</a>
+    <a href="/blog.html" class="active">博客</a>
+  </div>
+  <a href="/#contact" class="cta">联系我</a>
+</nav>
+
+<div class="wrap">
+  <div class="page-title">思维输出</div>
+  <div class="page-sub mono">// 长文与思考记录，数据来自 Notion，实时同步</div>
+
+  <div id="post-list">
+    <div class="state-box">
+      <div class="spinner"></div>
+      正在加载文章…
+    </div>
+  </div>
+</div>
+
+<script>
+async function loadPosts(){
+  const container = document.getElementById('post-list');
+  try {
+    const res = await fetch('/api/posts');
+    const data = await res.json();
+
+    if(!data.ok){
+      container.innerHTML = `<div class="state-box error">加载失败：${escapeHtml(data.error || '未知错误')}</div>`;
+      return;
+    }
+
+    if(!data.posts || data.posts.length === 0){
+      container.innerHTML = `<div class="state-box">还没有发布任何文章，去 Notion 里写第一篇吧 ✍️</div>`;
+      return;
+    }
+
+    container.innerHTML = data.posts.map(post => `
+      <a class="post-card" href="/post.html?id=${post.id}">
+        <div class="post-title">${escapeHtml(post.title || '无标题')}</div>
+        ${post.excerpt ? `<div class="post-excerpt">${escapeHtml(post.excerpt)}</div>` : ''}
+        <div class="post-meta">
+          ${post.date ? `<span>📅 ${post.date}</span>` : ''}
+          ${post.category ? `<span class="tag">${escapeHtml(post.category)}</span>` : ''}
+          ${(post.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
+        </div>
+      </a>
+    `).join('');
+
+  } catch (err) {
+    container.innerHTML = `<div class="state-box error">网络请求失败：${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+loadPosts();
+</script>
+
+</body>
+</html>

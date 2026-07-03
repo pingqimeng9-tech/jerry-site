@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>文章 · Jerry</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<!-- 用轻量的 markdown 渲染库，把接口返回的 markdown 字符串转成 HTML -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+
+<style>
+  :root{
+    --glass:rgba(255,255,255,.10); --glass-strong:rgba(255,255,255,.16); --glass-border:rgba(255,255,255,.28);
+    --ink:#ffffff; --muted:#c9c6e8; --coral:#FF7A5C; --aqua:#5CE1E6; --violet:#B18CFF; --pink:#FF8CD9;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;min-height:100vh;color:var(--ink);font-family:'Noto Sans SC',sans-serif;-webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(circle at 15% 20%, #6A5CFF66, transparent 45%),
+      radial-gradient(circle at 85% 15%, #FF8CD966, transparent 45%),
+      radial-gradient(circle at 75% 80%, #5CE1E655, transparent 45%),
+      radial-gradient(circle at 20% 85%, #FF7A5C55, transparent 45%),
+      linear-gradient(135deg,#12102b,#1b1440,#0e1a3a,#1a1030);
+    background-size:200% 200%,200% 200%,200% 200%,200% 200%,400% 400%;
+    animation:bgshift 22s ease-in-out infinite;
+  }
+  @keyframes bgshift{
+    0%{background-position:0% 0%,100% 0%,100% 100%,0% 100%,0% 50%;}
+    50%{background-position:40% 60%,60% 40%,40% 60%,60% 40%,100% 50%;}
+    100%{background-position:0% 0%,100% 0%,100% 100%,0% 100%,0% 50%;}
+  }
+  a{color:var(--aqua);}
+  .mono{font-family:'JetBrains Mono',monospace;}
+
+  nav{
+    display:flex;justify-content:space-between;align-items:center;padding:18px clamp(20px,5vw,56px);
+    position:sticky;top:0;background:rgba(20,16,45,.45);backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--glass-border);z-index:50;
+  }
+  nav .logo{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;color:#fff;}
+  nav .back{font-size:13px;color:var(--muted);padding:8px 14px;border-radius:100px;transition:.2s;}
+  nav .back:hover{background:var(--glass);color:#fff;}
+
+  .wrap{max-width:760px;margin:0 auto;padding:48px clamp(20px,5vw,56px) 90px;}
+
+  .article-card{
+    background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(18px);
+    border-radius:20px;padding:34px clamp(20px,4vw,44px);
+  }
+  .breadcrumb{font-size:12px;color:var(--muted);margin-bottom:14px;}
+  .a-title{font-family:'Noto Serif SC',serif;font-weight:900;font-size:clamp(24px,4vw,32px);line-height:1.35;margin-bottom:14px;}
+  .a-meta{display:flex;gap:14px;font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:28px;flex-wrap:wrap;}
+  .a-meta .tag{background:rgba(255,255,255,.06);border:1px solid var(--glass-border);padding:2px 10px;border-radius:100px;}
+
+  .a-body{font-size:15px;line-height:2;color:#e8e6fb;}
+  .a-body h1, .a-body h2, .a-body h3{font-family:'Noto Serif SC',serif;color:#fff;margin:28px 0 12px;}
+  .a-body h1{font-size:24px;} .a-body h2{font-size:20px;} .a-body h3{font-size:17px;}
+  .a-body p{margin-bottom:14px;}
+  .a-body img{max-width:100%;border-radius:12px;margin:10px 0;}
+  .a-body code{background:rgba(0,0,0,.35);padding:2px 6px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;}
+  .a-body pre{background:rgba(0,0,0,.4);padding:16px;border-radius:12px;overflow-x:auto;border:1px solid var(--glass-border);}
+  .a-body pre code{background:none;padding:0;}
+  .a-body blockquote{border-left:3px solid var(--coral);padding-left:16px;color:var(--muted);margin:16px 0;}
+  .a-body ul, .a-body ol{padding-left:22px;margin-bottom:14px;}
+  .a-body li{margin-bottom:6px;}
+
+  .state-box{text-align:center;padding:60px 20px;color:var(--muted);}
+  .state-box.error{color:#FF9E8A;}
+  .spinner{width:26px;height:26px;border-radius:50%;border:3px solid var(--glass-border);border-top-color:var(--aqua);margin:0 auto 14px;animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="/">JERRY.DEV</a>
+  <a class="back" href="/blog.html">← 返回博客</a>
+</nav>
+
+<div class="wrap">
+  <div id="article-container">
+    <div class="article-card">
+      <div class="state-box">
+        <div class="spinner"></div>
+        正在加载文章…
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+async function loadPost(){
+  const container = document.getElementById('article-container');
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+
+  if(!id){
+    container.innerHTML = `<div class="article-card"><div class="state-box error">缺少文章 id，请从博客列表页点进来</div></div>`;
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/post?id=' + encodeURIComponent(id));
+    const data = await res.json();
+
+    if(!data.ok){
+      container.innerHTML = `<div class="article-card"><div class="state-box error">加载失败：${escapeHtml(data.error || '未知错误')}</div></div>`;
+      return;
+    }
+
+    const post = data.post;
+    document.title = (post.title || '文章') + ' · Jerry';
+
+    container.innerHTML = `
+      <div class="article-card">
+        <div class="breadcrumb mono">首页 / 博客 ${post.category ? '/ ' + escapeHtml(post.category) : ''}</div>
+        <div class="a-title">${escapeHtml(post.title || '无标题')}</div>
+        <div class="a-meta">
+          ${post.date ? `<span>📅 ${post.date}</span>` : ''}
+          ${(post.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
+        </div>
+        <div class="a-body" id="a-body"></div>
+      </div>
+    `;
+
+    // markdown 转 HTML（marked 库已经会做基本的转义，避免 XSS 直接注入脚本标签）
+    document.getElementById('a-body').innerHTML = marked.parse(post.markdown || '（正文为空）');
+
+  } catch (err) {
+    container.innerHTML = `<div class="article-card"><div class="state-box error">网络请求失败：${escapeHtml(err.message)}</div></div>`;
+  }
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+loadPost();
+</script>
+
+</body>
+</html>
