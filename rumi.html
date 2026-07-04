@@ -44,7 +44,7 @@
 
   .wrap{max-width:1120px;margin:0 auto;padding:0 clamp(20px,5vw,56px);position:relative;z-index:2;}
 
-  /* ============ STICKERS (占位贴纸) ============ */
+  /* ============ STICKERS ============ */
   .sticker{position:absolute;pointer-events:none;filter:drop-shadow(0 6px 10px rgba(46,42,71,.12));animation:float 6s ease-in-out infinite;z-index:1;}
   .sticker.slow{animation-duration:9s;}
   .sticker.rev{animation-direction:reverse;}
@@ -85,27 +85,21 @@
   @media (max-width:860px){ nav .links{display:none;} }
 
   /* ============ HERO + VIDEO 滚动转场 ============ */
-  /* 【修改点】：高度改成了 150vh，滚两下就到底了，速度刚刚好 */
+  /* 修改点1：高度翻倍，从 150vh 改成 300vh，这样滚动速度就慢了一倍 */
   .hero-scroll-wrapper{
     position:relative;
-    height:150vh; 
+    height:300vh; 
   }
   .hero-stage{
     position:sticky;
     top:var(--nav-h, 64px); 
     width:100%;height:min(100vh,860px);min-height:560px;background:#0b0a12;overflow:hidden;
   }
-  .hero-stage video,.hero-stage .poster-fallback{
+  
+  /* 去掉了那个蓝色的 .poster-fallback 占位样式 */
+  .hero-stage video {
     position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
   }
-  .poster-fallback{
-    background:
-      radial-gradient(circle at 20% 20%, #ffffff22, transparent 45%),
-      linear-gradient(160deg,var(--sky) 0%, var(--sky-deep) 45%, #1c2b6b 100%);
-    display:flex;align-items:center;justify-content:center;
-    color:#fff;text-align:center;font-size:14px;opacity:.85;
-  }
-  .poster-fallback small{display:block;margin-top:6px;opacity:.7;font-weight:400;}
   
   .hero-stage::before{
     content:"";position:absolute;inset:0;background:#0b0a12;opacity:0;
@@ -175,7 +169,6 @@
   .section-head.center{text-align:center;}
   .section-head.center .lede{margin-left:auto;margin-right:auto;}
 
-  /* 隐藏非核心代码的样式，保持整洁，下方的内容均与你原来一致 */
   .char-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;}
   .char-card{background:var(--card);border-radius:26px;padding:20px 18px 22px;text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--line);position:relative;transition:.25s;}
   .char-card:hover{transform:translateY(-6px);box-shadow:var(--shadow);}
@@ -263,15 +256,14 @@
   <a href="#contact" class="cta">预约体验课</a>
 </nav>
 
+<!-- ============ HERO：开场视频 + 滚动控制 ============ -->
 <div class="hero-scroll-wrapper" id="heroScrollWrapper">
 <div class="hero-stage" id="top">
-  <video id="heroVideo" muted playsinline preload="auto" poster="images/rumi/hero-poster.jpg"
-    onerror="this.style.display='none'">
+  
+  <!-- 修改点2：删除了这里的 .poster-fallback 占位层，现在只会显示纯净的视频 -->
+  <video id="heroVideo" muted playsinline preload="auto" poster="images/rumi/hero-poster.jpg">
     <source src="videos/rumi-hero.mp4" type="video/mp4">
   </video>
-  <div class="poster-fallback">
-    <div>🎬 开场视频占位<br><small>请替换为 videos/rumi-hero.mp4（4秒 · 结尾黑场）</small></div>
-  </div>
 
   <div class="hero-copy">
     <div class="hero-eyebrow">🐾 适龄 3–8 岁 · 原创动画英语</div>
@@ -282,11 +274,13 @@
       <a href="#characters" class="btn ghost">认识 Rumi 和朋友们</a>
     </div>
   </div>
-  <div class="scroll-cue">往下划<div class="chevron"></div></div>
+  <!-- 滚动提示语，现在也会等到最后才消失/出现 -->
+  <div class="scroll-cue show">往下划<div class="chevron"></div></div>
 </div>
 </div>
 
 <div class="wrap">
+  <!-- 内容区维持原样 -->
   <section class="section" id="characters">
     <div class="section-head center">
       <div class="eyebrow-tag">👋 角色世界</div>
@@ -353,7 +347,6 @@
 <footer>Rumi英语 · 一个 <a href="index.html">JERRY.DEV</a> 出品的小项目</footer>
 
 <script>
-/* ============ 核心重构：滚动条控制视频播放进度 ============ */
 (function(){
   const scrollWrapper = document.getElementById('heroScrollWrapper');
   const stage = document.querySelector('.hero-stage');
@@ -374,37 +367,35 @@
     const relativeScroll = window.scrollY - wrapperTop;
     
     let progress = relativeScroll / scrollRange;
-    progress = Math.max(0, Math.min(1, progress)); // 限制在 0 到 1 之间
+    progress = Math.max(0, Math.min(1, progress));
 
-    // 2. 将比例映射到视频时间 (如果视频加载出了 duration)
+    // 2. 将比例映射到视频时间
     if (video.duration && !isNaN(video.duration)) {
       video.currentTime = progress * video.duration;
     }
 
-    // 3. 当滚动进度超过 85% 时，显示文案（揭幕）
-    if (progress > 0.85) {
+    // 修改点3：把出现的触发点改成了 0.95
+    // 意思是：等视频进度达到 95%（即将完全播完黑场时），上面的文字才会出现，自然衔接下方内容
+    if (progress > 0.95) {
       if (!revealed) {
         revealed = true;
         stage.classList.add('revealed');
         heroCopy.classList.add('show');
-        scrollCue.classList.add('show');
+        scrollCue.classList.remove('show'); // 滚完了就隐藏"往下划"
       }
     } else {
-      // 往回滚时，收起文案，视频倒退
       if (revealed) {
         revealed = false;
         stage.classList.remove('revealed');
         heroCopy.classList.remove('show');
-        scrollCue.classList.remove('show');
+        scrollCue.classList.add('show');
       }
     }
   }
 
-  // 使用 requestAnimationFrame 保证丝滑，代替低效的直接监听 scroll
   window.addEventListener('scroll', () => {
     window.requestAnimationFrame(updateVideoOnScroll);
   });
-  // 防止用户缩放窗口导致比例计算错误
   window.addEventListener('resize', () => {
     window.requestAnimationFrame(updateVideoOnScroll);
   });
