@@ -97,8 +97,8 @@
   }
   
   /* 去掉了那个蓝色的 .poster-fallback 占位样式 */
-  .hero-stage video {
-    position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  .hero-stage canvas {
+    position:absolute;inset:0;width:100%;height:100%;display:block;background:#0b0a12;
   }
   
   .hero-stage::before{
@@ -260,10 +260,8 @@
 <div class="hero-scroll-wrapper" id="heroScrollWrapper">
 <div class="hero-stage" id="top">
   
-  <!-- 修改点2：删除了这里的 .poster-fallback 占位层，现在只会显示纯净的视频 -->
-  <video id="heroVideo" muted playsinline preload="auto" poster="images/rumi/hero-poster.jpg">
-    <source src="videos/rumi-hero.mp4" type="video/mp4">
-  </video>
+  <!-- 帧序列画布：用逐帧图片代替视频，滚动跳转不再依赖视频解码，彻底消除卡顿 -->
+  <canvas id="heroCanvas"></canvas>
 
   <div class="hero-copy">
     <div class="hero-eyebrow">🐾 适龄 3–8 岁 · 原创动画英语</div>
@@ -350,55 +348,91 @@
 (function(){
   const scrollWrapper = document.getElementById('heroScrollWrapper');
   const stage = document.querySelector('.hero-stage');
-  const video = document.getElementById('heroVideo');
+  const canvas = document.getElementById('heroCanvas');
   const heroCopy = document.querySelector('.hero-copy');
   const scrollCue = document.querySelector('.scroll-cue');
   let revealed = false;
 
-  if (!scrollWrapper || !video) return;
+  if (!scrollWrapper || !canvas) return;
+  const ctx = canvas.getContext('2d');
 
-  // 强制预加载视频，防止移动端不渲染
-  video.load();
+  // ============ 帧序列配置 ============
+  // 换素材时只需要改这两行：总帧数 + 命名规则
+  const FRAME_COUNT = 60;
+  const FRAME_PATH = i => `images/rumi/hero-frames/frame_${String(i).padStart(3,'0')}.webp`;
 
-  function updateVideoOnScroll() {
-    // 1. 计算当前的滚动比例
+  const frames = [];
+  let currentIndex = -1;
+
+  // 预加载全部帧（每张几十KB，60张约3MB，正常网络下很快）
+  for (let i = 1; i <= FRAME_COUNT; i++){
+    const img = new Image();
+    img.src = FRAME_PATH(i);
+    if (i === 1){
+      img.onload = () => { if (currentIndex === -1) drawFrame(0); };
+    }
+    frames.push(img);
+  }
+
+  function resizeCanvas(){
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(stage.clientWidth * dpr);
+    canvas.height = Math.round(stage.clientHeight * dpr);
+    if (currentIndex >= 0) drawFrame(currentIndex, true);
+  }
+
+  // object-fit: cover 的手动实现
+  function drawFrame(index, force){
+    const img = frames[index];
+    if (!img || !img.complete || !img.naturalWidth) return;
+    if (!force && index === currentIndex) return;
+    currentIndex = index;
+    const cw = canvas.width, ch = canvas.height;
+    const iw = img.naturalWidth, ih = img.naturalHeight;
+    const scale = Math.max(cw / iw, ch / ih);
+    const dw = iw * scale, dh = ih * scale;
+    const dx = (cw - dw) / 2, dy = (ch - dh) / 2;
+    ctx.clearRect(0, 0, cw, ch);
+    ctx.drawImage(img, dx, dy, dw, dh);
+  }
+
+  function updateOnScroll(){
     const wrapperTop = scrollWrapper.offsetTop;
     const scrollRange = scrollWrapper.offsetHeight - window.innerHeight;
     const relativeScroll = window.scrollY - wrapperTop;
-    
-    let progress = relativeScroll / scrollRange;
+    let progress = scrollRange > 0 ? relativeScroll / scrollRange : 0;
     progress = Math.max(0, Math.min(1, progress));
 
-    // 2. 将比例映射到视频时间
-    if (video.duration && !isNaN(video.duration)) {
-      video.currentTime = progress * video.duration;
-    }
+    const targetIndex = Math.round(progress * (FRAME_COUNT - 1));
+    drawFrame(targetIndex);
 
-    // 修改点3：把出现的触发点改成了 0.95
-    // 意思是：等视频进度达到 95%（即将完全播完黑场时），上面的文字才会出现，自然衔接下方内容
+    // 滚到95%再让文字淡入，衔接下方内容
     if (progress > 0.95) {
       if (!revealed) {
         revealed = true;
         stage.classList.add('revealed');
         heroCopy.classList.add('show');
-        scrollCue.classList.remove('show'); // 滚完了就隐藏"往下划"
+        scrollCue.classList.remove('show');
       }
-    } else {
-      if (revealed) {
-        revealed = false;
-        stage.classList.remove('revealed');
-        heroCopy.classList.remove('show');
-        scrollCue.classList.add('show');
-      }
+    } else if (revealed) {
+      revealed = false;
+      stage.classList.remove('revealed');
+      heroCopy.classList.remove('show');
+      scrollCue.classList.add('show');
     }
   }
 
-  window.addEventListener('scroll', () => {
-    window.requestAnimationFrame(updateVideoOnScroll);
-  });
-  window.addEventListener('resize', () => {
-    window.requestAnimationFrame(updateVideoOnScroll);
-  });
+  // 防抖：滚动再快也只排一个待执行的 rAF，避免任务堆积卡顿
+  let ticking = false;
+  function onScroll(){
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => { updateOnScroll(); ticking = false; });
+  }
+
+  resizeCanvas();
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', resizeCanvas);
 })();
 
 /* ============ 复制微信号/QQ号 ============ */
