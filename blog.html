@@ -18,95 +18,6 @@
   #canvas-container{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
   #noise-canvas{ width:100%; height:100%; display:block; }
 
-  /* ===== 开场仪式感：底部漏出的平板 + 静态大字压叠 + 屏幕内打字机 ===== */
-  #tablet-frame{
-    position:fixed;
-    inset:0;
-    z-index:100;
-    pointer-events:none;
-    perspective:1400px;
-    overflow:hidden;
-    background:rgba(0,0,0, var(--f-vignette, 1));
-  }
-
-  /* 静态大字：不打字，全程显示，只在最后阶段和平板一起淡出 */
-  .intro-title{
-    position:absolute;
-    top:32vh;
-    left:50%;
-    transform:translate(-50%, -50%);
-    text-align:center;
-    width:90vw;
-    z-index:1;
-    opacity:var(--f-title-opacity, 1);
-  }
-  .intro-eyebrow{
-    font-size:15px;
-    color:#c9c6e8;
-    font-family:'Noto Sans SC',sans-serif;
-    margin-bottom:6px;
-  }
-  .intro-headline{
-    font-family:'Noto Serif SC',serif;
-    font-weight:900;
-    font-size:clamp(36px, 7vw, 76px);
-    color:#fff;
-    line-height:1.2;
-  }
-
-  /* 平板：初始位置压在大字下方、底部裁在视口外，滚动后升起+放大铺满 */
-  #tablet-frame .frame-box{
-    position:absolute;
-    top:var(--f-top, 48vh);
-    left:50%;
-    transform:
-      translateX(-50%)
-      rotateX(var(--f-rotate, 18deg))
-      scale(var(--f-scale, 0.96));
-    transform-origin:center top;
-    width:min(var(--f-width, 78vw), 900px);
-    height:var(--f-height, 62vh);
-    border-radius:var(--f-radius, 30px);
-    border:var(--f-border, 10px) solid #3a3745;
-    background:#1c1a2e;
-    box-shadow:
-      0 40px 90px -20px rgba(0,0,0,.7),
-      inset 0 0 0 2px rgba(255,255,255,.04);
-    overflow:hidden;
-    z-index:2;
-  }
-  .frame-watermark{
-    position:absolute;
-    top:16px; left:20px;
-    font-size:11px;
-    color:rgba(255,255,255,.35);
-    font-family:'JetBrains Mono',monospace;
-    letter-spacing:.05em;
-  }
-
-  /* 屏幕内的打字机内容 */
-  .frame-screen-text{
-    position:absolute;
-    top:50%; left:50%;
-    transform:translate(-50%,-50%);
-    width:80%;
-    text-align:center;
-    font-family:'JetBrains Mono',monospace;
-    font-size:clamp(14px, 1.8vw, 19px);
-    color:#e8e6fb;
-    line-height:1.9;
-  }
-  .frame-screen-line{min-height:1.9em;}
-  .frame-screen-line.dim{color:#8b86ab;font-size:0.85em;}
-  .frame-cursor{
-    display:inline-block;
-    width:2px;
-    margin-left:2px;
-    background:#5CE1E6;
-    animation:cursorBlink 1s step-end infinite;
-  }
-  @keyframes cursorBlink{ 50%{ opacity:0; } }
-
   a{color:inherit;text-decoration:none;}
   .mono{font-family:'JetBrains Mono',monospace;}
   .serif{font-family:'Noto Serif SC',serif;}
@@ -199,20 +110,6 @@
 <body>
 
 <div id="canvas-container"><canvas id="noise-canvas"></canvas></div>
-
-<div id="tablet-frame">
-  <div class="intro-title">
-    <div class="intro-eyebrow">Jerry说：</div>
-    <div class="intro-headline">原神牛逼</div>
-  </div>
-  <div class="frame-box">
-    <div class="frame-watermark">// jerry.dev</div>
-    <div class="frame-screen-text">
-      <div class="frame-screen-line" id="typeline-1"></div>
-      <div class="frame-screen-line dim" id="typeline-2"></div>
-    </div>
-  </div>
-</div>
 
 <nav>
   <a class="logo" href="/">JERRY.DEV</a>
@@ -469,95 +366,7 @@ function escapeHtml(str){
 
 loadPosts();
 setupSearch();
-setupTypewriter();
-setupTabletFrame();
-
-// ===== 屏幕内打字机：先打第一行，停顿后打第二行，都只播一次不循环 =====
-function setupTypewriter(){
-  const line1 = document.getElementById('typeline-1');
-  const line2 = document.getElementById('typeline-2');
-  const text1 = '欢迎来到jerry博客站';
-  const text2 = '我在打原神，有事请烧纸联系';
-
-  function typeInto(el, text, onDone){
-    let i = 0;
-    const cursor = document.createElement('span');
-    cursor.className = 'frame-cursor';
-    el.appendChild(cursor);
-    (function step(){
-      if(i < text.length){
-        cursor.insertAdjacentText('beforebegin', text[i]);
-        i++;
-        setTimeout(step, 110);
-      } else if(onDone){
-        cursor.remove(); // 这一行打完，光标挪到下一行去，不留两个光标同时闪
-        onDone();
-      }
-    })();
-  }
-
-  setTimeout(() => {
-    typeInto(line1, text1, () => {
-      setTimeout(() => typeInto(line2, text2, null), 400);
-    });
-  }, 500);
-}
-
-// ===== 开场仪式感：分两个阶段 =====
-// 阶段一（0 → EXPAND_END）：平板从底部露半边升起、放大铺满全屏，静态大字全程不动
-// 阶段二（EXPAND_END → 1）：平板必须先完全放大到位，这个阶段才开始让整体淡出，露出真实博客
-function setupTabletFrame(){
-  const frame = document.getElementById('tablet-frame');
-
-  function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
-
-  const SCROLL_RANGE = Math.max(window.innerHeight * 1.4, 800);
-  const EXPAND_END = 0.65; // 前65%的滚动距离用来完成"升起+放大"，后35%才开始淡出
-
-  let ticking = false;
-  function update(){
-    const raw = Math.min(1, Math.max(0, window.scrollY / SCROLL_RANGE));
-
-    // ---- 阶段一：升起 + 放大 ----
-    const expandRaw = Math.min(1, raw / EXPAND_END);
-    const p = easeOutCubic(expandRaw);
-
-    frame.style.setProperty('--f-top', (48 - 48 * p) + 'vh');
-    frame.style.setProperty('--f-rotate', (18 - 18 * p) + 'deg');
-    frame.style.setProperty('--f-scale', (0.96 + 0.1 * p));
-    frame.style.setProperty('--f-radius', (30 - 30 * p) + 'px');
-    frame.style.setProperty('--f-border', (10 - 10 * p) + 'px');
-    frame.style.setProperty('--f-width', (78 + 22 * p) + 'vw');
-    frame.style.setProperty('--f-height', (62 + 38 * p) + 'vh');
-    frame.style.setProperty('--f-title-opacity', 1);
-    frame.style.setProperty('--f-vignette', 1);
-    frame.style.opacity = 1;
-
-    // ---- 阶段二：平板已完全到位后，才开始整体淡出 ----
-    if(raw > EXPAND_END){
-      const fadeRaw = (raw - EXPAND_END) / (1 - EXPAND_END);
-      const fadeEase = easeOutCubic(fadeRaw);
-      frame.style.opacity = 1 - fadeEase;
-      frame.style.setProperty('--f-vignette', 1 - fadeEase);
-    }
-
-    frame.style.display = raw >= 1 ? 'none' : 'block';
-
-    ticking = false;
-  }
-
-  window.addEventListener('scroll', () => {
-    if(!ticking){
-      requestAnimationFrame(update);
-      ticking = true;
-    }
-  }, { passive: true });
-
-  update();
-}
 </script>
-
-
 
 <script>
 (function() {
