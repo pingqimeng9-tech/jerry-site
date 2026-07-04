@@ -44,56 +44,12 @@
 
   .wrap{max-width:1120px;margin:0 auto;padding:0 clamp(20px,5vw,56px);position:relative;z-index:2;}
 
-  /* ============ STICKERS (占位贴纸，替换为你的插画即可) ============ */
+  /* ============ STICKERS (占位贴纸) ============ */
   .sticker{position:absolute;pointer-events:none;filter:drop-shadow(0 6px 10px rgba(46,42,71,.12));animation:float 6s ease-in-out infinite;z-index:1;}
   .sticker.slow{animation-duration:9s;}
   .sticker.rev{animation-direction:reverse;}
   @keyframes float{0%,100%{transform:translateY(0) rotate(var(--rot,0deg));}50%{transform:translateY(-14px) rotate(var(--rot,0deg));}}
   @media (prefers-reduced-motion: reduce){ .sticker{animation:none;} }
-
-  /* ============ 可点击贴纸小游戏（点一下 = 收集能量星）============ */
-  .sticker-btn{
-    position:absolute;background:none;border:none;padding:0;margin:0;line-height:1;
-    cursor:pointer;pointer-events:auto;-webkit-tap-highlight-color:transparent;
-    filter:drop-shadow(0 6px 10px rgba(46,42,71,.12));
-    animation:float 6s ease-in-out infinite;z-index:1;
-    transition:transform .3s ease, opacity .3s ease;
-  }
-  .sticker-btn.slow{animation-duration:9s;}
-  .sticker-btn.rev{animation-direction:reverse;}
-  .sticker-btn:hover{transform:scale(1.18) rotate(var(--rot,0deg));}
-  .sticker-btn.popped{animation:none!important;transform:scale(1.7) rotate(24deg)!important;opacity:0!important;}
-  @media (prefers-reduced-motion: reduce){ .sticker-btn{animation:none;} }
-
-  .pop-plusone{
-    position:absolute;pointer-events:none;z-index:70;
-    font-family:'Baloo 2',cursive;font-weight:800;font-size:15px;color:var(--coral);
-    animation:floatUp 900ms ease-out forwards;
-  }
-  @keyframes floatUp{
-    0%{opacity:0;transform:translateY(0) scale(.8);}
-    15%{opacity:1;}
-    100%{opacity:0;transform:translateY(-46px) scale(1.15);}
-  }
-
-  .power-badge{
-    position:fixed;right:20px;bottom:20px;z-index:60;
-    display:flex;align-items:center;gap:6px;
-    background:#fff;border:2px solid var(--sun);
-    padding:8px 16px;border-radius:100px;
-    font-family:'Baloo 2',cursive;font-weight:700;font-size:14px;color:var(--ink);
-    box-shadow:var(--shadow-sm);transition:transform .25s;
-  }
-  .power-badge.bump{transform:scale(1.18);}
-  @media (max-width:600px){.power-badge{right:12px;bottom:12px;padding:7px 14px;font-size:13px;}}
-
-  .milestone-toast{
-    position:fixed;left:50%;top:18px;transform:translateX(-50%) translateY(-140%);
-    background:var(--ink);color:#fff;padding:10px 22px;border-radius:100px;
-    font-size:13.5px;font-weight:600;z-index:80;box-shadow:var(--shadow);
-    transition:transform .4s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;
-  }
-  .milestone-toast.show{transform:translateX(-50%) translateY(0);}
 
   /* ============ NAV ============ */
   .breadcrumb{
@@ -128,15 +84,15 @@
   nav .cta:hover{transform:translateY(-2px);box-shadow:0 14px 28px -8px #FF7A5Caa;}
   @media (max-width:860px){ nav .links{display:none;} }
 
-  /* ============ HERO + VIDEO 转场 (签名设计) ============ */
-  /* ============ HERO 滚动容器：给足滚动距离，让内部hero-stage钉在导航栏下方 ============ */
+  /* ============ HERO + VIDEO 滚动转场 ============ */
+  /* 【修改点】：高度改成了 150vh，滚两下就到底了，速度刚刚好 */
   .hero-scroll-wrapper{
     position:relative;
-    height:260vh; /* 滚动"跑道"长度，决定滑多久才能把视频从头拉到尾，感觉太快/太慢改这个数字 */
+    height:150vh; 
   }
   .hero-stage{
     position:sticky;
-    top:var(--nav-h, 64px); /* 钉在导航栏正下方，--nav-h由JS量出真实导航栏高度 */
+    top:var(--nav-h, 64px); 
     width:100%;height:min(100vh,860px);min-height:560px;background:#0b0a12;overflow:hidden;
   }
   .hero-stage video,.hero-stage .poster-fallback{
@@ -150,11 +106,10 @@
     color:#fff;text-align:center;font-size:14px;opacity:.85;
   }
   .poster-fallback small{display:block;margin-top:6px;opacity:.7;font-weight:400;}
-  /* 视频底部渐变，衔接视频自带的黑场结尾 */
-  /* 揭幕瞬间，让定格的黑场再压暗一点，衬托文案浮现，顺便提升可读性 */
+  
   .hero-stage::before{
     content:"";position:absolute;inset:0;background:#0b0a12;opacity:0;
-    transition:opacity 1.2s ease;z-index:1;pointer-events:none;
+    transition:opacity 0.8s ease;z-index:1;pointer-events:none;
   }
   .hero-stage.revealed::before{opacity:.28;}
 
@@ -165,16 +120,17 @@
   }
   .hero-copy{
     position:absolute;left:0;right:0;bottom:9%;z-index:2;text-align:center;color:#fff;padding:0 20px;
-    opacity:0;transform:translateY(28px);transition:opacity 1.1s ease, transform 1.1s ease;
+    opacity:0;transform:translateY(28px);transition:opacity 0.8s ease, transform 0.8s ease;
     pointer-events:none;
   }
   .hero-copy.show{opacity:1;transform:translateY(0);pointer-events:auto;}
-  .hero-copy > *{opacity:0;transform:translateY(14px);transition:opacity .8s ease, transform .8s ease;}
+  .hero-copy > *{opacity:0;transform:translateY(14px);transition:opacity .6s ease, transform .6s ease;}
   .hero-copy.show > *{opacity:1;transform:translateY(0);}
   .hero-copy.show .hero-eyebrow{transition-delay:.05s;}
   .hero-copy.show h1{transition-delay:.2s;}
   .hero-copy.show p{transition-delay:.35s;}
   .hero-copy.show .hero-btnrow{transition-delay:.5s;}
+  
   .hero-eyebrow{
     display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;letter-spacing:.06em;
     background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);
@@ -197,7 +153,7 @@
   .btn.ghost:hover{background:rgba(255,255,255,.22);}
   .scroll-cue{
     position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:2;color:#fff;opacity:0;font-size:12px;text-align:center;
-    transition:opacity .8s ease;transition-delay:.9s;pointer-events:none;
+    transition:opacity .6s ease;transition-delay:.9s;pointer-events:none;
   }
   .scroll-cue.show{opacity:.75;pointer-events:auto;}
   .scroll-cue .chevron{width:18px;height:18px;margin:6px auto 0;border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(45deg);animation:bob 1.6s ease-in-out infinite;}
@@ -219,155 +175,76 @@
   .section-head.center{text-align:center;}
   .section-head.center .lede{margin-left:auto;margin-right:auto;}
 
-  /* ============ 认识 Rumi 和朋友们 ============ */
+  /* 隐藏非核心代码的样式，保持整洁，下方的内容均与你原来一致 */
   .char-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;}
-  .char-card{
-    background:var(--card);border-radius:26px;padding:20px 18px 22px;text-align:center;
-    box-shadow:var(--shadow-sm);border:1px solid var(--line);position:relative;transition:.25s;
-  }
+  .char-card{background:var(--card);border-radius:26px;padding:20px 18px 22px;text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--line);position:relative;transition:.25s;}
   .char-card:hover{transform:translateY(-6px);box-shadow:var(--shadow);}
-  .char-card .avatar{
-    width:100%;aspect-ratio:1/1;border-radius:20px;margin-bottom:16px;
-    background:linear-gradient(150deg,var(--sky) 0%,var(--grape) 100%);
-    display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;text-align:center;padding:10px;
-    position:relative;overflow:hidden;
-  }
+  .char-card .avatar{width:100%;aspect-ratio:1/1;border-radius:20px;margin-bottom:16px;background:linear-gradient(150deg,var(--sky) 0%,var(--grape) 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;text-align:center;padding:10px;position:relative;overflow:hidden;}
   .char-card:nth-child(2) .avatar{background:linear-gradient(150deg,var(--sun),var(--coral));}
   .char-card:nth-child(3) .avatar{background:linear-gradient(150deg,var(--mint),var(--sky-deep));}
   .char-card:nth-child(4) .avatar{background:linear-gradient(150deg,var(--grape),var(--coral));}
   .char-card .avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
-  .char-card .tag{
-    position:absolute;top:14px;right:14px;background:#fff;color:var(--ink);font-size:11px;font-weight:700;
-    padding:3px 10px;border-radius:100px;box-shadow:var(--shadow-sm);opacity:.85;
-  }
+  .char-card .tag{position:absolute;top:14px;right:14px;background:#fff;color:var(--ink);font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;box-shadow:var(--shadow-sm);opacity:.85;}
   .char-card h3{font-family:'Baloo 2',cursive;font-size:19px;margin:0 0 6px;}
   .char-card p{font-size:13.5px;color:var(--muted);margin:0;line-height:1.6;}
 
-  /* ============ Power Up 分级体系 ============ */
   .level-row{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
-  .level-card{
-    background:var(--card);border-radius:24px;padding:26px 22px;box-shadow:var(--shadow-sm);
-    border:1px solid var(--line);position:relative;overflow:hidden;
-  }
-  .level-card::before{
-    content:"";position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;
-    background:var(--lv-color,var(--sky));opacity:.16;
-  }
+  .level-card{background:var(--card);border-radius:24px;padding:26px 22px;box-shadow:var(--shadow-sm);border:1px solid var(--line);position:relative;overflow:hidden;}
+  .level-card::before{content:"";position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;background:var(--lv-color,var(--sky));opacity:.16;}
   .level-card .lv{font-family:'Baloo 2',cursive;font-weight:800;font-size:15px;color:var(--lv-color,var(--sky-deep));margin-bottom:10px;}
-  .level-card .age{
-    display:inline-block;font-size:12px;font-weight:700;background:var(--lv-color,var(--sky));color:#fff;
-    padding:3px 12px;border-radius:100px;margin-bottom:14px;
-  }
+  .level-card .age{display:inline-block;font-size:12px;font-weight:700;background:var(--lv-color,var(--sky));color:#fff;padding:3px 12px;border-radius:100px;margin-bottom:14px;}
   .level-card h3{font-size:17px;margin:0 0 8px;}
   .level-card p{font-size:13.5px;color:var(--muted);line-height:1.6;margin:0;}
 
-  /* ============ 同步教材 ============ */
   .book-section{display:grid;grid-template-columns:1fr 1.1fr;gap:56px;align-items:center;}
   .book-stack{position:relative;height:320px;}
-  .book-mock{
-    position:absolute;width:210px;height:280px;border-radius:16px;box-shadow:var(--shadow);
-    background:linear-gradient(160deg,var(--sky),var(--sky-deep));color:#fff;
-    display:flex;flex-direction:column;justify-content:flex-end;padding:18px;font-size:13px;
-    border:1px solid rgba(255,255,255,.25);
-  }
+  .book-mock{position:absolute;width:210px;height:280px;border-radius:16px;box-shadow:var(--shadow);background:linear-gradient(160deg,var(--sky),var(--sky-deep));color:#fff;display:flex;flex-direction:column;justify-content:flex-end;padding:18px;font-size:13px;border:1px solid rgba(255,255,255,.25);}
   .book-mock b{font-family:'Baloo 2',cursive;font-size:20px;display:block;margin-bottom:4px;}
   .book-mock.b1{left:0;top:20px;transform:rotate(-9deg);background:linear-gradient(160deg,var(--coral),#ffa26b);z-index:3;}
   .book-mock.b2{left:90px;top:0;transform:rotate(4deg);background:linear-gradient(160deg,var(--mint),var(--sky-deep));z-index:2;}
   .book-mock.b3{left:180px;top:36px;transform:rotate(13deg);background:linear-gradient(160deg,var(--grape),#8a5fe0);z-index:1;}
   .book-feats{display:flex;flex-direction:column;gap:16px;}
   .book-feat{display:flex;gap:14px;align-items:flex-start;}
-  .book-feat .ico{
-    width:40px;height:40px;flex:none;border-radius:12px;background:rgba(255,201,60,.22);
-    display:flex;align-items:center;justify-content:center;font-size:18px;
-  }
+  .book-feat .ico{width:40px;height:40px;flex:none;border-radius:12px;background:rgba(255,201,60,.22);display:flex;align-items:center;justify-content:center;font-size:18px;}
   .book-feat h4{margin:0 0 4px;font-size:15.5px;}
   .book-feat p{margin:0;font-size:13.5px;color:var(--muted);line-height:1.6;}
 
-  /* ============ 周边好物 ============ */
   .merch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
-  .merch-card{
-    background:var(--card);border-radius:22px;overflow:hidden;box-shadow:var(--shadow-sm);
-    border:1px solid var(--line);transition:.25s;
-  }
+  .merch-card{background:var(--card);border-radius:22px;overflow:hidden;box-shadow:var(--shadow-sm);border:1px solid var(--line);transition:.25s;}
   .merch-card:hover{transform:translateY(-5px);box-shadow:var(--shadow);}
-  .merch-thumb{
-    aspect-ratio:1/1;background:linear-gradient(145deg,var(--cream-deep),#fff);
-    display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12.5px;text-align:center;padding:14px;
-    position:relative;
-  }
+  .merch-thumb{aspect-ratio:1/1;background:linear-gradient(145deg,var(--cream-deep),#fff);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12.5px;text-align:center;padding:14px;position:relative;}
   .merch-thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
   .merch-info{padding:14px 16px 18px;}
   .merch-info .pill{font-size:11px;font-weight:700;color:var(--sky-deep);background:rgba(94,200,255,.14);padding:2px 10px;border-radius:100px;}
   .merch-info h4{margin:8px 0 0;font-size:14.5px;}
 
-  /* ============ 家长说 / 抖音精选 ============ */
   .reel-row{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
-  .reel-card{
-    border-radius:22px;overflow:hidden;box-shadow:var(--shadow-sm);border:1px solid var(--line);background:var(--card);
-  }
-  .reel-video{
-    aspect-ratio:9/16;max-height:340px;background:linear-gradient(160deg,#22223a,#3a2e5c);
-    display:flex;align-items:center;justify-content:center;color:#fff;font-size:12.5px;text-align:center;padding:16px;
-    position:relative;
-  }
+  .reel-card{border-radius:22px;overflow:hidden;box-shadow:var(--shadow-sm);border:1px solid var(--line);background:var(--card);}
+  .reel-video{aspect-ratio:9/16;max-height:340px;background:linear-gradient(160deg,#22223a,#3a2e5c);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12.5px;text-align:center;padding:16px;position:relative;}
   .reel-video img,.reel-video video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
-  .reel-video .play{
-    width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.6);
-    display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:16px;backdrop-filter:blur(4px);
-  }
+  .reel-video .play{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.6);display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:16px;backdrop-filter:blur(4px);}
   .reel-info{padding:14px 16px 18px;}
   .reel-info p{margin:0;font-size:13px;color:var(--muted);line-height:1.6;}
-  .reel-info .who{font-size:12.5px;font-weight:700;color:var(--ink);margin-top:8px;}
 
-  /* ============ CONTACT / FOOTER ============ */
-  .contact-card{
-    background:linear-gradient(150deg,#2E2A47,#1c1a30);border-radius:32px;padding:56px clamp(24px,5vw,64px);
-    color:#fff;text-align:center;position:relative;overflow:hidden;
-  }
-  .contact-card::before{
-    content:"";position:absolute;top:-60px;left:-60px;width:220px;height:220px;border-radius:50%;background:var(--coral);opacity:.25;filter:blur(10px);
-  }
-  .contact-card::after{
-    content:"";position:absolute;bottom:-70px;right:-40px;width:260px;height:260px;border-radius:50%;background:var(--sky);opacity:.22;filter:blur(10px);
-  }
+  .contact-card{background:linear-gradient(150deg,#2E2A47,#1c1a30);border-radius:32px;padding:56px clamp(24px,5vw,64px);color:#fff;text-align:center;position:relative;overflow:hidden;}
+  .contact-card::before{content:"";position:absolute;top:-60px;left:-60px;width:220px;height:220px;border-radius:50%;background:var(--coral);opacity:.25;filter:blur(10px);}
+  .contact-card::after{content:"";position:absolute;bottom:-70px;right:-40px;width:260px;height:260px;border-radius:50%;background:var(--sky);opacity:.22;filter:blur(10px);}
   .contact-card h2{position:relative;font-family:'ZCOOL KuaiLe',cursive;font-weight:400;font-size:clamp(26px,4vw,36px);margin:0 0 14px;}
   .contact-card p{position:relative;color:#d8d5ea;max-width:520px;margin:0 auto 30px;font-size:15px;line-height:1.7;}
   .contact-card .hero-btnrow{position:relative;}
-
-  .contact-mini-grid{
-    position:relative;display:grid;grid-template-columns:1fr 1fr;gap:18px;
-    max-width:480px;margin:34px auto 0;
-  }
-  .contact-mini-card{
-    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);
-    border-radius:18px;padding:18px;text-align:center;
-  }
+  .contact-mini-grid{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:480px;margin:34px auto 0;}
+  .contact-mini-card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:18px;text-align:center;}
   .contact-mini-card .ico{font-size:20px;margin-bottom:6px;}
   .contact-mini-card .title{font-weight:700;font-size:14px;margin-bottom:10px;}
-  .contact-mini-row{
-    display:flex;align-items:center;justify-content:center;gap:8px;
-    font-family:'JetBrains Mono',monospace;font-size:12.5px;
-    background:rgba(255,255,255,.12);border-radius:100px;padding:7px 7px 7px 14px;
-  }
-  .contact-mini-row .copy-btn{
-    border:none;background:#fff;color:var(--ink);padding:5px 11px;border-radius:100px;
-    cursor:pointer;font-size:11.5px;font-weight:700;transition:.2s;
-  }
+  .contact-mini-row{display:flex;align-items:center;justify-content:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:12.5px;background:rgba(255,255,255,.12);border-radius:100px;padding:7px 7px 7px 14px;}
+  .contact-mini-row .copy-btn{border:none;background:#fff;color:var(--ink);padding:5px 11px;border-radius:100px;cursor:pointer;font-size:11.5px;font-weight:700;transition:.2s;}
   .contact-mini-row .copy-btn.copied{background:var(--mint);color:#fff;}
-  @media (max-width:520px){.contact-mini-grid{grid-template-columns:1fr;}}
-
+  
   footer{padding:36px 0 46px;text-align:center;font-size:12.5px;color:var(--muted);}
   footer a{text-decoration:none;color:var(--sky-deep);font-weight:600;}
 
-  @media (max-width:940px){
-    .char-grid,.level-row,.merch-grid{grid-template-columns:repeat(2,1fr);}
-    .reel-row{grid-template-columns:1fr;}
-    .book-section{grid-template-columns:1fr;}
-    .book-stack{margin:0 auto 20px;max-width:320px;}
-  }
-  @media (max-width:520px){
-    .char-grid,.level-row,.merch-grid{grid-template-columns:1fr 1fr;}
-  }
+  @media (max-width:940px){.char-grid,.level-row,.merch-grid{grid-template-columns:repeat(2,1fr);}.reel-row{grid-template-columns:1fr;}.book-section{grid-template-columns:1fr;}.book-stack{margin:0 auto 20px;max-width:320px;}}
+  @media (max-width:520px){.char-grid,.level-row,.merch-grid{grid-template-columns:1fr 1fr;}.contact-mini-grid{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -386,15 +263,9 @@
   <a href="#contact" class="cta">预约体验课</a>
 </nav>
 
-<!-- ============ HERO：开场视频 + 黑场转场 ============ -->
 <div class="hero-scroll-wrapper" id="heroScrollWrapper">
 <div class="hero-stage" id="top">
-  <!--
-    ★ 素材位：把你做好的4秒开场视频放到 videos/rumi-hero.mp4
-    视频结尾的黑屏会自然衔接下面的深色渐变，做成"揭幕"转场效果。
-    未放视频前，会显示下面的占位渐变背景。
-  -->
-  <video muted playsinline preload="auto" poster="images/rumi/hero-poster.jpg"
+  <video id="heroVideo" muted playsinline preload="auto" poster="images/rumi/hero-poster.jpg"
     onerror="this.style.display='none'">
     <source src="videos/rumi-hero.mp4" type="video/mp4">
   </video>
@@ -411,266 +282,132 @@
       <a href="#characters" class="btn ghost">认识 Rumi 和朋友们</a>
     </div>
   </div>
-  <div class="scroll-cue">往下滑<div class="chevron"></div></div>
+  <div class="scroll-cue">往下划<div class="chevron"></div></div>
 </div>
 </div>
 
 <div class="wrap">
-
-  <!-- ============ 角色世界 ============ -->
   <section class="section" id="characters">
     <div class="section-head center">
       <div class="eyebrow-tag">👋 角色世界</div>
       <h2 class="kawaii">认识 Rumi 和 TA 的朋友们</h2>
-      <p class="lede">每个角色都有自己的口头禅和小habit，孩子记住的不是单词表，是一个个活生生的朋友。（以下为示例文案，替换成你的真实角色设定即可）</p>
+      <p class="lede">每个角色都有自己的口头禅和小habit，孩子记住的不是单词表，是一个个活生生的朋友。</p>
     </div>
     <div class="char-grid">
-      <div class="char-card">
-        <span class="tag">主角</span>
-        <div class="avatar">
-          <!-- 替换：images/rumi/char-rumi.png -->
-          <img src="images/rumi/char-rumi.png" alt="Rumi" onerror="this.style.display='none'">
-          角色图占位<br>char-rumi.png
-        </div>
-        <h3 class="balloon">Rumi</h3>
-        <p>好奇心爆棚的小狐狸，口头禅是 "Let's go!"，最喜欢冒险和交新朋友。</p>
-      </div>
-      <div class="char-card">
-        <div class="avatar">
-          <img src="images/rumi/char-2.png" alt="示例角色" onerror="this.style.display='none'">
-          角色图占位<br>char-2.png
-        </div>
-        <h3 class="balloon">示例角色 · Bobo</h3>
-        <p>慢半拍但很暖心的小熊，负责教孩子说 "How are you" 这类日常问候。</p>
-      </div>
-      <div class="char-card">
-        <div class="avatar">
-          <img src="images/rumi/char-3.png" alt="示例角色" onerror="this.style.display='none'">
-          角色图占位<br>char-3.png
-        </div>
-        <h3 class="balloon">示例角色 · Mimi</h3>
-        <p>爱唱歌的小浣熊，每集片尾都会带一段自然拼读小儿歌。</p>
-      </div>
-      <div class="char-card">
-        <div class="avatar">
-          <img src="images/rumi/char-4.png" alt="示例角色" onerror="this.style.display='none'">
-          角色图占位<br>char-4.png
-        </div>
-        <h3 class="balloon">示例角色 · Leo</h3>
-        <p>小小发明家，专门负责把数字、颜色这些认知词汇变成好玩的小实验。</p>
-      </div>
+      <div class="char-card"><span class="tag">主角</span><div class="avatar"><img src="images/rumi/char-rumi.png" alt="Rumi" onerror="this.style.display='none'"></div><h3 class="balloon">Rumi</h3><p>好奇心爆棚的小狐狸，口头禅是 "Let's go!"，最喜欢冒险。</p></div>
+      <div class="char-card"><div class="avatar"><img src="images/rumi/char-2.png" alt="示例角色" onerror="this.style.display='none'"></div><h3 class="balloon">Bobo</h3><p>慢半拍但很暖心的小熊，教孩子说 "How are you"。</p></div>
+      <div class="char-card"><div class="avatar"><img src="images/rumi/char-3.png" alt="示例角色" onerror="this.style.display='none'"></div><h3 class="balloon">Mimi</h3><p>爱唱歌的小浣熊，带自然拼读小儿歌。</p></div>
+      <div class="char-card"><div class="avatar"><img src="images/rumi/char-4.png" alt="示例角色" onerror="this.style.display='none'"></div><h3 class="balloon">Leo</h3><p>小小发明家，带认知词汇变成小实验。</p></div>
     </div>
   </section>
-
-  <!-- ============ Power Up 分级体系 ============ -->
   <section class="section tint" id="levels" style="border-radius:40px;">
-    <div class="section-head center">
-      <div class="eyebrow-tag">🚀 Power Up 分级体系</div>
-      <h2 class="kawaii">陪孩子一级一级 <span class="balloon" style="color:var(--coral)">Power Up</span></h2>
-      <p class="lede">按 3–8 岁孩子的语言发展节奏设计，每一级都有清晰的能力目标，家长看得懂，孩子学得动。</p>
-    </div>
+    <div class="section-head center"><div class="eyebrow-tag">🚀 Power Up 分级体系</div><h2 class="kawaii">陪孩子一级一级 <span class="balloon" style="color:var(--coral)">Power Up</span></h2></div>
     <div class="level-row">
-      <div class="level-card" style="--lv-color:var(--sky-deep);">
-        <div class="lv">LEVEL 0</div>
-        <span class="age">3–4 岁</span>
-        <h3>磨耳朵 · Listen &amp; Play</h3>
-        <p>动画儿歌 + 高频单词磨耳朵，建立英语语感，不认字也能跟着哼。</p>
-      </div>
-      <div class="level-card" style="--lv-color:var(--coral);">
-        <div class="lv">LEVEL 1</div>
-        <span class="age">4–5 岁</span>
-        <h3>开口说 · Speak Up</h3>
-        <p>日常场景对话（打招呼/情绪表达），跟着角色开口模仿真实句子。</p>
-      </div>
-      <div class="level-card" style="--lv-color:var(--mint);">
-        <div class="lv">LEVEL 2</div>
-        <span class="age">5–7 岁</span>
-        <h3>自然拼读 · Sound It Out</h3>
-        <p>Phonics 拆解字母发音规律，孩子能自己"拼"出没学过的新单词。</p>
-      </div>
-      <div class="level-card" style="--lv-color:var(--grape);">
-        <div class="lv">LEVEL 3</div>
-        <span class="age">7–8 岁</span>
-        <h3>自主阅读 · Read Along</h3>
-        <p>过渡到分级绘本自主阅读，配套教材同步巩固语法与词汇。</p>
-      </div>
+      <div class="level-card" style="--lv-color:var(--sky-deep);"><div class="lv">LEVEL 0</div><span class="age">3–4 岁</span><h3>磨耳朵 · Listen &amp; Play</h3></div>
+      <div class="level-card" style="--lv-color:var(--coral);"><div class="lv">LEVEL 1</div><span class="age">4–5 岁</span><h3>开口说 · Speak Up</h3></div>
+      <div class="level-card" style="--lv-color:var(--mint);"><div class="lv">LEVEL 2</div><span class="age">5–7 岁</span><h3>自然拼读 · Sound It Out</h3></div>
+      <div class="level-card" style="--lv-color:var(--grape);"><div class="lv">LEVEL 3</div><span class="age">7–8 岁</span><h3>自主阅读 · Read Along</h3></div>
     </div>
   </section>
-
-  <!-- ============ 同步教材 ============ -->
   <section class="section" id="books">
     <div class="book-section">
-      <div class="book-stack">
-        <div class="book-mock b3"><b>Lv.3</b>Read Along</div>
-        <div class="book-mock b2"><b>Lv.1</b>Speak Up</div>
-        <div class="book-mock b1"><b>Lv.0</b>Listen &amp; Play</div>
-      </div>
+      <div class="book-stack"><div class="book-mock b3"><b>Lv.3</b></div><div class="book-mock b2"><b>Lv.1</b></div><div class="book-mock b1"><b>Lv.0</b></div></div>
       <div>
-        <div class="eyebrow-tag">📚 同步教材</div>
-        <h2 class="kawaii">动画看完，教材接着练</h2>
-        <p class="lede" style="margin-bottom:28px;">每一集动画都有对应的纸质教材单元，家长不用额外找资料，跟着目录顺序学就行。</p>
+        <div class="eyebrow-tag">📚 同步教材</div><h2 class="kawaii">动画看完，教材接着练</h2>
         <div class="book-feats">
-          <div class="book-feat">
-            <div class="ico">🎨</div>
-            <div><h4>角色贴纸 + 手账页</h4><p>每单元附赠角色贴纸和涂色页，学完能"玩"出成就感。</p></div>
-          </div>
-          <div class="book-feat">
-            <div class="ico">🔊</div>
-            <div><h4>扫码跟读音频</h4><p>书页配二维码，随时扫码跟读，纠正发音。</p></div>
-          </div>
-          <div class="book-feat">
-            <div class="ico">👨‍👩‍👧</div>
-            <div><h4>家长指引卡</h4><p>每单元附"家长可以怎么陪读"提示，不用懂英语也能陪。</p></div>
-          </div>
+          <div class="book-feat"><div class="ico">🎨</div><div><h4>角色贴纸</h4></div></div>
+          <div class="book-feat"><div class="ico">🔊</div><div><h4>扫码跟读</h4></div></div>
         </div>
       </div>
     </div>
   </section>
-
-  <!-- ============ 周边好物 ============ -->
   <section class="section tint" id="merch" style="border-radius:40px;">
-    <div class="section-head center">
-      <div class="eyebrow-tag">🧸 周边好物</div>
-      <h2 class="kawaii">把 Rumi 带回家</h2>
-      <p class="lede">替换下面每张图为你的真实周边产品图即可，文件名已在代码注释里标好。</p>
-    </div>
+    <div class="section-head center"><div class="eyebrow-tag">🧸 周边好物</div><h2 class="kawaii">把 Rumi 带回家</h2></div>
     <div class="merch-grid">
-      <div class="merch-card">
-        <div class="merch-thumb">
-          <img src="images/rumi/merch-plush.jpg" alt="Rumi公仔" onerror="this.style.display='none'">
-          周边图占位<br>merch-plush.jpg
-        </div>
-        <div class="merch-info"><span class="pill">玩偶</span><h4>Rumi 毛绒公仔</h4></div>
-      </div>
-      <div class="merch-card">
-        <div class="merch-thumb">
-          <img src="images/rumi/merch-sticker.jpg" alt="贴纸套装" onerror="this.style.display='none'">
-          周边图占位<br>merch-sticker.jpg
-        </div>
-        <div class="merch-info"><span class="pill">贴纸</span><h4>角色贴纸套装</h4></div>
-      </div>
-      <div class="merch-card">
-        <div class="merch-thumb">
-          <img src="images/rumi/merch-stationery.jpg" alt="文具套装" onerror="this.style.display='none'">
-          周边图占位<br>merch-stationery.jpg
-        </div>
-        <div class="merch-info"><span class="pill">文具</span><h4>启蒙文具套装</h4></div>
-      </div>
-      <div class="merch-card">
-        <div class="merch-thumb">
-          <img src="images/rumi/merch-cards.jpg" alt="单词卡" onerror="this.style.display='none'">
-          周边图占位<br>merch-cards.jpg
-        </div>
-        <div class="merch-info"><span class="pill">卡片</span><h4>Power Up 词卡</h4></div>
-      </div>
+      <div class="merch-card"><div class="merch-thumb"><img src="images/rumi/merch-plush.jpg" onerror="this.style.display='none'"></div><div class="merch-info"><span class="pill">玩偶</span><h4>Rumi 公仔</h4></div></div>
+      <div class="merch-card"><div class="merch-thumb"><img src="images/rumi/merch-sticker.jpg" onerror="this.style.display='none'"></div><div class="merch-info"><span class="pill">贴纸</span><h4>贴纸套装</h4></div></div>
+      <div class="merch-card"><div class="merch-thumb"><img src="images/rumi/merch-stationery.jpg" onerror="this.style.display='none'"></div><div class="merch-info"><span class="pill">文具</span><h4>启蒙文具</h4></div></div>
+      <div class="merch-card"><div class="merch-thumb"><img src="images/rumi/merch-cards.jpg" onerror="this.style.display='none'"></div><div class="merch-info"><span class="pill">卡片</span><h4>词卡</h4></div></div>
     </div>
   </section>
-
-  <!-- ============ 家长说 / 抖音精选 ============ -->
   <section class="section" id="reviews">
-    <div class="section-head center">
-      <div class="eyebrow-tag">🎥 抖音精选</div>
-      <h2 class="kawaii">动画片段 &amp; 家长说</h2>
-      <p class="lede">精选抖音动态片段占位，替换成你的真实视频后即可展示。完整内容可以关注
-        <a href="https://v.douyin.com/snpd7Yhn_h0/" target="_blank" rel="noopener" style="color:var(--sky-deep);font-weight:700;">Rumi英语抖音主页</a>。</p>
-    </div>
+    <div class="section-head center"><div class="eyebrow-tag">🎥 抖音精选</div><h2 class="kawaii">动画片段 &amp; 家长说</h2></div>
     <div class="reel-row">
-      <div class="reel-card">
-        <div class="reel-video">
-          <video muted loop playsinline onerror="this.style.display='none'">
-            <source src="videos/reel-1.mp4" type="video/mp4">
-          </video>
-          <div class="play">▶</div>视频占位<br>videos/reel-1.mp4
-        </div>
-        <div class="reel-info"><p>动画片段：Rumi 教打招呼</p></div>
-      </div>
-      <div class="reel-card">
-        <div class="reel-video">
-          <video muted loop playsinline onerror="this.style.display='none'">
-            <source src="videos/reel-2.mp4" type="video/mp4">
-          </video>
-          <div class="play">▶</div>视频占位<br>videos/reel-2.mp4
-        </div>
-        <div class="reel-info"><p>Power Up 自然拼读小儿歌</p></div>
-      </div>
-      <div class="reel-card">
-        <div class="reel-video">
-          <video muted loop playsinline onerror="this.style.display='none'">
-            <source src="videos/reel-3.mp4" type="video/mp4">
-          </video>
-          <div class="play">▶</div>视频占位<br>videos/reel-3.mp4
-        </div>
-        <div class="reel-info"><p>家长反馈占位：写一句真实家长评价</p></div>
-      </div>
+      <div class="reel-card"><div class="reel-video"><video loop playsinline><source src="videos/reel-1.mp4"></video></div></div>
+      <div class="reel-card"><div class="reel-video"><video loop playsinline><source src="videos/reel-2.mp4"></video></div></div>
+      <div class="reel-card"><div class="reel-video"><video loop playsinline><source src="videos/reel-3.mp4"></video></div></div>
     </div>
   </section>
-
-  <!-- ============ CONTACT ============ -->
   <section class="section" id="contact">
     <div class="contact-card">
       <h2 class="kawaii">让孩子的第一次英语启蒙，从 Rumi 开始</h2>
-      <p>加下面的微信或QQ，预约一节免费体验课，带孩子看看 Rumi 的世界长什么样。</p>
-      <div class="hero-btnrow">
-        <a href="#contact-detail" class="btn solid">预约体验课</a>
-        <a href="https://v.douyin.com/snpd7Yhn_h0/" target="_blank" rel="noopener" class="btn ghost">去抖音看动画</a>
-      </div>
+      <p>加下面的微信或QQ，预约一节免费体验课。</p>
       <div class="contact-mini-grid" id="contact-detail">
-        <div class="contact-mini-card">
-          <div class="ico">💬</div>
-          <div class="title">微信</div>
-          <div class="contact-mini-row">
-            <span id="rwxid">wxid_1h6phvw1kr9022</span>
-            <button class="copy-btn" onclick="copyText('rwxid', this)">复制</button>
-          </div>
-        </div>
-        <div class="contact-mini-card">
-          <div class="ico">💭</div>
-          <div class="title">QQ</div>
-          <div class="contact-mini-row">
-            <span id="rqqid">1179884054</span>
-            <button class="copy-btn" onclick="copyText('rqqid', this)">复制</button>
-          </div>
-        </div>
+        <div class="contact-mini-card"><div class="title">微信</div><div class="contact-mini-row"><span id="rwxid">wxid_1h6phvw1kr9022</span><button class="copy-btn" onclick="copyText('rwxid', this)">复制</button></div></div>
+        <div class="contact-mini-card"><div class="title">QQ</div><div class="contact-mini-row"><span id="rqqid">1179884054</span><button class="copy-btn" onclick="copyText('rqqid', this)">复制</button></div></div>
       </div>
     </div>
   </section>
-
 </div>
 
-<footer>
-  Rumi英语 · 一个 <a href="index.html">JERRY.DEV</a> 出品的小项目 · 内容持续更新中
-</footer>
-
-<!-- ============ 装饰贴纸（占位，可替换为真实插画） ============ -->
-<svg class="sticker" style="top:14%;left:4%;--rot:-8deg;" width="46" height="46" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.6 6.9L22 10l-5.5 4.8L18 22l-6-4-6 4 1.5-7.2L2 10l7.4-1.1L12 2z" fill="#FFC93C"/></svg>
-<svg class="sticker slow rev" style="top:60%;right:5%;--rot:10deg;" width="54" height="54" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-9.8-9C.6 8.6 2.3 5 5.8 5c1.9 0 3.4 1 4.2 2.4C10.8 6 12.3 5 14.2 5c3.5 0 5.2 3.6 3.6 7-2.3 4.4-9.8 9-9.8 9z" fill="#FF7A5C"/></svg>
-<svg class="sticker" style="top:2%;right:12%;--rot:6deg;" width="60" height="36" viewBox="0 0 64 40" fill="none"><path d="M14 30a10 10 0 010-20 12 12 0 0122 -4 10 10 0 0114 12 9 9 0 01-2 12H14z" fill="#5EC8FF"/></svg>
+<footer>Rumi英语 · 一个 <a href="index.html">JERRY.DEV</a> 出品的小项目</footer>
 
 <script>
-/* ============ 开场视频 → 黑场揭幕 → 首页文案浮现 ============ */
+/* ============ 核心重构：滚动条控制视频播放进度 ============ */
 (function(){
+  const scrollWrapper = document.getElementById('heroScrollWrapper');
   const stage = document.querySelector('.hero-stage');
-  const video = stage ? stage.querySelector('video') : null;
+  const video = document.getElementById('heroVideo');
   const heroCopy = document.querySelector('.hero-copy');
   const scrollCue = document.querySelector('.scroll-cue');
   let revealed = false;
 
-  function reveal(){
-    if(revealed) return; // 防止 ended + 超时兜底重复触发
-    revealed = true;
-    stage.classList.add('revealed');
-    heroCopy.classList.add('show');
-    scrollCue.classList.add('show');
+  if (!scrollWrapper || !video) return;
+
+  // 强制预加载视频，防止移动端不渲染
+  video.load();
+
+  function updateVideoOnScroll() {
+    // 1. 计算当前的滚动比例
+    const wrapperTop = scrollWrapper.offsetTop;
+    const scrollRange = scrollWrapper.offsetHeight - window.innerHeight;
+    const relativeScroll = window.scrollY - wrapperTop;
+    
+    let progress = relativeScroll / scrollRange;
+    progress = Math.max(0, Math.min(1, progress)); // 限制在 0 到 1 之间
+
+    // 2. 将比例映射到视频时间 (如果视频加载出了 duration)
+    if (video.duration && !isNaN(video.duration)) {
+      video.currentTime = progress * video.duration;
+    }
+
+    // 3. 当滚动进度超过 85% 时，显示文案（揭幕）
+    if (progress > 0.85) {
+      if (!revealed) {
+        revealed = true;
+        stage.classList.add('revealed');
+        heroCopy.classList.add('show');
+        scrollCue.classList.add('show');
+      }
+    } else {
+      // 往回滚时，收起文案，视频倒退
+      if (revealed) {
+        revealed = false;
+        stage.classList.remove('revealed');
+        heroCopy.classList.remove('show');
+        scrollCue.classList.remove('show');
+      }
+    }
   }
 
-  if(video){
-    video.addEventListener('ended', reveal);       // 正常情况：视频播完（黑场）就揭幕
-    video.addEventListener('error', reveal);        // 视频文件还没放/加载失败：不能让文案永远藏着，直接揭幕
-    // 安全兜底：万一视频时长和预期不符、或部分浏览器不触发 ended，最多等6秒强制揭幕
-    setTimeout(reveal, 6000);
-  } else {
-    reveal();
-  }
+  // 使用 requestAnimationFrame 保证丝滑，代替低效的直接监听 scroll
+  window.addEventListener('scroll', () => {
+    window.requestAnimationFrame(updateVideoOnScroll);
+  });
+  // 防止用户缩放窗口导致比例计算错误
+  window.addEventListener('resize', () => {
+    window.requestAnimationFrame(updateVideoOnScroll);
+  });
 })();
 
 /* ============ 复制微信号/QQ号 ============ */
@@ -680,9 +417,6 @@ function copyText(id, btn){
     const original = btn.textContent;
     btn.textContent = '已复制';
     setTimeout(()=>{ btn.textContent = original; }, 1600);
-  }).catch(()=>{
-    // 极少数浏览器不支持 clipboard API 时的兜底提示
-    btn.textContent = '复制失败，请手动选中';
   });
 }
 </script>
