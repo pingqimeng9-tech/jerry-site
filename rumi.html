@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Rumi英语 · 动画启蒙英语 3-8岁</title>
 <meta name="description" content="Rumi英语——用原创动画角色，带 3-8 岁孩子开启英语启蒙之旅。Power Up 分级体系，同步教材与周边，陪伴式成长。">
 
@@ -42,8 +42,14 @@
   .kawaii{font-family:'ZCOOL KuaiLe',cursive;}
   .balloon{font-family:'Baloo 2',cursive;}
 
-  /* 移动端适配：缩小容器两边留白 */
-  .wrap{max-width:1120px;margin:0 auto;padding:0 clamp(16px,5vw,56px);position:relative;z-index:2;}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 clamp(20px,5vw,56px);position:relative;z-index:2;}
+
+  /* ============ STICKERS ============ */
+  .sticker{position:absolute;pointer-events:none;filter:drop-shadow(0 6px 10px rgba(46,42,71,.12));animation:float 6s ease-in-out infinite;z-index:1;}
+  .sticker.slow{animation-duration:9s;}
+  .sticker.rev{animation-direction:reverse;}
+  @keyframes float{0%,100%{transform:translateY(0) rotate(var(--rot,0deg));}50%{transform:translateY(-14px) rotate(var(--rot,0deg));}}
+  @media (prefers-reduced-motion: reduce){ .sticker{animation:none;} }
 
   /* ============ NAV ============ */
   .breadcrumb{
@@ -55,7 +61,7 @@
 
   nav{
     display:flex;justify-content:space-between;align-items:center;
-    padding:16px clamp(16px,5vw,56px);
+    padding:16px clamp(20px,5vw,56px);
     position:sticky;top:0;z-index:50;
     background:rgba(255,251,242,.72);
     backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
@@ -79,19 +85,18 @@
   @media (max-width:860px){ nav .links{display:none;} }
 
   /* ============ HERO + VIDEO 滚动转场 ============ */
+  /* 修改点1：高度翻倍，从 150vh 改成 300vh，这样滚动速度就慢了一倍 */
   .hero-scroll-wrapper{
     position:relative;
-    height:300vh; /* 维持慢速要求 */
+    height:300vh; 
   }
   .hero-stage{
     position:sticky;
     top:var(--nav-h, 64px); 
-    width:100%;
-    /* 移动端适配：使用 dvh 避免上下导航栏造成的跳动 */
-    height:100vh; height:100dvh; 
-    min-height:560px;background:#0b0a12;overflow:hidden;
+    width:100%;height:min(100vh,860px);min-height:560px;background:#0b0a12;overflow:hidden;
   }
   
+  /* 去掉了那个蓝色的 .poster-fallback 占位样式 */
   .hero-stage video {
     position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
   }
@@ -103,8 +108,8 @@
   .hero-stage.revealed::before{opacity:.28;}
 
   .hero-stage::after{
-    content:"";position:absolute;left:0;right:0;bottom:0;height:55%;
-    background:linear-gradient(to bottom, rgba(11,10,18,0) 0%, rgba(11,10,18,.65) 60%, #0b0a12 100%);
+    content:"";position:absolute;left:0;right:0;bottom:0;height:46%;
+    background:linear-gradient(to bottom, rgba(11,10,18,0) 0%, rgba(11,10,18,.55) 55%, #0b0a12 100%);
     pointer-events:none;
   }
   .hero-copy{
@@ -127,13 +132,13 @@
   }
   .hero-copy h1{
     font-family:'ZCOOL KuaiLe',cursive;font-weight:400;
-    font-size:clamp(28px,6vw,58px);line-height:1.25;margin:0 0 14px;
+    font-size:clamp(32px,6vw,58px);line-height:1.25;margin:0 0 14px;
     text-shadow:0 4px 24px rgba(0,0,0,.35);
   }
   .hero-copy h1 .en{font-family:'Baloo 2',cursive;font-weight:800;color:var(--sun);}
   .mobonly{display:none;}
   @media (max-width:520px){ .mobonly{display:block;} }
-  .hero-copy p{font-size:clamp(14px,3.5vw,18px);opacity:.92;max-width:520px;margin:0 auto 26px;line-height:1.6;}
+  .hero-copy p{font-size:clamp(15px,2vw,18px);opacity:.92;max-width:520px;margin:0 auto 26px;line-height:1.6;}
   .hero-btnrow{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
   .btn{display:inline-block;padding:14px 30px;border-radius:100px;font-weight:700;font-size:15px;text-decoration:none;transition:.25s;}
   .btn.solid{background:linear-gradient(120deg,var(--coral),#ffa26b);color:#fff;box-shadow:0 14px 30px -10px #FF7A5C99;}
@@ -149,8 +154,7 @@
   @keyframes bob{0%,100%{transform:rotate(45deg) translate(0,0);}50%{transform:rotate(45deg) translate(4px,4px);}}
 
   /* ============ SECTION 通用 ============ */
-  /* 移动端适配：缩小章节上下间距 */
-  .section{position:relative;padding:clamp(50px,8vw,88px) 0;}
+  .section{position:relative;padding:88px 0;}
   .section.tint{background:var(--cream-deep);}
   .eyebrow-tag{
     display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--sky-deep);
@@ -158,10 +162,10 @@
   }
   .section h2{
     font-family:'ZCOOL KuaiLe',cursive;font-weight:400;
-    font-size:clamp(24px,6vw,38px);margin:0 0 14px;line-height:1.3;
+    font-size:clamp(26px,3.6vw,38px);margin:0 0 14px;line-height:1.3;
   }
-  .section .lede{color:var(--muted);font-size:clamp(14px,4vw,16px);line-height:1.7;max-width:640px;margin:0 0 40px;}
-  .section-head{margin-bottom:clamp(30px,6vw,44px);}
+  .section .lede{color:var(--muted);font-size:16px;line-height:1.7;max-width:640px;margin:0 0 40px;}
+  .section-head{margin-bottom:44px;}
   .section-head.center{text-align:center;}
   .section-head.center .lede{margin-left:auto;margin-right:auto;}
 
@@ -173,7 +177,7 @@
   .char-card:nth-child(3) .avatar{background:linear-gradient(150deg,var(--mint),var(--sky-deep));}
   .char-card:nth-child(4) .avatar{background:linear-gradient(150deg,var(--grape),var(--coral));}
   .char-card .avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
-  .char-card .tag{position:absolute;top:14px;right:14px;background:#fff;color:var(--ink);font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;box-shadow:var(--shadow-sm);opacity:.85;z-index:2;}
+  .char-card .tag{position:absolute;top:14px;right:14px;background:#fff;color:var(--ink);font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;box-shadow:var(--shadow-sm);opacity:.85;}
   .char-card h3{font-family:'Baloo 2',cursive;font-size:19px;margin:0 0 6px;}
   .char-card p{font-size:13.5px;color:var(--muted);margin:0;line-height:1.6;}
 
@@ -211,16 +215,19 @@
   .reel-card{border-radius:22px;overflow:hidden;box-shadow:var(--shadow-sm);border:1px solid var(--line);background:var(--card);}
   .reel-video{aspect-ratio:9/16;max-height:340px;background:linear-gradient(160deg,#22223a,#3a2e5c);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12.5px;text-align:center;padding:16px;position:relative;}
   .reel-video img,.reel-video video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .reel-video .play{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.6);display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:16px;backdrop-filter:blur(4px);}
   .reel-info{padding:14px 16px 18px;}
   .reel-info p{margin:0;font-size:13px;color:var(--muted);line-height:1.6;}
 
-  .contact-card{background:linear-gradient(150deg,#2E2A47,#1c1a30);border-radius:32px;padding:clamp(40px,8vw,56px) clamp(20px,5vw,64px);color:#fff;text-align:center;position:relative;overflow:hidden;}
+  .contact-card{background:linear-gradient(150deg,#2E2A47,#1c1a30);border-radius:32px;padding:56px clamp(24px,5vw,64px);color:#fff;text-align:center;position:relative;overflow:hidden;}
   .contact-card::before{content:"";position:absolute;top:-60px;left:-60px;width:220px;height:220px;border-radius:50%;background:var(--coral);opacity:.25;filter:blur(10px);}
   .contact-card::after{content:"";position:absolute;bottom:-70px;right:-40px;width:260px;height:260px;border-radius:50%;background:var(--sky);opacity:.22;filter:blur(10px);}
-  .contact-card h2{position:relative;font-family:'ZCOOL KuaiLe',cursive;font-weight:400;font-size:clamp(24px,6vw,36px);margin:0 0 14px;}
+  .contact-card h2{position:relative;font-family:'ZCOOL KuaiLe',cursive;font-weight:400;font-size:clamp(26px,4vw,36px);margin:0 0 14px;}
   .contact-card p{position:relative;color:#d8d5ea;max-width:520px;margin:0 auto 30px;font-size:15px;line-height:1.7;}
+  .contact-card .hero-btnrow{position:relative;}
   .contact-mini-grid{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:480px;margin:34px auto 0;}
   .contact-mini-card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:18px;text-align:center;}
+  .contact-mini-card .ico{font-size:20px;margin-bottom:6px;}
   .contact-mini-card .title{font-weight:700;font-size:14px;margin-bottom:10px;}
   .contact-mini-row{display:flex;align-items:center;justify-content:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:12.5px;background:rgba(255,255,255,.12);border-radius:100px;padding:7px 7px 7px 14px;}
   .contact-mini-row .copy-btn{border:none;background:#fff;color:var(--ink);padding:5px 11px;border-radius:100px;cursor:pointer;font-size:11.5px;font-weight:700;transition:.2s;}
@@ -229,21 +236,8 @@
   footer{padding:36px 0 46px;text-align:center;font-size:12.5px;color:var(--muted);}
   footer a{text-decoration:none;color:var(--sky-deep);font-weight:600;}
 
-  /* 响应式调整 */
-  @media (max-width:940px){
-    .char-grid,.level-row,.merch-grid{grid-template-columns:repeat(2,1fr);}
-    .reel-row{grid-template-columns:1fr;}
-    .book-section{grid-template-columns:1fr;}
-    .book-stack{margin:0 auto 20px;max-width:320px;}
-  }
-  
-  /* 移动端深度适配：全部单列，防止拥挤，保证文字清晰度 */
-  @media (max-width:520px){
-    /* 强制全部变为1列布局，解决挤压问题 */
-    .char-grid,.level-row,.merch-grid{grid-template-columns:1fr; gap:16px;}
-    .contact-mini-grid{grid-template-columns:1fr;}
-    .btn{width:100%; text-align:center;} /* 按钮铺满更易点击 */
-  }
+  @media (max-width:940px){.char-grid,.level-row,.merch-grid{grid-template-columns:repeat(2,1fr);}.reel-row{grid-template-columns:1fr;}.book-section{grid-template-columns:1fr;}.book-stack{margin:0 auto 20px;max-width:320px;}}
+  @media (max-width:520px){.char-grid,.level-row,.merch-grid{grid-template-columns:1fr 1fr;}.contact-mini-grid{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -266,6 +260,7 @@
 <div class="hero-scroll-wrapper" id="heroScrollWrapper">
 <div class="hero-stage" id="top">
   
+  <!-- 修改点2：删除了这里的 .poster-fallback 占位层，现在只会显示纯净的视频 -->
   <video id="heroVideo" muted playsinline preload="auto" poster="images/rumi/hero-poster.jpg">
     <source src="videos/rumi-hero.mp4" type="video/mp4">
   </video>
@@ -279,11 +274,13 @@
       <a href="#characters" class="btn ghost">认识 Rumi 和朋友们</a>
     </div>
   </div>
+  <!-- 滚动提示语，现在也会等到最后才消失/出现 -->
   <div class="scroll-cue show">往下划<div class="chevron"></div></div>
 </div>
 </div>
 
 <div class="wrap">
+  <!-- 内容区维持原样 -->
   <section class="section" id="characters">
     <div class="section-head center">
       <div class="eyebrow-tag">👋 角色世界</div>
@@ -356,45 +353,35 @@
   const video = document.getElementById('heroVideo');
   const heroCopy = document.querySelector('.hero-copy');
   const scrollCue = document.querySelector('.scroll-cue');
-  
-  if (!scrollWrapper || !video) return;
-  video.load();
-
-  // 性能优化：解耦滚动事件与视频渲染
-  let targetProgress = 0;
-  let currentProgress = 0;
   let revealed = false;
 
-  // 1. 滚动事件只负责计算“目标进度”，加入 passive 提升滚动性能
-  function calculateProgress() {
+  if (!scrollWrapper || !video) return;
+
+  // 强制预加载视频，防止移动端不渲染
+  video.load();
+
+  function updateVideoOnScroll() {
+    // 1. 计算当前的滚动比例
     const wrapperTop = scrollWrapper.offsetTop;
     const scrollRange = scrollWrapper.offsetHeight - window.innerHeight;
     const relativeScroll = window.scrollY - wrapperTop;
     
-    let rawProgress = relativeScroll / scrollRange;
-    targetProgress = Math.max(0, Math.min(1, rawProgress));
-  }
+    let progress = relativeScroll / scrollRange;
+    progress = Math.max(0, Math.min(1, progress));
 
-  window.addEventListener('scroll', calculateProgress, { passive: true });
-  window.addEventListener('resize', calculateProgress, { passive: true });
-
-  // 2. 渲染循环：使用 Lerp 平滑追赶目标进度，极大减轻浏览器视频解码压力
-  function renderLoop() {
-    // 平滑系数 0.1，值越小越丝滑但略有延迟
-    currentProgress += (targetProgress - currentProgress) * 0.1;
-
-    // 当差值大于 0.001 时才更新视频（避免不必要的 DOM 操作）
-    if (video.duration && !isNaN(video.duration) && Math.abs(targetProgress - currentProgress) > 0.001) {
-      video.currentTime = currentProgress * video.duration;
+    // 2. 将比例映射到视频时间
+    if (video.duration && !isNaN(video.duration)) {
+      video.currentTime = progress * video.duration;
     }
 
-    // 依然在进度达到 95% 时触发文字显示
-    if (targetProgress > 0.95) {
+    // 修改点3：把出现的触发点改成了 0.95
+    // 意思是：等视频进度达到 95%（即将完全播完黑场时），上面的文字才会出现，自然衔接下方内容
+    if (progress > 0.95) {
       if (!revealed) {
         revealed = true;
         stage.classList.add('revealed');
         heroCopy.classList.add('show');
-        scrollCue.classList.remove('show');
+        scrollCue.classList.remove('show'); // 滚完了就隐藏"往下划"
       }
     } else {
       if (revealed) {
@@ -404,13 +391,14 @@
         scrollCue.classList.add('show');
       }
     }
-
-    // 保持循环
-    requestAnimationFrame(renderLoop);
   }
 
-  // 启动渲染循环
-  requestAnimationFrame(renderLoop);
+  window.addEventListener('scroll', () => {
+    window.requestAnimationFrame(updateVideoOnScroll);
+  });
+  window.addEventListener('resize', () => {
+    window.requestAnimationFrame(updateVideoOnScroll);
+  });
 })();
 
 /* ============ 复制微信号/QQ号 ============ */
