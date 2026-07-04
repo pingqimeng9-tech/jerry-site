@@ -18,31 +18,72 @@
   #canvas-container{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
   #noise-canvas{ width:100%; height:100%; display:block; }
 
-  /* ===== 开场仪式感：平板相框叠加层 =====
-     纯装饰性的浮层，不包裹、不裁切真实内容，滚动时自己淡出/展开消失 */
+  /* ===== 开场仪式感：带可见边框的平板相框 + 打字机标题 + 屏幕内容 ===== */
   #tablet-frame{
     position:fixed;
     inset:0;
     z-index:100;
     pointer-events:none;
     perspective:1400px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    background:rgba(8,6,20, var(--f-vignette, 0.85));
   }
+
+  .intro-title{
+    text-align:center;
+    margin-bottom:28px;
+    opacity:var(--f-title-opacity, 1);
+    transition:none;
+  }
+  .intro-eyebrow{
+    font-size:15px;
+    color:var(--muted, #c9c6e8);
+    font-family:'Noto Sans SC',sans-serif;
+    margin-bottom:6px;
+  }
+  .intro-headline{
+    font-family:'Noto Serif SC',serif;
+    font-weight:900;
+    font-size:clamp(32px, 6vw, 64px);
+    color:#fff;
+    min-height:1.3em;
+  }
+  .intro-cursor{
+    display:inline-block;
+    width:3px;
+    margin-left:3px;
+    background:#5CE1E6;
+    animation:cursorBlink 1s step-end infinite;
+  }
+  @keyframes cursorBlink{ 50%{ opacity:0; } }
+
   #tablet-frame .frame-box{
-    position:absolute;
-    top:var(--f-inset, 6%);
-    left:var(--f-inset, 6%);
-    right:var(--f-inset, 6%);
-    bottom:var(--f-inset, 6%);
-    border-radius:var(--f-radius, 32px);
-    border:var(--f-border, 10px) solid #0a0818;
+    position:relative;
+    width:min(var(--f-width, 78vw), 900px);
+    height:var(--f-height, 62vh);
+    border-radius:var(--f-radius, 30px);
+    border:var(--f-border, 10px) solid #3a3745;
+    background:#1c1a2e;
     box-shadow:
-      0 0 0 9999px rgba(8,6,20, var(--f-vignette, 0.72)),
-      0 40px 90px -20px rgba(0,0,0, var(--f-vignette, 0.72));
+      0 40px 90px -20px rgba(0,0,0, var(--f-vignette, 0.7)),
+      inset 0 0 0 2px rgba(255,255,255,.04);
     transform:
-      rotateX(var(--f-rotate, 16deg))
-      scale(var(--f-scale, 0.94));
+      rotateX(var(--f-rotate, 18deg))
+      scale(var(--f-scale, 0.96));
     transform-origin:center top;
     transition:none;
+    overflow:hidden;
+  }
+  .frame-watermark{
+    position:absolute;
+    top:16px; left:20px;
+    font-size:11px;
+    color:rgba(255,255,255,.35);
+    font-family:'JetBrains Mono',monospace;
+    letter-spacing:.05em;
   }
 
   a{color:inherit;text-decoration:none;}
@@ -138,7 +179,15 @@
 
 <div id="canvas-container"><canvas id="noise-canvas"></canvas></div>
 
-<div id="tablet-frame"><div class="frame-box"></div></div>
+<div id="tablet-frame">
+  <div class="intro-title">
+    <div class="intro-eyebrow">欢迎来到</div>
+    <div class="intro-headline" id="intro-headline"><span class="intro-cursor"></span></div>
+  </div>
+  <div class="frame-box">
+    <div class="frame-watermark">// jerry.dev</div>
+  </div>
+</div>
 
 <nav>
   <a class="logo" href="/">JERRY.DEV</a>
@@ -395,33 +444,59 @@ function escapeHtml(str){
 
 loadPosts();
 setupSearch();
+setupTypewriter();
 setupTabletFrame();
 
-// ===== 开场仪式感：滚动驱动相框展开消失 =====
+// ===== 打字机标题：小字铺垫 + 大字主标题，只播一次不循环 =====
+function setupTypewriter(){
+  const el = document.getElementById('intro-headline');
+  const cursor = el.querySelector('.intro-cursor');
+  const text = 'JERRY.DEV';
+  let i = 0;
+
+  function type(){
+    if(i < text.length){
+      cursor.insertAdjacentText('beforebegin', text[i]);
+      i++;
+      setTimeout(type, 110);
+    }
+    // 打完之后光标继续闪烁，不做删除/循环
+  }
+  setTimeout(type, 400); // 稍微留一点开场停顿再开始打字，别一进页面就突兀地开始
+}
+
+// ===== 开场仪式感：滚动驱动相框展开 + 标题淡出，结束后交叉淡出露出真实博客 =====
 function setupTabletFrame(){
   const frame = document.getElementById('tablet-frame');
-  const box = frame.querySelector('.frame-box');
 
-  // 缓动函数，让"展开"的过程有点减速感，不是匀速冷冰冰的线性
   function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
 
-  // 滚动这么多像素后，相框完全展开消失（可以按需调大调小这个体验时长）
-  const SCROLL_RANGE = Math.max(window.innerHeight * 0.9, 500);
+  // 滚动这么多像素后，整个开场动画完全结束
+  const SCROLL_RANGE = Math.max(window.innerHeight * 1.1, 600);
+  // 打字内容按你的要求「一直留着，直到滚动结束才淡出」——设成在最后 15% 的滚动区间里才开始淡出标题和相框
+  const FADE_START = 0.85;
 
   let ticking = false;
   function update(){
     const raw = Math.min(1, Math.max(0, window.scrollY / SCROLL_RANGE));
     const p = easeOutCubic(raw);
 
-    frame.style.setProperty('--f-inset', (6 - 6 * p) + '%');
-    frame.style.setProperty('--f-radius', (32 - 32 * p) + 'px');
+    // 相框本体：倾斜角度、缩放、边框圆角随滚动逐渐归零变成整屏
+    frame.style.setProperty('--f-rotate', (18 - 18 * p) + 'deg');
+    frame.style.setProperty('--f-scale', (0.96 + 0.1 * p));
+    frame.style.setProperty('--f-radius', (30 - 30 * p) + 'px');
     frame.style.setProperty('--f-border', (10 - 10 * p) + 'px');
-    frame.style.setProperty('--f-rotate', (16 - 16 * p) + 'deg');
-    frame.style.setProperty('--f-scale', (0.94 + 0.06 * p));
-    frame.style.setProperty('--f-vignette', (0.72 - 0.72 * p));
+    frame.style.setProperty('--f-width', (78 + 22 * p) + 'vw');
+    frame.style.setProperty('--f-height', (62 + 38 * p) + 'vh');
 
-    // 完全展开后彻底移出渲染，避免它以任何形式挡住后续操作
-    frame.style.display = raw >= 1 ? 'none' : 'block';
+    // 标题和整体暗幕：只在最后一段滚动区间里才开始淡出（打字内容全程保留，直到快结束）
+    const fadeProgress = raw < FADE_START ? 0 : (raw - FADE_START) / (1 - FADE_START);
+    const fadeEase = easeOutCubic(fadeProgress);
+    frame.style.setProperty('--f-title-opacity', (1 - fadeEase));
+    frame.style.setProperty('--f-vignette', (0.85 - 0.85 * fadeEase));
+    frame.style.opacity = 1 - fadeEase;
+
+    frame.style.display = raw >= 1 ? 'none' : 'flex';
 
     ticking = false;
   }
@@ -433,9 +508,11 @@ function setupTabletFrame(){
     }
   }, { passive: true });
 
-  update(); // 初始状态先跑一遍
+  update();
 }
 </script>
+
+
 
 <script>
 (function() {
