@@ -129,7 +129,16 @@
   @media (max-width:860px){ nav .links{display:none;} }
 
   /* ============ HERO + VIDEO 转场 (签名设计) ============ */
-  .hero-stage{position:relative;width:100%;height:min(100vh,860px);min-height:560px;background:#0b0a12;overflow:hidden;}
+  /* ============ HERO 滚动容器：给足滚动距离，让内部hero-stage钉在导航栏下方 ============ */
+  .hero-scroll-wrapper{
+    position:relative;
+    height:260vh; /* 滚动"跑道"长度，决定滑多久才能把视频从头拉到尾，感觉太快/太慢改这个数字 */
+  }
+  .hero-stage{
+    position:sticky;
+    top:var(--nav-h, 64px); /* 钉在导航栏正下方，--nav-h由JS量出真实导航栏高度 */
+    width:100%;height:min(100vh,860px);min-height:560px;background:#0b0a12;overflow:hidden;
+  }
   .hero-stage video,.hero-stage .poster-fallback{
     position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
   }
@@ -378,13 +387,14 @@
 </nav>
 
 <!-- ============ HERO：开场视频 + 黑场转场 ============ -->
+<div class="hero-scroll-wrapper" id="heroScrollWrapper">
 <div class="hero-stage" id="top">
   <!--
     ★ 素材位：把你做好的4秒开场视频放到 videos/rumi-hero.mp4
     视频结尾的黑屏会自然衔接下面的深色渐变，做成"揭幕"转场效果。
     未放视频前，会显示下面的占位渐变背景。
   -->
-  <video autoplay muted playsinline poster="images/rumi/hero-poster.jpg"
+  <video muted playsinline preload="auto" poster="images/rumi/hero-poster.jpg"
     onerror="this.style.display='none'">
     <source src="videos/rumi-hero.mp4" type="video/mp4">
   </video>
@@ -402,6 +412,7 @@
     </div>
   </div>
   <div class="scroll-cue">往下滑<div class="chevron"></div></div>
+</div>
 </div>
 
 <div class="wrap">
