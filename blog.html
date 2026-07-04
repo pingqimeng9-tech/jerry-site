@@ -18,6 +18,33 @@
   #canvas-container{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
   #noise-canvas{ width:100%; height:100%; display:block; }
 
+  /* ===== 开场仪式感：平板相框叠加层 =====
+     纯装饰性的浮层，不包裹、不裁切真实内容，滚动时自己淡出/展开消失 */
+  #tablet-frame{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    pointer-events:none;
+    perspective:1400px;
+  }
+  #tablet-frame .frame-box{
+    position:absolute;
+    top:var(--f-inset, 6%);
+    left:var(--f-inset, 6%);
+    right:var(--f-inset, 6%);
+    bottom:var(--f-inset, 6%);
+    border-radius:var(--f-radius, 32px);
+    border:var(--f-border, 10px) solid #0a0818;
+    box-shadow:
+      0 0 0 9999px rgba(8,6,20, var(--f-vignette, 0.72)),
+      0 40px 90px -20px rgba(0,0,0, var(--f-vignette, 0.72));
+    transform:
+      rotateX(var(--f-rotate, 16deg))
+      scale(var(--f-scale, 0.94));
+    transform-origin:center top;
+    transition:none;
+  }
+
   a{color:inherit;text-decoration:none;}
   .mono{font-family:'JetBrains Mono',monospace;}
   .serif{font-family:'Noto Serif SC',serif;}
@@ -110,6 +137,8 @@
 <body>
 
 <div id="canvas-container"><canvas id="noise-canvas"></canvas></div>
+
+<div id="tablet-frame"><div class="frame-box"></div></div>
 
 <nav>
   <a class="logo" href="/">JERRY.DEV</a>
@@ -366,6 +395,46 @@ function escapeHtml(str){
 
 loadPosts();
 setupSearch();
+setupTabletFrame();
+
+// ===== 开场仪式感：滚动驱动相框展开消失 =====
+function setupTabletFrame(){
+  const frame = document.getElementById('tablet-frame');
+  const box = frame.querySelector('.frame-box');
+
+  // 缓动函数，让"展开"的过程有点减速感，不是匀速冷冰冰的线性
+  function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+
+  // 滚动这么多像素后，相框完全展开消失（可以按需调大调小这个体验时长）
+  const SCROLL_RANGE = Math.max(window.innerHeight * 0.9, 500);
+
+  let ticking = false;
+  function update(){
+    const raw = Math.min(1, Math.max(0, window.scrollY / SCROLL_RANGE));
+    const p = easeOutCubic(raw);
+
+    frame.style.setProperty('--f-inset', (6 - 6 * p) + '%');
+    frame.style.setProperty('--f-radius', (32 - 32 * p) + 'px');
+    frame.style.setProperty('--f-border', (10 - 10 * p) + 'px');
+    frame.style.setProperty('--f-rotate', (16 - 16 * p) + 'deg');
+    frame.style.setProperty('--f-scale', (0.94 + 0.06 * p));
+    frame.style.setProperty('--f-vignette', (0.72 - 0.72 * p));
+
+    // 完全展开后彻底移出渲染，避免它以任何形式挡住后续操作
+    frame.style.display = raw >= 1 ? 'none' : 'block';
+
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', () => {
+    if(!ticking){
+      requestAnimationFrame(update);
+      ticking = true;
+    }
+  }, { passive: true });
+
+  update(); // 初始状态先跑一遍
+}
 </script>
 
 <script>
