@@ -88,7 +88,8 @@
 
   @media (max-width:900px){
     .shell{flex-direction:column;}
-    .toc{width:100%;position:static;max-height:none;}
+    .toc{display:none !important;} /* 手机端只看文章正文，目录直接隐藏；JS里会用内联style.display='block'强制显示，
+                                        普通CSS规则拼不过内联样式优先级，这里必须加!important才能真正盖住 */
   }
 </style>
 </head>
