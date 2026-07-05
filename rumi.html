@@ -104,7 +104,7 @@
   }
   .hero-stage.revealed::before{opacity:.28;}
 
-  /* ============ 第二幕：文字左 + 圆形设备框右 ============ */
+  /* ============ 第二幕：无缝转场，满屏缩小 ============ */
   .act2-scroll{ position:relative; height:230vh; background:linear-gradient(160deg,#141225,#1b1440 60%,#0b0a12); }
   .act2-stage{
     position:sticky; top:var(--nav-h,64px);
@@ -134,7 +134,7 @@
     display:flex; align-items:center; justify-content:center;
   }
   
-  /* 光晕默认透明，JS控制跟随卡片 */
+  /* 光晕默认透明，JS控制跟随卡片渐显 */
   .glow-orb{
     position:absolute; width:min(360px,86vw); aspect-ratio:1/1; border-radius:50%;
     background:
@@ -146,9 +146,9 @@
     left: 0; top: 0;
   }
 
+  /* 设备框：初始不再透明，依靠 JS 的宽/高 100% 满屏盖住背景 */
   .device-frame{
     position:absolute; z-index:1;
-    opacity: 0;
     border-radius:0; overflow:hidden;
     background:#0b0a12;
     box-shadow:none;
@@ -496,7 +496,7 @@
   const glowOrb = document.getElementById('glowOrb');
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // ============ 2/3占比 → 小卡片 的"无扭曲"真实变形 ============
+  // ============ 100%满屏无缝盖住 -> 小卡片 无扭曲真实变形 ============
   let dockGeo = null;
   function measureDock(){
     if(!deviceFrame || !deviceFrameTarget || !logoStage) return;
@@ -504,11 +504,11 @@
     const targetRect = deviceFrameTarget.getBoundingClientRect();
     if(stageRect.width === 0 || stageRect.height === 0) return; 
     
-    // 初始状态：占屏幕2/3
-    const startW = stageRect.width * 0.66;
-    const startH = stageRect.height * 0.66;
-    const startL = (stageRect.width - startW) / 2;
-    const startT = (stageRect.height - startH) / 2;
+    // 初始状态：100% 满屏无边距（无缝对接上一幕的黑场）
+    const startW = stageRect.width;
+    const startH = stageRect.height;
+    const startL = 0;
+    const startT = 0;
 
     dockGeo = {
       startW, startH, startL, startT,
@@ -526,18 +526,15 @@
     return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
   }
 
-  const DOCK_START = 0.15, DOCK_END = 0.65;
+  const DOCK_START = 0.15; // 播放一小段后，边框才开始出现并往里缩
+  const DOCK_END = 0.65;
   const FINAL_RADIUS = 28, FINAL_ROTATE = -4; 
   const HOLD_START = 0.75;
 
   function updateDeviceFrame(raw){
     if(!deviceFrame || !dockGeo) return;
 
-    // 1. 渐显效果 (raw 0 -> 0.1 期间)
-    let fadeInProgress = Math.max(0, Math.min(1, raw / 0.1));
-    deviceFrame.style.opacity = fadeInProgress;
-
-    // 2. 动画插值
+    // 动画插值
     const t = Math.max(0, Math.min(1, (raw - DOCK_START) / (DOCK_END - DOCK_START)));
     const e = prefersReduced ? (raw > DOCK_START ? 1 : 0) : easeInOutCubic(t); 
 
@@ -549,7 +546,7 @@
     const radius = FINAL_RADIUS * e;
     let rotate = FINAL_ROTATE * e;
 
-    // 3. 落地后的呼吸感漂移
+    // 落地后的呼吸感漂移，同原版保留一致
     if(!prefersReduced && raw > HOLD_START){
       const holdProgress = Math.min(1, (raw - HOLD_START) / (1 - HOLD_START));
       rotate += holdProgress * 3;
@@ -568,9 +565,9 @@
       ? `0 ${30 * e}px ${60 * e}px -20px rgba(0,0,0,${(0.55 * e).toFixed(3)}), 0 0 0 ${6 * e}px rgba(255,255,255,${(0.08 * e).toFixed(3)})`
       : 'none';
 
-    // 4. 光晕：同步缩小进度渐渐显现，并紧紧跟在卡片中心
+    // 炫彩垫子：保持在背后，并跟随边框出现的进度渐渐显现
     if (glowOrb) {
-        glowOrb.style.opacity = e;
+        glowOrb.style.opacity = e; 
         glowOrb.style.transform = `translate(calc(${l}px + ${w/2}px - 50%), calc(${tPos}px + ${h/2}px - 50%))`;
     }
   }
