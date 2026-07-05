@@ -89,27 +89,109 @@
   .hero-scroll-wrapper{
     position:relative;
     height:300vh; 
-  }
-  /* 第二段：滚动距离更长——前62%用来播完动画，剩下的距离让最后一帧（文字定格画面）钉住不动再往下走 */
-  .hero-scroll-wrapper.hold-wrapper{
-    height:415vh;
+    background:#0b0a12; /* 关键修复：容器本身补深色底，sticky交接的瞬间即便有亚像素误差，露出来的也是深色而不是页面米白背景 */
   }
   .hero-stage{
     position:sticky;
     top:var(--nav-h, 64px); 
     width:100%;height:min(100vh,860px);min-height:560px;background:#0b0a12;overflow:hidden;
   }
-  
-  /* 去掉了那个蓝色的 .poster-fallback 占位样式 */
   .hero-stage canvas {
     position:absolute;inset:0;width:100%;height:100%;display:block;background:#0b0a12;
   }
-  
   .hero-stage::before{
     content:"";position:absolute;inset:0;background:#0b0a12;opacity:0;
     transition:opacity 0.8s ease;z-index:1;pointer-events:none;
   }
   .hero-stage.revealed::before{opacity:.28;}
+
+  /* ============ 第二幕：文字左 + 圆形设备框（视频2）右 + 两张光斑卡片 ============ */
+  .act2-scroll{ position:relative; height:230vh; background:linear-gradient(160deg,#141225,#1b1440 60%,#0b0a12); }
+  .act2-stage{
+    position:sticky; top:var(--nav-h,64px);
+    width:100%; height:min(100vh,860px); min-height:560px;
+    background:linear-gradient(160deg,#141225,#1b1440 60%,#0b0a12);
+    overflow:hidden; display:flex; align-items:center;
+  }
+  .act2-inner{
+    display:flex; align-items:center; justify-content:space-between; gap:48px;
+    flex-wrap:wrap; width:100%;
+  }
+  .act2-text{
+    flex:1 1 340px; color:#fff; max-width:460px;
+    opacity:0; transform:translateY(18px);
+    transition:opacity .7s ease, transform .7s ease;
+  }
+  .act2-text.show{ opacity:1; transform:translateY(0); }
+  .act2-text h2{
+    font-family:'ZCOOL KuaiLe',cursive; font-weight:400;
+    font-size:clamp(26px,3.6vw,38px); line-height:1.3; margin:16px 0 14px;
+  }
+  .act2-text p{ font-size:15px; line-height:1.7; opacity:.85; max-width:420px; margin:0 0 26px; }
+
+  .act2-visual{
+    position:relative; flex:1 1 360px; min-height:420px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .glow-orb{
+    position:absolute; width:min(360px,86vw); aspect-ratio:1/1; border-radius:50%;
+    background:
+      radial-gradient(circle at 32% 28%, #7fd1e8bb, transparent 60%),
+      radial-gradient(circle at 68% 72%, #ff6fa5aa, transparent 60%),
+      radial-gradient(circle at 50% 50%, #ffc93c77, transparent 70%);
+    filter:blur(6px); z-index:0;
+  }
+  .device-frame{
+    position:relative; z-index:1; width:min(250px,60vw); aspect-ratio:4/3;
+    border-radius:28px; overflow:hidden; transform:rotate(-4deg);
+    background:#0b0a12;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,.55), 0 0 0 6px rgba(255,255,255,.08);
+    will-change:transform;
+  }
+  .device-frame canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; background:#0b0a12; }
+
+  /* 光斑卡片：跟随鼠标的高光描边效果 */
+  .spotlight-card{
+    position:absolute; z-index:2; width:132px; padding:16px 14px;
+    border-radius:18px; text-align:center; color:#fff;
+    background:
+      radial-gradient(120px 120px at var(--mx,50%) var(--my,50%), rgba(255,255,255,.16), transparent 65%),
+      hsl(0 0% 60% / .12);
+    background-attachment:fixed, fixed;
+    border:1px solid rgba(255,255,255,.2);
+    backdrop-filter:blur(8px);
+    opacity:0; transition:opacity .8s ease, transform .8s cubic-bezier(.22,1,.36,1);
+  }
+  .spotlight-card.show{ opacity:1; transform:translate(0,0) !important; }
+  .spotlight-a{ left:-4%; bottom:8%; transform:translate(-36px,52px); }
+  .spotlight-b{ right:-4%; top:10%; transform:translate(36px,-52px); }
+  .sc-icon{ font-size:22px; margin-bottom:6px; }
+  .sc-title{ font-weight:700; font-size:12.5px; margin-bottom:2px; }
+  .sc-desc{ font-size:11px; opacity:.75; }
+
+  @media (max-width:900px){
+    .act2-stage{ padding:32px 0; }
+    .act2-inner{ justify-content:center; text-align:center; }
+    .act2-text{ text-align:center; margin:0 auto; }
+    .act2-text p{ margin-left:auto; margin-right:auto; }
+    .spotlight-card{ width:108px; padding:12px 10px; }
+    .spotlight-a{ left:-2%; bottom:2%; }
+    .spotlight-b{ right:-2%; top:2%; }
+  }
+
+  .hero-eyebrow{
+    display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:700; letter-spacing:.06em;
+    background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.35);
+    padding:6px 16px; border-radius:100px; backdrop-filter:blur(6px);
+  }
+  .hero-btnrow{ display:flex; gap:14px; flex-wrap:wrap; }
+  .btn{ display:inline-block; padding:14px 30px; border-radius:100px; font-weight:700; font-size:15px; text-decoration:none; transition:.25s; }
+  .btn.solid{ background:linear-gradient(120deg,var(--coral),#ffa26b); color:#fff; box-shadow:0 14px 30px -10px #FF7A5C99; }
+  .btn.solid:hover{ transform:translateY(-2px); }
+  .btn.ghost{ background:rgba(255,255,255,.12); border:1.5px solid rgba(255,255,255,.65); color:#fff; backdrop-filter:blur(6px); }
+  .btn.ghost:hover{ background:rgba(255,255,255,.22); }
+  .mobonly{ display:none; }
+  @media (max-width:520px){ .mobonly{ display:block; } }
 
   .scroll-cue{
     position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:2;color:#fff;opacity:0;font-size:12px;text-align:center;
@@ -235,11 +317,37 @@
 </div>
 
 <!-- ============ 第二段：黑场转文字定格动画 ============ -->
-<div class="hero-scroll-wrapper hold-wrapper" id="logoScrollWrapper">
-<div class="hero-stage" id="logoStage">
-  <canvas id="logoCanvas"></canvas>
+<section class="act2-scroll" id="logoScrollWrapper">
+<div class="act2-stage" id="logoStage">
+  <div class="wrap act2-inner">
+    <div class="act2-text" id="act2Text">
+      <div class="hero-eyebrow">🐾 适龄 3–8 岁 · 原创动画英语</div>
+      <h2>用一部部会讲故事的动画<br class="mobonly">把英语悄悄学会</h2>
+      <p>Phonics、日常表达和自然拼读，跟着 Rumi 和朋友们，边看边玩边记住，不是背单词表。</p>
+      <div class="hero-btnrow">
+        <a href="#contact" class="btn solid">预约体验课</a>
+        <a href="#characters" class="btn ghost">认识 Rumi 和朋友们</a>
+      </div>
+    </div>
+    <div class="act2-visual">
+      <div class="glow-orb"></div>
+      <div class="device-frame">
+        <canvas id="logoCanvas"></canvas>
+      </div>
+      <div class="spotlight-card spotlight-a" id="spotlightA">
+        <div class="sc-icon">🎬</div>
+        <div class="sc-title">原创动画番外</div>
+        <div class="sc-desc">每周更新</div>
+      </div>
+      <div class="spotlight-card spotlight-b" id="spotlightB">
+        <div class="sc-icon">📖</div>
+        <div class="sc-title">分级配套教材</div>
+        <div class="sc-desc">动画同步</div>
+      </div>
+    </div>
+  </div>
 </div>
-</div>
+</section>
 
 <div class="wrap">
   <!-- 内容区维持原样 -->
@@ -312,15 +420,16 @@
 (function(){
 
   // ============ 通用：帧序列滚动控制器 ============
-  // wrapperId/canvasId：对应的滚动容器和画布
-  // frameCount/framePath：帧数量和文件命名规则
-  // scrubFraction：动画在这个滚动比例内播完（比如0.62表示滚到62%时最后一帧已经出现），
-  //                剩下的滚动距离里画面保持"定格"在最后一帧，直到这段容器整体滚出视口
-  function initFrameScroller({ wrapperId, canvasId, frameCount, framePath, scrubFraction = 1, fit = 'cover', onProgress }){
+  // wrapperId：滚动容器；canvasId：画布；stageId：被 sticky 钉住的元素（用它的高度而不是 window.innerHeight 来算滚动进度，
+  //            避免移动端地址栏收起/展开导致 100vh 和实际可视高度不一致，这也是之前"底部白边"的真正原因之一）
+  // frameCount/framePath：帧数量和命名规则
+  // scrubFraction：动画在这个滚动比例内播完，剩下的比例定格在最后一帧
+  function initFrameScroller({ wrapperId, canvasId, stageId, frameCount, framePath, scrubFraction = 1, fit = 'cover', onProgress }){
     const wrapper = document.getElementById(wrapperId);
     const canvas = document.getElementById(canvasId);
-    if (!wrapper || !canvas) return null;
-    const stage = canvas.closest('.hero-stage');
+    const stage = document.getElementById(stageId);
+    if (!wrapper || !canvas || !stage) return null;
+    const canvasBox = canvas.parentElement; // 画布按自己的直接容器定位铺满（可能是整屏 stage，也可能是小设备框）
     const ctx = canvas.getContext('2d');
     const frames = [];
     let currentIndex = -1;
@@ -336,12 +445,12 @@
 
     function resize(){
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.round(stage.clientWidth * dpr);
-      canvas.height = Math.round(stage.clientHeight * dpr);
+      canvas.width = Math.round(canvasBox.clientWidth * dpr);
+      canvas.height = Math.round(canvasBox.clientHeight * dpr);
       if (currentIndex >= 0) drawFrame(currentIndex, true);
     }
 
-    // fit:'cover' 会裁切填满画布（适合背景大图）；fit:'contain' 完整显示整张画面不裁切（适合带文字排版的画面，避免文字被放大裁切）
+    // fit:'cover' 裁切铺满（背景大图用）；fit:'contain' 完整显示不裁切（带文字排版的画面用，避免被放大裁切）
     function drawFrame(index, force){
       const img = frames[index];
       if (!img || !img.complete || !img.naturalWidth) return;
@@ -352,18 +461,19 @@
       const scale = fit === 'contain' ? Math.min(cw / iw, ch / ih) : Math.max(cw / iw, ch / ih);
       const dw = iw * scale, dh = ih * scale;
       const dx = (cw - dw) / 2, dy = (ch - dh) / 2;
-      ctx.clearRect(0, 0, cw, ch);
+      // 先铺一层实色背景再画图：即便 contain 模式两边留白，露出来的也是深色而不是穿透看到底下的白色页面背景
+      ctx.fillStyle = '#0b0a12';
+      ctx.fillRect(0, 0, cw, ch);
       ctx.drawImage(img, dx, dy, dw, dh);
     }
 
     function update(){
       const wrapperTop = wrapper.offsetTop;
-      const scrollRange = wrapper.offsetHeight - window.innerHeight;
+      const scrollRange = wrapper.offsetHeight - stage.offsetHeight;
       const relativeScroll = window.scrollY - wrapperTop;
       let rawProgress = scrollRange > 0 ? relativeScroll / scrollRange : 0;
       rawProgress = Math.max(0, Math.min(1, rawProgress));
 
-      // 把 0~scrubFraction 映射成 0~1 去驱动帧号，超过 scrubFraction 之后 frameProgress 钉在 1（定格最后一帧）
       const frameProgress = Math.max(0, Math.min(1, rawProgress / scrubFraction));
       const targetIndex = Math.round(frameProgress * (frameCount - 1));
       drawFrame(targetIndex);
@@ -377,12 +487,18 @@
   }
 
   const scrollCue = document.querySelector('#top .scroll-cue');
+  const act2Text = document.getElementById('act2Text');
+  const spotlightA = document.getElementById('spotlightA');
+  const spotlightB = document.getElementById('spotlightB');
+  const deviceFrame = document.querySelector('.device-frame');
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const scrollers = [
-    // 第一段：开场镜头推近
+    // 第一幕：开场镜头推近
     initFrameScroller({
       wrapperId: 'heroScrollWrapper',
       canvasId: 'heroCanvas',
+      stageId: 'top',
       frameCount: 60,
       framePath: i => `images/rumi/hero-frames/frame_${String(i).padStart(3,'0')}.webp`,
       scrubFraction: 0.92,
@@ -391,14 +507,31 @@
         stage.classList.toggle('revealed', raw > 0.95);
       }
     }),
-    // 第二段：黑场转文字，播完后定格在最后一帧，直到滚出这段容器
+    // 第二幕：文字左 + 圆形设备框（视频2）右，两张光斑卡片依次滚动入场
     initFrameScroller({
       wrapperId: 'logoScrollWrapper',
       canvasId: 'logoCanvas',
+      stageId: 'logoStage',
       frameCount: 59,
       framePath: i => `images/rumi/hero-frames-2/frame_${String(i).padStart(3,'0')}.webp`,
-      scrubFraction: 0.62,
-      fit: 'contain'
+      scrubFraction: 0.75,
+      fit: 'contain',
+      onProgress: (raw) => {
+        if (act2Text) act2Text.classList.toggle('show', raw > 0.04);
+        if (spotlightA) spotlightA.classList.toggle('show', raw > 0.16);
+        if (spotlightB) spotlightB.classList.toggle('show', raw > 0.28);
+
+        // 定格收尾小动效：视频画完（raw超过0.75）之后，卡片在剩下的滚动距离里缓缓上移+右移，
+        // 给一个"落定"的呼吸感，而不是播完就死死钉住不动
+        if (deviceFrame && !prefersReduced) {
+          const holdStart = 0.75;
+          const holdProgress = raw > holdStart ? Math.min(1, (raw - holdStart) / (1 - holdStart)) : 0;
+          const rotate = -4 + holdProgress * 3;      // -4deg 慢慢转正一点
+          const dx = holdProgress * 22;               // 缓缓右移
+          const dy = holdProgress * -16;               // 缓缓上移
+          deviceFrame.style.transform = `rotate(${rotate}deg) translate(${dx}px, ${dy}px)`;
+        }
+      }
     })
   ];
 
@@ -415,6 +548,14 @@
 
   window.addEventListener('scroll', onScroll, { passive: true });
   scrollers.forEach(s => s && s.update());
+
+  // ============ 光斑卡片：跟随鼠标的高光描边效果 ============
+  // 用 background-attachment:fixed，让径向渐变的定位坐标系变成"整个视口"，
+  // 这样只要全局记一份鼠标坐标，任意位置的卡片都能正确对齐鼠标做出光斑效果
+  document.addEventListener('pointermove', (e) => {
+    document.documentElement.style.setProperty('--mx', e.clientX + 'px');
+    document.documentElement.style.setProperty('--my', e.clientY + 'px');
+  });
 })();
 
 /* ============ 复制微信号/QQ号 ============ */
