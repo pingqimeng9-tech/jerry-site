@@ -60,7 +60,7 @@
   }
   .bg-fluid{
     position:absolute; inset:0; width:100%; height:100%; display:block;
-    opacity:.7; /* 稀疏星点渲染本身就很轻，适当调高好让星空点点看得见，整体仍然很柔和 */
+    opacity:.7; 
   }
   .hands-base, .hands-reveal{
     position:absolute;
@@ -113,8 +113,6 @@
   @keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(-50px,-70px)}}
   @keyframes float3{0%,100%{transform:translate(0,0)}50%{transform:translate(-80px,50px)}}
 
-  /* stars */
-  #stars{position:fixed;inset:0;z-index:0;pointer-events:none;}
   .star{
     position:absolute;
     width:2px;height:2px;
@@ -126,7 +124,6 @@
   @keyframes twinkle{0%,100%{opacity:.15}50%{opacity:.9}}
 
   a{color:inherit;}
-
   .mono{font-family:'JetBrains Mono',monospace;letter-spacing:.04em;}
   .serif{font-family:'Noto Serif SC',serif;}
 
@@ -170,7 +167,6 @@
   }
   nav .cta:hover{transform:translateY(-2px);box-shadow:0 12px 28px -6px #FF7A5Caa;}
 
-  /* ================= 旋转渐变描边按钮 ================= */
   @property --border-angle{
     syntax:'<angle>';
     inherits:false;
@@ -204,16 +200,36 @@
   }
 
   /* ================= LAYOUT ================= */
-  .wrap{max-width:1080px;margin:0 auto;padding:0 clamp(20px,5vw,56px);position:relative;z-index:1;}
+  .wrap{max-width:1440px;margin:0 auto;padding:0 clamp(20px,5vw,56px);position:relative;z-index:1;}
 
   /* ================= HERO ================= */
   .hero{
-    display:grid;
-    grid-template-columns:1.25fr 1fr;
-    gap:48px;
+    display:flex;
+    justify-content:space-between;
     align-items:center;
     padding:72px 0 56px;
     min-height:70vh;
+  }
+
+  .hero-left {
+    max-width: 460px; 
+    animation: slideInLeft 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.8s backwards;
+  }
+  .hero-right {
+    position: relative;
+    width: 350px; 
+    height: 450px;
+    margin-right: 60px;
+    animation: slideInRight 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.8s backwards;
+  }
+
+  @keyframes slideInLeft {
+    0% { opacity: 0; transform: translateX(-80px); }
+    100% { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes slideInRight {
+    0% { opacity: 0; transform: translateX(80px); }
+    100% { opacity: 1; transform: translateX(0); }
   }
 
   .eyebrow{
@@ -243,7 +259,7 @@
   .hl-coral{background:linear-gradient(90deg,var(--coral),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;}
   .hl-aqua{background:linear-gradient(90deg,var(--aqua),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent;}
 
-  .subhead{font-size:15.5px;line-height:1.9;color:var(--muted);max-width:48ch;margin-bottom:32px;}
+  .subhead{font-size:15.5px;line-height:1.9;color:var(--muted);margin-bottom:32px;}
 
   .btnrow{display:flex;gap:12px;flex-wrap:wrap;}
   .btn{
@@ -257,41 +273,84 @@
   .btn.line{background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(10px);color:#fff;}
   .btn.line:hover{background:var(--glass-strong);transform:translateY(-2px);}
 
-  /* character panel */
-  .char-frame{
-    position:relative;
-    border-radius:24px;
-    background:var(--glass);
-    border:1px solid var(--glass-border);
-    backdrop-filter:blur(20px);
-    -webkit-backdrop-filter:blur(20px);
-    aspect-ratio:3/4;
-    display:flex;align-items:center;justify-content:center;
-    overflow:hidden;
-    box-shadow:0 30px 70px -25px rgba(107,92,255,.5);
-    transform-style:preserve-3d;
-    transform:perspective(900px);
-    transition:transform .25s ease, box-shadow .4s ease;
-    animation:framepulse 5s ease-in-out infinite;
-  }
-  @keyframes framepulse{
-    0%,100%{box-shadow:0 30px 70px -25px rgba(107,92,255,.5);}
-    50%{box-shadow:0 30px 80px -20px rgba(92,225,230,.55);}
-  }
-  .char-img{
-    width:100%;height:100%;
-    object-fit:cover;
-    display:block;
-  }
-  .char-tag{
-    position:absolute;top:14px;left:14px;
-    background:rgba(0,0,0,.4);
-    padding:5px 12px;border-radius:100px;
-    font-size:10.5px;
-    z-index:2;
+  /* ================= 交互卡片层叠栈 ================= */
+  .card-stack {
+    position: relative;
+    width: 100%;
+    height: 100%;
   }
 
-  /* ================= 背景旋转头像环 + 数字滚动：钉在固定背景层正中央，手指相触的位置 ================= */
+  .testi-card {
+    position: absolute;
+    left: 0; top: 0;
+    width: 350px;
+    height: 450px;
+    background: rgba(30, 41, 59, 0.4);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.5);
+    user-select: none;
+    overflow: hidden;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), z-index 0s 0.15s, opacity 0.4s;
+  }
+
+  /* 位置控制 */
+  .testi-card.front { z-index: 3; transform: translateX(0%) rotate(-6deg); cursor: grab; }
+  .testi-card.front:active { cursor: grabbing; }
+  .testi-card.middle { z-index: 2; transform: translateX(33%) rotate(0deg); opacity: 0.9; }
+  .testi-card.back { z-index: 1; transform: translateX(66%) rotate(6deg); opacity: 0.7; }
+  .testi-card.dragging { transition: none !important; cursor: grabbing; opacity: 1 !important;}
+
+  /* 样式 1：封面大图卡 */
+  .testi-card.cover-card {
+    padding: 0;
+    display: block;
+  }
+  .testi-card.cover-card .char-img {
+    width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none;
+  }
+  .testi-card.cover-card .char-tag {
+    position: absolute; top: 14px; left: 14px;
+    background: rgba(0,0,0,.5); padding: 6px 14px;
+    border-radius: 100px; font-size: 11px; z-index: 2;
+  }
+
+  /* 样式 2：语录文字卡 */
+  .testi-card.quote-card {
+    padding: 32px 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+  }
+  .testi-avatar {
+    width: 90px; height: 90px;
+    border-radius: 50%;
+    border: 2px solid var(--glass-border);
+    background: #e2e8f0;
+    object-fit: cover;
+    pointer-events: none;
+  }
+  .testi-text {
+    text-align: justify;
+    font-size: 15px;
+    color: #e8e6fb;
+    line-height: 1.8;
+    pointer-events: none;
+  }
+  .testi-author {
+    text-align: center;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: var(--aqua);
+    pointer-events: none;
+    margin-top: 4px;
+  }
+
+  /* ================= 背景旋转头像环 + 数字滚动 ================= */
   .orbit-stage.bg-orbit{
     position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
     width:360px; height:360px;
@@ -305,7 +364,6 @@
     mask-image:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 43%, rgba(0,0,0,0) 100%);
     border:1px solid var(--glass-border);
   }
-  /* 四层轨道，直径/转速比例照搬参考文档的 353/501/649/797px 四档，按我们360px舞台等比缩小(≈0.452倍) */
   .ring-1{width:160px;height:160px;margin:-80px 0 0 -80px;animation:spinL 10s linear infinite;}
   .ring-2{width:226px;height:226px;margin:-113px 0 0 -113px;animation:spinR 14s linear infinite;}
   .ring-3{width:293px;height:293px;margin:-146.5px 0 0 -146.5px;animation:spinR 18s linear infinite;}
@@ -323,7 +381,6 @@
   .orbit-count{font-size:22px;font-weight:700;background:linear-gradient(90deg,var(--aqua),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent;}
   .orbit-label{font-size:9.5px;color:var(--muted);margin-top:2px;}
 
-  /* ================= 新增：动态注册公转和缩放的变量 ================= */
   @property --orbit-spin {
     syntax: '<angle>';
     inherits: true;
@@ -335,11 +392,9 @@
     initial-value: 0.3;
   }
 
-  /* 定义左转和右转的公转动画 */
   @keyframes orbit-spin-L { to { --orbit-spin: -360deg; } }
   @keyframes orbit-spin-R { to { --orbit-spin: 360deg; } }
 
-  /* ================= 核心：头像公转与保持正向 ================= */
   .orbit-avatar {
     position:absolute; top:50%; left:50%; z-index:3;
     width:40px;height:40px;border-radius:50%;
@@ -348,16 +403,9 @@
     border:2px solid rgba(255,255,255,.35);
     box-shadow:0 8px 20px -8px rgba(0,0,0,.5), 0 0 22px -4px var(--glow, transparent);
     
-    /* 引入动态变量 */
     --orbit-spin: 0deg;
     --avatar-scale: 0.3;
 
-    /* 
-      公转核心公式：
-      1. 初始角度 + 动态公转角度
-      2. 推到指定半径
-      3. 减去总角度（实现反向抵消，保证头像在绕圈时永远保持正立）
-    */
     transform:
       translate(-50%,-50%)
       rotate(calc(var(--angle) + var(--orbit-spin)))
@@ -372,54 +420,43 @@
   .orbit-avatar.big{width:52px;height:52px;font-size:20px;}
   .orbit-avatar.square{border-radius:20px;}
 
-  /* 入场动画仅处理缩放和透明度，不影响 transform 轨道计算 */
   @keyframes avatarPop {
-    to {
-      opacity: 1;
-      filter: blur(0);
-      --avatar-scale: 1;
-    }
+    to { opacity: 1; filter: blur(0); --avatar-scale: 1; }
   }
 
-  /* ================= 将头像与对应的尾翼圈速精准绑定 ================= */
-  /* 半径 80px 对应 ring-1 尾翼：左转 10s */
   .orbit-avatar[style*="--radius:80px"] {
-    animation: 
-      avatarPop .7s cubic-bezier(.34,1.56,.64,1) forwards,
-      orbit-spin-L 10s linear infinite;
+    animation: avatarPop .7s cubic-bezier(.34,1.56,.64,1) forwards, orbit-spin-L 10s linear infinite;
     animation-delay: calc(var(--angle) / 360 * 1.7s + .6s), 0s;
   }
-
-  /* 半径 113px 对应 ring-2 尾翼：右转 14s */
   .orbit-avatar[style*="--radius:113px"] {
-    animation: 
-      avatarPop .7s cubic-bezier(.34,1.56,.64,1) forwards,
-      orbit-spin-R 14s linear infinite;
+    animation: avatarPop .7s cubic-bezier(.34,1.56,.64,1) forwards, orbit-spin-R 14s linear infinite;
     animation-delay: calc(var(--angle) / 360 * 1.7s + .6s), 0s;
   }
-
-  /* 半径 146.5px 对应 ring-3 尾翼：右转 18s */
   .orbit-avatar[style*="--radius:146.5px"] {
-    animation: 
-      avatarPop .7s cubic-bezier(.34,1.56,.64,1) forwards,
-      orbit-spin-R 18s linear infinite;
+    animation: avatarPop .7s cubic-bezier(.34,1.56,.64,1) forwards, orbit-spin-R 18s linear infinite;
     animation-delay: calc(var(--angle) / 360 * 1.7s + .6s), 0s;
   }
-
-  /* 半径 180px 对应 ring-4 尾翼：左转 22s */
   .orbit-avatar[style*="--radius:180px"] {
-    animation: 
-      avatarPop .7s cubic-bezier(.34,1.56,.64,1) forwards,
-      orbit-spin-L 22s linear infinite;
+    animation: avatarPop .7s cubic-bezier(.34,1.56,.64,1) forwards, orbit-spin-L 22s linear infinite;
     animation-delay: calc(var(--angle) / 360 * 1.7s + .6s), 0s;
   }
 
-  @media (max-width:640px){
-    .orbit-stage.bg-orbit{width:280px;height:280px;transform:translate(-50%,-50%) scale(.85);}
+  /* ================= 中间 2/3 单列内容区 ================= */
+  .main-content-centered {
+    max-width: 66.666%; 
+    margin: 0 auto; 
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+    padding: 24px 0 80px 0;
   }
 
-
-  section{padding:64px 0;}
+  @media (max-width: 1080px){
+    .main-content-centered { max-width: 100%; }
+    .hero { flex-direction: column; text-align: center; justify-content: center; gap: 64px; }
+    .hero-left { max-width: 100%; margin-top: 180px; }
+    .hero-right { margin-right: 0; }
+  }
 
   .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease, transform .7s ease;}
   .reveal.show{opacity:1;transform:translateY(0);}
@@ -434,15 +471,14 @@
     backdrop-filter:blur(18px);
     -webkit-backdrop-filter:blur(18px);
     border-radius:18px;
-    padding:26px 28px;
-    font-size:15px;
-    line-height:1.9;
+    padding:32px 36px; 
+    font-size:15.5px;
+    line-height:2.1;
     color:#e8e6fb;
     transition:.3s;
   }
   .glass-card:hover{transform:translateY(-4px);background:var(--glass-strong);box-shadow:0 20px 45px -20px rgba(107,92,255,.5);}
 
-  /* commits */
   .commits{position:relative;}
   .commits::before{content:'';position:absolute;left:9px;top:6px;bottom:6px;width:2px;background:var(--glass-border);}
   .commit{position:relative;padding-left:36px;margin-bottom:26px;}
@@ -460,12 +496,12 @@
     background:linear-gradient(135deg,rgba(177,140,255,.22),rgba(92,225,230,.14));
     border:1px solid var(--glass-border);
     backdrop-filter:blur(18px);
-    border-radius:20px;padding:38px 34px;
+    border-radius:20px;padding:38px 42px;
     font-family:'Noto Serif SC',serif;font-size:18px;line-height:2.1;
   }
   .quote-block strong{color:var(--coral);}
 
-  .linkgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;}
+  .linkgrid{display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:16px;}
   .linkcard{
     background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(16px);
     border-radius:18px;padding:22px;text-decoration:none;color:#fff;transition:.3s;display:block;
@@ -505,14 +541,9 @@
   .copy-btn.copied{background:linear-gradient(120deg,#7CFFB2,#5CE1E6);}
 
   footer{
-    padding:40px clamp(20px,5vw,56px) 60px;
+    padding:20px clamp(20px,5vw,56px) 60px;
     text-align:center;font-size:12.5px;color:var(--muted);
     font-family:'JetBrains Mono',monospace;position:relative;z-index:1;
-  }
-
-  @media (max-width:760px){
-    .hero{grid-template-columns:1fr;padding-top:36px;min-height:auto;}
-    .char-frame{max-width:280px;margin:0 auto;order:-1;}
   }
 </style>
 </head>
@@ -530,19 +561,14 @@
 
     <div class="orbit-center">
       <div class="orbit-count mono" id="orbitCount">0</div>
-      <div class="orbit-label mono">关注 · 实时占位</div>
+      <div class="orbit-label mono">粉丝量</div>
     </div>
 
-    <!-- ★ 素材位：下面几个 orbit-avatar 目前是纯色字母/emoji占位，换真实头像时把 style 里的 background
-         删掉，改成在 .orbit-avatar 内部放一个 <img>，位置角度/光晕颜色已经算好不用改数字 -->
     <div class="orbit-avatar" style="--angle:270deg; --radius:80px; --glow:var(--violet); background:linear-gradient(135deg,var(--violet),var(--aqua));">J</div>
-
     <div class="orbit-avatar" style="--angle:60deg; --radius:113px; --glow:#FFD24A; background:linear-gradient(135deg,#FFD24A,#FF7A5C);">R</div>
     <div class="orbit-avatar" style="--angle:180deg; --radius:113px; --glow:var(--pink); background:linear-gradient(135deg,var(--pink),var(--coral));">A</div>
     <div class="orbit-avatar" style="--angle:300deg; --radius:113px; --glow:var(--aqua); background:linear-gradient(135deg,var(--aqua),var(--violet));">🍜</div>
-
     <div class="orbit-avatar big" style="--angle:130deg; --radius:146.5px; --glow:var(--pink); background:linear-gradient(135deg,var(--pink),var(--violet));">🎬</div>
-
     <div class="orbit-avatar big" style="--angle:30deg; --radius:180px; --glow:var(--violet); background:linear-gradient(135deg,var(--violet),var(--pink));">📘</div>
     <div class="orbit-avatar big square" style="--angle:95deg; --radius:180px; --glow:#FFA35C; background:linear-gradient(135deg,#FFA35C,#FFD24A);">✨</div>
     <div class="orbit-avatar big square" style="--angle:220deg; --radius:180px; --glow:var(--pink); background:linear-gradient(135deg,var(--pink),var(--coral));">🎧</div>
@@ -572,9 +598,9 @@
 
 <div class="wrap">
 
-  <!-- HERO -->
+  <!-- HERO 顶部分区：彻底拉开左右 -->
   <div class="hero">
-    <div>
+    <div class="hero-left">
       <div class="eyebrow mono">PERSONAL SPACE · 2026</div>
       <h1 class="headline" id="typewriter"></h1>
       <div class="subhead">
@@ -587,130 +613,152 @@
       </div>
     </div>
 
-    <div class="char-frame" id="charFrame">
-      <div class="char-tag mono">// MR. JERRY</div>
-      <img class="char-img" src="images/cover.jpg" alt="Jerry cover">
+    <div class="hero-right">
+      <!-- 原生实现洗牌卡片堆叠，支持拖拽 -->
+      <div class="card-stack" id="cardStack">
+        
+        <!-- 第一张卡：保留原有的个人形象封面 -->
+        <div class="testi-card cover-card">
+          <div class="char-tag mono">// MR. JERRY</div>
+          <img class="char-img" src="images/cover.jpg" alt="Jerry cover">
+        </div>
+
+        <!-- 第二张卡：环境倒逼与执行力语录 -->
+        <div class="testi-card quote-card">
+          <!-- 把 src 里的 images/avatar1.jpg 换成你自己的图片路径即可 -->
+          <img src="images/avatar1.jpg" class="testi-avatar" alt="Avatar Placeholder">
+          <div class="testi-text">"改变一个人不是靠闭眼瞎努力，而是重塑思维深处的环境。去推上冲浪，去跟大佬攀谈，别怕输出屎。实操积累的犯错经验是你自己的，谁也拿不走。"</div>
+          <div class="testi-author">// 环境塑造者</div>
+        </div>
+
+        <!-- 第三张卡：去噪音与第一性原理语录 -->
+        <div class="testi-card quote-card">
+          <!-- 把 src 里的 images/avatar2.jpg 换成你自己的图片路径即可 -->
+          <img src="images/avatar2.jpg" class="testi-avatar" alt="Avatar Placeholder">
+          <div class="testi-text">"在信息爆炸的时代，去噪音比获取信息更重要。遵循第一性原理，每天把一半的时间死磕在最重要的项目上，剩下的时间再去发散思维。"</div>
+          <div class="testi-author">// 第一性原理信徒</div>
+        </div>
+
+      </div>
     </div>
   </div>
 
-  <!-- ABOUT -->
-  <section id="about" class="reveal">
-    <div class="sec-head">
-      <span class="sec-num mono">01</span>
-      <span class="sec-title">我是谁</span>
-    </div>
-    <div class="glass-card">
-      我是 Jerry，现在在做 <strong>AI 英语动画</strong> + <strong>抖音教育内容</strong>，同时也在餐饮行业（外卖创业）实践现实生存能力。我相信内容和现实经营是同一件事的两面——一边探索表达和 IP，一边在具体生意里验证自己的判断力。
-    </div>
-  </section>
+  <!-- 下方内容区：占整个内容 2/3 宽度的单列纵向排列 -->
+  <div class="main-content-centered">
+    
+    <section id="about" class="reveal">
+      <div class="sec-head">
+        <span class="sec-num mono">01</span>
+        <span class="sec-title">我是谁</span>
+      </div>
+      <div class="glass-card">
+        我是 Jerry，现在在做 <strong>AI 英语动画</strong> + <strong>抖音教育内容</strong>，同时也在餐饮行业（外卖创业）实践现实生存能力。我相信内容和现实经营是同一件事的两面——一边探索表达和 IP，一边在具体生意里验证自己的判断力。
+      </div>
+    </section>
 
-  <!-- TIMELINE -->
-  <section id="timeline" class="reveal">
-    <div class="sec-head">
-      <span class="sec-num mono">02</span>
-      <span class="sec-title">我的经历</span>
-    </div>
-    <div class="glass-card">
-      <div class="commits">
-        <div class="commit">
-          <span class="commit-tag">v2022</span>
-          <div class="commit-title">漫剪起号成功</div>
-          <div class="commit-desc">第一次实现内容变现，验证了"内容 = 生产力"这件事。</div>
-        </div>
-        <div class="commit">
-          <span class="commit-tag">v2023</span>
-          <div class="commit-title">AI 爆发期 · 出海尝试 · 现实崩塌</div>
-          <div class="commit-desc">赶上 AI 浪潮尝试出海项目，也第一次真实感受到理想和现实之间的落差。</div>
-        </div>
-        <div class="commit">
-          <span class="commit-tag">v2024</span>
-          <div class="commit-title">农村重建 · 自我实验 · 技能学习</div>
-          <div class="commit-desc">退回原点，重新搭建基础能力，把这段时间当成一次自我实验。</div>
-        </div>
-        <div class="commit">
-          <span class="commit-tag">v2024.12</span>
-          <div class="commit-title">回苏州，转向 AI 英语动画</div>
-          <div class="commit-desc">找到一个能长期投入的方向，开始系统性产出。</div>
-        </div>
-        <div class="commit now">
-          <span class="commit-tag">v2025 · now</span>
-          <div class="commit-title">外卖与内容并行</div>
-          <div class="commit-desc">开始理解"生存优先"——先靠真实生意站稳，再让内容长出来。</div>
+    <section id="timeline" class="reveal">
+      <div class="sec-head">
+        <span class="sec-num mono">02</span>
+        <span class="sec-title">我的经历</span>
+      </div>
+      <div class="glass-card">
+        <div class="commits">
+          <div class="commit">
+            <span class="commit-tag">v2022</span>
+            <div class="commit-title">漫剪起号成功</div>
+            <div class="commit-desc">第一次实现内容变现，验证了"内容 = 生产力"这件事。</div>
+          </div>
+          <div class="commit">
+            <span class="commit-tag">v2023</span>
+            <div class="commit-title">AI 爆发期 · 出海尝试</div>
+            <div class="commit-desc">赶上 AI 浪潮尝试出海项目，也第一次真实感受到理想和现实之间的落差。</div>
+          </div>
+          <div class="commit">
+            <span class="commit-tag">v2024</span>
+            <div class="commit-title">农村重建 · 自我实验</div>
+            <div class="commit-desc">退回原点，重新搭建基础能力，把这段时间当成一次自我实验。</div>
+          </div>
+          <div class="commit">
+            <span class="commit-tag">v2024.12</span>
+            <div class="commit-title">回苏州，转向 AI 英语动画</div>
+            <div class="commit-desc">找到一个能长期投入的方向，开始系统性产出。</div>
+          </div>
+          <div class="commit now">
+            <span class="commit-tag">v2025 · now</span>
+            <div class="commit-title">外卖与内容并行</div>
+            <div class="commit-desc">开始理解"生存优先"——先靠真实生意站稳，再让内容长出来。</div>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- REFLECTION -->
-  <section id="reflect" class="reveal">
-    <div class="sec-head">
-      <span class="sec-num mono">03</span>
-      <span class="sec-title">深层反思</span>
-    </div>
-    <div class="quote-block">
-      所有目标最初都不是自己定义的，而是外部输入的结果。<br><br>
-      在 AI 时代，真正稀缺的不是执行力，而是<strong>自我定义能力</strong>。<br><br>
-      我正在从"被指引的人"，变成"自己定义方向的人"。
-    </div>
-  </section>
+    <section id="reflect" class="reveal">
+      <div class="sec-head">
+        <span class="sec-num mono">03</span>
+        <span class="sec-title">深层反思</span>
+      </div>
+      <div class="quote-block">
+        所有目标最初都不是自己定义的，而是外部输入的结果。<br><br>
+        在 AI 时代，真正稀缺的不是执行力，而是<strong>自我定义能力</strong>。<br><br>
+        我正在从"被指引的人"，变成"自己定义方向的人"。
+      </div>
+    </section>
 
-  <!-- LINKS -->
-  <section id="links" class="reveal">
-    <div class="sec-head">
-      <span class="sec-num mono">04</span>
-      <span class="sec-title">我的系统</span>
-    </div>
-    <div class="linkgrid">
-      <a class="linkcard" href="/blog.html">
-        <span class="lc-label mono">BLOG</span>
-        <div class="lc-title">📘 思维输出</div>
-        <div class="lc-desc">公开博客，长文与思考记录</div>
-      </a>
-      <a class="linkcard" href="https://v.douyin.com/R4yJTAsI9wI/" target="_blank">
-        <span class="lc-label mono">VIDEO · 抖音</span>
-        <div class="lc-title">🎬 AI 英语动画</div>
-        <div class="lc-desc">内容作品主阵地</div>
-      </a>
-      <a class="linkcard" href="https://app.notion.com/p/37e39abe704780898b56f087061d9d48" target="_blank">
-        <span class="lc-label mono">NOTES · TECH</span>
-        <div class="lc-title">📚 技术分享</div>
-        <div class="lc-desc">AI 工具与实践记录</div>
-      </a>
-    </div>
-  </section>
+    <section id="links" class="reveal">
+      <div class="sec-head">
+        <span class="sec-num mono">04</span>
+        <span class="sec-title">我的系统</span>
+      </div>
+      <div class="linkgrid">
+        <a class="linkcard" href="/blog.html">
+          <span class="lc-label mono">BLOG</span>
+          <div class="lc-title">📘 思维输出</div>
+          <div class="lc-desc">公开博客，长文与思考记录</div>
+        </a>
+        <a class="linkcard" href="https://v.douyin.com/R4yJTAsI9wI/" target="_blank">
+          <span class="lc-label mono">VIDEO · 抖音</span>
+          <div class="lc-title">🎬 AI 英语动画</div>
+          <div class="lc-desc">内容作品主阵地</div>
+        </a>
+        <a class="linkcard" href="https://app.notion.com/p/37e39abe704780898b56f087061d9d48" target="_blank">
+          <span class="lc-label mono">NOTES · TECH</span>
+          <div class="lc-title">📚 技术分享</div>
+          <div class="lc-desc">AI 工具与实践记录</div>
+        </a>
+      </div>
+    </section>
 
-  <!-- CONTACT -->
-  <section id="contact" class="reveal">
-    <div class="sec-head">
-      <span class="sec-num mono">05</span>
-      <span class="sec-title">联系我</span>
-    </div>
-    <div class="glass-card" style="margin-bottom:20px;">
-      联系页只做承接，不做堆砌。普通交流先走 QQ 或微信，深度沟通或长期合作直接加微信，减少重复沟通成本。
-    </div>
-
-    <div class="contact-grid">
-      <div class="contact-card">
-        <div class="contact-icon">💬</div>
-        <div class="contact-title">微信</div>
-        <div class="contact-desc">深度沟通、长期合作时使用</div>
-        <div class="copy-row">
-          <span id="wxid">wxid_1h6phvw1kr9022</span>
-          <button class="copy-btn" onclick="copyText('wxid', this)">复制</button>
+    <section id="contact" class="reveal">
+      <div class="sec-head">
+        <span class="sec-num mono">05</span>
+        <span class="sec-title">联系我</span>
+      </div>
+      <div class="glass-card" style="margin-bottom:20px;">
+        联系页只做承接，不做堆砌。普通交流先走 QQ 或微信，深度沟通或长期合作直接加微信，减少重复沟通成本。
+      </div>
+      <div class="contact-grid">
+        <div class="contact-card">
+          <div class="contact-icon">💬</div>
+          <div class="contact-title">微信</div>
+          <div class="contact-desc">深度沟通、长期合作时使用</div>
+          <div class="copy-row">
+            <span id="wxid">wxid_1h6phvw1kr9022</span>
+            <button class="copy-btn" onclick="copyText('wxid', this)">复制</button>
+          </div>
+        </div>
+        <div class="contact-card">
+          <div class="contact-icon">💭</div>
+          <div class="contact-title">QQ</div>
+          <div class="contact-desc">普通交流、快速提问都可以先走这里</div>
+          <div class="copy-row">
+            <span id="qqid">1179884054</span>
+            <button class="copy-btn" onclick="copyText('qqid', this)">复制</button>
+          </div>
         </div>
       </div>
+    </section>
 
-      <div class="contact-card">
-        <div class="contact-icon">💭</div>
-        <div class="contact-title">QQ</div>
-        <div class="contact-desc">普通交流、快速提问都可以先走这里</div>
-        <div class="copy-row">
-          <span id="qqid">1179884054</span>
-          <button class="copy-btn" onclick="copyText('qqid', this)">复制</button>
-        </div>
-      </div>
-    </div>
-  </section>
+  </div>
 
 </div>
 
@@ -719,33 +767,77 @@
 </footer>
 
 <script>
-/* character card 3D tilt on hover */
+/* ================= 交互式卡片拖拽洗牌组件 (Vanilla JS 代替 Framer Motion) ================= */
 (function(){
-  const frame = document.getElementById('charFrame');
-  if(!frame) return;
-  const MAX_TILT = 10;
-  frame.addEventListener('mousemove', (e)=>{
-    const rect = frame.getBoundingClientRect();
-    const px = (e.clientX - rect.left) / rect.width;
-    const py = (e.clientY - rect.top) / rect.height;
-    const rotY = (px - 0.5) * MAX_TILT * 2;
-    const rotX = (0.5 - py) * MAX_TILT * 2;
-    frame.style.transform = `perspective(900px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
+  const stack = document.getElementById('cardStack');
+  if(!stack) return;
+  const cards = Array.from(stack.querySelectorAll('.testi-card'));
+  
+  let positions = ['front', 'middle', 'back'];
+  let isDragging = false;
+  let startX = 0;
+  let currentX = 0;
+  let activeCard = null;
+
+  function renderCards() {
+    cards.forEach((card, i) => {
+      card.className = card.className.replace(/front|middle|back|dragging/g, '').trim();
+      card.classList.add(positions[i]);
+      card.style.transform = ''; 
+    });
+  }
+  renderCards();
+
+  function dragStart(e) {
+    if (!e.currentTarget.classList.contains('front')) return;
+    isDragging = true;
+    activeCard = e.currentTarget;
+    activeCard.classList.add('dragging');
+    startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+  }
+
+  function dragMove(e) {
+    if (!isDragging || !activeCard) return;
+    const x = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+    currentX = x - startX;
+
+    let dragDistance = currentX;
+    if(currentX > 0) { 
+      dragDistance = currentX * 0.35; 
+    }
+    activeCard.style.transform = `translateX(${dragDistance}px) rotate(-6deg)`;
+  }
+
+  function dragEnd(e) {
+    if (!isDragging || !activeCard) return;
+    isDragging = false;
+    activeCard.classList.remove('dragging');
+    
+    if (currentX < -120) {
+      const popped = positions.pop();
+      positions.unshift(popped);
+    }
+    
+    currentX = 0;
+    activeCard = null;
+    renderCards();
+  }
+
+  cards.forEach(card => {
+    card.addEventListener('mousedown', dragStart);
+    card.addEventListener('touchstart', dragStart, {passive: true});
   });
-  frame.addEventListener('mouseleave', ()=>{
-    frame.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) scale(1)';
-  });
+  window.addEventListener('mousemove', dragMove);
+  window.addEventListener('touchmove', dragMove, {passive: false});
+  window.addEventListener('mouseup', dragEnd);
+  window.addEventListener('touchend', dragEnd);
 })();
 
-/* ================= 背景流体星空：Simplex Noise 驱动的漂移星点 =================
-   噪声函数跟博客页 (blog.html) 用的是同一套 simplex noise 实现，逻辑没变；
-   区别只在"画什么"：博客页是逐像素铺色块糊成一片流体色团，这里换成稀疏的小星点，
-   用噪声场让每个点做很缓慢的漂移+呼吸式忽明忽暗，看起来是"星空点点"而不是一片雾 */
+/* bg noise */
 (function(){
   const canvas = document.getElementById('bgFluidCanvas');
   if(!canvas) return;
   const ctx = canvas.getContext('2d');
-
   const F3 = 1.0/3.0, G3 = 1.0/6.0;
   const p = new Uint8Array(256);
   for (let i=0;i<256;i++) p[i] = Math.floor(Math.random()*256);
@@ -771,7 +863,6 @@
     let t3=0.6-x3*x3-y3*y3-z3*z3; n3=t3<0?0:(t3*=t3,t3*t3*(grad3[gi3*3]*x3+grad3[gi3*3+1]*y3+grad3[gi3*3+2]*z3));
     return 32.0*(n0+n1+n2+n3);
   }
-
   let W,H,dpr;
   function resize(){
     dpr = Math.min(window.devicePixelRatio||1, 1.5);
@@ -780,10 +871,8 @@
   }
   window.addEventListener('resize', resize);
   resize();
-
-  // 星点数量按屏幕面积估算，上限160颗，太密就不是"点点"了，会糊成一片
   const COUNT = Math.min(160, Math.floor((window.innerWidth*window.innerHeight)/9000));
-  const PALETTE = ['255,255,255','255,255,255','255,255,255','168,209,232','255,180,214']; // 大部分纯白星点，偶尔一点蓝/粉调子呼应主题色
+  const PALETTE = ['255,255,255','255,255,255','255,255,255','168,209,232','255,180,214']; 
   const stars = [];
   for(let i=0;i<COUNT;i++){
     stars.push({
@@ -795,31 +884,24 @@
       speed: Math.random()*0.4+0.2
     });
   }
-
   const mouse = {x:0.5,y:0.5,tx:0.5,ty:0.5};
   window.addEventListener('mousemove', e=>{
     mouse.tx = e.clientX/window.innerWidth;
     mouse.ty = e.clientY/window.innerHeight;
   });
-
   let time = 0;
   function animate(){
     time += 0.0025;
     mouse.x += (mouse.tx-mouse.x)*0.05;
     mouse.y += (mouse.ty-mouse.y)*0.05;
-
     ctx.clearRect(0,0,W,H);
-
     for(const s of stars){
-      // 噪声场驱动的极缓慢漂移：给星点一点"活"的呼吸感，而不是钉死不动
       const dx = noise3D(s.x*1.6+mouse.x*0.3, s.y*1.6+mouse.y*0.3, time) * 0.012;
       const dy = noise3D(s.x*1.6+50, s.y*1.6+50, time) * 0.012;
       const px = ((s.x+dx)%1+1)%1, py = ((s.y+dy)%1+1)%1;
-
       const twinkle = Math.sin(time*s.speed*8 + s.phase)*0.5+0.5;
       const alpha = s.baseAlpha * (0.5 + twinkle*0.5);
       const cx = px*W, cy = py*H, r = s.r*dpr;
-
       const grad = ctx.createRadialGradient(cx,cy,0,cx,cy,r*4);
       grad.addColorStop(0, `rgba(${s.hue},${alpha})`);
       grad.addColorStop(1, `rgba(${s.hue},0)`);
@@ -833,22 +915,13 @@
   animate();
 })();
 
-/* hands mouse-reveal spotlight */
+/* mask reveal */
 (function(){
   const revealEl = document.getElementById('handsReveal');
   const mouse = {x:-999, y:-999};
   const smooth = {x:-999, y:-999};
-
-  window.addEventListener('mousemove', (e)=>{
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
-  });
-
-  // fade the spotlight out gracefully when the cursor leaves the window
-  window.addEventListener('mouseleave', ()=>{
-    mouse.x = -999; mouse.y = -999;
-  });
-
+  window.addEventListener('mousemove', (e)=>{ mouse.x = e.clientX; mouse.y = e.clientY; });
+  window.addEventListener('mouseleave', ()=>{ mouse.x = -999; mouse.y = -999; });
   function loop(){
     smooth.x += (mouse.x - smooth.x) * 0.1;
     smooth.y += (mouse.y - smooth.y) * 0.1;
@@ -859,7 +932,7 @@
   requestAnimationFrame(loop);
 })();
 
-/* stars */
+/* bg stars */
 const starsEl = document.getElementById('stars');
 for(let i=0;i<70;i++){
   const s = document.createElement('div');
@@ -902,29 +975,19 @@ function typeStep(){
     setTimeout(typeStep, 25);
   }
 }
-typeStep();
+setTimeout(typeStep, 600);
 
-/* orbit widget：数字从0滚动到目标值，滚入视口时触发一次 */
+/* orbit widget run */
 (function(){
   const countEl = document.getElementById('orbitCount');
-  const wrap = document.querySelector('.orbit-wrap');
-  if(!countEl || !wrap) return;
-
-  // ★ 素材位：这里的 10000 是占位数字，换成真实关注量后改这一个数字就行，
-  // 显示格式（10K+ / 具体数字）在 render() 里改
-  const TARGET = 10000;
-  let done = false;
-
+  if(!countEl) return;
+  const TARGET = 30000;
   function easeOutCubic(x){ return 1 - Math.pow(1 - x, 3); }
-
   function render(v){
     countEl.textContent = v >= 1000 ? (v/1000).toFixed(v % 1000 === 0 ? 0 : 1) + 'K+' : String(v);
   }
-
   function runCountUp(){
-    if(done) return;
-    done = true;
-    const duration = 1800;
+    const duration = 2000;
     const start = performance.now();
     function tick(now){
       const t = Math.min(1, (now - start) / duration);
@@ -933,22 +996,15 @@ typeStep();
     }
     requestAnimationFrame(tick);
   }
-
-  const countObserver = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if(e.isIntersecting) runCountUp(); });
-  }, { threshold: .4 });
-  countObserver.observe(wrap);
+  setTimeout(runCountUp, 400);
 })();
 
-/* scroll reveal */
+/* scroll */
 const observer = new IntersectionObserver((entries)=>{
-  entries.forEach(e=>{
-    if(e.isIntersecting){ e.target.classList.add('show'); }
-  });
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('show'); }});
 },{threshold:.15});
 document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
 
-/* copy to clipboard */
 function copyText(id, btn){
   const text = document.getElementById(id).textContent;
   navigator.clipboard.writeText(text).then(()=>{
