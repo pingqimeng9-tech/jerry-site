@@ -114,6 +114,7 @@
     overflow:hidden; display:flex; align-items:center;
   }
   .act2-inner{
+    position:relative; z-index:2;
     display:flex; align-items:center; justify-content:space-between; gap:48px;
     flex-wrap:wrap; width:100%;
   }
@@ -142,13 +143,23 @@
     filter:blur(6px); z-index:0;
   }
   .device-frame{
-    position:relative; z-index:1; width:min(250px,60vw); aspect-ratio:4/3;
-    border-radius:28px; overflow:hidden; transform:rotate(-4deg);
+    position:absolute; inset:0; z-index:1;
+    width:100%; height:100%;
+    border-radius:0; overflow:hidden;
     background:#0b0a12;
-    box-shadow:0 30px 60px -20px rgba(0,0,0,.55), 0 0 0 6px rgba(255,255,255,.08);
+    box-shadow:none;
+    transform-origin:50% 50%;
     will-change:transform;
+    /* 圆角/阴影/旋转/缩放/位移 全部交给JS按滚动进度插值，这里只留最基础的满屏黑盒子 */
   }
   .device-frame canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; background:#0b0a12; }
+
+  /* 纯几何占位：不显示，只用来量出"最终小卡片"该在的真实坐标和尺寸，供JS计算变形终点 */
+  .device-frame-target{
+    position:relative; z-index:0;
+    width:min(250px,60vw); aspect-ratio:4/3;
+    visibility:hidden; pointer-events:none;
+  }
 
   /* 光斑卡片：跟随鼠标的高光描边效果 */
   .spotlight-card{
@@ -319,6 +330,9 @@
 <!-- ============ 第二段：黑场转文字定格动画 ============ -->
 <section class="act2-scroll" id="logoScrollWrapper">
 <div class="act2-stage" id="logoStage">
+  <div class="device-frame" id="deviceFrame">
+    <canvas id="logoCanvas"></canvas>
+  </div>
   <div class="wrap act2-inner">
     <div class="act2-text" id="act2Text">
       <div class="hero-eyebrow">🐾 适龄 3–8 岁 · 原创动画英语</div>
@@ -331,9 +345,7 @@
     </div>
     <div class="act2-visual">
       <div class="glow-orb"></div>
-      <div class="device-frame">
-        <canvas id="logoCanvas"></canvas>
-      </div>
+      <div class="device-frame-target" id="deviceFrameTarget" aria-hidden="true"></div>
       <div class="spotlight-card spotlight-a" id="spotlightA">
         <div class="sc-icon">🎬</div>
         <div class="sc-title">原创动画番外</div>
@@ -486,12 +498,74 @@
     return { update };
   }
 
+  const deviceFrame = document.getElementById('deviceFrame');
+  const deviceFrameTarget = document.getElementById('deviceFrameTarget');
+  const logoStage = document.getElementById('logoStage');
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ============ 满屏 → 小卡片 的"落位"变形 ============
+  // 原理：device-frame 全程保持真实布局尺寸=铺满整个 act2-stage（不重设width/height，
+  // 避免每帧滚动都触发canvas重新计算分辨率），只用 transform 做视觉上的缩放位移，
+  // 配合 border-radius 数值插值，做出"卡片从画面外长出来并收缩落位"的效果。
+  // device-frame-target 是flex布局里一个隐形占位元素，天然撑在"最终小卡片"该在的位置，
+  // 用它的 getBoundingClientRect() 就能量出准确的终点坐标，不用手写死数字，改屏幕宽度也不会偏。
+  let dockGeo = null;
+  function measureDock(){
+    if(!deviceFrame || !deviceFrameTarget || !logoStage) return;
+    const stageRect = logoStage.getBoundingClientRect();
+    const targetRect = deviceFrameTarget.getBoundingClientRect();
+    if(stageRect.width === 0 || stageRect.height === 0) return; // stage还没渲染出真实尺寸，先跳过
+    dockGeo = {
+      scaleX: targetRect.width / stageRect.width,
+      scaleY: targetRect.height / stageRect.height,
+      tx: (targetRect.left + targetRect.width / 2) - (stageRect.left + stageRect.width / 2),
+      ty: (targetRect.top + targetRect.height / 2) - (stageRect.top + stageRect.height / 2)
+    };
+  }
+  measureDock();
+  window.addEventListener('resize', measureDock);
+  window.addEventListener('load', measureDock); // 字体加载完成后flex尺寸可能有细微变化，再量一次校准
+
+  function easeInOutCubic(x){
+    return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+  }
+
+  const DOCK_START = 0.30, DOCK_END = 0.65;   // 变形发生的滚动进度区间，占中段
+  const FINAL_RADIUS = 28, FINAL_ROTATE = -4; // 落位后的最终圆角(px)和旋转角度(deg)
+  const HOLD_START = 0.82;                    // 落位完成后，剩余滚动距离里继续做"呼吸漂移"的起点
+
+  function updateDeviceFrame(raw){
+    if(!deviceFrame || !dockGeo) return;
+
+    const t = Math.max(0, Math.min(1, (raw - DOCK_START) / (DOCK_END - DOCK_START)));
+    const e = prefersReduced ? (raw > DOCK_START ? 1 : 0) : easeInOutCubic(t); // 无障碍：减少动效时直接跳变，不做补间
+
+    const scaleX = 1 + (dockGeo.scaleX - 1) * e;
+    const scaleY = 1 + (dockGeo.scaleY - 1) * e;
+    let tx = dockGeo.tx * e;
+    let ty = dockGeo.ty * e;
+    const radius = FINAL_RADIUS * e;
+    let rotate = FINAL_ROTATE * e;
+
+    // 落位完成后，继续在剩下的滚动距离里缓缓漂移一点点，给"定住"一个呼吸感，而不是死死钉住
+    if(!prefersReduced && raw > HOLD_START){
+      const holdProgress = Math.min(1, (raw - HOLD_START) / (1 - HOLD_START));
+      rotate += holdProgress * 3;
+      tx += holdProgress * 22;
+      ty += holdProgress * -16;
+    }
+
+    deviceFrame.style.transform = `translate(${tx}px, ${ty}px) scale(${scaleX}, ${scaleY}) rotate(${rotate}deg)`;
+    deviceFrame.style.borderRadius = radius + 'px';
+    deviceFrame.style.boxShadow = e > 0.03
+      ? `0 ${30 * e}px ${60 * e}px -20px rgba(0,0,0,${(0.55 * e).toFixed(3)}), 0 0 0 ${6 * e}px rgba(255,255,255,${(0.08 * e).toFixed(3)})`
+      : 'none';
+  }
+
   const scrollCue = document.querySelector('#top .scroll-cue');
   const act2Text = document.getElementById('act2Text');
   const spotlightA = document.getElementById('spotlightA');
   const spotlightB = document.getElementById('spotlightB');
-  const deviceFrame = document.querySelector('.device-frame');
-  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const scrollers = [
     // 第一幕：开场镜头推近
@@ -515,22 +589,12 @@
       frameCount: 59,
       framePath: i => `images/rumi/hero-frames-2/frame_${String(i).padStart(3,'0')}.webp`,
       scrubFraction: 0.75,
-      fit: 'contain',
+      fit: 'cover', // 开局要跟Act1一样满屏边到边，改成cover避免留黑边
       onProgress: (raw) => {
-        if (act2Text) act2Text.classList.toggle('show', raw > 0.04);
-        if (spotlightA) spotlightA.classList.toggle('show', raw > 0.16);
-        if (spotlightB) spotlightB.classList.toggle('show', raw > 0.28);
-
-        // 定格收尾小动效：视频画完（raw超过0.75）之后，卡片在剩下的滚动距离里缓缓上移+右移，
-        // 给一个"落定"的呼吸感，而不是播完就死死钉住不动
-        if (deviceFrame && !prefersReduced) {
-          const holdStart = 0.75;
-          const holdProgress = raw > holdStart ? Math.min(1, (raw - holdStart) / (1 - holdStart)) : 0;
-          const rotate = -4 + holdProgress * 3;      // -4deg 慢慢转正一点
-          const dx = holdProgress * 22;               // 缓缓右移
-          const dy = holdProgress * -16;               // 缓缓上移
-          deviceFrame.style.transform = `rotate(${rotate}deg) translate(${dx}px, ${dy}px)`;
-        }
+        updateDeviceFrame(raw);
+        if (act2Text) act2Text.classList.toggle('show', raw > 0.58);
+        if (spotlightA) spotlightA.classList.toggle('show', raw > 0.68);
+        if (spotlightB) spotlightB.classList.toggle('show', raw > 0.78);
       }
     })
   ];
