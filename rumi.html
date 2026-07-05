@@ -111,11 +111,6 @@
   }
   .hero-stage.revealed::before{opacity:.28;}
 
-  .hero-stage::after{
-    content:"";position:absolute;left:0;right:0;bottom:0;height:46%;
-    background:linear-gradient(to bottom, rgba(11,10,18,0) 0%, rgba(11,10,18,.55) 55%, #0b0a12 100%);
-    pointer-events:none;
-  }
   .scroll-cue{
     position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:2;color:#fff;opacity:0;font-size:12px;text-align:center;
     transition:opacity .6s ease;transition-delay:.9s;pointer-events:none;
@@ -321,7 +316,7 @@
   // frameCount/framePath：帧数量和文件命名规则
   // scrubFraction：动画在这个滚动比例内播完（比如0.62表示滚到62%时最后一帧已经出现），
   //                剩下的滚动距离里画面保持"定格"在最后一帧，直到这段容器整体滚出视口
-  function initFrameScroller({ wrapperId, canvasId, frameCount, framePath, scrubFraction = 1, onProgress }){
+  function initFrameScroller({ wrapperId, canvasId, frameCount, framePath, scrubFraction = 1, fit = 'cover', onProgress }){
     const wrapper = document.getElementById(wrapperId);
     const canvas = document.getElementById(canvasId);
     if (!wrapper || !canvas) return null;
@@ -346,7 +341,7 @@
       if (currentIndex >= 0) drawFrame(currentIndex, true);
     }
 
-    // object-fit: cover 的手动实现
+    // fit:'cover' 会裁切填满画布（适合背景大图）；fit:'contain' 完整显示整张画面不裁切（适合带文字排版的画面，避免文字被放大裁切）
     function drawFrame(index, force){
       const img = frames[index];
       if (!img || !img.complete || !img.naturalWidth) return;
@@ -354,7 +349,7 @@
       currentIndex = index;
       const cw = canvas.width, ch = canvas.height;
       const iw = img.naturalWidth, ih = img.naturalHeight;
-      const scale = Math.max(cw / iw, ch / ih);
+      const scale = fit === 'contain' ? Math.min(cw / iw, ch / ih) : Math.max(cw / iw, ch / ih);
       const dw = iw * scale, dh = ih * scale;
       const dx = (cw - dw) / 2, dy = (ch - dh) / 2;
       ctx.clearRect(0, 0, cw, ch);
@@ -402,7 +397,8 @@
       canvasId: 'logoCanvas',
       frameCount: 59,
       framePath: i => `images/rumi/hero-frames-2/frame_${String(i).padStart(3,'0')}.webp`,
-      scrubFraction: 0.62
+      scrubFraction: 0.62,
+      fit: 'contain'
     })
   ];
 
