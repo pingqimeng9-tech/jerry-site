@@ -44,13 +44,6 @@
 
   .wrap{max-width:1120px;margin:0 auto;padding:0 clamp(20px,5vw,56px);position:relative;z-index:2;}
 
-  /* ============ STICKERS ============ */
-  .sticker{position:absolute;pointer-events:none;filter:drop-shadow(0 6px 10px rgba(46,42,71,.12));animation:float 6s ease-in-out infinite;z-index:1;}
-  .sticker.slow{animation-duration:9s;}
-  .sticker.rev{animation-direction:reverse;}
-  @keyframes float{0%,100%{transform:translateY(0) rotate(var(--rot,0deg));}50%{transform:translateY(-14px) rotate(var(--rot,0deg));}}
-  @media (prefers-reduced-motion: reduce){ .sticker{animation:none;} }
-
   /* ============ NAV ============ */
   .breadcrumb{
     text-align:center;padding:8px 12px;font-size:12px;letter-spacing:.03em;
@@ -84,150 +77,155 @@
   nav .cta:hover{transform:translateY(-2px);box-shadow:0 14px 28px -8px #FF7A5Caa;}
   @media (max-width:860px){ nav .links{display:none;} }
 
-  /* ============ HERO + VIDEO ============ */
-  .hero-scroll-wrapper{
-    position:relative;
-    height:300vh; 
-    background:#0b0a12; 
-  }
-  .hero-stage{
-    position:sticky;
-    top:var(--nav-h, 64px); 
-    width:100%;height:min(100vh,860px);min-height:560px;background:#0b0a12;overflow:hidden;
-  }
-  .hero-stage canvas {
-    position:absolute;inset:0;width:100%;height:100%;display:block;background:#0b0a12;
-  }
-  .hero-stage::before{
-    content:"";position:absolute;inset:0;background:#0b0a12;opacity:0;
-    transition:opacity 0.8s ease;z-index:1;pointer-events:none;
-  }
-  .hero-stage.revealed::before{opacity:.28;}
-
-  /* ============ 第二幕：无缝转场，满屏缩小 ============ */
-  .act2-scroll{ position:relative; height:230vh; background:linear-gradient(160deg,#141225,#1b1440 60%,#0b0a12); }
-  .act2-stage{
-    position:sticky; top:var(--nav-h,64px);
-    width:100%; height:min(100vh,860px); min-height:560px;
-    background:linear-gradient(160deg,#141225,#1b1440 60%,#0b0a12);
-    overflow:hidden; display:flex; align-items:center;
-  }
-  .act2-inner{
-    position:relative; z-index:2;
-    display:flex; align-items:center; justify-content:space-between; gap:48px;
-    flex-wrap:wrap; width:100%;
-  }
-  .act2-text{
-    flex:1 1 340px; color:#fff; max-width:460px;
-    opacity:0; transform:translateY(18px);
-    transition:opacity .7s ease, transform .7s ease;
-  }
-  .act2-text.show{ opacity:1; transform:translateY(0); }
-  .act2-text h2{
-    font-family:'ZCOOL KuaiLe',cursive; font-weight:400;
-    font-size:clamp(26px,3.6vw,38px); line-height:1.3; margin:16px 0 14px;
-  }
-  .act2-text p{ font-size:15px; line-height:1.7; opacity:.85; max-width:420px; margin:0 0 26px; }
-
-  .act2-visual{
-    position:relative; flex:1 1 360px; min-height:420px;
-    display:flex; align-items:center; justify-content:center;
+  /* ============ 大合并：全局唯一滚动舞台 ============ */
+  /* 给足够高的高度 (450vh) 来容纳两个视频的播放和缩放位移 */
+  .master-scroll-wrapper {
+    position: relative;
+    height: 450vh; 
+    background: #0b0a12;
   }
   
-  /* 光晕默认透明，JS控制跟随卡片渐显 */
-  .glow-orb{
-    position:absolute; width:min(360px,86vw); aspect-ratio:1/1; border-radius:50%;
+  .master-stage {
+    position: sticky;
+    top: var(--nav-h, 64px); 
+    width: 100%; 
+    height: min(100vh, 860px); 
+    min-height: 560px;
+    background: #0b0a12;
+    overflow: hidden; 
+    display: flex; 
+    align-items: center;
+  }
+
+  /* Video 1 (底层) */
+  #heroCanvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 1;
+  }
+
+  /* Video 2 (中层：初始盖在Video 1上面，透明度为0) */
+  .device-frame {
+    position: absolute; 
+    z-index: 2;
+    border-radius: 0; 
+    overflow: hidden;
+    background: #0b0a12;
+    opacity: 0; /* 靠 JS 渐显 */
+    will-change: width, height, left, top, transform, opacity;
+  }
+  .device-frame canvas {
+    position: absolute; inset: 0; width: 100%; height: 100%; display: block; background: #0b0a12;
+  }
+  /* 占位符，用来量尺寸 */
+  .device-frame-target {
+    position: relative; z-index: 0;
+    width: min(250px, 60vw); aspect-ratio: 4/3;
+    visibility: hidden; pointer-events: none;
+  }
+
+  /* 渐变底色遮罩，在视频2缩放时显露出漂亮的深蓝色背景 */
+  .stage-bg-tint {
+    position: absolute; inset: 0; z-index: 1.5;
+    background: linear-gradient(160deg,#141225,#1b1440 60%,#0b0a12);
+    opacity: 0; pointer-events: none;
+  }
+
+  /* UI 元素层 (顶层) */
+  .act2-inner {
+    position: relative; z-index: 3;
+    display: flex; align-items: center; justify-content: space-between; gap: 48px;
+    flex-wrap: wrap; width: 100%;
+  }
+  .act2-text {
+    flex: 1 1 340px; color: #fff; max-width: 460px;
+    opacity: 0; transform: translateY(18px);
+    transition: opacity .7s ease, transform .7s ease;
+  }
+  .act2-text.show { opacity: 1; transform: translateY(0); }
+  .act2-text h2 {
+    font-family: 'ZCOOL KuaiLe', cursive; font-weight: 400;
+    font-size: clamp(26px, 3.6vw, 38px); line-height: 1.3; margin: 16px 0 14px;
+  }
+  .act2-text p { font-size: 15px; line-height: 1.7; opacity: .85; max-width: 420px; margin: 0 0 26px; }
+
+  .act2-visual {
+    position: relative; flex: 1 1 360px; min-height: 420px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .glow-orb {
+    position: absolute; width: min(360px, 86vw); aspect-ratio: 1/1; border-radius: 50%;
     background:
       radial-gradient(circle at 32% 28%, #7fd1e8bb, transparent 60%),
       radial-gradient(circle at 68% 72%, #ff6fa5aa, transparent 60%),
       radial-gradient(circle at 50% 50%, #ffc93c77, transparent 70%);
-    filter:blur(6px); z-index:0;
-    opacity: 0; pointer-events: none;
-    left: 0; top: 0;
+    filter: blur(6px); z-index: 0;
+    opacity: 0; pointer-events: none; left: 0; top: 0;
   }
 
-  /* 设备框：初始不再透明，依靠 JS 的宽/高 100% 满屏盖住背景 */
-  .device-frame{
-    position:absolute; z-index:1;
-    border-radius:0; overflow:hidden;
-    background:#0b0a12;
-    box-shadow:none;
-    will-change: width, height, left, top, transform;
-  }
-  .device-frame canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; background:#0b0a12; }
-
-  .device-frame-target{
-    position:relative; z-index:0;
-    width:min(250px,60vw); aspect-ratio:4/3;
-    visibility:hidden; pointer-events:none;
-  }
-
-  .spotlight-card{
-    position:absolute; z-index:2; width:132px; padding:16px 14px;
-    border-radius:18px; text-align:center; color:#fff;
+  .spotlight-card {
+    position: absolute; z-index: 2; width: 132px; padding: 16px 14px;
+    border-radius: 18px; text-align: center; color: #fff;
     background:
       radial-gradient(120px 120px at var(--mx,50%) var(--my,50%), rgba(255,255,255,.16), transparent 65%),
       hsl(0 0% 60% / .12);
-    background-attachment:fixed, fixed;
-    border:1px solid rgba(255,255,255,.2);
-    backdrop-filter:blur(8px);
-    opacity:0; transition:opacity .8s ease, transform .8s cubic-bezier(.22,1,.36,1);
+    background-attachment: fixed, fixed;
+    border: 1px solid rgba(255,255,255,.2);
+    backdrop-filter: blur(8px);
+    opacity: 0; transition: opacity .8s ease, transform .8s cubic-bezier(.22,1,.36,1);
   }
-  .spotlight-card.show{ opacity:1; transform:translate(0,0) !important; }
-  .spotlight-a{ left:-4%; bottom:8%; transform:translate(-36px,52px); }
-  .spotlight-b{ right:-4%; top:10%; transform:translate(36px,-52px); }
-  .sc-icon{ font-size:22px; margin-bottom:6px; }
-  .sc-title{ font-weight:700; font-size:12.5px; margin-bottom:2px; }
-  .sc-desc{ font-size:11px; opacity:.75; }
+  .spotlight-card.show { opacity: 1; transform: translate(0,0) !important; }
+  .spotlight-a { left: -4%; bottom: 8%; transform: translate(-36px,52px); }
+  .spotlight-b { right: -4%; top: 10%; transform: translate(36px,-52px); }
+  .sc-icon { font-size: 22px; margin-bottom: 6px; }
+  .sc-title { font-weight: 700; font-size: 12.5px; margin-bottom: 2px; }
+  .sc-desc { font-size: 11px; opacity: .75; }
 
   @media (max-width:900px){
-    .act2-stage{ padding:32px 0; }
-    .act2-inner{ justify-content:center; text-align:center; }
-    .act2-text{ text-align:center; margin:0 auto; }
-    .act2-text p{ margin-left:auto; margin-right:auto; }
-    .spotlight-card{ width:108px; padding:12px 10px; }
-    .spotlight-a{ left:-2%; bottom:2%; }
-    .spotlight-b{ right:-2%; top:2%; }
+    .act2-inner { justify-content: center; text-align: center; }
+    .act2-text { text-align: center; margin: 0 auto; }
+    .act2-text p { margin-left: auto; margin-right: auto; }
+    .spotlight-card { width: 108px; padding: 12px 10px; }
+    .spotlight-a { left: -2%; bottom: 2%; }
+    .spotlight-b { right: -2%; top: 2%; }
   }
 
-  .hero-eyebrow{
-    display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:700; letter-spacing:.06em;
-    background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.35);
-    padding:6px 16px; border-radius:100px; backdrop-filter:blur(6px);
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; letter-spacing: .06em;
+    background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.35);
+    padding: 6px 16px; border-radius: 100px; backdrop-filter: blur(6px);
   }
-  .hero-btnrow{ display:flex; gap:14px; flex-wrap:wrap; }
-  .btn{ display:inline-block; padding:14px 30px; border-radius:100px; font-weight:700; font-size:15px; text-decoration:none; transition:.25s; }
-  .btn.solid{ background:linear-gradient(120deg,var(--coral),#ffa26b); color:#fff; box-shadow:0 14px 30px -10px #FF7A5C99; }
-  .btn.solid:hover{ transform:translateY(-2px); }
-  .btn.ghost{ background:rgba(255,255,255,.12); border:1.5px solid rgba(255,255,255,.65); color:#fff; backdrop-filter:blur(6px); }
-  .btn.ghost:hover{ background:rgba(255,255,255,.22); }
-  .mobonly{ display:none; }
-  @media (max-width:520px){ .mobonly{ display:block; } }
+  .hero-btnrow { display: flex; gap: 14px; flex-wrap: wrap; }
+  .btn { display: inline-block; padding: 14px 30px; border-radius: 100px; font-weight: 700; font-size: 15px; text-decoration: none; transition: .25s; }
+  .btn.solid { background: linear-gradient(120deg,var(--coral),#ffa26b); color: #fff; box-shadow: 0 14px 30px -10px #FF7A5C99; }
+  .btn.solid:hover { transform: translateY(-2px); }
+  .btn.ghost { background: rgba(255,255,255,.12); border: 1.5px solid rgba(255,255,255,.65); color: #fff; backdrop-filter: blur(6px); }
+  .btn.ghost:hover { background: rgba(255,255,255,.22); }
+  .mobonly { display: none; }
+  @media (max-width:520px){ .mobonly { display: block; } }
 
-  .scroll-cue{
-    position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:2;color:#fff;opacity:0;font-size:12px;text-align:center;
-    transition:opacity .6s ease;transition-delay:.9s;pointer-events:none;
+  .scroll-cue {
+    position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 5; color: #fff; opacity: 0; font-size: 12px; text-align: center;
+    transition: opacity .6s ease; pointer-events: none;
   }
-  .scroll-cue.show{opacity:.75;pointer-events:auto;}
-  .scroll-cue .chevron{width:18px;height:18px;margin:6px auto 0;border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(45deg);animation:bob 1.6s ease-in-out infinite;}
-  @keyframes bob{0%,100%{transform:rotate(45deg) translate(0,0);}50%{transform:rotate(45deg) translate(4px,4px);}}
+  .scroll-cue.show { opacity: .75; pointer-events: auto; }
+  .scroll-cue .chevron { width: 18px; height: 18px; margin: 6px auto 0; border-right: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(45deg); animation: bob 1.6s ease-in-out infinite; }
+  @keyframes bob { 0%,100%{transform:rotate(45deg) translate(0,0);} 50%{transform:rotate(45deg) translate(4px,4px);} }
 
-  /* ============ SECTION ============ */
+  /* ============ SECTION 常规样式 ============ */
   .section{position:relative;padding:88px 0;}
   .section.tint{background:var(--cream-deep);}
-  .eyebrow-tag{
-    display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--sky-deep);
-    background:rgba(94,200,255,.14);padding:6px 16px;border-radius:100px;margin-bottom:16px;
-  }
-  .section h2{
-    font-family:'ZCOOL KuaiLe',cursive;font-weight:400;
-    font-size:clamp(26px,3.6vw,38px);margin:0 0 14px;line-height:1.3;
-  }
+  .eyebrow-tag{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--sky-deep);background:rgba(94,200,255,.14);padding:6px 16px;border-radius:100px;margin-bottom:16px;}
+  .section h2{font-family:'ZCOOL KuaiLe',cursive;font-weight:400;font-size:clamp(26px,3.6vw,38px);margin:0 0 14px;line-height:1.3;}
   .section .lede{color:var(--muted);font-size:16px;line-height:1.7;max-width:640px;margin:0 0 40px;}
   .section-head{margin-bottom:44px;}
   .section-head.center{text-align:center;}
   .section-head.center .lede{margin-left:auto;margin-right:auto;}
-
+  /* 下面的常规 Grid 布局省略修改，保持原样 */
   .char-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;}
   .char-card{background:var(--card);border-radius:26px;padding:20px 18px 22px;text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--line);position:relative;transition:.25s;}
   .char-card:hover{transform:translateY(-6px);box-shadow:var(--shadow);}
@@ -239,7 +237,6 @@
   .char-card .tag{position:absolute;top:14px;right:14px;background:#fff;color:var(--ink);font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;box-shadow:var(--shadow-sm);opacity:.85;}
   .char-card h3{font-family:'Baloo 2',cursive;font-size:19px;margin:0 0 6px;}
   .char-card p{font-size:13.5px;color:var(--muted);margin:0;line-height:1.6;}
-
   .level-row{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
   .level-card{background:var(--card);border-radius:24px;padding:26px 22px;box-shadow:var(--shadow-sm);border:1px solid var(--line);position:relative;overflow:hidden;}
   .level-card::before{content:"";position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;background:var(--lv-color,var(--sky));opacity:.16;}
@@ -247,7 +244,6 @@
   .level-card .age{display:inline-block;font-size:12px;font-weight:700;background:var(--lv-color,var(--sky));color:#fff;padding:3px 12px;border-radius:100px;margin-bottom:14px;}
   .level-card h3{font-size:17px;margin:0 0 8px;}
   .level-card p{font-size:13.5px;color:var(--muted);line-height:1.6;margin:0;}
-
   .book-section{display:grid;grid-template-columns:1fr 1.1fr;gap:56px;align-items:center;}
   .book-stack{position:relative;height:320px;}
   .book-mock{position:absolute;width:210px;height:280px;border-radius:16px;box-shadow:var(--shadow);background:linear-gradient(160deg,var(--sky),var(--sky-deep));color:#fff;display:flex;flex-direction:column;justify-content:flex-end;padding:18px;font-size:13px;border:1px solid rgba(255,255,255,.25);}
@@ -260,7 +256,6 @@
   .book-feat .ico{width:40px;height:40px;flex:none;border-radius:12px;background:rgba(255,201,60,.22);display:flex;align-items:center;justify-content:center;font-size:18px;}
   .book-feat h4{margin:0 0 4px;font-size:15.5px;}
   .book-feat p{margin:0;font-size:13.5px;color:var(--muted);line-height:1.6;}
-
   .merch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
   .merch-card{background:var(--card);border-radius:22px;overflow:hidden;box-shadow:var(--shadow-sm);border:1px solid var(--line);transition:.25s;}
   .merch-card:hover{transform:translateY(-5px);box-shadow:var(--shadow);}
@@ -269,7 +264,6 @@
   .merch-info{padding:14px 16px 18px;}
   .merch-info .pill{font-size:11px;font-weight:700;color:var(--sky-deep);background:rgba(94,200,255,.14);padding:2px 10px;border-radius:100px;}
   .merch-info h4{margin:8px 0 0;font-size:14.5px;}
-
   .reel-row{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
   .reel-card{border-radius:22px;overflow:hidden;box-shadow:var(--shadow-sm);border:1px solid var(--line);background:var(--card);}
   .reel-video{aspect-ratio:9/16;max-height:340px;background:linear-gradient(160deg,#22223a,#3a2e5c);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12.5px;text-align:center;padding:16px;position:relative;}
@@ -277,7 +271,6 @@
   .reel-video .play{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.6);display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:16px;backdrop-filter:blur(4px);}
   .reel-info{padding:14px 16px 18px;}
   .reel-info p{margin:0;font-size:13px;color:var(--muted);line-height:1.6;}
-
   .contact-card{background:linear-gradient(150deg,#2E2A47,#1c1a30);border-radius:32px;padding:56px clamp(24px,5vw,64px);color:#fff;text-align:center;position:relative;overflow:hidden;}
   .contact-card::before{content:"";position:absolute;top:-60px;left:-60px;width:220px;height:220px;border-radius:50%;background:var(--coral);opacity:.25;filter:blur(10px);}
   .contact-card::after{content:"";position:absolute;bottom:-70px;right:-40px;width:260px;height:260px;border-radius:50%;background:var(--sky);opacity:.22;filter:blur(10px);}
@@ -291,10 +284,8 @@
   .contact-mini-row{display:flex;align-items:center;justify-content:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:12.5px;background:rgba(255,255,255,.12);border-radius:100px;padding:7px 7px 7px 14px;}
   .contact-mini-row .copy-btn{border:none;background:#fff;color:var(--ink);padding:5px 11px;border-radius:100px;cursor:pointer;font-size:11.5px;font-weight:700;transition:.2s;}
   .contact-mini-row .copy-btn.copied{background:var(--mint);color:#fff;}
-  
   footer{padding:36px 0 46px;text-align:center;font-size:12.5px;color:var(--muted);}
   footer a{text-decoration:none;color:var(--sky-deep);font-weight:600;}
-
   @media (max-width:940px){.char-grid,.level-row,.merch-grid{grid-template-columns:repeat(2,1fr);}.reel-row{grid-template-columns:1fr;}.book-section{grid-template-columns:1fr;}.book-stack{margin:0 auto 20px;max-width:320px;}}
   @media (max-width:520px){.char-grid,.level-row,.merch-grid{grid-template-columns:1fr 1fr;}.contact-mini-grid{grid-template-columns:1fr;}}
 </style>
@@ -315,45 +306,51 @@
   <a href="#contact" class="cta">预约体验课</a>
 </nav>
 
-<div class="hero-scroll-wrapper" id="heroScrollWrapper">
-<div class="hero-stage" id="top">
-  <canvas id="heroCanvas"></canvas>
-  <div class="scroll-cue show">往下划<div class="chevron"></div></div>
-</div>
-</div>
+<!-- ============ 大合并容器 ============ -->
+<div class="master-scroll-wrapper" id="masterWrapper">
+  <div class="master-stage" id="masterStage">
+    
+    <!-- Video 1 -->
+    <canvas id="heroCanvas"></canvas>
+    <div class="scroll-cue show" id="scrollCue">往下划<div class="chevron"></div></div>
 
-<section class="act2-scroll" id="logoScrollWrapper">
-<div class="act2-stage" id="logoStage">
-  <div class="device-frame" id="deviceFrame">
-    <canvas id="logoCanvas"></canvas>
-  </div>
-  <div class="wrap act2-inner">
-    <div class="act2-text" id="act2Text">
-      <div class="hero-eyebrow">🐾 适龄 3–8 岁 · 原创动画英语</div>
-      <h2>用一部部会讲故事的动画<br class="mobonly">把英语悄悄学会</h2>
-      <p>Phonics、日常表达和自然拼读，跟着 Rumi 和朋友们，边看边玩边记住，不是背单词表。</p>
-      <div class="hero-btnrow">
-        <a href="#contact" class="btn solid">预约体验课</a>
-        <a href="#characters" class="btn ghost">认识 Rumi 和朋友们</a>
+    <!-- 转场渐变背景罩，提升文字可读性 -->
+    <div class="stage-bg-tint" id="stageBgTint"></div>
+
+    <!-- Video 2 -->
+    <div class="device-frame" id="deviceFrame">
+      <canvas id="logoCanvas"></canvas>
+    </div>
+    
+    <!-- 文本和高光卡片 -->
+    <div class="wrap act2-inner" id="act2Content" style="pointer-events: none;">
+      <div class="act2-text" id="act2Text">
+        <div class="hero-eyebrow">🐾 适龄 3–8 岁 · 原创动画英语</div>
+        <h2>用一部部会讲故事的动画<br class="mobonly">把英语悄悄学会</h2>
+        <p>Phonics、日常表达和自然拼读，跟着 Rumi 和朋友们，边看边玩边记住，不是背单词表。</p>
+        <div class="hero-btnrow">
+          <a href="#contact" class="btn solid" style="pointer-events: auto;">预约体验课</a>
+          <a href="#characters" class="btn ghost" style="pointer-events: auto;">认识 Rumi 和朋友们</a>
+        </div>
+      </div>
+      <div class="act2-visual">
+        <div class="glow-orb" id="glowOrb"></div>
+        <div class="device-frame-target" id="deviceFrameTarget" aria-hidden="true"></div>
+        <div class="spotlight-card spotlight-a" id="spotlightA">
+          <div class="sc-icon">🎬</div>
+          <div class="sc-title">原创动画番外</div>
+          <div class="sc-desc">每周更新</div>
+        </div>
+        <div class="spotlight-card spotlight-b" id="spotlightB">
+          <div class="sc-icon">📖</div>
+          <div class="sc-title">分级配套教材</div>
+          <div class="sc-desc">动画同步</div>
+        </div>
       </div>
     </div>
-    <div class="act2-visual">
-      <div class="glow-orb" id="glowOrb"></div>
-      <div class="device-frame-target" id="deviceFrameTarget" aria-hidden="true"></div>
-      <div class="spotlight-card spotlight-a" id="spotlightA">
-        <div class="sc-icon">🎬</div>
-        <div class="sc-title">原创动画番外</div>
-        <div class="sc-desc">每周更新</div>
-      </div>
-      <div class="spotlight-card spotlight-b" id="spotlightB">
-        <div class="sc-icon">📖</div>
-        <div class="sc-title">分级配套教材</div>
-        <div class="sc-desc">动画同步</div>
-      </div>
-    </div>
+    
   </div>
 </div>
-</section>
 
 <div class="wrap">
   <section class="section" id="characters">
@@ -423,13 +420,10 @@
 
 <script>
 (function(){
-
-  // ============ 通用：帧序列滚动控制器 ============
-  function initFrameScroller({ wrapperId, canvasId, stageId, frameCount, framePath, scrubFraction = 1, fit = 'cover', onProgress }){
-    const wrapper = document.getElementById(wrapperId);
+  // ============ 通用：支持截取区间的帧序列播放器 ============
+  function initFrameScroller({ canvasId, frameCount, framePath, fit = 'cover' }){
     const canvas = document.getElementById(canvasId);
-    const stage = document.getElementById(stageId);
-    if (!wrapper || !canvas || !stage) return null;
+    if (!canvas) return null;
     const canvasBox = canvas.parentElement; 
     const ctx = canvas.getContext('2d');
     const frames = [];
@@ -450,8 +444,7 @@
       canvas.height = Math.round(canvasBox.clientHeight * dpr);
       if (currentIndex >= 0) drawFrame(currentIndex, true);
     }
-
-    // 利用 ResizeObserver，当容器的宽高在动画中被 JS 改变时，立即重绘画布避免扭曲拉伸
+    
     if (window.ResizeObserver) {
       new ResizeObserver(() => resize()).observe(canvasBox);
     }
@@ -471,40 +464,55 @@
       ctx.drawImage(img, dx, dy, dw, dh);
     }
 
-    function update(){
-      const wrapperTop = wrapper.offsetTop;
-      const scrollRange = wrapper.offsetHeight - stage.offsetHeight;
-      const relativeScroll = window.scrollY - wrapperTop;
-      let rawProgress = scrollRange > 0 ? relativeScroll / scrollRange : 0;
-      rawProgress = Math.max(0, Math.min(1, rawProgress));
-
-      const frameProgress = Math.max(0, Math.min(1, rawProgress / scrubFraction));
-      const targetIndex = Math.round(frameProgress * (frameCount - 1));
+    function render(localProgress){
+      const targetIndex = Math.round(localProgress * (frameCount - 1));
       drawFrame(targetIndex);
-
-      if (onProgress) onProgress(rawProgress, frameProgress, stage);
     }
 
     resize();
     window.addEventListener('resize', resize);
-    return { update };
+    return { render };
   }
 
+  // 初始化两个视频播放器
+  const video1 = initFrameScroller({
+    canvasId: 'heroCanvas',
+    frameCount: 60,
+    framePath: i => `images/rumi/hero-frames/frame_${String(i).padStart(3,'0')}.webp`,
+    fit: 'cover'
+  });
+
+  const video2 = initFrameScroller({
+    canvasId: 'logoCanvas',
+    frameCount: 59,
+    framePath: i => `images/rumi/hero-frames-2/frame_${String(i).padStart(3,'0')}.webp`,
+    fit: 'cover'
+  });
+
+  // 获取 DOM
+  const masterWrapper = document.getElementById('masterWrapper');
+  const masterStage = document.getElementById('masterStage');
   const deviceFrame = document.getElementById('deviceFrame');
   const deviceFrameTarget = document.getElementById('deviceFrameTarget');
-  const logoStage = document.getElementById('logoStage');
+  const stageBgTint = document.getElementById('stageBgTint');
   const glowOrb = document.getElementById('glowOrb');
+  const scrollCue = document.getElementById('scrollCue');
+  
+  const act2Content = document.getElementById('act2Content');
+  const act2Text = document.getElementById('act2Text');
+  const spotlightA = document.getElementById('spotlightA');
+  const spotlightB = document.getElementById('spotlightB');
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // ============ 100%满屏无缝盖住 -> 小卡片 无扭曲真实变形 ============
+  // 测量卡片最终位置
   let dockGeo = null;
   function measureDock(){
-    if(!deviceFrame || !deviceFrameTarget || !logoStage) return;
-    const stageRect = logoStage.getBoundingClientRect();
+    if(!deviceFrame || !deviceFrameTarget || !masterStage) return;
+    const stageRect = masterStage.getBoundingClientRect();
     const targetRect = deviceFrameTarget.getBoundingClientRect();
     if(stageRect.width === 0 || stageRect.height === 0) return; 
     
-    // 初始状态：100% 满屏无边距（无缝对接上一幕的黑场）
+    // 起点：100% 满屏无缝盖在视频1上
     const startW = stageRect.width;
     const startH = stageRect.height;
     const startL = 0;
@@ -522,107 +530,105 @@
   window.addEventListener('resize', measureDock);
   window.addEventListener('load', measureDock);
 
-  function easeInOutCubic(x){
-    return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
-  }
+  function easeInOutCubic(x){ return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
 
-  const DOCK_START = 0.15; // 播放一小段后，边框才开始出现并往里缩
-  const DOCK_END = 0.65;
-  const FINAL_RADIUS = 28, FINAL_ROTATE = -4; 
-  const HOLD_START = 0.75;
+  // ============ 时间轴分配 (0 ~ 1.0 的全局滚动进度) ============
+  // 0.0 ~ 0.4: 播放视频1
+  // 0.4 ~ 0.45: 视频2渐显叠化出现 (此阶段不缩小，无缝连接)
+  // 0.45 ~ 0.85: 播放视频2，同时进行缩小位移
+  // 0.85 ~ 1.0: 缓冲落地后的轻微呼吸动效
 
-  function updateDeviceFrame(raw){
-    if(!deviceFrame || !dockGeo) return;
+  const V1_START = 0.0, V1_END = 0.4;
+  const V2_FADE_START = 0.4, V2_FADE_END = 0.45;
+  const V2_PLAY_START = 0.45, V2_PLAY_END = 0.85;
+  
+  const FINAL_RADIUS = 28, FINAL_ROTATE = -4;
 
-    // 动画插值
-    const t = Math.max(0, Math.min(1, (raw - DOCK_START) / (DOCK_END - DOCK_START)));
-    const e = prefersReduced ? (raw > DOCK_START ? 1 : 0) : easeInOutCubic(t); 
+  function updateGlobalScroll(){
+    const relativeScroll = window.scrollY - masterWrapper.offsetTop;
+    const scrollRange = masterWrapper.offsetHeight - masterStage.offsetHeight;
+    let globalRaw = scrollRange > 0 ? relativeScroll / scrollRange : 0;
+    globalRaw = Math.max(0, Math.min(1, globalRaw));
 
-    // 直接改变宽高避免形变
-    const w = dockGeo.startW + (dockGeo.endW - dockGeo.startW) * e;
-    const h = dockGeo.startH + (dockGeo.endH - dockGeo.startH) * e;
-    let l = dockGeo.startL + (dockGeo.endL - dockGeo.startL) * e;
-    let tPos = dockGeo.startT + (dockGeo.endT - dockGeo.startT) * e;
-    const radius = FINAL_RADIUS * e;
-    let rotate = FINAL_ROTATE * e;
+    // 1. 播放视频 1
+    if (video1) {
+      let v1Progress = (globalRaw - V1_START) / (V1_END - V1_START);
+      v1Progress = Math.max(0, Math.min(1, v1Progress));
+      video1.render(v1Progress);
+    }
+    if (scrollCue) { scrollCue.classList.toggle('show', globalRaw < 0.03); }
 
-    // 落地后的呼吸感漂移，同原版保留一致
-    if(!prefersReduced && raw > HOLD_START){
-      const holdProgress = Math.min(1, (raw - HOLD_START) / (1 - HOLD_START));
-      rotate += holdProgress * 3;
-      l += holdProgress * 22;
-      tPos += holdProgress * -16;
+    // 2. 视频 2 的透明度渐显 (无缝压上去)
+    let v2FadeProgress = (globalRaw - V2_FADE_START) / (V2_FADE_END - V2_FADE_START);
+    v2FadeProgress = Math.max(0, Math.min(1, v2FadeProgress));
+    deviceFrame.style.opacity = v2FadeProgress;
+
+    // 为了在视频2缩小后不显得背景突兀，在渐显完毕后把深蓝背景也透上来
+    stageBgTint.style.opacity = globalRaw > V2_FADE_END ? Math.min(1, (globalRaw - V2_FADE_END) / 0.1) : 0;
+
+    // 3. 播放视频 2 并执行无变形缩放位移
+    if (video2) {
+      let v2PlayProgress = (globalRaw - V2_PLAY_START) / (V2_PLAY_END - V2_PLAY_START);
+      v2PlayProgress = Math.max(0, Math.min(1, v2PlayProgress));
+      video2.render(v2PlayProgress);
+
+      if (dockGeo) {
+        const e = prefersReduced ? (v2PlayProgress > 0 ? 1 : 0) : easeInOutCubic(v2PlayProgress);
+        
+        const w = dockGeo.startW + (dockGeo.endW - dockGeo.startW) * e;
+        const h = dockGeo.startH + (dockGeo.endH - dockGeo.startH) * e;
+        let l = dockGeo.startL + (dockGeo.endL - dockGeo.startL) * e;
+        let tPos = dockGeo.startT + (dockGeo.endT - dockGeo.startT) * e;
+        const radius = FINAL_RADIUS * e;
+        let rotate = FINAL_ROTATE * e;
+
+        // 落地后的漂移呼吸
+        if(!prefersReduced && globalRaw > V2_PLAY_END){
+          const holdProgress = Math.min(1, (globalRaw - V2_PLAY_END) / (1 - V2_PLAY_END));
+          rotate += holdProgress * 3;
+          l += holdProgress * 22;
+          tPos += holdProgress * -16;
+        }
+
+        deviceFrame.style.width = `${w}px`;
+        deviceFrame.style.height = `${h}px`;
+        deviceFrame.style.left = `${l}px`;
+        deviceFrame.style.top = `${tPos}px`;
+        deviceFrame.style.transform = `rotate(${rotate}deg)`; 
+        deviceFrame.style.borderRadius = `${radius}px`;
+        deviceFrame.style.boxShadow = e > 0.03
+          ? `0 ${30 * e}px ${60 * e}px -20px rgba(0,0,0,${(0.55 * e).toFixed(3)}), 0 0 0 ${6 * e}px rgba(255,255,255,${(0.08 * e).toFixed(3)})`
+          : 'none';
+
+        // 炫彩垫子跟随显现
+        if (glowOrb) {
+            glowOrb.style.opacity = e; 
+            glowOrb.style.transform = `translate(calc(${l}px + ${w/2}px - 50%), calc(${tPos}px + ${h/2}px - 50%))`;
+        }
+      }
     }
 
-    // 应用到视频框
-    deviceFrame.style.width = `${w}px`;
-    deviceFrame.style.height = `${h}px`;
-    deviceFrame.style.left = `${l}px`;
-    deviceFrame.style.top = `${tPos}px`;
-    deviceFrame.style.transform = `rotate(${rotate}deg)`; 
-    deviceFrame.style.borderRadius = `${radius}px`;
-    deviceFrame.style.boxShadow = e > 0.03
-      ? `0 ${30 * e}px ${60 * e}px -20px rgba(0,0,0,${(0.55 * e).toFixed(3)}), 0 0 0 ${6 * e}px rgba(255,255,255,${(0.08 * e).toFixed(3)})`
-      : 'none';
-
-    // 炫彩垫子：保持在背后，并跟随边框出现的进度渐渐显现
-    if (glowOrb) {
-        glowOrb.style.opacity = e; 
-        glowOrb.style.transform = `translate(calc(${l}px + ${w/2}px - 50%), calc(${tPos}px + ${h/2}px - 50%))`;
-    }
+    // 4. 控制 UI 元素的出场时机
+    act2Content.style.pointerEvents = globalRaw > 0.5 ? 'auto' : 'none';
+    if (act2Text) act2Text.classList.toggle('show', globalRaw > 0.55);
+    if (spotlightA) spotlightA.classList.toggle('show', globalRaw > 0.65);
+    if (spotlightB) spotlightB.classList.toggle('show', globalRaw > 0.75);
   }
 
-  const scrollCue = document.querySelector('#top .scroll-cue');
-  const act2Text = document.getElementById('act2Text');
-  const spotlightA = document.getElementById('spotlightA');
-  const spotlightB = document.getElementById('spotlightB');
-
-  const scrollers = [
-    // 第一幕
-    initFrameScroller({
-      wrapperId: 'heroScrollWrapper',
-      canvasId: 'heroCanvas',
-      stageId: 'top',
-      frameCount: 60,
-      framePath: i => `images/rumi/hero-frames/frame_${String(i).padStart(3,'0')}.webp`,
-      scrubFraction: 0.92,
-      onProgress: (raw, frameProgress, stage) => {
-        if (scrollCue) scrollCue.classList.toggle('show', raw < 0.05);
-        stage.classList.toggle('revealed', raw > 0.95);
-      }
-    }),
-    // 第二幕
-    initFrameScroller({
-      wrapperId: 'logoScrollWrapper',
-      canvasId: 'logoCanvas',
-      stageId: 'logoStage',
-      frameCount: 59,
-      framePath: i => `images/rumi/hero-frames-2/frame_${String(i).padStart(3,'0')}.webp`,
-      scrubFraction: 0.75,
-      fit: 'cover',
-      onProgress: (raw) => {
-        updateDeviceFrame(raw);
-        if (act2Text) act2Text.classList.toggle('show', raw > 0.58);
-        if (spotlightA) spotlightA.classList.toggle('show', raw > 0.68);
-        if (spotlightB) spotlightB.classList.toggle('show', raw > 0.78);
-      }
-    })
-  ];
-
+  // 防抖滚动事件
   let ticking = false;
-  function onScroll(){
+  window.addEventListener('scroll', () => {
     if (ticking) return;
     ticking = true;
     requestAnimationFrame(() => {
-      scrollers.forEach(s => s && s.update());
+      updateGlobalScroll();
       ticking = false;
     });
-  }
+  }, { passive: true });
 
-  window.addEventListener('scroll', onScroll, { passive: true });
-  scrollers.forEach(s => s && s.update());
+  updateGlobalScroll();
 
-  // ============ 光斑卡片鼠标追踪 ============
+  // 光斑卡片鼠标追踪
   document.addEventListener('pointermove', (e) => {
     document.documentElement.style.setProperty('--mx', e.clientX + 'px');
     document.documentElement.style.setProperty('--my', e.clientY + 'px');
