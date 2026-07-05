@@ -84,12 +84,11 @@
   nav .cta:hover{transform:translateY(-2px);box-shadow:0 14px 28px -8px #FF7A5Caa;}
   @media (max-width:860px){ nav .links{display:none;} }
 
-  /* ============ HERO + VIDEO 滚动转场 ============ */
-  /* 修改点1：高度翻倍，从 150vh 改成 300vh，这样滚动速度就慢了一倍 */
+  /* ============ HERO + VIDEO ============ */
   .hero-scroll-wrapper{
     position:relative;
     height:300vh; 
-    background:#0b0a12; /* 关键修复：容器本身补深色底，sticky交接的瞬间即便有亚像素误差，露出来的也是深色而不是页面米白背景 */
+    background:#0b0a12; 
   }
   .hero-stage{
     position:sticky;
@@ -105,7 +104,7 @@
   }
   .hero-stage.revealed::before{opacity:.28;}
 
-  /* ============ 第二幕：文字左 + 圆形设备框（视频2）右 + 两张光斑卡片 ============ */
+  /* ============ 第二幕：文字左 + 圆形设备框右 ============ */
   .act2-scroll{ position:relative; height:230vh; background:linear-gradient(160deg,#141225,#1b1440 60%,#0b0a12); }
   .act2-stage{
     position:sticky; top:var(--nav-h,64px);
@@ -134,6 +133,8 @@
     position:relative; flex:1 1 360px; min-height:420px;
     display:flex; align-items:center; justify-content:center;
   }
+  
+  /* 光晕默认透明，JS控制跟随卡片 */
   .glow-orb{
     position:absolute; width:min(360px,86vw); aspect-ratio:1/1; border-radius:50%;
     background:
@@ -141,27 +142,26 @@
       radial-gradient(circle at 68% 72%, #ff6fa5aa, transparent 60%),
       radial-gradient(circle at 50% 50%, #ffc93c77, transparent 70%);
     filter:blur(6px); z-index:0;
+    opacity: 0; pointer-events: none;
+    left: 0; top: 0;
   }
+
   .device-frame{
-    position:absolute; inset:0; z-index:1;
-    width:100%; height:100%;
+    position:absolute; z-index:1;
+    opacity: 0;
     border-radius:0; overflow:hidden;
     background:#0b0a12;
     box-shadow:none;
-    transform-origin:50% 50%;
-    will-change:transform;
-    /* 圆角/阴影/旋转/缩放/位移 全部交给JS按滚动进度插值，这里只留最基础的满屏黑盒子 */
+    will-change: width, height, left, top, transform;
   }
   .device-frame canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; background:#0b0a12; }
 
-  /* 纯几何占位：不显示，只用来量出"最终小卡片"该在的真实坐标和尺寸，供JS计算变形终点 */
   .device-frame-target{
     position:relative; z-index:0;
     width:min(250px,60vw); aspect-ratio:4/3;
     visibility:hidden; pointer-events:none;
   }
 
-  /* 光斑卡片：跟随鼠标的高光描边效果 */
   .spotlight-card{
     position:absolute; z-index:2; width:132px; padding:16px 14px;
     border-radius:18px; text-align:center; color:#fff;
@@ -212,7 +212,7 @@
   .scroll-cue .chevron{width:18px;height:18px;margin:6px auto 0;border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(45deg);animation:bob 1.6s ease-in-out infinite;}
   @keyframes bob{0%,100%{transform:rotate(45deg) translate(0,0);}50%{transform:rotate(45deg) translate(4px,4px);}}
 
-  /* ============ SECTION 通用 ============ */
+  /* ============ SECTION ============ */
   .section{position:relative;padding:88px 0;}
   .section.tint{background:var(--cream-deep);}
   .eyebrow-tag{
@@ -315,19 +315,13 @@
   <a href="#contact" class="cta">预约体验课</a>
 </nav>
 
-<!-- ============ HERO：开场视频 + 滚动控制 ============ -->
 <div class="hero-scroll-wrapper" id="heroScrollWrapper">
 <div class="hero-stage" id="top">
-  
-  <!-- 帧序列画布：用逐帧图片代替视频，滚动跳转不再依赖视频解码，彻底消除卡顿 -->
   <canvas id="heroCanvas"></canvas>
-
-  <!-- 滚动提示语 -->
   <div class="scroll-cue show">往下划<div class="chevron"></div></div>
 </div>
 </div>
 
-<!-- ============ 第二段：黑场转文字定格动画 ============ -->
 <section class="act2-scroll" id="logoScrollWrapper">
 <div class="act2-stage" id="logoStage">
   <div class="device-frame" id="deviceFrame">
@@ -344,7 +338,7 @@
       </div>
     </div>
     <div class="act2-visual">
-      <div class="glow-orb"></div>
+      <div class="glow-orb" id="glowOrb"></div>
       <div class="device-frame-target" id="deviceFrameTarget" aria-hidden="true"></div>
       <div class="spotlight-card spotlight-a" id="spotlightA">
         <div class="sc-icon">🎬</div>
@@ -362,7 +356,6 @@
 </section>
 
 <div class="wrap">
-  <!-- 内容区维持原样 -->
   <section class="section" id="characters">
     <div class="section-head center">
       <div class="eyebrow-tag">👋 角色世界</div>
@@ -432,16 +425,12 @@
 (function(){
 
   // ============ 通用：帧序列滚动控制器 ============
-  // wrapperId：滚动容器；canvasId：画布；stageId：被 sticky 钉住的元素（用它的高度而不是 window.innerHeight 来算滚动进度，
-  //            避免移动端地址栏收起/展开导致 100vh 和实际可视高度不一致，这也是之前"底部白边"的真正原因之一）
-  // frameCount/framePath：帧数量和命名规则
-  // scrubFraction：动画在这个滚动比例内播完，剩下的比例定格在最后一帧
   function initFrameScroller({ wrapperId, canvasId, stageId, frameCount, framePath, scrubFraction = 1, fit = 'cover', onProgress }){
     const wrapper = document.getElementById(wrapperId);
     const canvas = document.getElementById(canvasId);
     const stage = document.getElementById(stageId);
     if (!wrapper || !canvas || !stage) return null;
-    const canvasBox = canvas.parentElement; // 画布按自己的直接容器定位铺满（可能是整屏 stage，也可能是小设备框）
+    const canvasBox = canvas.parentElement; 
     const ctx = canvas.getContext('2d');
     const frames = [];
     let currentIndex = -1;
@@ -462,7 +451,11 @@
       if (currentIndex >= 0) drawFrame(currentIndex, true);
     }
 
-    // fit:'cover' 裁切铺满（背景大图用）；fit:'contain' 完整显示不裁切（带文字排版的画面用，避免被放大裁切）
+    // 利用 ResizeObserver，当容器的宽高在动画中被 JS 改变时，立即重绘画布避免扭曲拉伸
+    if (window.ResizeObserver) {
+      new ResizeObserver(() => resize()).observe(canvasBox);
+    }
+
     function drawFrame(index, force){
       const img = frames[index];
       if (!img || !img.complete || !img.naturalWidth) return;
@@ -473,7 +466,6 @@
       const scale = fit === 'contain' ? Math.min(cw / iw, ch / ih) : Math.max(cw / iw, ch / ih);
       const dw = iw * scale, dh = ih * scale;
       const dx = (cw - dw) / 2, dy = (ch - dh) / 2;
-      // 先铺一层实色背景再画图：即便 contain 模式两边留白，露出来的也是深色而不是穿透看到底下的白色页面背景
       ctx.fillStyle = '#0b0a12';
       ctx.fillRect(0, 0, cw, ch);
       ctx.drawImage(img, dx, dy, dw, dh);
@@ -501,65 +493,86 @@
   const deviceFrame = document.getElementById('deviceFrame');
   const deviceFrameTarget = document.getElementById('deviceFrameTarget');
   const logoStage = document.getElementById('logoStage');
+  const glowOrb = document.getElementById('glowOrb');
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // ============ 满屏 → 小卡片 的"落位"变形 ============
-  // 原理：device-frame 全程保持真实布局尺寸=铺满整个 act2-stage（不重设width/height，
-  // 避免每帧滚动都触发canvas重新计算分辨率），只用 transform 做视觉上的缩放位移，
-  // 配合 border-radius 数值插值，做出"卡片从画面外长出来并收缩落位"的效果。
-  // device-frame-target 是flex布局里一个隐形占位元素，天然撑在"最终小卡片"该在的位置，
-  // 用它的 getBoundingClientRect() 就能量出准确的终点坐标，不用手写死数字，改屏幕宽度也不会偏。
+  // ============ 2/3占比 → 小卡片 的"无扭曲"真实变形 ============
   let dockGeo = null;
   function measureDock(){
     if(!deviceFrame || !deviceFrameTarget || !logoStage) return;
     const stageRect = logoStage.getBoundingClientRect();
     const targetRect = deviceFrameTarget.getBoundingClientRect();
-    if(stageRect.width === 0 || stageRect.height === 0) return; // stage还没渲染出真实尺寸，先跳过
+    if(stageRect.width === 0 || stageRect.height === 0) return; 
+    
+    // 初始状态：占屏幕2/3
+    const startW = stageRect.width * 0.66;
+    const startH = stageRect.height * 0.66;
+    const startL = (stageRect.width - startW) / 2;
+    const startT = (stageRect.height - startH) / 2;
+
     dockGeo = {
-      scaleX: targetRect.width / stageRect.width,
-      scaleY: targetRect.height / stageRect.height,
-      tx: (targetRect.left + targetRect.width / 2) - (stageRect.left + stageRect.width / 2),
-      ty: (targetRect.top + targetRect.height / 2) - (stageRect.top + stageRect.height / 2)
+      startW, startH, startL, startT,
+      endW: targetRect.width,
+      endH: targetRect.height,
+      endL: targetRect.left - stageRect.left, 
+      endT: targetRect.top - stageRect.top
     };
   }
   measureDock();
   window.addEventListener('resize', measureDock);
-  window.addEventListener('load', measureDock); // 字体加载完成后flex尺寸可能有细微变化，再量一次校准
+  window.addEventListener('load', measureDock);
 
   function easeInOutCubic(x){
     return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
   }
 
-  const DOCK_START = 0.30, DOCK_END = 0.65;   // 变形发生的滚动进度区间，占中段
-  const FINAL_RADIUS = 28, FINAL_ROTATE = -4; // 落位后的最终圆角(px)和旋转角度(deg)
-  const HOLD_START = 0.82;                    // 落位完成后，剩余滚动距离里继续做"呼吸漂移"的起点
+  const DOCK_START = 0.15, DOCK_END = 0.65;
+  const FINAL_RADIUS = 28, FINAL_ROTATE = -4; 
+  const HOLD_START = 0.75;
 
   function updateDeviceFrame(raw){
     if(!deviceFrame || !dockGeo) return;
 
-    const t = Math.max(0, Math.min(1, (raw - DOCK_START) / (DOCK_END - DOCK_START)));
-    const e = prefersReduced ? (raw > DOCK_START ? 1 : 0) : easeInOutCubic(t); // 无障碍：减少动效时直接跳变，不做补间
+    // 1. 渐显效果 (raw 0 -> 0.1 期间)
+    let fadeInProgress = Math.max(0, Math.min(1, raw / 0.1));
+    deviceFrame.style.opacity = fadeInProgress;
 
-    const scaleX = 1 + (dockGeo.scaleX - 1) * e;
-    const scaleY = 1 + (dockGeo.scaleY - 1) * e;
-    let tx = dockGeo.tx * e;
-    let ty = dockGeo.ty * e;
+    // 2. 动画插值
+    const t = Math.max(0, Math.min(1, (raw - DOCK_START) / (DOCK_END - DOCK_START)));
+    const e = prefersReduced ? (raw > DOCK_START ? 1 : 0) : easeInOutCubic(t); 
+
+    // 直接改变宽高避免形变
+    const w = dockGeo.startW + (dockGeo.endW - dockGeo.startW) * e;
+    const h = dockGeo.startH + (dockGeo.endH - dockGeo.startH) * e;
+    let l = dockGeo.startL + (dockGeo.endL - dockGeo.startL) * e;
+    let tPos = dockGeo.startT + (dockGeo.endT - dockGeo.startT) * e;
     const radius = FINAL_RADIUS * e;
     let rotate = FINAL_ROTATE * e;
 
-    // 落位完成后，继续在剩下的滚动距离里缓缓漂移一点点，给"定住"一个呼吸感，而不是死死钉住
+    // 3. 落地后的呼吸感漂移
     if(!prefersReduced && raw > HOLD_START){
       const holdProgress = Math.min(1, (raw - HOLD_START) / (1 - HOLD_START));
       rotate += holdProgress * 3;
-      tx += holdProgress * 22;
-      ty += holdProgress * -16;
+      l += holdProgress * 22;
+      tPos += holdProgress * -16;
     }
 
-    deviceFrame.style.transform = `translate(${tx}px, ${ty}px) scale(${scaleX}, ${scaleY}) rotate(${rotate}deg)`;
-    deviceFrame.style.borderRadius = radius + 'px';
+    // 应用到视频框
+    deviceFrame.style.width = `${w}px`;
+    deviceFrame.style.height = `${h}px`;
+    deviceFrame.style.left = `${l}px`;
+    deviceFrame.style.top = `${tPos}px`;
+    deviceFrame.style.transform = `rotate(${rotate}deg)`; 
+    deviceFrame.style.borderRadius = `${radius}px`;
     deviceFrame.style.boxShadow = e > 0.03
       ? `0 ${30 * e}px ${60 * e}px -20px rgba(0,0,0,${(0.55 * e).toFixed(3)}), 0 0 0 ${6 * e}px rgba(255,255,255,${(0.08 * e).toFixed(3)})`
       : 'none';
+
+    // 4. 光晕：同步缩小进度渐渐显现，并紧紧跟在卡片中心
+    if (glowOrb) {
+        glowOrb.style.opacity = e;
+        glowOrb.style.transform = `translate(calc(${l}px + ${w/2}px - 50%), calc(${tPos}px + ${h/2}px - 50%))`;
+    }
   }
 
   const scrollCue = document.querySelector('#top .scroll-cue');
@@ -568,7 +581,7 @@
   const spotlightB = document.getElementById('spotlightB');
 
   const scrollers = [
-    // 第一幕：开场镜头推近
+    // 第一幕
     initFrameScroller({
       wrapperId: 'heroScrollWrapper',
       canvasId: 'heroCanvas',
@@ -581,7 +594,7 @@
         stage.classList.toggle('revealed', raw > 0.95);
       }
     }),
-    // 第二幕：文字左 + 圆形设备框（视频2）右，两张光斑卡片依次滚动入场
+    // 第二幕
     initFrameScroller({
       wrapperId: 'logoScrollWrapper',
       canvasId: 'logoCanvas',
@@ -589,7 +602,7 @@
       frameCount: 59,
       framePath: i => `images/rumi/hero-frames-2/frame_${String(i).padStart(3,'0')}.webp`,
       scrubFraction: 0.75,
-      fit: 'cover', // 开局要跟Act1一样满屏边到边，改成cover避免留黑边
+      fit: 'cover',
       onProgress: (raw) => {
         updateDeviceFrame(raw);
         if (act2Text) act2Text.classList.toggle('show', raw > 0.58);
@@ -599,7 +612,6 @@
     })
   ];
 
-  // 防抖：滚动再快也只排一个待执行的 rAF，避免任务堆积卡顿
   let ticking = false;
   function onScroll(){
     if (ticking) return;
@@ -613,16 +625,13 @@
   window.addEventListener('scroll', onScroll, { passive: true });
   scrollers.forEach(s => s && s.update());
 
-  // ============ 光斑卡片：跟随鼠标的高光描边效果 ============
-  // 用 background-attachment:fixed，让径向渐变的定位坐标系变成"整个视口"，
-  // 这样只要全局记一份鼠标坐标，任意位置的卡片都能正确对齐鼠标做出光斑效果
+  // ============ 光斑卡片鼠标追踪 ============
   document.addEventListener('pointermove', (e) => {
     document.documentElement.style.setProperty('--mx', e.clientX + 'px');
     document.documentElement.style.setProperty('--my', e.clientY + 'px');
   });
 })();
 
-/* ============ 复制微信号/QQ号 ============ */
 function copyText(id, btn){
   const text = document.getElementById(id).textContent;
   navigator.clipboard.writeText(text).then(()=>{
