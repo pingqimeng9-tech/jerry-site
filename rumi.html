@@ -96,7 +96,9 @@
     position: sticky;
     top: var(--nav-h, 64px); 
     width: 100%; 
-    height: min(100dvh, 860px); 
+    height: min(100vh, 860px);  /* 兜底：老写法，所有浏览器都认 */
+    height: min(100dvh, 860px); /* 增强：动态视口单位，不支持的浏览器会直接忽略这一行，
+                                    不会导致上面那条兜底也失效，这是安全的渐进增强写法 */
     min-height: 560px;
     background: #0b0a12;
     overflow: hidden; 
@@ -498,6 +500,10 @@
 
     resize();
     window.addEventListener('resize', resize);
+    // 兜底：页面刚加载时，个别浏览器（尤其是App内置的嵌入式浏览器）第一次量出来的
+    // clientHeight 不一定准，短延迟后强制再量一次、再画一次，纠正"从一开始就量错"的情况
+    setTimeout(resize, 100);
+    setTimeout(resize, 500);
     return { render };
   }
 
