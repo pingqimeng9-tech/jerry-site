@@ -91,6 +91,16 @@
     .toc{display:none !important;} /* 手机端只看文章正文，目录直接隐藏；JS里会用内联style.display='block'强制显示，
                                         普通CSS规则拼不过内联样式优先级，这里必须加!important才能真正盖住 */
   }
+  @media (max-width:600px){
+    /* 手机端边距加固：不依赖clamp(20px,5vw,56px)在极窄屏幕/浏览器缩放下可能算出比预期小的值，
+       直接给一个明确的、够用的边距，避免文字贴边 */
+    nav{ padding:16px 18px; }
+    .shell{ padding:28px 16px 60px; }
+    .article-card{ padding:24px 18px; border-radius:16px; }
+    .a-title{ overflow-wrap:break-word; word-break:break-word; }
+    .a-body{ overflow-wrap:break-word; word-break:break-word; }
+    .a-body pre{ overflow-x:auto; } /* 代码块自己横向滚动，不会撑开整个卡片 */
+  }
 </style>
 </head>
 <body>

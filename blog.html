@@ -345,13 +345,18 @@ function renderSections(posts){
   `).join('');
 }
 
-function postCardHtml(post){
+function postCardHtml(post, alreadyEscaped){
+  // alreadyEscaped=true 用于搜索高亮场景：title/excerpt 已经被 highlight() 转义并插入了 <mark> 标签，
+  // 这里就不能再 escapeHtml 一次，否则 <mark> 会变成字面文本"&lt;mark&gt;"显示出来，而不是真正高亮
+  const title = alreadyEscaped ? (post.title || '无标题') : escapeHtml(post.title || '无标题');
+  const excerpt = post.excerpt ? (alreadyEscaped ? post.excerpt : escapeHtml(post.excerpt)) : '';
   return `
     <a class="post-card" href="/post.html?id=${post.id}">
-      <div class="post-title">${escapeHtml(post.title || '无标题')}</div>
-      ${post.excerpt ? `<div class="post-excerpt">${escapeHtml(post.excerpt)}</div>` : ''}
+      <div class="post-title">${title}</div>
+      ${excerpt ? `<div class="post-excerpt">${excerpt}</div>` : ''}
       <div class="post-meta">
         ${post.date ? `<span>📅 ${post.date}</span>` : ''}
+        ${post.category ? `<span>🏷️ ${escapeHtml(post.category)}</span>` : ''}
       </div>
     </a>
   `;
@@ -524,7 +529,7 @@ function setupSearch(){
     contentArea.innerHTML = `
       <div class="cat-section">
         <div class="post-grid">
-          ${matched.map(p => postCardHtml({...p, title: highlight(p.title, q), excerpt: highlight(p.excerpt, q)})).join('')}
+          ${matched.map(p => postCardHtml({...p, title: highlight(p.title, q), excerpt: highlight(p.excerpt, q)}, true)).join('')}
         </div>
       </div>
     `;
