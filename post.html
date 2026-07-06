@@ -3,11 +3,10 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>文章 · Jerry</title>
+<title>博客列表 · Jerry</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 
 <style>
   :root{
@@ -31,75 +30,61 @@
     50%{background-position:40% 60%,60% 40%,40% 60%,60% 40%,100% 50%;}
     100%{background-position:0% 0%,100% 0%,100% 100%,0% 100%,0% 50%;}
   }
-  a{color:var(--aqua);}
+  a{text-decoration:none;}
   .mono{font-family:'JetBrains Mono',monospace;}
 
+  /* 导航与搜索栏 */
   nav{
     display:flex;justify-content:space-between;align-items:center;padding:18px clamp(20px,5vw,56px);
     position:sticky;top:0;background:rgba(20,16,45,.45);backdrop-filter:blur(18px);
     -webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--glass-border);z-index:50;
+    gap: 16px; flex-wrap: wrap;
   }
   nav .logo{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;color:#fff;}
-  nav .back{font-size:13px;color:var(--muted);padding:8px 14px;border-radius:100px;transition:.2s;}
-  nav .back:hover{background:var(--glass);color:#fff;}
-
-  .shell{ display:flex; max-width:980px; margin:0 auto; padding:48px clamp(20px,5vw,56px) 90px; gap:24px; align-items:flex-start; }
-
-  .article-card{
-    flex:1; min-width:0;
-    background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(18px);
-    border-radius:20px;padding:34px clamp(20px,4vw,44px);
+  
+  .search-container { flex: 1; max-width: 400px; position: relative; }
+  .search-input {
+    width: 100%; background: var(--glass); border: 1px solid var(--glass-border);
+    padding: 10px 16px; border-radius: 100px; color: #fff; font-size: 14px;
+    font-family: inherit; outline: none; transition: 0.2s;
   }
-  .breadcrumb{font-size:12px;color:var(--muted);margin-bottom:14px;}
-  .a-title{font-family:'Noto Serif SC',serif;font-weight:900;font-size:clamp(24px,4vw,32px);line-height:1.35;margin-bottom:14px;}
-  .a-meta{display:flex;gap:14px;font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:28px;flex-wrap:wrap;}
-  .a-meta .tag{background:rgba(255,255,255,.06);border:1px solid var(--glass-border);padding:2px 10px;border-radius:100px;}
+  .search-input:focus { background: var(--glass-strong); border-color: var(--aqua); }
+  .search-input::placeholder { color: var(--muted); }
 
-  .a-body{font-size:15px;line-height:2;color:#e8e6fb;}
-  .a-body h1, .a-body h2, .a-body h3{font-family:'Noto Serif SC',serif;color:#fff;margin:28px 0 12px;scroll-margin-top:90px;}
-  .a-body h1{font-size:24px;} .a-body h2{font-size:20px;} .a-body h3{font-size:17px;}
-  .a-body p{margin-bottom:14px;}
-  .a-body img{max-width:100%;border-radius:12px;margin:10px 0;}
-  .a-body code{background:rgba(0,0,0,.35);padding:2px 6px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;}
-  .a-body pre{background:rgba(0,0,0,.4);padding:16px;border-radius:12px;overflow-x:auto;border:1px solid var(--glass-border);}
-  .a-body pre code{background:none;padding:0;}
-  .a-body blockquote{border-left:3px solid var(--coral);padding-left:16px;color:var(--muted);margin:16px 0;}
-  .a-body ul, .a-body ol{padding-left:22px;margin-bottom:14px;}
-  .a-body li{margin-bottom:6px;}
+  .shell{ max-width: 800px; margin: 0 auto; padding: 48px clamp(20px,5vw,56px); }
 
-  /* ===== 右侧 TOC ===== */
-  .toc{
-    width:200px; flex-shrink:0;
-    background:var(--glass); border:1px solid var(--glass-border);
-    backdrop-filter:blur(16px); border-radius:16px; padding:18px;
-    position:sticky; top:88px; font-size:12.5px; max-height:calc(100vh - 120px); overflow-y:auto;
+  /* 文章列表卡片 */
+  .post-list { display: flex; flex-direction: column; gap: 20px; }
+  .post-card {
+    display: block; background: var(--glass); border: 1px solid var(--glass-border);
+    backdrop-filter: blur(18px); border-radius: 16px; padding: 24px 28px;
+    transition: all 0.25s ease;
   }
-  .toc-label{font-family:'JetBrains Mono',monospace;color:var(--aqua);font-size:11px;margin-bottom:10px;font-weight:700;}
-  .toc a{display:block; color:var(--muted); padding:5px 0; transition:.2s; text-decoration:none;}
-  .toc a:hover{color:var(--aqua);}
-  .toc a.h3{padding-left:14px;font-size:11.5px;opacity:.8;}
-  .toc a.active{color:var(--coral);font-weight:700;}
-  .toc-empty{color:var(--muted);font-size:12px;opacity:.7;}
+  .post-card:hover { transform: translateY(-4px); background: var(--glass-strong); border-color: var(--aqua); }
+  
+  .p-title {
+    font-family: 'Noto Serif SC', serif; font-weight: 700; font-size: 20px;
+    color: #fff; margin: 0 0 12px 0; line-height: 1.4;
+  }
+  .p-excerpt {
+    font-size: 14px; color: #e8e6fb; line-height: 1.7; margin: 0 0 16px 0;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    opacity: 0.85;
+  }
+  .p-meta { display: flex; gap: 14px; font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; flex-wrap: wrap; align-items: center; }
+  .p-meta .tag { background: rgba(255,255,255,.06); border: 1px solid var(--glass-border); padding: 2px 10px; border-radius: 100px; }
 
+  /* 状态展示区 */
   .state-box{text-align:center;padding:60px 20px;color:var(--muted);}
   .state-box.error{color:#FF9E8A;}
   .spinner{width:26px;height:26px;border-radius:50%;border:3px solid var(--glass-border);border-top-color:var(--aqua);margin:0 auto 14px;animation:spin .8s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg);}}
 
-  @media (max-width:900px){
-    .shell{flex-direction:column;}
-    .toc{display:none !important;} /* 手机端只看文章正文，目录直接隐藏；JS里会用内联style.display='block'强制显示，
-                                        普通CSS规则拼不过内联样式优先级，这里必须加!important才能真正盖住 */
-  }
   @media (max-width:600px){
-    /* 手机端边距加固：不依赖clamp(20px,5vw,56px)在极窄屏幕/浏览器缩放下可能算出比预期小的值，
-       直接给一个明确的、够用的边距，避免文字贴边 */
     nav{ padding:16px 18px; }
     .shell{ padding:28px 16px 60px; }
-    .article-card{ padding:24px 18px; border-radius:16px; }
-    .a-title{ overflow-wrap:break-word; word-break:break-word; }
-    .a-body{ overflow-wrap:break-word; word-break:break-word; }
-    .a-body pre{ overflow-x:auto; } /* 代码块自己横向滚动，不会撑开整个卡片 */
+    .post-card{ padding:20px; border-radius:14px; }
+    .p-title{ font-size: 18px; }
   }
 </style>
 </head>
@@ -107,36 +92,29 @@
 
 <nav>
   <a class="logo" href="/">JERRY.DEV</a>
-  <a class="back" href="/blog.html">← 返回博客</a>
+  <div class="search-container">
+    <input type="text" id="searchInput" class="search-input" placeholder="搜索文章标题或正文内容..." autocomplete="off">
+  </div>
 </nav>
 
 <div class="shell">
-  <div id="article-container" class="article-card">
+  <div id="list-container" class="post-list">
     <div class="state-box">
       <div class="spinner"></div>
-      正在加载文章…
+      正在加载文章列表…
     </div>
   </div>
-
-  <aside class="toc" id="toc" style="display:none;">
-    <div class="toc-label">本文目录</div>
-    <div id="toc-list"></div>
-  </aside>
 </div>
 
 <script>
-async function loadPost(){
-  const container = document.getElementById('article-container');
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get('id');
+let allPosts = [];
 
-  if(!id){
-    container.innerHTML = `<div class="state-box error">缺少文章 id，请从博客列表页点进来</div>`;
-    return;
-  }
-
+async function loadPosts(){
+  const container = document.getElementById('list-container');
+  
   try {
-    const res = await fetch('/api/post?id=' + encodeURIComponent(id));
+    // 【注意】这里请替换为您实际获取所有文章列表的 API 路径
+    const res = await fetch('/api/posts'); 
     const data = await res.json();
 
     if(!data.ok){
@@ -144,74 +122,63 @@ async function loadPost(){
       return;
     }
 
-    const post = data.post;
-    document.title = (post.title || '文章') + ' · Jerry';
-
-    container.innerHTML = `
-      <div class="breadcrumb mono">首页 / 博客 ${post.category ? '/ ' + escapeHtml(post.category) : ''}</div>
-      <div class="a-title">${escapeHtml(post.title || '无标题')}</div>
-      <div class="a-meta">
-        ${post.date ? `<span>📅 ${post.date}</span>` : ''}
-        ${post.category ? `<span class="tag">${escapeHtml(post.category)}</span>` : ''}
-      </div>
-      <div class="a-body" id="a-body"></div>
-    `;
-
-    document.getElementById('a-body').innerHTML = marked.parse(post.markdown || '（正文为空）');
-
-    buildTOC();
+    allPosts = data.posts || [];
+    renderPosts(allPosts);
 
   } catch (err) {
     container.innerHTML = `<div class="state-box error">网络请求失败：${escapeHtml(err.message)}</div>`;
   }
 }
 
-// 扫描正文渲染出来的 h1/h2/h3，动态生成目录 + 锚点跳转 + 滚动高亮
-function buildTOC(){
-  const body = document.getElementById('a-body');
-  const headings = body.querySelectorAll('h1, h2, h3');
-  const tocEl = document.getElementById('toc');
-  const tocList = document.getElementById('toc-list');
-
-  if(headings.length === 0){
-    tocEl.style.display = 'block';
-    tocList.innerHTML = `<div class="toc-empty">本文没有小标题，无目录</div>`;
+function renderPosts(posts) {
+  const container = document.getElementById('list-container');
+  
+  if(posts.length === 0){
+    container.innerHTML = `<div class="state-box">没有找到相关的文章 🍃</div>`;
     return;
   }
 
-  tocEl.style.display = 'block';
-  const items = [];
-  headings.forEach((h, idx) => {
-    const id = 'toc-heading-' + idx;
-    h.id = id;
-    const level = h.tagName.toLowerCase();
-    items.push(`<a href="#${id}" class="${level === 'h3' ? 'h3' : ''}" data-target="${id}">${escapeHtml(h.textContent)}</a>`);
-  });
-  tocList.innerHTML = items.join('');
+  const html = posts.map(post => {
+    // 构建前往文章详情页的链接，假设单页路由为 /post.html?id=xxx
+    const link = `/post.html?id=${encodeURIComponent(post.id)}`;
+    
+    // 取 markdown 正文前缀作为摘要预览。如果您的 Notion 接口直接返回了 excerpt 字段，可替换为 post.excerpt
+    const rawContent = post.markdown || post.content || '';
+    const excerpt = rawContent.replace(/[#*`\n>\[\]]/g, ' ').substring(0, 120).trim() + (rawContent.length > 120 ? '...' : '');
 
-  // 点击平滑滚动
-  tocList.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
-      document.getElementById(a.dataset.target)?.scrollIntoView({behavior:'smooth', block:'start'});
-    });
-  });
+    return `
+      <a href="${link}" class="post-card">
+        <h2 class="p-title">${escapeHtml(post.title || '无标题')}</h2>
+        <div class="p-excerpt">引言 ${escapeHtml(excerpt)}</div>
+        <div class="p-meta">
+          ${post.date ? `<span>📅 ${escapeHtml(post.date)}</span>` : ''}
+          ${post.category ? `<span class="tag">🏷️ ${escapeHtml(post.category)}</span>` : ''}
+        </div>
+      </a>
+    `;
+  }).join('');
 
-  // 滚动时高亮当前所在章节
-  const tocLinks = tocList.querySelectorAll('a');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      const link = tocList.querySelector(`a[data-target="${entry.target.id}"]`);
-      if(!link) return;
-      if(entry.isIntersecting){
-        tocLinks.forEach(l => l.classList.remove('active'));
-        link.classList.add('active');
-      }
-    });
-  }, { rootMargin: '-90px 0px -70% 0px' });
-
-  headings.forEach(h => observer.observe(h));
+  container.innerHTML = html;
 }
+
+// 监听搜索输入，实时过滤（匹配标题和正文）
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  const keyword = e.target.value.toLowerCase().trim();
+  
+  if (!keyword) {
+    renderPosts(allPosts);
+    return;
+  }
+
+  const filteredPosts = allPosts.filter(post => {
+    const titleMatch = (post.title || '').toLowerCase().includes(keyword);
+    // 这里匹配正文，确保搜索能搜到文章内部的字句
+    const contentMatch = (post.markdown || post.content || '').toLowerCase().includes(keyword);
+    return titleMatch || contentMatch;
+  });
+
+  renderPosts(filteredPosts);
+});
 
 function escapeHtml(str){
   const div = document.createElement('div');
@@ -219,7 +186,8 @@ function escapeHtml(str){
   return div.innerHTML;
 }
 
-loadPost();
+// 页面加载完毕后立即拉取数据
+loadPosts();
 </script>
 
 </body>
