@@ -39,7 +39,7 @@
   nav .cta:hover{transform:translateY(-2px);}
   @media (max-width:820px){ nav .links a{display:none;} }
 
-  /* ================= 旋转渐变描边按钮：跟主页同款 ================= */
+  /* ================= 旋转渐变描边按钮 ================= */
   @property --border-angle{ syntax:'<angle>'; inherits:false; initial-value:0deg; }
   .btn-border-wrap{ position:relative; display:inline-block; border-radius:100px; }
   .btn-border-wrap::before{
@@ -101,12 +101,22 @@
   .cat-header h2{font-family:'Noto Serif SC',serif;font-size:20px;font-weight:700;margin:0;}
   .cat-header .cat-count{font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
 
-  .post-grid{display:grid;grid-template-columns:1fr;gap:14px;}
-  .post-card{ background:var(--glass); border:1px solid var(--glass-border); backdrop-filter:blur(16px); border-radius:18px; padding:22px 24px; transition:.3s; display:block; }
-  .post-card:hover{transform:translateY(-4px);background:var(--glass-strong);box-shadow:0 20px 45px -20px rgba(107,92,255,.5);}
-  .post-title{font-family:'Noto Serif SC',serif;font-weight:700;font-size:18px;margin-bottom:8px;}
-  .post-excerpt{font-size:13.5px;color:var(--muted);line-height:1.75;margin-bottom:12px;}
-  .post-meta{display:flex;gap:14px;font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+  .post-grid{display:grid;grid-template-columns:1fr;gap:20px;}
+  
+  /* 更新了这里，把框做得更大更宽敞 */
+  .post-card{ background:var(--glass); border:1px solid var(--glass-border); backdrop-filter:blur(16px); border-radius:18px; padding:26px 30px; transition:.3s; display:block; }
+  .post-card:hover{transform:translateY(-4px);background:var(--glass-strong);box-shadow:0 20px 45px -20px rgba(107,92,255,.5); border-color:var(--aqua);}
+  
+  .post-title{font-family:'Noto Serif SC',serif;font-weight:700;font-size:19px;margin-bottom:12px;color:#fff;}
+  
+  /* 更新了这里：多行截断和间距 */
+  .post-excerpt{
+    font-size:14px; color:var(--muted); line-height:1.7; margin-bottom:16px;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; opacity: 0.9;
+  }
+  
+  .post-meta{display:flex;gap:14px;font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+  .post-meta span.tag{background:rgba(255,255,255,.06);border:1px solid var(--glass-border);padding:2px 10px;border-radius:100px;}
 
   .state-box{ text-align:center;padding:60px 20px;color:var(--muted); background:var(--glass);border:1px solid var(--glass-border);border-radius:18px; }
   .state-box.error{color:#FF9E8A;}
@@ -120,7 +130,7 @@
     .sidebar{width:100%;position:static;}
   }
 
-  /* ================= 手机端专属：分类栏吸顶 + 侧边栏抽屉 + 分页 ================= */
+  /* ================= 手机端专属 ================= */
   .mobile-fab{ display:none; }
   .sidebar-backdrop{ display:none; }
   .sidebar-close{ display:none; }
@@ -135,24 +145,16 @@
   .pagination .ellipsis{color:var(--muted);padding:0 2px;}
 
   @media (max-width:760px){
-    .shell{ z-index:auto; } /* 关键修复：.shell自己有z-index:1，会建立一个独立层叠上下文，把里面的
-                               .sidebar(z-index:200)困住，导致外层.sidebar-backdrop(190)反而盖在sidebar上面，
-                               关闭按钮点不到。手机端取消.shell的层叠上下文资格(z-index:auto)，
-                               sidebar的z-index才能直接在body层级跟backdrop/fab比较，顺序正确且不影响FAB可点击 */
-
-    /* 分类栏吸顶：钉在导航栏正下方，具体px由JS按nav实际高度算出写入 */
+    .shell{ z-index:auto; } 
     .tabbar{
-      position:sticky; z-index:40;
-      margin:0 -20px 18px; padding:10px 20px; border-radius:0;
+      position:sticky; z-index:40; margin:0 -20px 18px; padding:10px 20px; border-radius:0;
       width:calc(100% + 40px); overflow-x:auto; flex-wrap:nowrap;
       background:rgba(20,16,45,.75); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
-      border-left:none; border-right:none; border-top:none;
-      scrollbar-width:none;
+      border-left:none; border-right:none; border-top:none; scrollbar-width:none;
     }
     .tabbar::-webkit-scrollbar{display:none;}
     .tabbar a{flex-shrink:0;}
 
-    /* 侧边栏变成从左侧滑入的抽屉，默认收起 */
     .sidebar{
       position:fixed; top:0; left:0; height:100%; width:82%; max-width:320px;
       z-index:200; border-radius:0; overflow-y:auto;
@@ -173,7 +175,6 @@
       color:#fff; font-size:15px; margin-bottom:14px; cursor:pointer;
     }
 
-    /* 右下角悬浮按钮：打开侧边栏搜索/导航抽屉 */
     .mobile-fab{
       display:flex; align-items:center; justify-content:center;
       position:fixed; right:18px; bottom:22px; z-index:150;
@@ -216,7 +217,7 @@
 
     <div class="search-box">
       <span class="icon">🔍</span>
-      <input id="search-input" type="text" placeholder="搜索文章标题/摘要..." />
+      <input id="search-input" type="text" placeholder="搜索文章标题或内容..." />
       <div class="search-count mono" id="search-count"></div>
     </div>
 
@@ -258,7 +259,6 @@
 let allPosts = [];
 const CATEGORY_ORDER = ['技术分享', '心情随笔', '思维日记'];
 
-/* ============ 手机端适配：判断 + 侧边栏抽屉 + 分类栏吸顶定位 ============ */
 const MOBILE_BQ = window.matchMedia('(max-width:760px)');
 function isMobile(){ return MOBILE_BQ.matches; }
 
@@ -275,7 +275,6 @@ function setupMobileChrome(){
   closeBtn.addEventListener('click', closeSidebar);
   backdrop.addEventListener('click', closeSidebar);
 
-  // 分类栏吸顶：具体钉在导航栏正下方，导航栏高度会随字体/系统缩放变化，实时量出来写成sticky的top值，比写死px更稳
   const nav = document.querySelector('nav');
   const tabbar = document.getElementById('tabbar');
   function syncStickyTop(){
@@ -339,30 +338,42 @@ function renderSections(posts){
         <span class="cat-count mono">${sec.posts.length} 篇</span>
       </div>
       <div class="post-grid">
-        ${sec.posts.map(postCardHtml).join('')}
+        ${sec.posts.map(p => postCardHtml(p)).join('')}
       </div>
     </div>
   `).join('');
 }
 
 function postCardHtml(post, alreadyEscaped){
-  // alreadyEscaped=true 用于搜索高亮场景：title/excerpt 已经被 highlight() 转义并插入了 <mark> 标签，
-  // 这里就不能再 escapeHtml 一次，否则 <mark> 会变成字面文本"&lt;mark&gt;"显示出来，而不是真正高亮
   const title = alreadyEscaped ? (post.title || '无标题') : escapeHtml(post.title || '无标题');
-  const excerpt = post.excerpt ? (alreadyEscaped ? post.excerpt : escapeHtml(post.excerpt)) : '';
+
+  // 如果是搜索结果返回了高亮的 excerpt，直接使用；否则从内容里截取一段开头作为摘要
+  let displayExcerpt = '';
+  if (alreadyEscaped && post.excerpt) {
+     displayExcerpt = post.excerpt; 
+  } else {
+     let rawExcerpt = post.excerpt || '';
+     if (!rawExcerpt) {
+       const fullContent = post.markdown || post.content || '';
+       // 清理markdown符号及换行，截取前130个字符
+       rawExcerpt = fullContent.replace(/[#*`\n>\[\]]/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 130);
+       if (fullContent.length > 130) rawExcerpt += '...';
+     }
+     displayExcerpt = escapeHtml(rawExcerpt);
+  }
+
   return `
     <a class="post-card" href="/post.html?id=${post.id}">
       <div class="post-title">${title}</div>
-      ${excerpt ? `<div class="post-excerpt">${excerpt}</div>` : ''}
+      ${displayExcerpt ? `<div class="post-excerpt">引言 ${displayExcerpt}</div>` : ''}
       <div class="post-meta">
         ${post.date ? `<span>📅 ${post.date}</span>` : ''}
-        ${post.category ? `<span>🏷️ ${escapeHtml(post.category)}</span>` : ''}
+        ${post.category ? `<span class="tag">${escapeHtml(post.category)}</span>` : ''}
       </div>
     </a>
   `;
 }
 
-/* ============ 手机端：分类=筛选（不是锚点跳转）+ 每页10篇分页 ============ */
 const PAGE_SIZE = 10;
 let mobileFilter = 'all';
 let mobilePage = 1;
@@ -382,7 +393,7 @@ function renderMobilePaged(posts, page){
   }
   contentArea.innerHTML = `
     <div class="cat-section">
-      <div class="post-grid">${pageItems.map(postCardHtml).join('')}</div>
+      <div class="post-grid">${pageItems.map(p => postCardHtml(p)).join('')}</div>
     </div>
     ${buildPaginationHtml(mobilePage, totalPages)}
   `;
@@ -537,8 +548,6 @@ function setupSearch(){
   });
 }
 
-// 关键词如果只在正文里命中、摘要里没有，直接显示摘要就看不出关键词在哪、像是没搜到一样，
-// 这里改成优先找正文里命中的位置，截取前后一小段当预览，这样高亮出来的词才看得见
 function getMatchSnippet(p, qLower){
   const excerpt = p.excerpt || '';
   if(excerpt.toLowerCase().includes(qLower)) return excerpt;
@@ -557,9 +566,7 @@ function highlight(text, q){
   return escaped.replace(new RegExp('(' + escapedQ + ')', 'gi'), '<mark>$1</mark>');
 }
 
-function slugify(str){
-  return str.replace(/\s+/g, '-').toLowerCase();
-}
+function slugify(str){ return str.replace(/\s+/g, '-').toLowerCase(); }
 function escapeHtml(str){
   const div = document.createElement('div');
   div.textContent = str == null ? '' : str;
