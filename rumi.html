@@ -87,7 +87,8 @@
   /* ============ 大合并：全局唯一滚动舞台 ============ */
   .master-scroll-wrapper {
     position: relative;
-    height: 480vh; 
+    height: 300vh; /* 原来380vh偏长——动画在到达终点前就已经放完定住了，
+                      剩下的距离画面不再变化，滑起来像"黑屏卡住"。缩短总距离让体验更紧凑 */
     background: #0b0a12;
   }
   
@@ -189,9 +190,21 @@
     .act2-inner { justify-content: center; text-align: center; }
     .act2-text { text-align: center; margin: 0 auto; }
     .act2-text p { margin-left: auto; margin-right: auto; }
+    .act2-visual { padding: 0 18px; max-width: 100%; } /* 兜底：不管里面卡片怎么定位，容器自己先留够边距 */
     .spotlight-card { width: 108px; padding: 12px 10px; }
-    .spotlight-a { left: -2%; bottom: 2%; }
-    .spotlight-b { right: -2%; top: 2%; }
+    /* 桌面端的负偏移在手机上会顶出安全边距，改成不越界的定位，
+       并且用 clamp 保底一个最小间距（16px起，原来4px太小了），屏幕再窄也不会贴边 */
+    .spotlight-a { left: clamp(16px, 4%, 20px); bottom: 2%; transform: translate(0, 20px); }
+    .spotlight-b { right: clamp(16px, 4%, 20px); top: 2%; transform: translate(0, -20px); }
+  }
+
+  @media (max-width:520px){
+    /* 超窄屏再收紧一点，卡片也缩小一些，确保两侧留白足够 */
+    .act2-visual { padding: 0 12px; }
+    .spotlight-card { width: 92px; padding: 10px 8px; }
+    .sc-icon { font-size: 18px; }
+    .sc-title { font-size: 11px; }
+    .sc-desc { font-size: 10px; }
   }
 
   .hero-eyebrow {
