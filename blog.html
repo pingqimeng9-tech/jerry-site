@@ -516,7 +516,8 @@ function setupSearch(){
     const qLower = q.toLowerCase();
     const matched = allPosts.filter(p =>
       (p.title || '').toLowerCase().includes(qLower) ||
-      (p.excerpt || '').toLowerCase().includes(qLower)
+      (p.excerpt || '').toLowerCase().includes(qLower) ||
+      (p.content || '').toLowerCase().includes(qLower)
     );
     countEl.style.display = 'block';
     countEl.textContent = `找到 ${matched.length} 篇`;
@@ -529,11 +530,24 @@ function setupSearch(){
     contentArea.innerHTML = `
       <div class="cat-section">
         <div class="post-grid">
-          ${matched.map(p => postCardHtml({...p, title: highlight(p.title, q), excerpt: highlight(p.excerpt, q)}, true)).join('')}
+          ${matched.map(p => postCardHtml({...p, title: highlight(p.title, q), excerpt: highlight(getMatchSnippet(p, qLower), q)}, true)).join('')}
         </div>
       </div>
     `;
   });
+}
+
+// 关键词如果只在正文里命中、摘要里没有，直接显示摘要就看不出关键词在哪、像是没搜到一样，
+// 这里改成优先找正文里命中的位置，截取前后一小段当预览，这样高亮出来的词才看得见
+function getMatchSnippet(p, qLower){
+  const excerpt = p.excerpt || '';
+  if(excerpt.toLowerCase().includes(qLower)) return excerpt;
+  const content = p.content || '';
+  const idx = content.toLowerCase().indexOf(qLower);
+  if(idx === -1) return excerpt || content.slice(0, 80);
+  const start = Math.max(0, idx - 24);
+  const end = Math.min(content.length, idx + qLower.length + 60);
+  return (start > 0 ? '…' : '') + content.slice(start, end) + (end < content.length ? '…' : '');
 }
 
 function highlight(text, q){
