@@ -95,7 +95,7 @@
     position: sticky;
     top: var(--nav-h, 64px); 
     width: 100%; 
-    height: min(100vh, 860px); 
+    height: min(100dvh, 860px); 
     min-height: 560px;
     background: #0b0a12;
     overflow: hidden; 
@@ -438,10 +438,10 @@
     const frames = [];
     let currentIndex = -1;
 
-    for (let i = 1; i <= frameCount; i++){
+    for (let i = 0; i < frameCount; i++){
       const img = new Image();
       img.src = framePath(i);
-      if (i === 1){
+      if (i === 0){
         img.onload = () => { if (currentIndex === -1) drawFrame(0, true); };
       }
       frames.push(img);
@@ -456,6 +456,11 @@
     
     if (window.ResizeObserver) {
       new ResizeObserver(() => resize()).observe(canvasBox);
+    }
+    // 兜底：部分移动浏览器地址栏收起/展开时，ResizeObserver不一定会第一时间感知到，
+    // 用 visualViewport 的 resize 事件再保险一层
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', resize);
     }
 
     function drawFrame(index, force){
