@@ -88,18 +88,7 @@
 
   @media (max-width:900px){
     .shell{flex-direction:column;}
-    .toc{display:none !important;} /* 手机端只看文章正文，目录直接隐藏；JS里会用内联style.display='block'强制显示，
-                                        普通CSS规则拼不过内联样式优先级，这里必须加!important才能真正盖住 */
-  }
-  @media (max-width:600px){
-    /* 手机端边距加固：不依赖clamp(20px,5vw,56px)在极窄屏幕/浏览器缩放下可能算出比预期小的值，
-       直接给一个明确的、够用的边距，避免文字贴边 */
-    nav{ padding:16px 18px; }
-    .shell{ padding:28px 16px 60px; }
-    .article-card{ padding:24px 18px; border-radius:16px; }
-    .a-title{ overflow-wrap:break-word; word-break:break-word; }
-    .a-body{ overflow-wrap:break-word; word-break:break-word; }
-    .a-body pre{ overflow-x:auto; } /* 代码块自己横向滚动，不会撑开整个卡片 */
+    .toc{width:100%;position:static;max-height:none;}
   }
 </style>
 </head>
@@ -147,12 +136,23 @@ async function loadPost(){
     const post = data.post;
     document.title = (post.title || '文章') + ' · Jerry';
 
+    // 用Notion文章封面图当页面背景，加一层暗色蒙层保证文字可读
+    if(post.cover){
+      document.body.style.backgroundImage =
+        `linear-gradient(180deg, rgba(18,16,43,.75), rgba(18,16,43,.92)), url('${post.cover}')`;
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center';
+      document.body.style.backgroundAttachment = 'fixed';
+      document.body.style.animation = 'none'; // 有真实封面图时关掉原本的渐变呼吸动画，避免视觉打架
+    }
+
     container.innerHTML = `
       <div class="breadcrumb mono">首页 / 博客 ${post.category ? '/ ' + escapeHtml(post.category) : ''}</div>
       <div class="a-title">${escapeHtml(post.title || '无标题')}</div>
       <div class="a-meta">
         ${post.date ? `<span>📅 ${post.date}</span>` : ''}
         ${post.category ? `<span class="tag">${escapeHtml(post.category)}</span>` : ''}
+        <span>👁 <span id="viewCount">${post.views || 0}</span> 次浏览</span>
       </div>
       <div class="a-body" id="a-body"></div>
     `;
@@ -160,9 +160,28 @@ async function loadPost(){
     document.getElementById('a-body').innerHTML = marked.parse(post.markdown || '（正文为空）');
 
     buildTOC();
+    bumpViewCount(id);
 
   } catch (err) {
     container.innerHTML = `<div class="state-box error">网络请求失败：${escapeHtml(err.message)}</div>`;
+  }
+}
+
+// 浏览量+1：静默调用，失败了也不影响文章正常阅读，只是不更新那个数字
+async function bumpViewCount(id){
+  try {
+    const res = await fetch('/api/view', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    });
+    const data = await res.json();
+    if(data.ok){
+      const el = document.getElementById('viewCount');
+      if(el) el.textContent = data.views;
+    }
+  } catch (err) {
+    // 静默失败
   }
 }
 

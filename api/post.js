@@ -12,7 +12,8 @@ const n2m = new NotionToMarkdown({ notionClient: notion });
 const FIELD = {
   title: 'title',
   date: 'date',
-  category: 'category'
+  category: 'category',
+  views: '浏览量' // ⚠️ 需要你在Notion数据库里新建一个"数字"类型的属性，名字必须精确叫"浏览量"
 };
 
 module.exports = async (req, res) => {
@@ -40,6 +41,8 @@ module.exports = async (req, res) => {
         title: getText(props[FIELD.title]),
         date: props[FIELD.date]?.date?.start || null,
         category: props[FIELD.category]?.select?.name || null,
+        views: props[FIELD.views]?.number || 0,
+        cover: page.cover?.external?.url || page.cover?.file?.url || null, // Notion页面自带的封面图，用作文章页背景
         markdown: mdString.parent || ''
       }
     });

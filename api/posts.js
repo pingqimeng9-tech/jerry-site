@@ -32,7 +32,8 @@ const FIELD = {
   date: 'date',
   category: 'category',
   excerpt: 'summary',
-  cover: 'Files & media'   // 文件类型属性，用来当文章封面图（如果这一行没传文件，会自动回退成空）
+  cover: 'Files & media',   // 文件类型属性，用来当文章封面图（如果这一行没传文件，会自动回退成空）
+  views: '浏览量'           // 数字类型属性，供侧边栏统计"全站总浏览量"用
 };
 
 module.exports = async (req, res) => {
@@ -64,6 +65,7 @@ module.exports = async (req, res) => {
         date: props[FIELD.date]?.date?.start || null,
         category: props[FIELD.category]?.select?.name || null,
         excerpt: getText(props[FIELD.excerpt]) || '',
+        views: props[FIELD.views]?.number || 0,
         cover: getFileUrl(props[FIELD.cover]) || page.cover?.external?.url || page.cover?.file?.url || null
       };
     });
