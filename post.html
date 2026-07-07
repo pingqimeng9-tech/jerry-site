@@ -17,6 +17,7 @@
   *{box-sizing:border-box;}
   body{
     margin:0;min-height:100vh;color:var(--ink);font-family:'Noto Sans SC',sans-serif;-webkit-font-smoothing:antialiased;
+    /* 兜底渐变：/images/bg/manifest.json 里没有图，或图片加载失败时用这个动态渐变，不会白屏 */
     background:
       radial-gradient(circle at 15% 20%, #6A5CFF55, transparent 45%),
       radial-gradient(circle at 85% 15%, #FF8CD955, transparent 45%),
@@ -31,6 +32,18 @@
     50%{background-position:40% 60%,60% 40%,40% 60%,60% 40%,100% 50%;}
     100%{background-position:0% 0%,100% 0%,100% 100%,0% 100%,0% 50%;}
   }
+
+  /* ================= 背景图片轮播：多张图慢速交叉渐变 + 虚化 ================= */
+  /* 素材位：把图片放进 /images/bg/ 文件夹，运行 scripts/gen-bg-manifest.js 生成清单，
+     这里会在多张图之间自动交叉淡入淡出。文件夹是空的/清单缺失时安静地用上面的动态渐变兜底，不报错 */
+  #bg-carousel{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
+  .bg-layer{
+    position:absolute;inset:-24px;background-size:cover;background-position:center;
+    filter:blur(22px) saturate(1.15) brightness(.75);transform:scale(1.08);
+    opacity:0;transition:opacity 3.5s ease-in-out;
+  }
+  .bg-layer.show{opacity:1;}
+  .bg-overlay{position:absolute;inset:0;background:linear-gradient(180deg, rgba(18,16,43,.55), rgba(18,16,43,.88));}
   a{color:var(--aqua);}
   .mono{font-family:'JetBrains Mono',monospace;}
 
@@ -43,7 +56,53 @@
   nav .back{font-size:13px;color:var(--muted);padding:8px 14px;border-radius:100px;transition:.2s;}
   nav .back:hover{background:var(--glass);color:#fff;}
 
-  .shell{ display:flex; max-width:980px; margin:0 auto; padding:48px clamp(20px,5vw,56px) 90px; gap:24px; align-items:flex-start; }
+  .shell{ display:flex; max-width:1440px; margin:0 auto; padding:48px clamp(20px,4vw,56px) 90px; gap:22px; align-items:flex-start; position:relative; z-index:1; }
+
+  /* ================= 左右两侧栏通用卡片 ================= */
+  .side-col{ width:230px; flex-shrink:0; display:flex; flex-direction:column; gap:16px; position:sticky; top:88px; }
+  .side-card{
+    background:var(--glass); border:1px solid var(--glass-border); backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px); border-radius:16px; padding:18px;
+  }
+  .side-card .card-label{ font-family:'JetBrains Mono',monospace; color:var(--aqua); font-size:11px; font-weight:700; margin-bottom:10px; letter-spacing:.05em; }
+
+  .profile-card .p-row{ display:flex; align-items:center; gap:12px; }
+  .profile-card .p-avatar{ width:44px;height:44px;border-radius:50%;background:linear-gradient(120deg,var(--violet),var(--aqua)); display:flex;align-items:center;justify-content:center;font-family:'Noto Serif SC',serif;font-weight:900;font-size:17px;color:#1a0f2b;flex-shrink:0; }
+  .profile-card .p-name{ font-family:'Noto Serif SC',serif; font-weight:900; font-size:15px; }
+  .profile-card .p-tag{ font-size:10.5px; color:var(--muted); margin-top:2px; }
+  .profile-card .p-social{ display:flex; gap:8px; margin-top:14px; }
+  .profile-card .p-social a{
+    width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid var(--glass-border);
+    display:flex;align-items:center;justify-content:center;color:var(--muted);transition:.2s;
+  }
+  .profile-card .p-social a:hover{ background:linear-gradient(120deg,var(--violet),var(--aqua)); color:#1a0f2b; transform:translateY(-2px); }
+
+  .checkin-card .checkin-streak{ font-size:24px; font-weight:700; color:var(--coral); font-family:'JetBrains Mono',monospace; }
+  .checkin-card .checkin-sub{ font-size:11px; color:var(--muted); margin-top:2px; }
+  .checkin-card .checkin-week{ display:flex; gap:5px; margin:12px 0; }
+  .checkin-card .checkin-dot{ flex:1; aspect-ratio:1; border-radius:7px; background:rgba(255,255,255,.06); border:1px solid var(--glass-border); font-size:9.5px; color:var(--muted); display:flex; align-items:center; justify-content:center; }
+  .checkin-card .checkin-dot.done{ background:linear-gradient(135deg,var(--coral),var(--pink)); border-color:transparent; color:#1a0f2b; font-weight:700; }
+  .checkin-card button{
+    width:100%; padding:9px; border:none; border-radius:100px; cursor:pointer;
+    background:linear-gradient(120deg,var(--coral),var(--pink)); color:#1a0f2b; font-weight:700; font-size:13px; transition:.2s;
+  }
+  .checkin-card button:hover{ transform:translateY(-2px); }
+  .checkin-card button:disabled{ opacity:.5; cursor:default; transform:none; }
+
+  .tagcloud-card .tag-item{
+    display:inline-block; padding:4px 10px; margin:0 6px 6px 0; border-radius:100px; font-size:11.5px;
+    background:rgba(255,255,255,.06); border:1px solid var(--glass-border); color:var(--muted); transition:.2s;
+  }
+  .tagcloud-card .tag-item:hover{ color:#fff; background:var(--glass-strong); }
+
+  .recentposts-card a{ display:block; font-size:12.5px; color:var(--muted); line-height:1.6; padding:6px 0; border-bottom:1px dashed var(--glass-border); transition:.2s; }
+  .recentposts-card a:last-child{ border-bottom:none; }
+  .recentposts-card a:hover{ color:var(--aqua); padding-left:4px; }
+
+  .weather-card .weather-temp{ font-size:22px; font-weight:700; }
+  .weather-card .weather-sub{ font-size:12px; color:var(--muted); margin-top:2px; }
+
+  .music-card iframe{ border-radius:10px; display:block; }
 
   .article-card{
     flex:1; min-width:0;
@@ -51,6 +110,7 @@
     border-radius:20px;padding:34px clamp(20px,4vw,44px);
   }
   .breadcrumb{font-size:12px;color:var(--muted);margin-bottom:14px;}
+  .cover-banner{ width:100%; max-height:320px; object-fit:cover; border-radius:16px; margin-bottom:20px; border:1px solid var(--glass-border); display:block; }
   .a-title{font-family:'Noto Serif SC',serif;font-weight:900;font-size:clamp(24px,4vw,32px);line-height:1.35;margin-bottom:14px;}
   .a-meta{display:flex;gap:14px;font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:28px;flex-wrap:wrap;}
   .a-meta .tag{background:rgba(255,255,255,.06);border:1px solid var(--glass-border);padding:2px 10px;border-radius:100px;}
@@ -67,12 +127,11 @@
   .a-body ul, .a-body ol{padding-left:22px;margin-bottom:14px;}
   .a-body li{margin-bottom:6px;}
 
-  /* ===== 右侧 TOC ===== */
+  /* ===== 右侧 TOC(现在是右侧栏里的一张卡片,定位交给外层 .side-col) ===== */
   .toc{
-    width:200px; flex-shrink:0;
     background:var(--glass); border:1px solid var(--glass-border);
     backdrop-filter:blur(16px); border-radius:16px; padding:18px;
-    position:sticky; top:88px; font-size:12.5px; max-height:calc(100vh - 120px); overflow-y:auto;
+    font-size:12.5px; max-height:40vh; overflow-y:auto;
   }
   .toc-label{font-family:'JetBrains Mono',monospace;color:var(--aqua);font-size:11px;margin-bottom:10px;font-weight:700;}
   .toc a{display:block; color:var(--muted); padding:5px 0; transition:.2s; text-decoration:none;}
@@ -86,13 +145,25 @@
   .spinner{width:26px;height:26px;border-radius:50%;border:3px solid var(--glass-border);border-top-color:var(--aqua);margin:0 auto 14px;animation:spin .8s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg);}}
 
-  @media (max-width:900px){
-    .shell{flex-direction:column;}
-    .toc{width:100%;position:static;max-height:none;}
+  @media (max-width:1180px){
+    .shell{flex-wrap:wrap;}
+    .side-col{ position:static; width:100%; flex-direction:row; flex-wrap:wrap; }
+    .side-col > *{ flex:1 1 220px; }
+    .article-card{ order:-1; flex-basis:100%; }
+  }
+  @media (max-width:640px){
+    .side-col{ flex-direction:column; }
+    .side-col > *{ flex-basis:auto; }
   }
 </style>
 </head>
 <body>
+
+<div id="bg-carousel">
+  <div class="bg-layer" id="bgLayerA"></div>
+  <div class="bg-layer" id="bgLayerB"></div>
+  <div class="bg-overlay"></div>
+</div>
 
 <nav>
   <a class="logo" href="/">JERRY.DEV</a>
@@ -100,6 +171,47 @@
 </nav>
 
 <div class="shell">
+
+  <!-- ===== 左侧栏 ===== -->
+  <aside class="side-col" id="sideLeft">
+    <div class="side-card profile-card">
+      <div class="p-row">
+        <div class="p-avatar">J</div>
+        <div>
+          <div class="p-name">Jerry</div>
+          <div class="p-tag mono">思维输出 · 长期记录</div>
+        </div>
+      </div>
+      <div class="p-social">
+        <a href="https://github.com/" target="_blank" title="GitHub">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+        </a>
+        <a href="mailto:hello@example.com" title="邮箱">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="side-card checkin-card">
+      <div class="card-label">每日打卡</div>
+      <div class="checkin-streak" id="checkinStreak">0 天</div>
+      <div class="checkin-sub" id="checkinSub">连续打卡记录</div>
+      <div class="checkin-week" id="checkinWeek"></div>
+      <button id="checkinBtn">今日打卡</button>
+    </div>
+
+    <div class="side-card tagcloud-card" id="tagCloudCard">
+      <div class="card-label">标签云</div>
+      <div id="tagCloud"><span class="tag-item" style="opacity:.5;">加载中…</span></div>
+    </div>
+
+    <div class="side-card recentposts-card" id="recentPostsCard">
+      <div class="card-label">最近更新</div>
+      <div id="recentPostsList"></div>
+    </div>
+  </aside>
+
+  <!-- ===== 文章主体 ===== -->
   <div id="article-container" class="article-card">
     <div class="state-box">
       <div class="spinner"></div>
@@ -107,10 +219,26 @@
     </div>
   </div>
 
-  <aside class="toc" id="toc" style="display:none;">
-    <div class="toc-label">本文目录</div>
-    <div id="toc-list"></div>
+  <!-- ===== 右侧栏 ===== -->
+  <aside class="side-col" id="sideRight">
+    <div class="toc" id="toc" style="display:none;">
+      <div class="toc-label">本文目录</div>
+      <div id="toc-list"></div>
+    </div>
+
+    <div class="side-card weather-card" id="weatherCard">
+      <div class="card-label">天气</div>
+      <div id="weatherBody">加载中…</div>
+    </div>
+
+    <div class="side-card music-card">
+      <div class="card-label">音乐</div>
+      <!-- 素材位：把下面 id= 后面的数字换成你在网易云的歌单/歌曲ID即可，type=2是单曲，type=0是歌单 -->
+      <iframe frameborder="no" marginwidth="0" marginheight="0" width="100%" height="86"
+        src="//music.163.com/outchain/player?type=2&id=1824045081&auto=0&height=66"></iframe>
+    </div>
   </aside>
+
 </div>
 
 <script>
@@ -136,18 +264,11 @@ async function loadPost(){
     const post = data.post;
     document.title = (post.title || '文章') + ' · Jerry';
 
-    // 用Notion文章封面图当页面背景，加一层暗色蒙层保证文字可读
-    if(post.cover){
-      document.body.style.backgroundImage =
-        `linear-gradient(180deg, rgba(18,16,43,.75), rgba(18,16,43,.92)), url('${post.cover}')`;
-      document.body.style.backgroundSize = 'cover';
-      document.body.style.backgroundPosition = 'center';
-      document.body.style.backgroundAttachment = 'fixed';
-      document.body.style.animation = 'none'; // 有真实封面图时关掉原本的渐变呼吸动画，避免视觉打架
-    }
-
+    // cover 不再当整页背景，改成放在文章内容顶部、标题上方的一张横幅图；
+    // 页面背景交给下面的 initBgCarousel() 做多图轮播虚化
     container.innerHTML = `
       <div class="breadcrumb mono">首页 / 博客 ${post.category ? '/ ' + escapeHtml(post.category) : ''}</div>
+      ${post.cover ? `<img class="cover-banner" src="${post.cover}" alt="${escapeHtml(post.title || '封面图')}"/>` : ''}
       <div class="a-title">${escapeHtml(post.title || '无标题')}</div>
       <div class="a-meta">
         ${post.date ? `<span>📅 ${post.date}</span>` : ''}
@@ -161,6 +282,7 @@ async function loadPost(){
 
     buildTOC();
     bumpViewCount(id);
+    loadSidebarWidgets(id);
 
   } catch (err) {
     container.innerHTML = `<div class="state-box error">网络请求失败：${escapeHtml(err.message)}</div>`;
@@ -238,8 +360,173 @@ function escapeHtml(str){
   return div.innerHTML;
 }
 
+/* ================= 背景图片轮播 ================= */
+/* 读取 /images/bg/manifest.json（一个文件名数组，例如 ["1.jpg","2.png"]）。
+   清单不存在或为空时什么都不做，直接用CSS里写好的动态渐变兜底，不会报错也不会白屏。
+   清单用 scripts/gen-bg-manifest.js 扫描 /images/bg 文件夹自动生成，支持 jpg/jpeg/png/webp/gif/avif/bmp。 */
+async function initBgCarousel(){
+  try {
+    const res = await fetch('/images/bg/manifest.json');
+    if(!res.ok) return;
+    const list = await res.json();
+    if(!Array.isArray(list) || list.length === 0) return;
+
+    document.body.style.animation = 'none'; // 有真实背景图时关掉原本的渐变呼吸动画，避免视觉打架
+
+    const layers = [document.getElementById('bgLayerA'), document.getElementById('bgLayerB')];
+    let showIdx = 0, listIdx = 0;
+
+    layers[0].style.backgroundImage = `url('/images/bg/${list[0]}')`;
+    layers[0].classList.add('show');
+
+    if(list.length === 1) return; // 只有一张图就不用轮播了
+
+    setInterval(() => {
+      listIdx = (listIdx + 1) % list.length;
+      const nextIdx = (showIdx + 1) % 2;
+      layers[nextIdx].style.backgroundImage = `url('/images/bg/${list[listIdx]}')`;
+      layers[nextIdx].classList.add('show');
+      layers[showIdx].classList.remove('show');
+      showIdx = nextIdx;
+    }, 10000); // 每10秒切一张，交叉渐变时长由CSS的transition控制（3.5秒）
+
+  } catch (err) {
+    // 清单不存在/网络问题：安静地保留CSS兜底渐变
+  }
+}
+
+/* ================= 左侧栏：标签云 + 最近更新（复用博客列表同一个 /api/posts 接口） ================= */
+async function loadSidebarWidgets(currentPostId){
+  try {
+    const res = await fetch('/api/posts');
+    const data = await res.json();
+    if(!data.ok || !data.posts) throw new Error('no posts');
+
+    buildTagCloud(data.posts);
+    buildRecentPosts(data.posts, currentPostId);
+
+  } catch (err) {
+    document.getElementById('tagCloud').innerHTML = `<span style="color:var(--muted);font-size:12px;">暂无标签</span>`;
+    document.getElementById('recentPostsList').innerHTML = `<span style="color:var(--muted);font-size:12px;">暂无文章</span>`;
+  }
+}
+
+function buildTagCloud(posts){
+  const counts = {};
+  posts.forEach(p => {
+    const tags = Array.isArray(p.tags) && p.tags.length ? p.tags : [p.category || '未分类'];
+    tags.forEach(t => { counts[t] = (counts[t] || 0) + 1; });
+  });
+  const entries = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+  const max = entries.length ? entries[0][1] : 1;
+  const el = document.getElementById('tagCloud');
+  el.innerHTML = entries.map(([tag, count]) => {
+    const size = 11.5 + (count / max) * 4; // 11.5px ~ 15.5px，出现次数越多字越大
+    return `<span class="tag-item" style="font-size:${size.toFixed(1)}px;">${escapeHtml(tag)} <span class="mono" style="opacity:.6;">${count}</span></span>`;
+  }).join('') || `<span style="color:var(--muted);font-size:12px;">暂无标签</span>`;
+}
+
+function buildRecentPosts(posts, currentPostId){
+  const recent = [...posts]
+    .filter(p => String(p.id) !== String(currentPostId) && p.date)
+    .sort((a,b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 6);
+  const el = document.getElementById('recentPostsList');
+  el.innerHTML = recent.map(p => `<a href="/post.html?id=${p.id}">${escapeHtml(p.title || '无标题')}</a>`).join('')
+    || `<span style="color:var(--muted);font-size:12px;">暂无其他文章</span>`;
+}
+
+/* ================= 每日打卡（纯前端 localStorage 实现） ================= */
+/* 注意：因为整站没有后端/数据库，这个打卡记录只存在访问者自己的浏览器里（localStorage），
+   换设备、换浏览器、清缓存都会丢失，不会同步到别人或云端。以后如果接后端，把这几个函数换成真实接口即可。 */
+const CHECKIN_KEY = 'jerry-blog-checkin-dates';
+
+function todayStr(){
+  return new Date().toISOString().slice(0,10);
+}
+function getCheckinDates(){
+  try { return JSON.parse(localStorage.getItem(CHECKIN_KEY) || '[]'); }
+  catch(e){ return []; }
+}
+function initCheckin(){
+  const btn = document.getElementById('checkinBtn');
+  renderCheckin();
+  btn.addEventListener('click', () => {
+    const dates = getCheckinDates();
+    const today = todayStr();
+    if(!dates.includes(today)){
+      dates.push(today);
+      localStorage.setItem(CHECKIN_KEY, JSON.stringify(dates));
+    }
+    renderCheckin();
+  });
+}
+function renderCheckin(){
+  const dates = new Set(getCheckinDates());
+  const today = todayStr();
+  const btn = document.getElementById('checkinBtn');
+  btn.disabled = dates.has(today);
+  btn.textContent = dates.has(today) ? '今天已打卡 ✓' : '今日打卡';
+
+  // 计算连续天数：从今天往前数，只要连续存在就+1
+  let streak = 0;
+  let cursor = new Date();
+  while(dates.has(cursor.toISOString().slice(0,10))){
+    streak++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  document.getElementById('checkinStreak').textContent = streak + ' 天';
+
+  // 最近7天小方块
+  const weekEl = document.getElementById('checkinWeek');
+  const cells = [];
+  for(let i = 6; i >= 0; i--){
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const ds = d.toISOString().slice(0,10);
+    const label = ['日','一','二','三','四','五','六'][d.getDay()];
+    cells.push(`<div class="checkin-dot${dates.has(ds) ? ' done' : ''}">${label}</div>`);
+  }
+  weekEl.innerHTML = cells.join('');
+}
+
+/* ================= 天气小组件（Open-Meteo，免费无需 key） ================= */
+/* 素材位：把下面的城市名/经纬度换成你自己所在的城市即可 */
+async function initWeather(){
+  const city = { name: '东京', lat: 35.6762, lon: 139.6503 };
+  const el = document.getElementById('weatherBody');
+  try {
+    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current=temperature_2m,weather_code`);
+    const data = await res.json();
+    const t = Math.round(data.current.temperature_2m);
+    const desc = weatherCodeToText(data.current.weather_code);
+    el.innerHTML = `<div class="weather-temp mono">${t}°C</div><div class="weather-sub">${city.name} · ${desc}</div>`;
+  } catch (err) {
+    el.innerHTML = `<div class="weather-sub">天气加载失败</div>`;
+  }
+}
+function weatherCodeToText(code){
+  // WMO天气代码简化映射
+  if(code === 0) return '晴朗';
+  if([1,2,3].includes(code)) return '多云';
+  if([45,48].includes(code)) return '有雾';
+  if([51,53,55,56,57].includes(code)) return '毛毛雨';
+  if([61,63,65,66,67].includes(code)) return '下雨';
+  if([71,73,75,77].includes(code)) return '下雪';
+  if([80,81,82].includes(code)) return '阵雨';
+  if([95,96,99].includes(code)) return '雷暴';
+  return '未知';
+}
+
 loadPost();
+initBgCarousel();
+initCheckin();
+initWeather();
 </script>
+
+<!-- ================= 交互小猫：oneko，会在屏幕上追着鼠标跑的经典开源猫咪挂件 ================= -->
+<!-- 纯前端小彩蛋，不影响任何布局，手机上没有鼠标就不会出现 -->
+<script src="https://cdn.jsdelivr.net/gh/adryd/oneko@master/oneko.js" data-cat="https://cdn.jsdelivr.net/gh/adryd/oneko@master/oneko.gif" async></script>
 
 </body>
 </html>
