@@ -14,16 +14,40 @@
     --ink:#ffffff; --muted:#c9c6e8; --coral:#FF7A5C; --aqua:#5CE1E6; --violet:#B18CFF; --pink:#FF8CD9;
   }
   *{box-sizing:border-box;}
+
+  /* ================= 微微虚化背景效果 (CSS 样式层) ================= */
+  .bg-wrapper {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    overflow: hidden;
+    background: #12102b; /* 保底背景色 */
+  }
+  .bg-layer {
+    position: absolute;
+    inset: -24px;
+    background-size: cover;
+    background-position: center;
+    filter: blur(4px) saturate(1.15) brightness(.75); /* 4px 微微虚化 */
+    transform: scale(1.08);
+    opacity: 0;
+    transition: opacity 3.5s ease-in-out;
+  }
+  .bg-layer.active {
+    opacity: 1;
+  }
+  .bg-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(180deg, rgba(18,16,43,0.4) 0%, rgba(18,16,43,0.7) 100%);
+    pointer-events: none;
+  }
+
   body{
     margin:0; min-height:100vh; color:var(--ink); font-family:'Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased;
-    background:
-      linear-gradient(180deg, rgba(18,16,43,.55), rgba(18,16,43,.85)), /* 暗色蒙层，保证上层文字可读 */
-      url('images/blog-bg/wallpaper.jpg') center center / cover no-repeat,
-      #12102b; /* 图片没传之前的兜底底色 */
-    background-attachment: fixed;
+    /* 💡 提示：这里删除了写死的静态图片背景，改用动态双图层轮播 */
   }
-  /* ★ 素材位：把你的壁纸图片传到 images/blog-bg/wallpaper.jpg 这个路径就会自动生效，
-     文件名必须完全一致（包括后缀.jpg），传之前页面会显示纯色兜底背景，不会报错 */
 
   /* 悬浮微光粒子：小圆点缓慢漂浮+忽明忽暗，呼应壁纸的梦幻感 */
   #sparkle-field{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
@@ -82,14 +106,16 @@
 
   .search-box{position:relative;margin-bottom:20px;}
 
-  /* 统计数字块 */
+  /* 统计数字块：替代原来打算做的公告卡片，数字从已加载的文章列表里实时算出来，不用额外接口 */
   .stats-row{display:flex;gap:10px;margin-bottom:16px;}
   .stat-item{flex:1;text-align:center;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);border-radius:12px;padding:10px 4px;}
   .stat-num{font-size:17px;font-weight:700;color:var(--aqua);}
   .stat-label{font-size:10.5px;color:var(--muted);margin-top:2px;}
 
-  /* 社交图标排 */
-  .social-row{display:flex;gap:8px;margin-bottom:18px;}
+  /* ★ 素材位：下面几个链接是占位，改成你真实的账号地址即可；
+       能拿到官方logo的用了真实logo（GitHub），拿不到的先用文字/符号代替 */
+  .social-row{
+    display:flex;gap:8px;margin-bottom:18px;}
   .social-btn{
     width:34px;height:34px;border-radius:50%;
     background:rgba(255,255,255,.06);border:1px solid var(--glass-border);
@@ -171,12 +197,9 @@
   .pagination .ellipsis{color:var(--muted);padding:0 2px;}
 
   @media (max-width:760px){
-    .shell{ z-index:auto; } /* 关键修复：.shell自己有z-index:1，会建立一个独立层叠上下文，把里面的
-                               .sidebar(z-index:200)困住，导致外层.sidebar-backdrop(190)反而盖在sidebar上面，
-                               关闭按钮点不到。手机端取消.shell的层叠上下文资格(z-index:auto)，
-                               sidebar的z-index才能直接在body层级跟backdrop/fab比较，顺序正确且不影响FAB可点击 */
+    .shell{ z-index:auto; } 
 
-    /* 分类栏吸顶：钉在导航栏正下方，具体px由JS按nav实际高度算出写入 */
+    /* 分类栏吸顶：钉在导航栏正下方 */
     .tabbar{
       position:sticky; z-index:40;
       margin:0 -20px 18px; padding:10px 20px; border-radius:0;
@@ -188,7 +211,7 @@
     .tabbar::-webkit-scrollbar{display:none;}
     .tabbar a{flex-shrink:0;}
 
-    /* 侧边栏变成从左侧滑入的抽屉，默认收起 */
+    /* 侧边栏变成从左侧滑入的抽屉 */
     .sidebar{
       position:fixed; top:0; left:0; height:100%; width:82%; max-width:320px;
       z-index:200; border-radius:0; overflow-y:auto;
@@ -209,7 +232,7 @@
       color:#fff; font-size:15px; margin-bottom:14px; cursor:pointer;
     }
 
-    /* 右下角悬浮按钮：打开侧边栏搜索/导航抽屉 */
+    /* 右下角悬浮按钮 */
     .mobile-fab{
       display:flex; align-items:center; justify-content:center;
       position:fixed; right:18px; bottom:22px; z-index:150;
@@ -223,6 +246,12 @@
 </style>
 </head>
 <body>
+
+<div class="bg-wrapper">
+  <div id="bg-layer-1" class="bg-layer"></div>
+  <div id="bg-layer-2" class="bg-layer"></div>
+</div>
+<div class="bg-overlay"></div>
 
 <div id="sparkle-field"></div>
 
@@ -250,7 +279,6 @@
       </div>
     </div>
 
-    <!-- 统计数字块：替代原来打算做的公告卡片，数字从已加载的文章列表里实时算出来，不用额外接口 -->
     <div class="stats-row" id="statsRow">
       <div class="stat-item">
         <div class="stat-num mono" id="statPosts">–</div>
@@ -262,8 +290,6 @@
       </div>
     </div>
 
-    <!-- ★ 素材位：下面几个链接是占位，改成你真实的账号地址即可；
-         能拿到官方logo的用了真实logo（GitHub），拿不到的先用文字/符号代替 -->
     <div class="social-row">
       <a href="https://github.com/" target="_blank" title="GitHub" class="social-btn">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
@@ -272,7 +298,7 @@
       <a href="mailto:hello@example.com" title="邮箱" class="social-btn">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
       </a>
-      <a href="/api/posts" title="RSS（占位，需自行实现订阅feed）" class="social-btn">
+      <a href="/api/posts" title="RSS" class="social-btn">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M6.18 15.64a2.18 2.18 0 1 1 0 4.36 2.18 2.18 0 0 1 0-4.36M4 4.44v3.18c7.13 0 12.9 5.77 12.9 12.9h3.18C20.08 12 12.52 4.44 4 4.44M4 10.9v3.18a7.24 7.24 0 0 1 7.24 7.24h3.18A10.42 10.42 0 0 0 4 10.9"/></svg>
       </a>
     </div>
@@ -321,7 +347,7 @@
 let allPosts = [];
 const CATEGORY_ORDER = ['技术分享', '心情随笔', '思维日记'];
 
-/* ============ 手机端适配：判断 + 侧边栏抽屉 + 分类栏吸顶定位 ============ */
+/* ============ 手机端适配 ============ */
 const MOBILE_BQ = window.matchMedia('(max-width:760px)');
 function isMobile(){ return MOBILE_BQ.matches; }
 
@@ -338,7 +364,6 @@ function setupMobileChrome(){
   closeBtn.addEventListener('click', closeSidebar);
   backdrop.addEventListener('click', closeSidebar);
 
-  // 分类栏吸顶：具体钉在导航栏正下方，导航栏高度会随字体/系统缩放变化，实时量出来写成sticky的top值，比写死px更稳
   const nav = document.querySelector('nav');
   const tabbar = document.getElementById('tabbar');
   function syncStickyTop(){
@@ -419,235 +444,7 @@ function renderSections(posts){
 }
 
 function postCardHtml(post, alreadyEscaped){
-  // alreadyEscaped=true 用于搜索高亮场景：title/excerpt 已经被 highlight() 转义并插入了 <mark> 标签，
-  // 这里就不能再 escapeHtml 一次，否则 <mark> 会变成字面文本"&lt;mark&gt;"显示出来，而不是真正高亮
   const title = alreadyEscaped ? (post.title || '无标题') : escapeHtml(post.title || '无标题');
   const excerpt = post.excerpt ? (alreadyEscaped ? post.excerpt : escapeHtml(post.excerpt)) : '';
   return `
-    <a class="post-card" href="/post.html?id=${post.id}">
-      <div class="post-title">${title}</div>
-      ${excerpt ? `<div class="post-excerpt">${excerpt}</div>` : ''}
-      <div class="post-meta">
-        ${post.date ? `<span>📅 ${post.date}</span>` : ''}
-        ${post.category ? `<span>🏷️ ${escapeHtml(post.category)}</span>` : ''}
-      </div>
-    </a>
-  `;
-}
-
-/* ============ 手机端：分类=筛选（不是锚点跳转）+ 每页10篇分页 ============ */
-const PAGE_SIZE = 10;
-let mobileFilter = 'all';
-let mobilePage = 1;
-
-function renderMobilePaged(posts, page){
-  mobilePage = page || 1;
-  const filtered = mobileFilter === 'all' ? posts : posts.filter(p => (p.category || '未分类') === mobileFilter);
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  mobilePage = Math.min(mobilePage, totalPages);
-  const start = (mobilePage - 1) * PAGE_SIZE;
-  const pageItems = filtered.slice(start, start + PAGE_SIZE);
-
-  const contentArea = document.getElementById('content-area');
-  if(filtered.length === 0){
-    contentArea.innerHTML = `<div class="state-box">这个分类下还没有文章</div>`;
-    return;
-  }
-  contentArea.innerHTML = `
-    <div class="cat-section">
-      <div class="post-grid">${pageItems.map(postCardHtml).join('')}</div>
-    </div>
-    ${buildPaginationHtml(mobilePage, totalPages)}
-  `;
-
-  contentArea.querySelectorAll('.pagination button[data-page]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      renderMobilePaged(allPosts, parseInt(btn.dataset.page, 10));
-      document.getElementById('content-area')?.scrollIntoView({behavior:'smooth', block:'start'});
-    });
-  });
-}
-
-function buildPaginationHtml(page, total){
-  if(total <= 1) return '';
-  const pages = [];
-  pages.push(1);
-  if(page > 3) pages.push('...');
-  for(let p = Math.max(2, page-1); p <= Math.min(total-1, page+1); p++) pages.push(p);
-  if(page < total-2) pages.push('...');
-  if(total > 1) pages.push(total);
-
-  const btns = pages.map(p => p === '...'
-    ? `<span class="ellipsis">…</span>`
-    : `<button data-page="${p}" class="${p===page?'active':''}">${p}</button>`
-  ).join('');
-
-  return `
-    <div class="pagination">
-      <button data-page="${Math.max(1,page-1)}" ${page===1?'disabled':''}>‹</button>
-      ${btns}
-      <button data-page="${Math.min(total,page+1)}" ${page===total?'disabled':''}>›</button>
-    </div>
-  `;
-}
-
-function buildCategoryTabs(posts){
-  const tabbar = document.getElementById('tabbar');
-  const sections = groupByCategory(posts);
-  const tabsHtml = sections.map(sec => `<a href="#cat-${slugify(sec.category)}" data-filter="${escapeHtml(sec.category)}">${escapeHtml(sec.category)}</a>`).join('');
-  tabbar.innerHTML = `<a href="#all" class="active" data-filter="all">全部</a>` + tabsHtml;
-
-  tabbar.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
-      tabbar.querySelectorAll('a').forEach(x => x.classList.remove('active'));
-      a.classList.add('active');
-
-      if(isMobile()){
-        mobileFilter = a.dataset.filter;
-        renderMobilePaged(allPosts, 1);
-        document.getElementById('content-area')?.scrollIntoView({behavior:'smooth', block:'start'});
-        return;
-      }
-
-      if(a.dataset.filter !== 'all'){
-        document.getElementById('cat-' + slugify(a.dataset.filter))?.scrollIntoView({behavior:'smooth', block:'start'});
-      } else {
-        document.getElementById('content-area')?.scrollIntoView({behavior:'smooth', block:'start'});
-      }
-    });
-  });
-}
-
-function buildCategoryJump(posts){
-  const el = document.getElementById('cat-jump');
-  const sections = groupByCategory(posts);
-  el.innerHTML = `<div class="cat-jump-label">分类导航</div>` + sections.map(sec => `
-    <a href="#cat-${slugify(sec.category)}">
-      <span>${escapeHtml(sec.category)}</span>
-      <span class="count">${sec.posts.length}</span>
-    </a>
-  `).join('');
-}
-
-function buildRecentList(posts){
-  const el = document.getElementById('recent-list');
-  const recent = [...posts]
-    .filter(p => p.date)
-    .sort((a,b) => new Date(b.date) - new Date(a.date))
-    .slice(0, 6);
-  el.innerHTML = `<div class="recent-label">最近更新</div>` + recent.map(p => `
-    <a href="/post.html?id=${p.id}">${escapeHtml(p.title || '无标题')}</a>
-  `).join('');
-}
-
-function buildArchive(posts){
-  const el = document.getElementById('archive-list');
-  const groups = {};
-  posts.forEach(p => {
-    if(!p.date) return;
-    const ym = p.date.slice(0,7);
-    groups[ym] = (groups[ym] || 0) + 1;
-  });
-  const keys = Object.keys(groups).sort().reverse();
-  el.innerHTML = `<div class="archive-label">归档</div>` + keys.map(ym => `
-    <a href="#" data-ym="${ym}">
-      <span>${ym}</span>
-      <span class="count">${groups[ym]}</span>
-    </a>
-  `).join('');
-
-  el.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
-      const ym = a.dataset.ym;
-      const filtered = allPosts.filter(p => p.date && p.date.slice(0,7) === ym);
-      if(isMobile()){
-        mobileFilter = 'all';
-        renderMobilePaged(filtered, 1);
-        document.getElementById('sidebar')?.classList.remove('open');
-        document.getElementById('sidebarBackdrop')?.classList.remove('open');
-      } else {
-        renderSections(filtered);
-      }
-      document.getElementById('content-area')?.scrollIntoView({behavior:'smooth', block:'start'});
-    });
-  });
-}
-
-function setupSearch(){
-  const input = document.getElementById('search-input');
-  const countEl = document.getElementById('search-count');
-
-  input.addEventListener('input', () => {
-    const q = input.value.trim();
-    if(!q){
-      countEl.style.display = 'none';
-      renderSections(allPosts);
-      return;
-    }
-    const qLower = q.toLowerCase();
-    const matched = allPosts.filter(p =>
-      (p.title || '').toLowerCase().includes(qLower) ||
-      (p.excerpt || '').toLowerCase().includes(qLower)
-    );
-    countEl.style.display = 'block';
-    countEl.textContent = `找到 ${matched.length} 篇`;
-
-    const contentArea = document.getElementById('content-area');
-    if(matched.length === 0){
-      contentArea.innerHTML = `<div class="state-box">没有找到匹配"${escapeHtml(q)}"的文章</div>`;
-      return;
-    }
-    contentArea.innerHTML = `
-      <div class="cat-section">
-        <div class="post-grid">
-          ${matched.map(p => postCardHtml({...p, title: highlight(p.title, q), excerpt: highlight(p.excerpt, q)}, true)).join('')}
-        </div>
-      </div>
-    `;
-  });
-}
-
-function highlight(text, q){
-  if(!text) return text;
-  const escaped = escapeHtml(text);
-  const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return escaped.replace(new RegExp('(' + escapedQ + ')', 'gi'), '<mark>$1</mark>');
-}
-
-function slugify(str){
-  return str.replace(/\s+/g, '-').toLowerCase();
-}
-function escapeHtml(str){
-  const div = document.createElement('div');
-  div.textContent = str == null ? '' : str;
-  return div.innerHTML;
-}
-
-loadPosts();
-setupSearch();
-
-/* 悬浮微光粒子：随机位置/大小/延迟生成一批小圆点，纯CSS动画驱动，性能开销很小 */
-(function(){
-  const field = document.getElementById('sparkle-field');
-  if(!field) return;
-  const COUNT = 40;
-  for(let i = 0; i < COUNT; i++){
-    const dot = document.createElement('div');
-    dot.className = 'sparkle';
-    const size = 1 + Math.random() * 2.5;
-    dot.style.width = size + 'px';
-    dot.style.height = size + 'px';
-    dot.style.left = Math.random() * 100 + '%';
-    dot.style.top = Math.random() * 100 + '%';
-    dot.style.animationDuration = (5 + Math.random() * 6) + 's';
-    dot.style.animationDelay = (Math.random() * 8) + 's';
-    field.appendChild(dot);
-  }
-})();
-</script>
-
-
-</body>
-</html>
+    <a class="post-card" href="/post.
