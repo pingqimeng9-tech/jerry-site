@@ -15,13 +15,11 @@
   }
   *{box-sizing:border-box;}
 
-  /* ================= 🛠️ 1. 动态背景层 (虚化3.5，亮度0.95) ================= */
-  .bg-wrapper {
-    position: fixed; inset: 0; z-index: -2; overflow: hidden; background: #111115;
-  }
+  /* 动态背景层 */
+  .bg-wrapper { position: fixed; inset: 0; z-index: -2; overflow: hidden; background: #111115; }
   .bg-layer {
     position: absolute; inset: -24px; background-size: cover; background-position: center;
-    filter: blur(3.5px) saturate(1.05) brightness(0.95); /* 精确调整 */
+    filter: blur(3.5px) saturate(1.05) brightness(0.95);
     transform: scale(1.08); opacity: 0; transition: opacity 3.5s ease-in-out;
   }
   .bg-layer.active { opacity: 1; }
@@ -32,20 +30,20 @@
 
   body{ margin:0; min-height:100vh; color:var(--ink); font-family:'Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased; }
 
-  /* ================= ✨ 2. 荧光闪烁粒子 (强化发光效果) ================= */
+  /* 荧光闪烁粒子 */
   #sparkle-field{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
   .sparkle{
     position:absolute; border-radius:50%; background:#fff; opacity:0;
-    box-shadow: 0 0 8px #fff, 0 0 16px var(--aqua); /* 增加荧光外发光 */
+    box-shadow: 0 0 8px #fff, 0 0 16px var(--aqua);
     animation: sparkleFloat 8s ease-in-out infinite;
   }
   @keyframes sparkleFloat{
     0% {opacity:0; transform:translateY(0) scale(0.8);}
-    50% {opacity:1; transform:translateY(-30px) scale(1.3);} /* 放大且变亮 */
+    50% {opacity:1; transform:translateY(-30px) scale(1.3);}
     100% {opacity:0; transform:translateY(-70px) scale(0.8);}
   }
 
-  /* ================= 📺 3. B站同款弹幕轨道 ================= */
+  /* 顶部弹幕轨道 */
   #danmaku-container {
     position: fixed; top: 85px; left: 0; width: 100%; height: 140px;
     pointer-events: none; z-index: 10; overflow: hidden;
@@ -53,13 +51,9 @@
   .danmaku-item {
     position: absolute; white-space: nowrap; font-size: 15px; font-weight: 500;
     color: rgba(255,255,255,0.9); text-shadow: 1px 1px 4px rgba(0,0,0,0.8);
-    animation: danmakuSlide linear infinite;
-    right: -20%; /* 初始在屏幕右侧外部 */
+    animation: danmakuSlide linear infinite; right: -20%;
   }
-  @keyframes danmakuSlide {
-    0% { transform: translateX(20vw); }
-    100% { transform: translateX(-120vw); }
-  }
+  @keyframes danmakuSlide { 0% { transform: translateX(20vw); } 100% { transform: translateX(-120vw); } }
 
   a{color:inherit;text-decoration:none;}
   .mono{font-family:'JetBrains Mono',monospace;}
@@ -94,7 +88,7 @@
   }
   @keyframes borderSpin{ to{ --border-angle:360deg; } }
 
-  /* ================= 🔍 4. 顶部沉浸式大搜索框 ================= */
+  /* 顶部大搜索框 */
   .hero-search-wrap {
     max-width: 800px; margin: 40px auto 10px; padding: 0 20px; position: relative; z-index: 20;
   }
@@ -148,14 +142,23 @@
   .archive-list a:hover{color:var(--aqua);}
   .archive-list .count{font-family:'JetBrains Mono',monospace;font-size:11px;opacity:.6;}
 
-  .main{flex:1;min-width:0;}
-  .page-title{font-family:'Noto Serif SC',serif;font-weight:900;font-size:30px;margin-bottom:6px; display:none; /* 被大搜索栏替代视觉重心，隐藏主标题避免重复 */}
-  .page-sub{color:var(--muted);font-size:13px;margin-bottom:22px; display:none;}
+  .main{flex:1;min-width:0;max-width:850px;}
 
-  .tabbar{ display:flex; gap:8px; background:var(--glass); border:1px solid var(--glass-border); backdrop-filter:blur(16px); border-radius:100px; padding:6px; margin-bottom:30px; width:fit-content; flex-wrap:wrap; }
+  /* ================= 🎛️ 视图控制栏 (分类 + 切换试图) ================= */
+  .main-controls { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; gap: 10px; flex-wrap:wrap;}
+  
+  .tabbar{ display:flex; gap:8px; background:var(--glass); border:1px solid var(--glass-border); backdrop-filter:blur(16px); border-radius:100px; padding:6px; flex-wrap:wrap; }
   .tabbar a{ padding:9px 18px; border-radius:100px; font-size:13.5px; color:var(--muted); transition:.2s; }
   .tabbar a.active{background:linear-gradient(120deg,var(--coral),var(--pink));color:#1a0f2b;font-weight:700;}
   .tabbar a:not(.active):hover{background:rgba(255,255,255,.08);color:#fff;}
+
+  .view-switcher { display:flex; gap:6px; background:var(--glass); border:1px solid var(--glass-border); backdrop-filter:blur(16px); border-radius:100px; padding:6px; }
+  .view-switcher button { 
+    background: transparent; border: none; padding: 6px 12px; border-radius: 100px; cursor: pointer;
+    display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted); transition: .2s; font-family: 'Noto Sans SC', sans-serif;
+  }
+  .view-switcher button:hover { background: rgba(255,255,255,.08); color: #fff; }
+  .view-switcher button.active { background: rgba(255,255,255,.2); color: #fff; font-weight: 700; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
 
   .cat-section{margin-bottom:44px;scroll-margin-top:90px;}
   .cat-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
@@ -163,12 +166,50 @@
   .cat-header h2{font-family:'Noto Serif SC',serif;font-size:20px;font-weight:700;margin:0;}
   .cat-header .cat-count{font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
 
-  .post-grid{display:grid;grid-template-columns:1fr;gap:14px;}
-  .post-card{ background:var(--glass); border:1px solid var(--glass-border); backdrop-filter:blur(16px); border-radius:18px; padding:22px 24px; transition:.3s; display:block; }
+  /* ================= 📄 卡片基础通用样式 ================= */
+  .post-card{ 
+    background:var(--glass); border:1px solid var(--glass-border); backdrop-filter:blur(16px); 
+    border-radius:16px; transition:.3s; display:flex; text-decoration:none; overflow:hidden; 
+  }
   .post-card:hover{transform:translateY(-4px);background:var(--glass-strong);box-shadow:0 20px 45px -20px rgba(107,92,255,.5);}
-  .post-title{font-family:'Noto Serif SC',serif;font-weight:700;font-size:18px;margin-bottom:8px;}
-  .post-excerpt{font-size:13.5px;color:var(--muted);line-height:1.75;margin-bottom:12px;}
   .post-meta{display:flex;gap:14px;font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+  /* ================= 🖼️ 图库视图 (Notion Gallery Style - 默认) ================= */
+  .view-gallery .post-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .view-gallery .post-card { flex-direction: column; height: 250px; padding: 0; }
+  
+  .view-gallery .post-preview { 
+    flex: 1; padding: 18px 22px; font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.7; overflow: hidden;
+    /* 核心：Notion 同款文字渐隐效果 */
+    mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
+  }
+  
+  .view-gallery .post-bottom { 
+    background: rgba(0,0,0,0.25); border-top: 1px solid var(--glass-border); padding: 14px 22px; flex-shrink: 0;
+  }
+  .view-gallery .post-title { 
+    font-family: 'Noto Serif SC', serif; font-weight: 700; font-size: 16px; margin-bottom: 6px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px;
+  }
+  .view-gallery .post-title::before { content: "📄"; font-size: 14px; } /* 添加类似 Notion 的前置 icon */
+
+  /* ================= 🔲 列表视图 (List Style) ================= */
+  .view-list .post-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  .view-list .post-card { flex-direction: column; padding: 22px 24px; }
+  .view-list .post-preview { 
+    font-size: 13.5px; color: var(--muted); line-height: 1.75; margin-bottom: 12px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    mask-image: none; -webkit-mask-image: none; order: 2; /* 摘要在下方 */
+  }
+  .view-list .post-bottom { 
+    background: transparent; border: none; padding: 0; order: 1; /* 标题在上方 */
+  }
+  .view-list .post-title { 
+    font-family: 'Noto Serif SC', serif; font-weight: 700; font-size: 18px; margin-bottom: 8px; 
+    white-space: normal;
+  }
+  .view-list .post-title::before { content: ""; display: none; } /* 列表模式隐藏 icon */
 
   .state-box{ text-align:center;padding:60px 20px;color:var(--muted); background:var(--glass);border:1px solid var(--glass-border);border-radius:18px; }
   .state-box.error{color:#FF9E8A;}
@@ -198,14 +239,14 @@
 
   @media (max-width:760px){
     .shell{ z-index:auto; margin-top: 10px; } 
-    .tabbar{
-      position:sticky; z-index:40; margin:0 -20px 18px; padding:10px 20px; border-radius:0;
-      width:calc(100% + 40px); overflow-x:auto; flex-wrap:nowrap;
-      background:rgba(20,16,45,.75); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
-      border-left:none; border-right:none; border-top:none; scrollbar-width:none;
-    }
+    .main-controls { position:sticky; z-index:40; margin:0 -20px 18px; padding:10px 20px; background:rgba(20,16,45,.75); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); flex-wrap: nowrap; overflow-x: auto;}
+    .tabbar{ border:none; padding:0; background:transparent; width:auto; flex-wrap:nowrap; scrollbar-width:none;}
     .tabbar::-webkit-scrollbar{display:none;}
     .tabbar a{flex-shrink:0;}
+    
+    .view-switcher { display: none; } /* 手机端空间有限，默认隐藏切换按钮，直接走响应式单列 */
+
+    .view-gallery .post-grid { grid-template-columns: 1fr; } /* 手机端强制单列 */
 
     .sidebar{
       position:fixed; top:0; left:0; height:100%; width:82%; max-width:320px;
@@ -213,23 +254,10 @@
       box-shadow:20px 0 50px -20px rgba(0,0,0,.6);
     }
     .sidebar.open{ transform:translateX(0); }
-
-    .sidebar-backdrop{
-      display:block; position:fixed; inset:0; z-index:190; background:rgba(8,6,20,.55);
-      backdrop-filter:blur(2px); opacity:0; pointer-events:none; transition:opacity .3s;
-    }
+    .sidebar-backdrop{ display:block; position:fixed; inset:0; z-index:190; background:rgba(8,6,20,.55); backdrop-filter:blur(2px); opacity:0; pointer-events:none; transition:opacity .3s; }
     .sidebar-backdrop.open{ opacity:1; pointer-events:auto; }
-
-    .sidebar-close{
-      display:flex; align-items:center; justify-content:center;
-      width:30px;height:30px;border-radius:50%;background:var(--glass);border:1px solid var(--glass-border);
-      color:#fff; font-size:15px; margin-bottom:14px; cursor:pointer;
-    }
-    .mobile-fab{
-      display:flex; align-items:center; justify-content:center; position:fixed; right:18px; bottom:22px; z-index:150;
-      width:52px;height:52px;border-radius:50%; background:linear-gradient(135deg,var(--aqua),var(--violet));
-      box-shadow:0 12px 28px -8px rgba(92,225,230,.6); color:#12102b; font-size:20px; border:none; cursor:pointer; transition:.25s;
-    }
+    .sidebar-close{ display:flex; align-items:center; justify-content:center; width:30px;height:30px;border-radius:50%;background:var(--glass);border:1px solid var(--glass-border); color:#fff; font-size:15px; margin-bottom:14px; cursor:pointer; }
+    .mobile-fab{ display:flex; align-items:center; justify-content:center; position:fixed; right:18px; bottom:22px; z-index:150; width:52px;height:52px;border-radius:50%; background:linear-gradient(135deg,var(--aqua),var(--violet)); box-shadow:0 12px 28px -8px rgba(92,225,230,.6); color:#12102b; font-size:20px; border:none; cursor:pointer; transition:.25s; }
     .mobile-fab:active{transform:scale(.92);}
   }
 </style>
@@ -243,10 +271,9 @@
 <div class="bg-overlay"></div>
 
 <div id="sparkle-field"></div>
-
 <div id="danmaku-container"></div>
 
-<nav>
+<nav id="nav">
   <a class="logo" href="/">JERRY.DEV</a>
   <div class="links">
     <a href="/#about">我是谁</a>
@@ -313,11 +340,24 @@
   </aside>
 
   <main class="main">
-    <div class="tabbar mono" id="tabbar">
-      <a href="#all" class="active" data-filter="all">全部</a>
+    <div class="main-controls">
+      <div class="tabbar mono" id="tabbar">
+        <a href="#all" class="active" data-filter="all">全部</a>
+      </div>
+      
+      <!-- 试图切换控件 -->
+      <div class="view-switcher" id="view-switcher">
+        <button data-view="gallery" class="active" title="图库视图">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> 图库
+        </button>
+        <button data-view="list" title="列表视图">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg> 列表
+        </button>
+      </div>
     </div>
 
-    <div id="content-area">
+    <!-- 默认加上 view-gallery 类以应用图库样式 -->
+    <div id="content-area" class="view-gallery">
       <div class="state-box">
         <div class="spinner"></div>
         正在加载文章…
@@ -332,6 +372,29 @@
 <script>
 let allPosts = [];
 const CATEGORY_ORDER = ['技术分享', '心情随笔', '思维日记'];
+let currentViewMode = 'gallery'; // 默认试图模式
+
+/* ============ 试图切换逻辑 ============ */
+function setupViewSwitcher() {
+  const buttons = document.querySelectorAll('#view-switcher button');
+  const contentArea = document.getElementById('content-area');
+  
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const mode = btn.dataset.view;
+      currentViewMode = mode;
+      
+      // 切换激活状态
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      // 切换容器 Class
+      contentArea.className = ''; 
+      contentArea.classList.add(`view-${mode}`);
+    });
+  });
+}
+setupViewSwitcher();
 
 /* ============ 手机端适配 ============ */
 const MOBILE_BQ = window.matchMedia('(max-width:760px)');
@@ -350,10 +413,10 @@ function setupMobileChrome(){
   closeBtn.addEventListener('click', closeSidebar);
   backdrop.addEventListener('click', closeSidebar);
 
-  const nav = document.querySelector('nav');
-  const tabbar = document.getElementById('tabbar');
+  const nav = document.getElementById('nav');
+  const controls = document.querySelector('.main-controls');
   function syncStickyTop(){
-    tabbar.style.top = nav.offsetHeight + 'px';
+    controls.style.top = nav.offsetHeight + 'px';
   }
   syncStickyTop();
   window.addEventListener('resize', syncStickyTop);
@@ -381,6 +444,7 @@ async function loadPosts(){
     buildRecentList(allPosts);
     buildArchive(allPosts);
     setupMobileChrome();
+    
     if(isMobile()){ renderMobilePaged(allPosts); } else { renderSections(allPosts); }
 
   } catch (err) {
@@ -429,16 +493,20 @@ function renderSections(posts){
   `).join('');
 }
 
+// 统一的卡片渲染结构，通过父容器的 .view-gallery 或 .view-list 切换样式
 function postCardHtml(post, alreadyEscaped){
   const title = alreadyEscaped ? (post.title || '无标题') : escapeHtml(post.title || '无标题');
-  const excerpt = post.excerpt ? (alreadyEscaped ? post.excerpt : escapeHtml(post.excerpt)) : '';
+  const excerpt = post.excerpt ? (alreadyEscaped ? post.excerpt : escapeHtml(post.excerpt)) : '暂无内容预览...';
+  
   return `
     <a class="post-card" href="/post.html?id=${post.id}">
-      <div class="post-title">${title}</div>
-      ${excerpt ? `<div class="post-excerpt">${excerpt}</div>` : ''}
-      <div class="post-meta">
-        ${post.date ? `<span>📅 ${post.date}</span>` : ''}
-        ${post.category ? `<span>🏷️ ${escapeHtml(post.category)}</span>` : ''}
+      <div class="post-preview">${excerpt}</div>
+      <div class="post-bottom">
+        <div class="post-title" title="${title}">${title}</div>
+        <div class="post-meta">
+          ${post.date ? `<span>📅 ${post.date}</span>` : ''}
+          ${post.category ? `<span>🏷️ ${escapeHtml(post.category)}</span>` : ''}
+        </div>
       </div>
     </a>
   `;
@@ -624,9 +692,7 @@ function highlight(text, q){
   return escaped.replace(new RegExp('(' + escapedQ + ')', 'gi'), '<mark>$1</mark>');
 }
 
-function slugify(str){
-  return str.replace(/\s+/g, '-').toLowerCase();
-}
+function slugify(str){ return str.replace(/\s+/g, '-').toLowerCase(); }
 function escapeHtml(str){
   const div = document.createElement('div');
   div.textContent = str == null ? '' : str;
@@ -636,7 +702,7 @@ function escapeHtml(str){
 loadPosts();
 setupSearch();
 
-/* ================= 动态背景图逻辑 ================= */
+/* ================= 动态背景图轮播 ================= */
 async function initBgCarousel() {
   const layer1 = document.getElementById('bg-layer-1');
   const layer2 = document.getElementById('bg-layer-2');
@@ -671,12 +737,12 @@ async function initBgCarousel() {
     changeBackground();
     setInterval(changeBackground, 10000); 
   } catch (err) {
-    console.error('加载背景清单失败:', err);
+    console.error('加载背景失败:', err);
   }
 }
 window.addEventListener('DOMContentLoaded', initBgCarousel);
 
-/* ================= 发光粒子特效生成 ================= */
+/* ================= 发光粒子 ================= */
 (function(){
   const field = document.getElementById('sparkle-field');
   if(!field) return;
@@ -695,7 +761,7 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
   }
 })();
 
-/* ================= B站同款弹幕系统 ================= */
+/* ================= 顶部弹幕 ================= */
 (function initDanmaku() {
   const container = document.getElementById('danmaku-container');
   if (!container) return;
@@ -706,24 +772,17 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
     "催更催更！", "前排围观", "记笔记了，干货满满", 
     "66666 梦幻联动", "好有科技感的设计", "感谢分享~", "Mark一下以后看"
   ];
-  
-  // 三条轨道的高度 (3 rows)
   const tracks = [10, 50, 90]; 
   
   setInterval(() => {
     const el = document.createElement('div');
     el.className = 'danmaku-item';
     el.textContent = texts[Math.floor(Math.random() * texts.length)];
-    // 随机选择一条轨道
     el.style.top = tracks[Math.floor(Math.random() * tracks.length)] + 'px';
-    // 弹幕飘过屏幕的随机时间 (12秒 ~ 18秒，越长越慢)
     el.style.animationDuration = (12 + Math.random() * 6) + 's';
-    
     container.appendChild(el);
-    
-    // 动画结束后清理掉DOM元素，防止卡顿
     setTimeout(() => el.remove(), 20000);
-  }, 1800); // 每 1.8 秒发射一条新弹幕
+  }, 1800); 
 })();
 </script>
 
