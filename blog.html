@@ -184,6 +184,15 @@
     mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
   }
+  /* 有封面图时不需要文字渐隐遮罩，图片本身铺满，靠.post-bottom的深色底衬托标题可读性 */
+  .view-gallery .post-preview.has-cover {
+    padding: 0; mask-image: none; -webkit-mask-image: none;
+  }
+  .view-gallery .post-cover-img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .view-gallery .post-preview.has-cover .post-preview-text { display: none; } /* 有图时藏文字 */
+  .view-gallery .post-preview:not(.has-cover) .post-cover-img { display: none; } /* 没图时藏图片标签 */
   
   .view-gallery .post-bottom { 
     background: rgba(0,0,0,0.25); border-top: 1px solid var(--glass-border); padding: 14px 22px; flex-shrink: 0;
@@ -202,6 +211,7 @@
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     mask-image: none; -webkit-mask-image: none; order: 2; /* 摘要在下方 */
   }
+  .view-list .post-cover-img { display: none; } /* 列表视图保持纯文字，不显示封面图 */
   .view-list .post-bottom { 
     background: transparent; border: none; padding: 0; order: 1; /* 标题在上方 */
   }
@@ -497,10 +507,19 @@ function renderSections(posts){
 function postCardHtml(post, alreadyEscaped){
   const title = alreadyEscaped ? (post.title || '无标题') : escapeHtml(post.title || '无标题');
   const excerpt = post.excerpt ? (alreadyEscaped ? post.excerpt : escapeHtml(post.excerpt)) : '暂无内容预览...';
-  
+
+  // 图片和文字都放进DOM里，具体显示哪个由CSS按当前视图模式（图库/列表）决定，
+  // 这样列表视图不会因为"只塞了一张图进去"而变成没有文字的空卡片
+  const coverImg = post.cover
+    ? `<img class="post-cover-img" src="${post.cover}" alt="" loading="lazy" onerror="this.style.display='none'">`
+    : '';
+
   return `
     <a class="post-card" href="/post.html?id=${post.id}">
-      <div class="post-preview">${excerpt}</div>
+      <div class="post-preview${post.cover ? ' has-cover' : ''}">
+        ${coverImg}
+        <div class="post-preview-text">${excerpt}</div>
+      </div>
       <div class="post-bottom">
         <div class="post-title" title="${title}">${title}</div>
         <div class="post-meta">
