@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
+  /* ================= 博客基础变量 ================= */
   :root{
     --glass:rgba(255,255,255,.10); --glass-strong:rgba(255,255,255,.16); --glass-border:rgba(255,255,255,.28);
     --ink:#ffffff; --muted:#c9c6e8; --coral:#FF7A5C; --aqua:#5CE1E6; --violet:#B18CFF; --pink:#FF8CD9;
@@ -28,7 +29,7 @@
     background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%);
   }
 
-  body{ margin:0; min-height:100vh; color:var(--ink); font-family:'Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased; }
+  body{ margin:0; min-height:100vh; color:var(--ink); font-family:'Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased; overflow-x:hidden;}
 
   /* 荧光闪烁粒子 */
   #sparkle-field{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
@@ -174,52 +175,42 @@
   .post-card:hover{transform:translateY(-4px);background:var(--glass-strong);box-shadow:0 20px 45px -20px rgba(107,92,255,.5);}
   .post-meta{display:flex;gap:14px;font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
 
-  /* ================= 🖼️ 图库视图 (Notion Gallery Style - 默认) ================= */
+  /* ================= 🖼️ 图库视图 ================= */
   .view-gallery .post-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
   .view-gallery .post-card { flex-direction: column; height: 250px; padding: 0; }
   
   .view-gallery .post-preview { 
     flex: 1; padding: 18px 22px; font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.7; overflow: hidden;
-    /* 核心：Notion 同款文字渐隐效果 */
     mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
   }
-  /* 有封面图时不需要文字渐隐遮罩，图片本身铺满，靠.post-bottom的深色底衬托标题可读性 */
-  .view-gallery .post-preview.has-cover {
-    padding: 0; mask-image: none; -webkit-mask-image: none;
-  }
-  .view-gallery .post-cover-img {
-    width: 100%; height: 100%; object-fit: cover; display: block;
-  }
-  .view-gallery .post-preview.has-cover .post-preview-text { display: none; } /* 有图时藏文字 */
-  .view-gallery .post-preview:not(.has-cover) .post-cover-img { display: none; } /* 没图时藏图片标签 */
+  .view-gallery .post-preview.has-cover { padding: 0; mask-image: none; -webkit-mask-image: none; }
+  .view-gallery .post-cover-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .view-gallery .post-preview.has-cover .post-preview-text { display: none; } 
+  .view-gallery .post-preview:not(.has-cover) .post-cover-img { display: none; } 
   
-  .view-gallery .post-bottom { 
-    background: rgba(0,0,0,0.25); border-top: 1px solid var(--glass-border); padding: 14px 22px; flex-shrink: 0;
-  }
+  .view-gallery .post-bottom { background: rgba(0,0,0,0.25); border-top: 1px solid var(--glass-border); padding: 14px 22px; flex-shrink: 0; }
   .view-gallery .post-title { 
     font-family: 'Noto Serif SC', serif; font-weight: 700; font-size: 16px; margin-bottom: 6px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px;
   }
-  .view-gallery .post-title::before { content: "📄"; font-size: 14px; } /* 添加类似 Notion 的前置 icon */
+  .view-gallery .post-title::before { content: "📄"; font-size: 14px; } 
 
-  /* ================= 🔲 列表视图 (List Style) ================= */
+  /* ================= 🔲 列表视图 ================= */
   .view-list .post-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
   .view-list .post-card { flex-direction: column; padding: 22px 24px; }
   .view-list .post-preview { 
     font-size: 13.5px; color: var(--muted); line-height: 1.75; margin-bottom: 12px;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-    mask-image: none; -webkit-mask-image: none; order: 2; /* 摘要在下方 */
+    mask-image: none; -webkit-mask-image: none; order: 2; 
   }
-  .view-list .post-cover-img { display: none; } /* 列表视图保持纯文字，不显示封面图 */
-  .view-list .post-bottom { 
-    background: transparent; border: none; padding: 0; order: 1; /* 标题在上方 */
-  }
+  .view-list .post-cover-img { display: none; } 
+  .view-list .post-bottom { background: transparent; border: none; padding: 0; order: 1; }
   .view-list .post-title { 
     font-family: 'Noto Serif SC', serif; font-weight: 700; font-size: 18px; margin-bottom: 8px; 
     white-space: normal;
   }
-  .view-list .post-title::before { content: ""; display: none; } /* 列表模式隐藏 icon */
+  .view-list .post-title::before { content: ""; display: none; }
 
   .state-box{ text-align:center;padding:60px 20px;color:var(--muted); background:var(--glass);border:1px solid var(--glass-border);border-radius:18px; }
   .state-box.error{color:#FF9E8A;}
@@ -253,11 +244,8 @@
     .tabbar{ border:none; padding:0; background:transparent; width:auto; flex-wrap:nowrap; scrollbar-width:none;}
     .tabbar::-webkit-scrollbar{display:none;}
     .tabbar a{flex-shrink:0;}
-    
-    .view-switcher { display: none; } /* 手机端空间有限，默认隐藏切换按钮，直接走响应式单列 */
-
-    .view-gallery .post-grid { grid-template-columns: 1fr; } /* 手机端强制单列 */
-
+    .view-switcher { display: none; } 
+    .view-gallery .post-grid { grid-template-columns: 1fr; } 
     .sidebar{
       position:fixed; top:0; left:0; height:100%; width:82%; max-width:320px;
       z-index:200; border-radius:0; overflow-y:auto; transform:translateX(-105%); transition:transform .32s cubic-bezier(.22,1,.36,1);
@@ -270,540 +258,142 @@
     .mobile-fab{ display:flex; align-items:center; justify-content:center; position:fixed; right:18px; bottom:22px; z-index:150; width:52px;height:52px;border-radius:50%; background:linear-gradient(135deg,var(--aqua),var(--violet)); box-shadow:0 12px 28px -8px rgba(92,225,230,.6); color:#12102b; font-size:20px; border:none; cursor:pointer; transition:.25s; }
     .mobile-fab:active{transform:scale(.92);}
   }
-</style>
-</head>
-<body>
 
-<div class="bg-wrapper">
-  <div id="bg-layer-1" class="bg-layer"></div>
-  <div id="bg-layer-2" class="bg-layer"></div>
-</div>
-<div class="bg-overlay"></div>
-
-<div id="sparkle-field"></div>
-<div id="danmaku-container"></div>
-
-<nav id="nav">
-  <a class="logo" href="/">JERRY.DEV</a>
-  <div class="links">
-    <a href="/#about">我是谁</a>
-    <a href="/#timeline">经历</a>
-    <a href="/#reflect">反思</a>
-    <a href="/blog.html" class="active">博客</a>
-    <a href="/rumi.html">Rumi英语</a>
-  </div>
-  <div class="btn-border-wrap"><a href="/#contact" class="cta">联系我</a></div>
-</nav>
-
-<div class="hero-search-wrap">
-  <span class="icon">🔍</span>
-  <input id="search-input" type="text" placeholder="搜索文章标题、摘要或灵感关键字..." autocomplete="off" />
-  <div class="search-count" id="search-count"></div>
-</div>
-
-<div class="shell">
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-close" id="sidebarClose">✕</div>
-    <div class="avatar-row">
-      <div class="avatar-circle">J</div>
-      <div>
-        <div class="avatar-name">Jerry</div>
-        <div class="avatar-tag mono">思维输出 · 长期记录</div>
-      </div>
-    </div>
-
-    <div class="stats-row" id="statsRow">
-      <div class="stat-item">
-        <div class="stat-num mono" id="statPosts">–</div>
-        <div class="stat-label">文章</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num mono" id="statViews">–</div>
-        <div class="stat-label">总浏览</div>
-      </div>
-    </div>
-
-    <div class="social-row">
-      <a href="https://github.com/" target="_blank" title="GitHub" class="social-btn">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
-      </a>
-      <a href="#" target="_blank" title="抖音" class="social-btn text-badge">抖</a>
-      <a href="mailto:hello@example.com" title="邮箱" class="social-btn">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
-      </a>
-      <a href="/api/posts" title="RSS" class="social-btn">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M6.18 15.64a2.18 2.18 0 1 1 0 4.36 2.18 2.18 0 0 1 0-4.36M4 4.44v3.18c7.13 0 12.9 5.77 12.9 12.9h3.18C20.08 12 12.52 4.44 4 4.44M4 10.9v3.18a7.24 7.24 0 0 1 7.24 7.24h3.18A10.42 10.42 0 0 0 4 10.9"/></svg>
-      </a>
-    </div>
-
-    <div class="cat-jump" id="cat-jump">
-      <div class="cat-jump-label">分类导航</div>
-    </div>
-
-    <div class="recent-list" id="recent-list">
-      <div class="recent-label">最近更新</div>
-    </div>
-
-    <div class="archive-list" id="archive-list">
-      <div class="archive-label">归档</div>
-    </div>
-  </aside>
-
-  <main class="main">
-    <div class="main-controls">
-      <div class="tabbar mono" id="tabbar">
-        <a href="#all" class="active" data-filter="all">全部</a>
-      </div>
-      
-      <!-- 试图切换控件 -->
-      <div class="view-switcher" id="view-switcher">
-        <button data-view="gallery" class="active" title="图库视图">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> 图库
-        </button>
-        <button data-view="list" title="列表视图">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg> 列表
-        </button>
-      </div>
-    </div>
-
-    <!-- 默认加上 view-gallery 类以应用图库样式 -->
-    <div id="content-area" class="view-gallery">
-      <div class="state-box">
-        <div class="spinner"></div>
-        正在加载文章…
-      </div>
-    </div>
-  </main>
-</div>
-
-<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
-<button class="mobile-fab" id="mobileFab" aria-label="打开搜索/导航">🔍</button>
-
-<script>
-let allPosts = [];
-const CATEGORY_ORDER = ['技术分享', '心情随笔', '思维日记'];
-let currentViewMode = 'gallery'; // 默认试图模式
-
-/* ============ 试图切换逻辑 ============ */
-function setupViewSwitcher() {
-  const buttons = document.querySelectorAll('#view-switcher button');
-  const contentArea = document.getElementById('content-area');
-  
-  buttons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const mode = btn.dataset.view;
-      currentViewMode = mode;
-      
-      // 切换激活状态
-      buttons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      
-      // 切换容器 Class
-      contentArea.className = ''; 
-      contentArea.classList.add(`view-${mode}`);
-    });
-  });
-}
-setupViewSwitcher();
-
-/* ============ 手机端适配 ============ */
-const MOBILE_BQ = window.matchMedia('(max-width:760px)');
-function isMobile(){ return MOBILE_BQ.matches; }
-
-function setupMobileChrome(){
-  const sidebar = document.getElementById('sidebar');
-  const backdrop = document.getElementById('sidebarBackdrop');
-  const fab = document.getElementById('mobileFab');
-  const closeBtn = document.getElementById('sidebarClose');
-
-  function openSidebar(){ sidebar.classList.add('open'); backdrop.classList.add('open'); }
-  function closeSidebar(){ sidebar.classList.remove('open'); backdrop.classList.remove('open'); }
-
-  fab.addEventListener('click', openSidebar);
-  closeBtn.addEventListener('click', closeSidebar);
-  backdrop.addEventListener('click', closeSidebar);
-
-  const nav = document.getElementById('nav');
-  const controls = document.querySelector('.main-controls');
-  function syncStickyTop(){
-    controls.style.top = nav.offsetHeight + 'px';
+  /* ================= 桌宠系统样式 (去除重复部分) ================= */
+  #pet-wrap{
+    position:fixed; right:24px; bottom:150px; z-index:999;
+    width:150px; height:190px;
+    cursor:grab; user-select:none; touch-action:none;
   }
-  syncStickyTop();
-  window.addEventListener('resize', syncStickyTop);
-}
+  #pet-wrap.dragging{cursor:grabbing;}
 
-async function loadPosts(){
-  const contentArea = document.getElementById('content-area');
-  try {
-    const res = await fetch('/api/posts');
-    const data = await res.json();
-
-    if(!data.ok){
-      contentArea.innerHTML = `<div class="state-box error">加载失败：${escapeHtml(data.error || '未知错误')}</div>`;
-      return;
-    }
-    if(!data.posts || data.posts.length === 0){
-      contentArea.innerHTML = `<div class="state-box">还没有发布任何文章，去 Notion 里写第一篇吧 ✍️</div>`;
-      return;
-    }
-
-    allPosts = data.posts;
-    buildStats(allPosts);
-    buildCategoryTabs(allPosts);
-    buildCategoryJump(allPosts);
-    buildRecentList(allPosts);
-    buildArchive(allPosts);
-    setupMobileChrome();
-    
-    if(isMobile()){ renderMobilePaged(allPosts); } else { renderSections(allPosts); }
-
-  } catch (err) {
-    contentArea.innerHTML = `<div class="state-box error">网络请求失败：${escapeHtml(err.message)}</div>`;
+  #pet-body{
+    position:relative; width:100%; height:100%;
+    transition:transform .15s ease;
   }
-}
-
-function buildStats(posts){
-  const postsEl = document.getElementById('statPosts');
-  const viewsEl = document.getElementById('statViews');
-  if(!postsEl || !viewsEl) return;
-  postsEl.textContent = posts.length;
-  const totalViews = posts.reduce((sum, p) => sum + (p.views || 0), 0);
-  viewsEl.textContent = totalViews >= 1000 ? (totalViews/1000).toFixed(1) + 'K' : totalViews;
-}
-
-function groupByCategory(posts){
-  const groups = {};
-  posts.forEach(p => {
-    const cat = p.category || '未分类';
-    if(!groups[cat]) groups[cat] = [];
-    groups[cat].push(p);
-  });
-  const orderedKeys = [
-    ...CATEGORY_ORDER.filter(c => groups[c]),
-    ...Object.keys(groups).filter(c => !CATEGORY_ORDER.includes(c))
-  ];
-  return orderedKeys.map(key => ({ category: key, posts: groups[key] }));
-}
-
-function renderSections(posts){
-  const contentArea = document.getElementById('content-area');
-  const sections = groupByCategory(posts);
-
-  contentArea.innerHTML = sections.map(sec => `
-    <div class="cat-section" id="cat-${slugify(sec.category)}">
-      <div class="cat-header">
-        <span class="dot"></span>
-        <h2>${escapeHtml(sec.category)}</h2>
-        <span class="cat-count mono">${sec.posts.length} 篇</span>
-      </div>
-      <div class="post-grid">
-        ${sec.posts.map(postCardHtml).join('')}
-      </div>
-    </div>
-  `).join('');
-}
-
-// 统一的卡片渲染结构，通过父容器的 .view-gallery 或 .view-list 切换样式
-function postCardHtml(post, alreadyEscaped){
-  const title = alreadyEscaped ? (post.title || '无标题') : escapeHtml(post.title || '无标题');
-  const excerpt = post.excerpt ? (alreadyEscaped ? post.excerpt : escapeHtml(post.excerpt)) : '暂无内容预览...';
-
-  // 图片和文字都放进DOM里，具体显示哪个由CSS按当前视图模式（图库/列表）决定，
-  // 这样列表视图不会因为"只塞了一张图进去"而变成没有文字的空卡片
-  const coverImg = post.cover
-    ? `<img class="post-cover-img" src="${post.cover}" alt="" loading="lazy" onerror="this.style.display='none'">`
-    : '';
-
-  return `
-    <a class="post-card" href="/post.html?id=${post.id}">
-      <div class="post-preview${post.cover ? ' has-cover' : ''}">
-        ${coverImg}
-        <div class="post-preview-text">${excerpt}</div>
-      </div>
-      <div class="post-bottom">
-        <div class="post-title" title="${title}">${title}</div>
-        <div class="post-meta">
-          ${post.date ? `<span>📅 ${post.date}</span>` : ''}
-          ${post.category ? `<span>🏷️ ${escapeHtml(post.category)}</span>` : ''}
-        </div>
-      </div>
-    </a>
-  `;
-}
-
-const PAGE_SIZE = 10;
-let mobileFilter = 'all';
-let mobilePage = 1;
-
-function renderMobilePaged(posts, page){
-  mobilePage = page || 1;
-  const filtered = mobileFilter === 'all' ? posts : posts.filter(p => (p.category || '未分类') === mobileFilter);
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  mobilePage = Math.min(mobilePage, totalPages);
-  const start = (mobilePage - 1) * PAGE_SIZE;
-  const pageItems = filtered.slice(start, start + PAGE_SIZE);
-
-  const contentArea = document.getElementById('content-area');
-  if(filtered.length === 0){
-    contentArea.innerHTML = `<div class="state-box">这个分类下还没有文章</div>`;
-    return;
+  #pet-wrap.dragging #pet-body{transform:scale(1.05);}
+  #pet-wrap.falling #pet-body{animation:fallBounce .65s cubic-bezier(.35,0,.55,1.6);}
+  @keyframes fallBounce{
+    0%{transform:translateY(0) scale(1.05,.95);}
+    38%{transform:translateY(64px) scale(1.08,.9);}
+    60%{transform:translateY(64px) scale(.94,1.08);}
+    80%{transform:translateY(-10px) scale(1.03,.97);}
+    100%{transform:translateY(0) scale(1);}
   }
-  contentArea.innerHTML = `
-    <div class="cat-section">
-      <div class="post-grid">${pageItems.map(postCardHtml).join('')}</div>
-    </div>
-    ${buildPaginationHtml(mobilePage, totalPages)}
-  `;
 
-  contentArea.querySelectorAll('.pagination button[data-page]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      renderMobilePaged(allPosts, parseInt(btn.dataset.page, 10));
-      document.getElementById('content-area')?.scrollIntoView({behavior:'smooth', block:'start'});
-    });
-  });
-}
-
-function buildPaginationHtml(page, total){
-  if(total <= 1) return '';
-  const pages = [];
-  pages.push(1);
-  if(page > 3) pages.push('...');
-  for(let p = Math.max(2, page-1); p <= Math.min(total-1, page+1); p++) pages.push(p);
-  if(page < total-2) pages.push('...');
-  if(total > 1) pages.push(total);
-
-  const btns = pages.map(p => p === '...'
-    ? `<span class="ellipsis">…</span>`
-    : `<button data-page="${p}" class="${p===page?'active':''}">${p}</button>`
-  ).join('');
-
-  return `
-    <div class="pagination">
-      <button data-page="${Math.max(1,page-1)}" ${page===1?'disabled':''}>‹</button>
-      ${btns}
-      <button data-page="${Math.min(total,page+1)}" ${page===total?'disabled':''}>›</button>
-    </div>
-  `;
-}
-
-function buildCategoryTabs(posts){
-  const tabbar = document.getElementById('tabbar');
-  const sections = groupByCategory(posts);
-  const tabsHtml = sections.map(sec => `<a href="#cat-${slugify(sec.category)}" data-filter="${escapeHtml(sec.category)}">${escapeHtml(sec.category)}</a>`).join('');
-  tabbar.innerHTML = `<a href="#all" class="active" data-filter="all">全部</a>` + tabsHtml;
-
-  tabbar.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
-      tabbar.querySelectorAll('a').forEach(x => x.classList.remove('active'));
-      a.classList.add('active');
-
-      if(isMobile()){
-        mobileFilter = a.dataset.filter;
-        renderMobilePaged(allPosts, 1);
-        document.getElementById('content-area')?.scrollIntoView({behavior:'smooth', block:'start'});
-        return;
-      }
-
-      if(a.dataset.filter !== 'all'){
-        document.getElementById('cat-' + slugify(a.dataset.filter))?.scrollIntoView({behavior:'smooth', block:'start'});
-      } else {
-        document.getElementById('content-area')?.scrollIntoView({behavior:'smooth', block:'start'});
-      }
-    });
-  });
-}
-
-function buildCategoryJump(posts){
-  const el = document.getElementById('cat-jump');
-  const sections = groupByCategory(posts);
-  el.innerHTML = `<div class="cat-jump-label">分类导航</div>` + sections.map(sec => `
-    <a href="#cat-${slugify(sec.category)}">
-      <span>${escapeHtml(sec.category)}</span>
-      <span class="count">${sec.posts.length}</span>
-    </a>
-  `).join('');
-}
-
-function buildRecentList(posts){
-  const el = document.getElementById('recent-list');
-  const recent = [...posts]
-    .filter(p => p.date)
-    .sort((a,b) => new Date(b.date) - new Date(a.date))
-    .slice(0, 6);
-  el.innerHTML = `<div class="recent-label">最近更新</div>` + recent.map(p => `
-    <a href="/post.html?id=${p.id}">${escapeHtml(p.title || '无标题')}</a>
-  `).join('');
-}
-
-function buildArchive(posts){
-  const el = document.getElementById('archive-list');
-  const groups = {};
-  posts.forEach(p => {
-    if(!p.date) return;
-    const ym = p.date.slice(0,7);
-    groups[ym] = (groups[ym] || 0) + 1;
-  });
-  const keys = Object.keys(groups).sort().reverse();
-  el.innerHTML = `<div class="archive-label">归档</div>` + keys.map(ym => `
-    <a href="#" data-ym="${ym}">
-      <span>${ym}</span>
-      <span class="count">${groups[ym]}</span>
-    </a>
-  `).join('');
-
-  el.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
-      const ym = a.dataset.ym;
-      const filtered = allPosts.filter(p => p.date && p.date.slice(0,7) === ym);
-      if(isMobile()){
-        mobileFilter = 'all';
-        renderMobilePaged(filtered, 1);
-        document.getElementById('sidebar')?.classList.remove('open');
-        document.getElementById('sidebarBackdrop')?.classList.remove('open');
-      } else {
-        renderSections(filtered);
-      }
-      document.getElementById('content-area')?.scrollIntoView({behavior:'smooth', block:'start'});
-    });
-  });
-}
-
-function setupSearch(){
-  const input = document.getElementById('search-input');
-  const countEl = document.getElementById('search-count');
-
-  input.addEventListener('input', () => {
-    const q = input.value.trim();
-    if(!q){
-      countEl.style.display = 'none';
-      renderSections(allPosts);
-      return;
-    }
-    const qLower = q.toLowerCase();
-    const matched = allPosts.filter(p =>
-      (p.title || '').toLowerCase().includes(qLower) ||
-      (p.excerpt || '').toLowerCase().includes(qLower)
-    );
-    countEl.style.display = 'block';
-    countEl.textContent = `找到 ${matched.length} 篇内容匹配`;
-
-    const contentArea = document.getElementById('content-area');
-    if(matched.length === 0){
-      contentArea.innerHTML = `<div class="state-box">没找到包含"${escapeHtml(q)}"的文章，换个词试试？</div>`;
-      return;
-    }
-    contentArea.innerHTML = `
-      <div class="cat-section">
-        <div class="post-grid">
-          ${matched.map(p => postCardHtml({...p, title: highlight(p.title, q), excerpt: highlight(p.excerpt, q)}, true)).join('')}
-        </div>
-      </div>
-    `;
-  });
-}
-
-function highlight(text, q){
-  if(!text) return text;
-  const escaped = escapeHtml(text);
-  const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return escaped.replace(new RegExp('(' + escapedQ + ')', 'gi'), '<mark>$1</mark>');
-}
-
-function slugify(str){ return str.replace(/\s+/g, '-').toLowerCase(); }
-function escapeHtml(str){
-  const div = document.createElement('div');
-  div.textContent = str == null ? '' : str;
-  return div.innerHTML;
-}
-
-loadPosts();
-setupSearch();
-
-/* ================= 动态背景图轮播 ================= */
-async function initBgCarousel() {
-  const layer1 = document.getElementById('bg-layer-1');
-  const layer2 = document.getElementById('bg-layer-2');
-  if (!layer1 || !layer2) return;
-
-  try {
-    const res = await fetch('images/bg/manifest.json');
-    const images = await res.json();
-    if (!images || images.length === 0) return;
-
-    let currentIndex = 0;
-    let currentLayer = layer1;
-    let nextLayer = layer2;
-
-    images.sort(() => Math.random() - 0.5);
-
-    function changeBackground() {
-      const imgName = images[currentIndex];
-      const imgUrl = `images/bg/${imgName}`;
-
-      const imgObj = new Image();
-      imgObj.src = imgUrl;
-      imgObj.onload = () => {
-        nextLayer.style.backgroundImage = `url('${imgUrl}')`;
-        nextLayer.classList.add('active');
-        currentLayer.classList.remove('active');
-        [currentLayer, nextLayer] = [nextLayer, currentLayer];
-        currentIndex = (currentIndex + 1) % images.length;
-      };
-    }
-
-    changeBackground();
-    setInterval(changeBackground, 10000); 
-  } catch (err) {
-    console.error('加载背景失败:', err);
+  #pet-img{
+    display:block; width:100%; height:100%; object-fit:contain;
+    filter:drop-shadow(0 12px 20px rgba(0,0,0,.45));
+    pointer-events:none;
   }
-}
-window.addEventListener('DOMContentLoaded', initBgCarousel);
 
-/* ================= 发光粒子 ================= */
-(function(){
-  const field = document.getElementById('sparkle-field');
-  if(!field) return;
-  const COUNT = 35;
-  for(let i = 0; i < COUNT; i++){
-    const dot = document.createElement('div');
-    dot.className = 'sparkle';
-    const size = 1.5 + Math.random() * 2.5;
-    dot.style.width = size + 'px';
-    dot.style.height = size + 'px';
-    dot.style.left = Math.random() * 100 + '%';
-    dot.style.top = Math.random() * 100 + '%';
-    dot.style.animationDuration = (6 + Math.random() * 6) + 's';
-    dot.style.animationDelay = (Math.random() * 8) + 's';
-    field.appendChild(dot);
+  #pet-headzone{
+    position:absolute; top:0; left:0; width:100%; height:45%;
   }
-})();
 
-/* ================= 顶部弹幕 ================= */
-(function initDanmaku() {
-  const container = document.getElementById('danmaku-container');
-  if (!container) return;
-  
-  const texts = [
-    "太酷了！UI审美完全在线", "这背景好通透，求壁纸！", "膜拜大佬~", 
-    "日常打卡来看更新", "学到了学到了", "这个搜索框爱了", 
-    "催更催更！", "前排围观", "记笔记了，干货满满", 
-    "66666 梦幻联动", "好有科技感的设计", "感谢分享~", "Mark一下以后看"
-  ];
-  const tracks = [10, 50, 90]; 
-  
-  setInterval(() => {
-    const el = document.createElement('div');
-    el.className = 'danmaku-item';
-    el.textContent = texts[Math.floor(Math.random() * texts.length)];
-    el.style.top = tracks[Math.floor(Math.random() * tracks.length)] + 'px';
-    el.style.animationDuration = (12 + Math.random() * 6) + 's';
-    container.appendChild(el);
-    setTimeout(() => el.remove(), 20000);
-  }, 1800); 
-})();
-</script>
+  #pet-bubble{
+    position:absolute; bottom:100%; left:50%; transform:translateX(-50%);
+    margin-bottom:6px; min-width:150px; max-width:230px;
+    background:rgba(255,255,255,.95); color:#2a2340;
+    border:2px solid var(--pink); border-radius:14px; padding:10px 14px;
+    font-size:13px; line-height:1.6; text-align:center;
+    opacity:0; pointer-events:none; transition:opacity .3s ease;
+    box-shadow:0 8px 20px rgba(0,0,0,.3);
+  }
+  #pet-bubble.show{opacity:1;}
+  #pet-bubble::after{
+    content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%);
+    border:8px solid transparent; border-top-color:var(--pink);
+  }
+  #pet-bubble .caret{
+    display:inline-block; width:2px; height:12px; background:#2a2340;
+    vertical-align:-2px; margin-left:1px; animation:caretBlink .8s steps(1) infinite;
+  }
+  @keyframes caretBlink{ 50%{ opacity:0; } }
 
-</body>
-</html>
+  #chat-panel{
+    position:absolute; top:100%; left:50%; transform:translateX(-50%);
+    margin-top:10px; width:230px; display:flex; flex-direction:column; gap:8px;
+  }
+  #quick-replies{
+    display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end;
+  }
+  #quick-replies button{
+    font-size:11px; padding:5px 10px; border-radius:999px; cursor:pointer;
+    background:var(--glass); border:1px solid var(--glass-border); color:#e4e1fa;
+    backdrop-filter:blur(6px); transition:background .2s ease, transform .15s ease;
+    font-family:inherit;
+  }
+  #quick-replies button:hover{ background:rgba(255,255,255,.22); transform:translateY(-1px); }
+  #chat-input-row{
+    display:flex; gap:6px;
+  }
+  #chat-input{
+    flex:1; min-width:0; padding:9px 12px; border-radius:12px; font-size:13px;
+    border:1px solid var(--glass-border); background:rgba(255,255,255,.12); color:#fff;
+    outline:none; font-family:inherit;
+  }
+  #chat-input::placeholder{ color:#a8a4cc; }
+  #chat-input:focus{ border-color:var(--pink); background:rgba(255,255,255,.18); }
+  #chat-send{
+    padding:9px 14px; border-radius:12px; border:none; cursor:pointer;
+    background:linear-gradient(135deg,var(--pink),var(--violet)); color:#fff; font-size:12px;
+    font-family:inherit; flex-shrink:0;
+  }
+  #chat-send:active{ transform:scale(.96); }
+
+  .status-panel{
+    position:fixed; left:24px; bottom:24px; z-index:998;
+    background:var(--glass); border:1px solid var(--glass-border); border-radius:14px;
+    backdrop-filter:blur(10px); padding:14px 18px; font-size:12px; color:#c9c6e8;
+    font-family:'JetBrains Mono',monospace; line-height:1.9;
+  }
+  .status-panel b{color:var(--aqua);}
+  .status-panel .credits{color:#ffd27a;}
+
+  #shop-btn{
+    display:inline-flex; align-items:center; gap:6px; margin-top:8px;
+    padding:6px 12px; border-radius:999px; cursor:pointer; border:none;
+    background:linear-gradient(135deg,var(--coral),var(--pink)); color:#fff;
+    font-size:12px; font-family:inherit;
+  }
+  #demo-checkin-btn{
+    display:inline-flex; align-items:center; gap:4px; margin-top:8px; margin-left:6px;
+    padding:6px 10px; border-radius:999px; cursor:pointer;
+    background:var(--glass); border:1px solid var(--glass-border); color:#c9c6e8;
+    font-size:11px; font-family:inherit;
+  }
+
+  #shop-mask{
+    position:fixed; inset:0; z-index:1000; background:rgba(10,8,30,.45);
+    display:none; align-items:center; justify-content:center;
+  }
+  #shop-mask.show{display:flex;}
+  #shop-panel{
+    width:min(420px, 88vw); max-height:80vh; overflow-y:auto;
+    background:linear-gradient(160deg,#221a45,#1a1436); border:1px solid var(--glass-border);
+    border-radius:20px; padding:22px; box-shadow:0 20px 50px rgba(0,0,0,.5);
+  }
+  #shop-panel h3{margin:0 0 4px; font-size:16px; color:#fff;}
+  #shop-panel .shop-sub{font-size:12px; color:#a8a4cc; margin-bottom:16px;}
+  #shop-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
+  .food-card{
+    background:var(--glass); border:1px solid var(--glass-border); border-radius:14px;
+    padding:12px 8px; text-align:center; cursor:pointer; transition:transform .15s ease, background .2s ease;
+  }
+  .food-card:hover{background:rgba(255,255,255,.18); transform:translateY(-2px);}
+  .food-card:active{transform:scale(.96);}
+  .food-card.disabled{opacity:.4; cursor:not-allowed; transform:none;}
+  .food-emoji{font-size:28px; display:block; margin-bottom:6px;}
+  .food-name{font-size:12px; color:#fff; margin-bottom:2px;}
+  .food-price{font-size:11px; color:#ffd27a;}
+  #shop-close{
+    display:block; margin:18px auto 0; padding:8px 22px; border-radius:999px; border:none;
+    cursor:pointer; background:var(--glass); border:1px solid var(--glass-border); color:#fff;
+    font-size:12px; font-family:inherit;
+  }
+
+  #backpack-panel{
+    position:fixed; left:24px; bottom:180px; z-index:996;
+    width:220px; background:var(--glass); border:1px solid var(--glass-border); border-radius:16px;
+    backdrop-
