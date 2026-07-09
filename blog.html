@@ -6,7 +6,7 @@
 <title>博客 · Jerry</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
 
 <style>
   :root{
@@ -96,7 +96,7 @@
     width: 100%; background: rgba(0,0,0,0.35); border: 1px solid var(--glass-border);
     backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
     border-radius: 100px; padding: 18px 24px 18px 54px;
-    font-size: 15px; color: #fff; font-family: 'JetBrains Mono', monospace;
+    font-size: 16px; color: #fff; font-family: 'JetBrains Mono', monospace;
     box-shadow: 0 12px 32px rgba(0,0,0,0.25); outline: none; transition: 0.3s;
   }
   .hero-search-wrap input:focus {
@@ -274,9 +274,25 @@
 
 <!-- 独立注入的桌宠 CSS -->
 <style id="pet-system-styles">
+  /*
+    ================= 🧩 图层顺序总表（z-index）=================
+    数值越大越靠上，改动前先看这张表，别随手加大数字。
+
+      400   #backpack-panel     背包抽屉（必须在桌宠下面）
+      420   #pocket-space-drawer 亚空间入口抽屉（同样在桌宠下面，不挡拖拽视线）
+      480   .status-panel       状态栏抽屉
+      500   #pet-wrap           桌宠本体（含气泡 #pet-bubble、聊天面板 #chat-panel，
+                                 这两个是桌宠的绝对定位子元素，跟着父级层级走，不用单独设）
+      900   #pocket-space-fullscreen 亚空间全屏播放层（盖过桌宠和抽屉，打开时会强制收起状态栏/背包/亚空间抽屉）
+      1000  #shop-mask / #pomodoro-mask  商店弹层 / 番茄钟卡片弹层（互斥使用，不会同时开）
+      1500  #drag-food-ghost    背包食物拖拽中的幽灵元素（必须盖过一切，含商店）
+      1600  #space-smoke-fx     进入亚空间瞬间的一次性烟雾特效（短暂出现，盖过桌宠）
+    ============================================================
+  */
+
   /* ================= 桌宠本体 ================= */
   #pet-wrap{
-    position:fixed; right:24px; bottom:150px; z-index:999;
+    position:fixed; right:24px; bottom:150px; z-index:500;
     width:150px; height:190px;
     cursor:grab; user-select:none; touch-action:none;
   }
@@ -348,7 +364,7 @@
     display:flex; gap:6px;
   }
   #chat-input{
-    flex:1; min-width:0; padding:9px 12px; border-radius:12px; font-size:13px;
+    flex:1; min-width:0; padding:9px 12px; border-radius:12px; font-size:16px;
     border:1px solid var(--glass-border); background:rgba(255,255,255,.12); color:#fff;
     outline:none; font-family:inherit;
   }
@@ -361,14 +377,29 @@
   }
   #chat-send:active{ transform:scale(.96); }
 
+  /* ================= 状态栏抽屉：默认收起，只露出右侧拉手，点开后整块滑出 ================= */
   .status-panel{
-    position:fixed; left:24px; bottom:24px; z-index:998;
-    background:var(--glass); border:1px solid var(--glass-border); border-radius:14px;
-    backdrop-filter:blur(10px); padding:14px 18px; font-size:12px; color:#c9c6e8;
-    font-family:'JetBrains Mono',monospace; line-height:1.9;
+    position:fixed; left:24px; bottom:24px; z-index:480;
+    display:flex; align-items:stretch;
+    transform:translateX(calc(-100% + 44px));
+    transition:transform .32s cubic-bezier(.22,1,.36,1);
   }
-  .status-panel b{color:var(--aqua);}
-  .status-panel .credits{color:#ffd27a;}
+  .status-panel.open{ transform:translateX(0); }
+  .status-panel-body{
+    background:var(--glass); border:1px solid var(--glass-border); border-right:none;
+    border-radius:14px 0 0 14px;
+    backdrop-filter:blur(10px); padding:14px 18px; font-size:12px; color:#c9c6e8;
+    font-family:'JetBrains Mono',monospace; line-height:1.9; white-space:nowrap;
+  }
+  .status-panel-body b{color:var(--aqua);}
+  .status-panel-body .credits{color:#ffd27a;}
+  #status-panel-handle{
+    flex-shrink:0; width:44px; align-self:stretch;
+    background:var(--glass); border:1px solid var(--glass-border);
+    border-radius:0 14px 14px 0; backdrop-filter:blur(10px);
+    display:flex; align-items:center; justify-content:center;
+    font-size:17px; color:#fff; cursor:pointer;
+  }
 
   #shop-btn{
     display:inline-flex; align-items:center; gap:6px; margin-top:8px;
@@ -386,14 +417,20 @@
   /* ================= 商店弹窗（不做背景虚化，只留一层淡淡的遮罩） ================= */
   #shop-mask{
     position:fixed; inset:0; z-index:1000; background:rgba(10,8,30,.45);
-    display:none; align-items:center; justify-content:center;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity .3s ease;
   }
-  #shop-mask.show{display:flex;}
+  #shop-mask.show{ opacity:1; pointer-events:auto; }
   #shop-panel{
+    position:relative;
     width:min(420px, 88vw); max-height:80vh; overflow-y:auto;
     background:linear-gradient(160deg,#221a45,#1a1436); border:1px solid var(--glass-border);
     border-radius:20px; padding:22px; box-shadow:0 20px 50px rgba(0,0,0,.5);
+    transform:translateY(16px); opacity:0; transition:transform .32s cubic-bezier(.22,1,.36,1), opacity .3s ease;
   }
+  #shop-mask.show #shop-panel{ transform:translateY(0); opacity:1; }
+  #shop-drag-handle{ display:none; }
+  #shop-fullscreen-toggle{ display:none; }
   #shop-panel h3{margin:0 0 4px; font-size:16px; color:#fff;}
   #shop-panel .shop-sub{font-size:12px; color:#a8a4cc; margin-bottom:16px;}
   #shop-grid{
@@ -416,12 +453,14 @@
   }
 
   /* ================= 背包面板：非模态，不挡住角色，方便把食物拖到角色身上 ================= */
+  /* 默认收起在屏幕左边外面，滑出方式和状态栏保持一致的动效语言 */
   #backpack-panel{
-    position:fixed; left:24px; bottom:180px; z-index:996;
+    position:fixed; left:24px; bottom:180px; z-index:400;
     width:220px; background:var(--glass); border:1px solid var(--glass-border); border-radius:16px;
-    backdrop-filter:blur(10px); padding:14px; display:none;
+    backdrop-filter:blur(10px); padding:14px;
+    transform:translateX(-130%); transition:transform .32s cubic-bezier(.22,1,.36,1);
   }
-  #backpack-panel.show{display:block;}
+  #backpack-panel.show{ transform:translateX(0); }
   #backpack-panel h4{margin:0 0 8px; font-size:13px; color:#fff;}
   #backpack-empty{font-size:12px; color:#a8a4cc; text-align:center; padding:10px 0;}
   #backpack-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;}
@@ -454,6 +493,241 @@
   @keyframes petLean{
     0%{ transform:scale(1.03) rotate(-1deg); }
     100%{ transform:scale(1.06) rotate(1deg); }
+  }
+
+  /* ================= 🌌 亚空间系统 ================= */
+  /* 入口抽屉：跟状态栏/背包用同一套"贴边拉手滑出"语言，z-index比背包高一点、比桌宠低 */
+  #pocket-space-drawer{
+    position:fixed; right:24px; bottom:24px; z-index:420;
+    display:flex; align-items:stretch;
+    transform:translateX(calc(100% - 44px));
+    transition:transform .32s cubic-bezier(.22,1,.36,1);
+  }
+  #pocket-space-drawer.open{ transform:translateX(0); }
+  #pocket-space-handle{
+    flex-shrink:0; width:44px; align-self:stretch;
+    background:var(--glass); border:1px solid var(--glass-border);
+    border-radius:14px 0 0 14px; backdrop-filter:blur(10px);
+    display:flex; align-items:center; justify-content:center;
+    font-size:17px; color:#fff; cursor:pointer;
+  }
+  #pocket-space-body{
+    background:var(--glass); border:1px solid var(--glass-border); border-left:none;
+    border-radius:0 14px 14px 0; backdrop-filter:blur(10px);
+    padding:14px; display:flex; flex-direction:column; gap:8px; width:132px;
+  }
+  #pocket-space-body h4{ margin:0; font-size:12px; color:#fff; }
+  #pocket-space-body .ps-sub{ font-size:10px; color:#a8a4cc; line-height:1.5; }
+  .pocket-space-entry{
+    position:relative; border-radius:12px; overflow:hidden; cursor:pointer;
+    border:2px solid var(--glass-border); transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  .pocket-space-entry img{ display:block; width:100%; height:78px; object-fit:cover; }
+  .pocket-space-entry span{
+    position:absolute; left:0; right:0; bottom:0; padding:4px 6px; font-size:10px; color:#fff;
+    background:linear-gradient(0deg,rgba(0,0,0,.55),transparent); text-align:center;
+  }
+  /* 桌宠拖到入口附近时的高亮态：轻微放大+发光边框，提示"松手可以放进去" */
+  .pocket-space-entry.drag-hover{
+    transform:scale(1.08); border-color:var(--aqua);
+    box-shadow:0 0 0 4px rgba(92,225,230,.25), 0 8px 20px rgba(0,0,0,.4);
+  }
+  /* 桌宠"撞了一下"入口的橡皮筋弹跳，复用 petBounce 曲线的思路 */
+  .pocket-space-entry.entry-bump{ animation:entryBump .5s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes entryBump{
+    0%{ transform:scale(1); } 30%{ transform:scale(1.18); }
+    55%{ transform:scale(.92); } 100%{ transform:scale(1); }
+  }
+
+  /* 桌宠被"吸入"亚空间时的缩小淡出动画 */
+  #pet-wrap.entering-space #pet-body{
+    animation:petEnterSpace .5s cubic-bezier(.45,0,.55,1) forwards;
+  }
+  @keyframes petEnterSpace{
+    0%{ transform:scale(1); opacity:1; }
+    100%{ transform:scale(.25); opacity:0; }
+  }
+  /* 桌宠从亚空间重新"冒出来"的反向动画 */
+  #pet-wrap.emerging-space #pet-body{
+    animation:petEmergeSpace .55s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes petEmergeSpace{
+    0%{ transform:scale(.2); opacity:0; } 60%{ transform:scale(1.1); opacity:1; } 100%{ transform:scale(1); opacity:1; }
+  }
+
+  /* 进入瞬间叠在入口位置的一次性烟雾特效 */
+  #space-smoke-fx{
+    position:fixed; width:160px; height:160px; z-index:1600;
+    pointer-events:none; display:none; transform:translate(-50%,-50%);
+    background-size:cover; background-position:center;
+  }
+
+  /* 番茄钟弹窗（卡片态，还不是全屏） */
+  #pomodoro-mask{
+    position:fixed; inset:0; z-index:1000; background:rgba(10,8,30,.45);
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity .3s ease;
+  }
+  #pomodoro-mask.show{ opacity:1; pointer-events:auto; }
+  #pomodoro-card{
+    width:min(320px, 88vw); background:linear-gradient(160deg,#221a45,#1a1436);
+    border:1px solid var(--glass-border); border-radius:22px; padding:24px;
+    box-shadow:0 20px 50px rgba(0,0,0,.5); text-align:center;
+  }
+  #pomodoro-card h3{ margin:0 0 4px; font-size:16px; color:#fff; }
+  #pomodoro-card .pm-sub{ font-size:11px; color:#a8a4cc; margin-bottom:16px; }
+  .pm-tabs{ display:flex; gap:6px; background:rgba(255,255,255,.06); border-radius:999px; padding:4px; margin-bottom:16px; }
+  .pm-tab{
+    flex:1; padding:8px 0; border-radius:999px; border:none; cursor:pointer;
+    background:transparent; color:#c9c6e8; font-size:12px; font-family:inherit; transition:.2s;
+  }
+  .pm-tab.active{ background:linear-gradient(135deg,var(--pink),var(--violet)); color:#fff; }
+  .pm-presets{ display:flex; gap:8px; justify-content:center; margin-bottom:10px; flex-wrap:wrap; }
+  .pm-preset{
+    padding:7px 14px; border-radius:999px; cursor:pointer; font-size:12px; font-family:inherit;
+    background:var(--glass); border:1px solid var(--glass-border); color:#e4e1fa; transition:.2s;
+  }
+  .pm-preset.active{ background:linear-gradient(135deg,var(--coral),var(--pink)); color:#fff; border-color:transparent; }
+  #pm-custom-row{ display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:18px; }
+  #pm-custom-row input{
+    width:64px; text-align:center; padding:6px 8px; border-radius:10px; font-size:13px;
+    border:1px solid var(--glass-border); background:rgba(255,255,255,.1); color:#fff; font-family:inherit;
+  }
+  #pm-custom-row span{ font-size:11px; color:#a8a4cc; }
+  #pm-start-btn{
+    width:96px; height:96px; border-radius:50%; border:none; cursor:pointer; margin:0 auto;
+    background:linear-gradient(135deg,var(--aqua),var(--violet)); color:#12102b;
+    font-size:16px; font-weight:700; font-family:inherit; box-shadow:0 10px 24px rgba(92,225,230,.4);
+    transition:transform .15s ease;
+  }
+  #pm-start-btn:active{ transform:scale(.94); }
+  #pomodoro-close{
+    display:block; margin:16px auto 0; padding:6px 20px; border-radius:999px; border:none;
+    cursor:pointer; background:var(--glass); border:1px solid var(--glass-border); color:#c9c6e8;
+    font-size:11px; font-family:inherit;
+  }
+  /* 321 准备倒数：盖住卡片内容，大数字用圆体字 */
+  #pm-countdown{
+    display:none; font-family:'ZCOOL KuaiLe', 'Noto Sans SC', sans-serif;
+    font-size:72px; color:#fff; padding:30px 0; text-shadow:0 4px 14px rgba(0,0,0,.4);
+  }
+
+  /* ================= 全屏播放层 ================= */
+  #pocket-space-fullscreen{
+    position:fixed; inset:0; height:100vh; height:100dvh; z-index:900;
+    display:none; background:#0e1a3a;
+  }
+  #pocket-space-fullscreen.show{ display:block; }
+  #ps-bg{
+    position:absolute; inset:0; background-size:cover; background-position:center;
+  }
+  #pocket-space-canvas{
+    position:absolute; inset:0; width:100%; height:100%;
+  }
+  #pomodoro-widget{
+    position:absolute; left:50%; top:12%; transform:translateX(-50%);
+    text-align:center; color:#fff;
+  }
+  #pomodoro-widget .pw-time{
+    font-family:'ZCOOL KuaiLe','Noto Sans SC',sans-serif; font-size:clamp(48px,9vw,88px);
+    text-shadow:0 4px 18px rgba(0,0,0,.5); letter-spacing:2px;
+  }
+  #pomodoro-widget .pw-label{ font-size:12px; color:#e4e1fa; opacity:.85; margin-top:2px; }
+  #pomodoro-widget .pw-controls{ margin-top:18px; display:flex; gap:10px; justify-content:center; }
+  #pomodoro-widget button{
+    padding:9px 20px; border-radius:999px; border:1px solid rgba(255,255,255,.35); cursor:pointer;
+    background:rgba(255,255,255,.14); backdrop-filter:blur(8px); color:#fff; font-size:12px; font-family:inherit;
+  }
+  #ps-real-fullscreen-btn{
+    position:absolute; right:calc(18px + env(safe-area-inset-right)); top:calc(18px + env(safe-area-inset-top));
+    width:38px; height:38px; border-radius:50%; border:1px solid rgba(255,255,255,.35);
+    background:rgba(255,255,255,.12); color:#fff; font-size:15px; cursor:pointer;
+  }
+  #pomodoro-toast{
+    position:absolute; left:50%; bottom:14%; transform:translateX(-50%) translateY(20px);
+    background:rgba(255,255,255,.95); color:#2a2340; padding:12px 20px; border-radius:16px;
+    font-size:13px; box-shadow:0 10px 26px rgba(0,0,0,.35); opacity:0; pointer-events:none;
+    transition:opacity .35s ease, transform .35s ease;
+  }
+  #pomodoro-toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+
+  @media (max-width:760px){
+    /* 桌宠本体缩小，避免占屏过多，并留出底部安全区 */
+    #pet-wrap{
+      right:12px; bottom:calc(96px + env(safe-area-inset-bottom));
+      width:104px; height:134px;
+    }
+
+    /* 聊天面板：不再以桌宠为中心居中（会溢出屏幕右边），改成贴右对齐，宽度自适应视口 */
+    #chat-panel{
+      left:auto; right:0; transform:none;
+      width:min(230px, calc(100vw - 24px));
+    }
+    #quick-replies{ justify-content:flex-end; }
+
+    /* 气泡同理，避免溢出 */
+    #pet-bubble{
+      left:auto; right:0; transform:none; max-width:min(230px, calc(100vw - 24px));
+    }
+    #pet-bubble::after{ left:auto; right:20px; transform:none; }
+
+    /* 状态面板 & 背包：收窄宽度，贴底加安全区 padding，避免和手势条冲突 */
+    .status-panel{
+      left:12px; bottom:calc(12px + env(safe-area-inset-bottom));
+    }
+    .status-panel-body{
+      max-width:calc(100vw - 132px); font-size:11px; padding:10px 14px;
+    }
+    #backpack-panel{
+      left:12px; bottom:calc(126px + env(safe-area-inset-bottom));
+      width:min(220px, calc(100vw - 88px));
+    }
+
+    /* 亚空间抽屉：贴右边缘，同样收窄避免溢出 */
+    #pocket-space-drawer{
+      right:12px; bottom:calc(126px + env(safe-area-inset-bottom));
+    }
+    #pocket-space-body{ width:104px; }
+    .pocket-space-entry img{ height:60px; }
+
+    /* 番茄钟卡片弹窗：跟商店一样改成底部滑入，手机上更好操作 */
+    #pomodoro-mask{ align-items:flex-end; }
+    #pomodoro-card{
+      width:100%; max-width:100%; border-radius:24px 24px 0 0;
+      padding:22px 22px calc(22px + env(safe-area-inset-bottom));
+    }
+    #pomodoro-widget{ top:9%; }
+
+    /* 全屏播放层里的真全屏按钮避让刘海/挖孔屏 */
+    #ps-real-fullscreen-btn{
+      top:calc(14px + env(safe-area-inset-top));
+    }
+
+    /* 商店：改为从底部滑入的抽屉，而不是居中弹窗 */
+    #shop-mask{ align-items:flex-end; }
+    #shop-panel{
+      width:100%; max-width:100%; max-height:82vh;
+      border-radius:24px 24px 0 0;
+      padding:14px 20px calc(20px + env(safe-area-inset-bottom));
+      transform:translateY(100%);
+    }
+    #shop-mask.show #shop-panel{ transform:translateY(0); }
+    #shop-panel.fullscreen{
+      max-height:100vh; height:100vh; border-radius:0;
+      padding-top:calc(14px + env(safe-area-inset-top));
+    }
+    #shop-drag-handle{
+      display:block; width:40px; height:4px; border-radius:999px;
+      background:rgba(255,255,255,.35); margin:2px auto 14px;
+    }
+    #shop-fullscreen-toggle{
+      display:flex; align-items:center; justify-content:center;
+      position:absolute; top:14px; right:16px; width:32px; height:32px;
+      border-radius:50%; background:rgba(255,255,255,.1); border:1px solid var(--glass-border);
+      color:#fff; font-size:15px; cursor:pointer; z-index:1;
+    }
+    #shop-grid{ grid-template-columns:repeat(4, 1fr); }
   }
 </style>
 
@@ -567,12 +841,15 @@
 
 <!-- ================= 注入的桌宠系统 HTML 开始 ================= -->
 <div class="status-panel" id="statusPanel">
-  摸头进度：<b id="touchCount">0</b><br>
-  好感度：<b id="affinity">0</b><br>
-  积分：<b class="credits" id="credits">0</b><br>
-  <button id="shop-btn" type="button">🛍️ 打开商店</button>
-  <button id="backpack-btn" type="button" style="margin-top:8px;margin-left:6px;padding:6px 12px;border-radius:999px;cursor:pointer;border:1px solid var(--glass-border);background:var(--glass);color:#c9c6e8;font-size:12px;font-family:inherit;">🎒 背包</button><br>
-  <button id="demo-checkin-btn" type="button" title="正式版应该由博客的每日打卡/浏览量触发，这里先放一个按钮方便你现在就试手感">模拟打卡 +10积分</button>
+  <div class="status-panel-body">
+    摸头进度：<b id="touchCount">0</b><br>
+    好感度：<b id="affinity">0</b><br>
+    积分：<b class="credits" id="credits">0</b><br>
+    <button id="shop-btn" type="button">🛍️ 打开商店</button>
+    <button id="backpack-btn" type="button" style="margin-top:8px;margin-left:6px;padding:6px 12px;border-radius:999px;cursor:pointer;border:1px solid var(--glass-border);background:var(--glass);color:#c9c6e8;font-size:12px;font-family:inherit;">🎒 背包</button><br>
+    <button id="demo-checkin-btn" type="button" title="正式版应该由博客的每日打卡/浏览量触发，这里先放一个按钮方便你现在就试手感">模拟打卡 +10积分</button>
+  </div>
+  <button id="status-panel-handle" type="button" aria-label="展开/收起状态栏">📊</button>
 </div>
 
 <div id="backpack-panel">
@@ -581,8 +858,22 @@
   <div id="backpack-grid"></div>
 </div>
 
+<div id="pocket-space-drawer">
+  <div id="pocket-space-body">
+    <h4>🌌 亚空间</h4>
+    <div class="ps-sub">把桌宠拖进来试试～</div>
+    <div class="pocket-space-entry" id="pocket-space-entry-1" data-space-id="cozy-room">
+      <img src="images/pocket-space/pocket-space-1-room.webp" alt="番茄钟小屋"/>
+      <span>番茄钟小屋</span>
+    </div>
+  </div>
+  <button id="pocket-space-handle" type="button" aria-label="展开/收起亚空间">🌌</button>
+</div>
+
 <div id="shop-mask">
   <div id="shop-panel">
+    <div id="shop-drag-handle"></div>
+    <button id="shop-fullscreen-toggle" type="button" title="全屏显示">⤢</button>
     <h3>桌宠小卖部</h3>
     <div class="shop-sub">花积分买点吃的，买到后去背包把食物拖给她吃～</div>
     <div id="shop-grid"></div>
@@ -591,6 +882,54 @@
 </div>
 
 <div id="drag-food-ghost"></div>
+<div id="space-smoke-fx"></div>
+
+<!-- 番茄钟弹窗（卡片态） -->
+<div id="pomodoro-mask">
+  <div id="pomodoro-card">
+    <h3>番茄钟小屋</h3>
+    <div class="pm-sub">选个时长，进去陪她坐一会儿吧</div>
+
+    <div id="pm-normal-view">
+      <div class="pm-tabs">
+        <button type="button" class="pm-tab active" data-mode="countdown">倒计时</button>
+        <button type="button" class="pm-tab" data-mode="stopwatch">正计时</button>
+      </div>
+      <div class="pm-presets" id="pm-presets">
+        <button type="button" class="pm-preset" data-min="15">15分钟</button>
+        <button type="button" class="pm-preset active" data-min="25">25分钟</button>
+        <button type="button" class="pm-preset" data-min="45">45分钟</button>
+      </div>
+      <div id="pm-custom-row">
+        <input type="number" id="pm-custom-min" min="1" max="180" placeholder="自定义"/>
+        <span>分钟</span>
+      </div>
+      <button id="pm-start-btn" type="button">开始</button>
+    </div>
+
+    <div id="pm-countdown">3</div>
+
+    <button id="pomodoro-close" type="button">先不用了</button>
+  </div>
+</div>
+
+<!-- 亚空间全屏播放层 -->
+<div id="pocket-space-fullscreen">
+  <div id="ps-bg"></div>
+  <canvas id="pocket-space-canvas"></canvas>
+  <div id="pomodoro-widget">
+    <div class="pw-time" id="pw-time">25:00</div>
+    <div class="pw-label" id="pw-label">专注中～</div>
+    <div class="pw-controls">
+      <button id="pw-pause-btn" type="button">⏸ 暂停</button>
+      <button id="pw-end-btn" type="button">⏹ 结束</button>
+    </div>
+  </div>
+  <button id="ps-real-fullscreen-btn" type="button" title="真全屏">⛶</button>
+  <div id="pomodoro-toast">完成一个番茄钟啦🍅</div>
+</div>
+
+<audio id="pomodoro-audio" src="images/pocket-space/pomodoro-bgm.mp3" loop preload="none"></audio>
 
 <div id="pet-wrap">
   <div id="pet-bubble"></div>
@@ -1149,6 +1488,8 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
   const shopGrid = document.getElementById('shop-grid');
   const shopBtn = document.getElementById('shop-btn');
   const shopClose = document.getElementById('shop-close');
+  const shopPanel = document.getElementById('shop-panel');
+  const shopFullscreenToggle = document.getElementById('shop-fullscreen-toggle');
   const demoCheckinBtn = document.getElementById('demo-checkin-btn');
 
   function renderShop(){
@@ -1188,6 +1529,15 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
   const backpackGrid = document.getElementById('backpack-grid');
   const backpackEmpty = document.getElementById('backpack-empty');
 
+  // 状态栏抽屉：默认收起，点拉手展开/收起
+  const statusPanel = document.getElementById('statusPanel');
+  const statusPanelHandle = document.getElementById('status-panel-handle');
+  if(statusPanelHandle){
+    statusPanelHandle.addEventListener('click', () => {
+      statusPanel.classList.toggle('open');
+    });
+  }
+
   function renderBackpack(){
     backpackGrid.innerHTML = '';
     const owned = Object.keys(inventory).filter(name => inventory[name] > 0);
@@ -1213,11 +1563,21 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
     renderShop();
     shopMask.classList.add('show');
   }
-  function closeShop(){ shopMask.classList.remove('show'); }
+  function closeShop(){
+    shopMask.classList.remove('show');
+    shopPanel.classList.remove('fullscreen');
+    if(shopFullscreenToggle) shopFullscreenToggle.textContent = '⤢';
+  }
 
   shopBtn.addEventListener('click', openShop);
   shopClose.addEventListener('click', closeShop);
   shopMask.addEventListener('click', (e) => { if(e.target === shopMask) closeShop(); });
+  if(shopFullscreenToggle){
+    shopFullscreenToggle.addEventListener('click', () => {
+      const isFull = shopPanel.classList.toggle('fullscreen');
+      shopFullscreenToggle.textContent = isFull ? '⤡' : '⤢';
+    });
+  }
 
   backpackBtn.addEventListener('click', () => {
     renderBackpack();
@@ -1464,6 +1824,341 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
   });
   headzone.addEventListener('mouseleave', () => { lastTouchX = null; });
 
+  // ============ 🌌 亚空间系统 ============
+  const pocketSpaceDrawer = document.getElementById('pocket-space-drawer');
+  const pocketSpaceHandle = document.getElementById('pocket-space-handle');
+  const entry1 = document.getElementById('pocket-space-entry-1');
+  const spaceSmokeFx = document.getElementById('space-smoke-fx');
+
+  pocketSpaceHandle.addEventListener('click', () => {
+    pocketSpaceDrawer.classList.toggle('open');
+  });
+
+  // 烟雾序列帧预加载（39帧，480x480，带透明通道）
+  const SMOKE_FRAME_COUNT = 39;
+  const SMOKE_FRAMES = [];
+  for(let i = 0; i < SMOKE_FRAME_COUNT; i++){
+    SMOKE_FRAMES.push('images/pocket-space/frames/smoke_' + String(i).padStart(3, '0') + '.webp');
+  }
+  const smokeImages = SMOKE_FRAMES.map((src) => { const im = new Image(); im.src = src; return im; });
+
+  // 拖拽中：判断桌宠是否悬停在亚空间入口附近
+  let spaceHoverActive = false;
+  function checkSpaceHover(clientX, clientY){
+    if(!pocketSpaceDrawer.classList.contains('open')){
+      if(spaceHoverActive){ spaceHoverActive = false; entry1.classList.remove('drag-hover'); }
+      return;
+    }
+    const r = entry1.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const dist = Math.hypot(clientX - cx, clientY - cy);
+    const hover = dist < 80;
+    if(hover !== spaceHoverActive){
+      spaceHoverActive = hover;
+      entry1.classList.toggle('drag-hover', hover);
+    }
+  }
+
+  // 一次性播放一遍烟雾（正放到底，不循环），放完回调
+  function playSmokeBurst(x, y, cb){
+    spaceSmokeFx.style.left = x + 'px';
+    spaceSmokeFx.style.top = y + 'px';
+    spaceSmokeFx.style.display = 'block';
+    let i = 0;
+    spaceSmokeFx.style.backgroundImage = 'url(' + SMOKE_FRAMES[0] + ')';
+    const timer = setInterval(() => {
+      i++;
+      if(i >= SMOKE_FRAME_COUNT){
+        clearInterval(timer);
+        spaceSmokeFx.style.display = 'none';
+        cb && cb();
+        return;
+      }
+      spaceSmokeFx.style.backgroundImage = 'url(' + SMOKE_FRAMES[i] + ')';
+    }, 42); // 约24fps
+  }
+
+  // 拖桌宠进入亚空间的完整序列：缩小淡出 + 入口弹跳 + 烟雾 + 弹出番茄钟卡片
+  function enterPocketSpace(){
+    wrap.classList.add('entering-space');
+    entry1.classList.add('entry-bump');
+    setTimeout(() => entry1.classList.remove('entry-bump'), 500);
+
+    const r = entry1.getBoundingClientRect();
+    playSmokeBurst(r.left + r.width / 2, r.top + r.height / 2, () => {
+      wrap.classList.remove('entering-space');
+      wrap.style.display = 'none';
+      pocketSpaceDrawer.classList.remove('open');
+      openPomodoroCard();
+    });
+  }
+
+  // 桌宠从亚空间重新"冒出来"，恢复 free 状态
+  function exitToFreeFromSpace(){
+    wrap.style.display = '';
+    setImg(currentIdle);
+    wrap.classList.add('emerging-space');
+    setTimeout(() => wrap.classList.remove('emerging-space'), 600);
+  }
+
+  // ---------- 番茄钟卡片（正/倒计时切换 + 321准备） ----------
+  const pomodoroMask = document.getElementById('pomodoro-mask');
+  const pomodoroCard = document.getElementById('pomodoro-card');
+  const pmNormalView = document.getElementById('pm-normal-view');
+  const pmCountdownEl = document.getElementById('pm-countdown');
+  const pmTabs = pomodoroCard.querySelectorAll('.pm-tab');
+  const pmPresetsWrap = document.getElementById('pm-presets');
+  const pmCustomRow = document.getElementById('pm-custom-row');
+  const pmCustomMin = document.getElementById('pm-custom-min');
+  const pmStartBtn = document.getElementById('pm-start-btn');
+  const pomodoroCloseBtn = document.getElementById('pomodoro-close');
+
+  let pmMode = 'countdown';
+  let pmMinutes = 25;
+
+  function openPomodoroCard(){
+    pmNormalView.style.display = '';
+    pmCountdownEl.style.display = 'none';
+    pomodoroCloseBtn.style.display = '';
+    pomodoroMask.classList.add('show');
+  }
+
+  pmTabs.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      pmTabs.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      pmMode = btn.dataset.mode;
+      const showCountdownOpts = pmMode === 'countdown';
+      pmPresetsWrap.style.display = showCountdownOpts ? 'flex' : 'none';
+      pmCustomRow.style.display = showCountdownOpts ? 'flex' : 'none';
+    });
+  });
+
+  pmPresetsWrap.querySelectorAll('.pm-preset').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      pmPresetsWrap.querySelectorAll('.pm-preset').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      pmMinutes = parseInt(btn.dataset.min, 10);
+      pmCustomMin.value = '';
+    });
+  });
+  pmCustomMin.addEventListener('input', () => {
+    if(pmCustomMin.value){
+      pmPresetsWrap.querySelectorAll('.pm-preset').forEach((b) => b.classList.remove('active'));
+    }
+  });
+
+  pomodoroCloseBtn.addEventListener('click', () => {
+    pomodoroMask.classList.remove('show');
+    exitToFreeFromSpace();
+  });
+
+  // ---------- 短促清脆的准备音效（Web Audio 合成，不需要额外音频文件） ----------
+  let audioCtx = null;
+  function getAudioCtx(){
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+  function playBeep(highPitch){
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = highPitch ? 1180 : 880;
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.28, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.18);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.2);
+  }
+
+  // ---------- 背景音乐：GainNode 淡入淡出，mp3本身干净无缝loop ----------
+  const pomodoroAudio = document.getElementById('pomodoro-audio');
+  let bgmSource = null, bgmGain = null;
+  function setupBgmGraph(){
+    if(bgmSource) return;
+    const ctx = getAudioCtx();
+    bgmSource = ctx.createMediaElementSource(pomodoroAudio);
+    bgmGain = ctx.createGain();
+    bgmGain.gain.value = 0;
+    bgmSource.connect(bgmGain).connect(ctx.destination);
+  }
+  function fadeInBgm(){
+    setupBgmGraph();
+    const ctx = getAudioCtx();
+    pomodoroAudio.currentTime = 0;
+    pomodoroAudio.play().catch(() => {});
+    bgmGain.gain.cancelScheduledValues(ctx.currentTime);
+    bgmGain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    bgmGain.gain.linearRampToValueAtTime(0.55, ctx.currentTime + 1.5);
+  }
+  function fadeOutBgm(cb){
+    const ctx = getAudioCtx();
+    bgmGain.gain.cancelScheduledValues(ctx.currentTime);
+    bgmGain.gain.setValueAtTime(bgmGain.gain.value, ctx.currentTime);
+    bgmGain.gain.linearRampToValueAtTime(0.0001, ctx.currentTime + 1.2);
+    setTimeout(() => { pomodoroAudio.pause(); cb && cb(); }, 1250);
+  }
+
+  // ---------- 全屏播放层：Canvas 逐帧 ping-pong 循环 ----------
+  const pocketSpaceFullscreen = document.getElementById('pocket-space-fullscreen');
+  const psBg = document.getElementById('ps-bg');
+  const psCanvas = document.getElementById('pocket-space-canvas');
+  const psCtx = psCanvas.getContext('2d');
+  const psRealFullscreenBtn = document.getElementById('ps-real-fullscreen-btn');
+  const pomodoroToast = document.getElementById('pomodoro-toast');
+
+  let canvasFrameIndex = 0, canvasDirection = 1, canvasRafId = null, lastFrameTime = 0;
+  const CANVAS_FPS = 20;
+
+  function resizeCanvas(){
+    psCanvas.width = window.innerWidth;
+    psCanvas.height = window.innerHeight;
+  }
+  function drawImageCover(img, cw, ch){
+    const iw = img.naturalWidth || 480, ih = img.naturalHeight || 480;
+    const scale = Math.max(cw / iw, ch / ih);
+    const w = iw * scale, h = ih * scale;
+    psCtx.clearRect(0, 0, cw, ch);
+    psCtx.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h);
+  }
+  function canvasLoop(ts){
+    if(!lastFrameTime) lastFrameTime = ts;
+    if(ts - lastFrameTime > 1000 / CANVAS_FPS){
+      lastFrameTime = ts;
+      const img = smokeImages[canvasFrameIndex];
+      if(img && img.complete) drawImageCover(img, psCanvas.width, psCanvas.height);
+      canvasFrameIndex += canvasDirection;
+      if(canvasFrameIndex >= SMOKE_FRAME_COUNT - 1){ canvasFrameIndex = SMOKE_FRAME_COUNT - 1; canvasDirection = -1; }
+      else if(canvasFrameIndex <= 0){ canvasFrameIndex = 0; canvasDirection = 1; }
+    }
+    canvasRafId = requestAnimationFrame(canvasLoop);
+  }
+  function startCanvasLoop(){
+    resizeCanvas();
+    canvasFrameIndex = 0; canvasDirection = 1; lastFrameTime = 0;
+    canvasRafId = requestAnimationFrame(canvasLoop);
+  }
+  function stopCanvasLoop(){
+    if(canvasRafId) cancelAnimationFrame(canvasRafId);
+    canvasRafId = null;
+  }
+  window.addEventListener('resize', () => { if(pocketSpaceFullscreen.classList.contains('show')) resizeCanvas(); });
+  window.addEventListener('orientationchange', () => { if(pocketSpaceFullscreen.classList.contains('show')) setTimeout(resizeCanvas, 200); });
+
+  psRealFullscreenBtn.addEventListener('click', () => {
+    if(!document.fullscreenElement){
+      pocketSpaceFullscreen.requestFullscreen && pocketSpaceFullscreen.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen && document.exitFullscreen();
+    }
+  });
+
+  // ---------- 计时器状态机（正计时/倒计时共用） ----------
+  const pwTime = document.getElementById('pw-time');
+  const pwLabel = document.getElementById('pw-label');
+  const pwPauseBtn = document.getElementById('pw-pause-btn');
+  const pwEndBtn = document.getElementById('pw-end-btn');
+
+  let pmIsCountdown = true, pmTargetMinutes = 25, pmTotalSeconds = 0, pmElapsedSeconds = 0, pmPaused = false, timerInterval = null;
+
+  function updateTimerDisplay(overrideSeconds){
+    const secs = overrideSeconds !== undefined ? overrideSeconds : (pmIsCountdown ? (pmTotalSeconds - pmElapsedSeconds) : pmElapsedSeconds);
+    const clamped = Math.max(0, secs);
+    const m = Math.floor(clamped / 60), s = clamped % 60;
+    pwTime.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  }
+  function tickTimer(){
+    if(pmPaused) return;
+    pmElapsedSeconds++;
+    if(pmIsCountdown){
+      const remain = pmTotalSeconds - pmElapsedSeconds;
+      if(remain <= 0){ updateTimerDisplay(0); finishPomodoro(true); return; }
+      updateTimerDisplay(remain);
+    } else {
+      updateTimerDisplay(pmElapsedSeconds);
+    }
+  }
+
+  function launchFullscreenPomodoro(){
+    pomodoroMask.classList.remove('show');
+    // 打开亚空间全屏时强制收起其它抽屉，避免层级打架
+    statusPanel.classList.remove('open');
+    backpackPanel.classList.remove('show');
+    pocketSpaceDrawer.classList.remove('open');
+
+    psBg.style.backgroundImage = "url('images/pocket-space/pocket-space-1-room.jpg')";
+    pocketSpaceFullscreen.classList.add('show');
+    startCanvasLoop();
+    fadeInBgm();
+
+    pmIsCountdown = (pmMode === 'countdown');
+    pmTotalSeconds = pmTargetMinutes * 60;
+    pmElapsedSeconds = 0;
+    pmPaused = false;
+    pwPauseBtn.textContent = '⏸ 暂停';
+    pwLabel.textContent = pmIsCountdown ? '专注中～' : '正在计时～';
+    updateTimerDisplay(pmIsCountdown ? pmTotalSeconds : 0);
+
+    clearInterval(timerInterval);
+    timerInterval = setInterval(tickTimer, 1000);
+  }
+
+  function showSpaceToast(text){
+    pomodoroToast.textContent = text;
+    pomodoroToast.classList.add('show');
+    setTimeout(() => pomodoroToast.classList.remove('show'), 2600);
+  }
+
+  function finishPomodoro(completedNaturally){
+    clearInterval(timerInterval);
+    const earnedMinutes = pmIsCountdown ? pmTargetMinutes : Math.max(1, Math.round(pmElapsedSeconds / 60));
+    const reward = Math.max(2, Math.round(earnedMinutes / 5));
+    addCredits(reward);
+    addAffinity(1);
+    showSpaceToast(completedNaturally ? ('完成一个番茄钟啦🍅 +' + reward + '积分') : ('先休息一下，也奖励你 +' + reward + '积分'));
+    fadeOutBgm(() => {
+      stopCanvasLoop();
+      pocketSpaceFullscreen.classList.remove('show');
+      exitToFreeFromSpace();
+    });
+  }
+
+  pwPauseBtn.addEventListener('click', () => {
+    pmPaused = !pmPaused;
+    pwPauseBtn.textContent = pmPaused ? '▶ 继续' : '⏸ 暂停';
+    pwLabel.textContent = pmPaused ? '暂停中…' : (pmIsCountdown ? '专注中～' : '正在计时～');
+  });
+  pwEndBtn.addEventListener('click', () => finishPomodoro(false));
+
+  pmStartBtn.addEventListener('click', () => {
+    let minutes = pmMinutes;
+    const customVal = parseInt(pmCustomMin.value, 10);
+    if(pmMode === 'countdown' && customVal > 0) minutes = customVal;
+    pmTargetMinutes = minutes;
+
+    pmNormalView.style.display = 'none';
+    pomodoroCloseBtn.style.display = 'none';
+    pmCountdownEl.style.display = 'block';
+
+    let n = 3;
+    pmCountdownEl.textContent = n;
+    playBeep(false);
+    const iv = setInterval(() => {
+      n--;
+      if(n <= 0){
+        clearInterval(iv);
+        playBeep(true);
+        launchFullscreenPomodoro();
+        return;
+      }
+      pmCountdownEl.textContent = n;
+      playBeep(false);
+    }, 700);
+  });
+
   // ============ 拖拽 ============
   let dragOffsetX = 0, dragOffsetY = 0;
   const chatPanelEl = document.getElementById('chat-panel');
@@ -1490,12 +2185,21 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
     y = Math.max(-40, Math.min(window.innerHeight - wrap.offsetHeight - chatBelow, y));
     wrap.style.left = x + 'px';
     wrap.style.top = y + 'px';
+    checkSpaceHover(clientX, clientY);
   }
 
   function endDrag(){
     if(!isDragging) return;
     isDragging = false;
     wrap.classList.remove('dragging');
+
+    if(spaceHoverActive){
+      spaceHoverActive = false;
+      entry1.classList.remove('drag-hover');
+      enterPocketSpace();
+      return;
+    }
+
     wrap.classList.add('falling');
     setImg(IMG.fall);
     showBubble('哎呀，被摔了一下！');
