@@ -278,12 +278,15 @@
     ================= 🧩 图层顺序总表（z-index）=================
     数值越大越靠上，改动前先看这张表，别随手加大数字。
 
-      400   #backpack-panel     背包抽屉（必须在桌宠下面）
-      420   #pocket-space-drawer 亚空间入口抽屉（同样在桌宠下面，不挡拖拽视线）
+      400   （已废弃，背包/亚空间改用弹窗，见下方485/490）
+      420   （已废弃）
+      465   （预留）
       480   .status-panel       状态栏抽屉
+      485   #backpack-mask      背包弹窗（桌面居中弹窗/手机底部抽屉，必须盖过状态栏、但让桌宠露在上面方便拖食物）
+      490   #pocket-space-mask  亚空间弹窗（桌面大弹窗/手机底部抽屉，同样让桌宠露在上面方便拖进去）
       500   #pet-wrap           桌宠本体（含气泡 #pet-bubble、聊天面板 #chat-panel，
                                  这两个是桌宠的绝对定位子元素，跟着父级层级走，不用单独设）
-      900   #pocket-space-fullscreen 亚空间全屏播放层（盖过桌宠和抽屉，打开时会强制收起状态栏/背包/亚空间抽屉）
+      900   #pocket-space-fullscreen 亚空间全屏播放层（盖过桌宠和抽屉，打开时会强制收起状态栏/背包/亚空间弹窗）
       1000  #shop-mask / #pomodoro-mask  商店弹层 / 番茄钟卡片弹层（互斥使用，不会同时开）
       1500  #drag-food-ghost    背包食物拖拽中的幽灵元素（必须盖过一切，含商店）
       1600  #space-smoke-fx     进入亚空间瞬间的一次性烟雾特效（短暂出现，盖过桌宠）
@@ -413,6 +416,12 @@
     background:var(--glass); border:1px solid var(--glass-border); color:#c9c6e8;
     font-size:11px; font-family:inherit;
   }
+  /* 状态栏里的背包/亚空间小按钮，共用一套样式 */
+  .sp-mini-btn{
+    margin-top:8px; margin-left:6px; padding:6px 12px; border-radius:999px; cursor:pointer;
+    border:1px solid var(--glass-border); background:var(--glass); color:#c9c6e8;
+    font-size:12px; font-family:inherit;
+  }
 
   /* ================= 商店弹窗（不做背景虚化，只留一层淡淡的遮罩） ================= */
   #shop-mask{
@@ -452,18 +461,31 @@
     font-size:12px; font-family:inherit;
   }
 
-  /* ================= 背包面板：非模态，不挡住角色，方便把食物拖到角色身上 ================= */
-  /* 默认收起在屏幕左边外面，滑出方式和状态栏保持一致的动效语言 */
-  #backpack-panel{
-    position:fixed; left:24px; bottom:180px; z-index:400;
-    width:220px; background:var(--glass); border:1px solid var(--glass-border); border-radius:16px;
-    backdrop-filter:blur(10px); padding:14px;
-    transform:translateX(-130%); transition:transform .32s cubic-bezier(.22,1,.36,1);
+  /* ================= 背包弹窗：桌面居中弹窗，手机底部抽屉，和商店同一套动效语言 ================= */
+  /* z-index 故意比桌宠(500)低，这样桌宠依旧露在弹窗上面，方便把食物从背包拖到她身上 */
+  #backpack-mask{
+    position:fixed; inset:0; z-index:485; background:rgba(10,8,30,.4);
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity .3s ease;
   }
-  #backpack-panel.show{ transform:translateX(0); }
+  #backpack-mask.show{ opacity:1; pointer-events:auto; }
+  #backpack-panel{
+    position:relative;
+    width:min(300px, 88vw); max-height:74vh; overflow-y:auto;
+    background:var(--glass); border:1px solid var(--glass-border); border-radius:20px;
+    backdrop-filter:blur(14px); padding:20px; box-shadow:0 20px 50px rgba(0,0,0,.5);
+    transform:translateY(16px); opacity:0; transition:transform .32s cubic-bezier(.22,1,.36,1), opacity .3s ease;
+  }
+  #backpack-mask.show #backpack-panel{ transform:translateY(0); opacity:1; }
+  #backpack-drag-handle{ display:none; }
   #backpack-panel h4{margin:0 0 8px; font-size:13px; color:#fff;}
   #backpack-empty{font-size:12px; color:#a8a4cc; text-align:center; padding:10px 0;}
   #backpack-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;}
+  #backpack-close{
+    display:block; margin:16px auto 0; padding:6px 20px; border-radius:999px; border:none;
+    cursor:pointer; background:rgba(255,255,255,.1); border:1px solid var(--glass-border); color:#c9c6e8;
+    font-size:11px; font-family:inherit;
+  }
   .bp-item{
     position:relative; background:rgba(255,255,255,.08); border:1px solid var(--glass-border);
     border-radius:12px; padding:8px 4px; text-align:center; cursor:grab; user-select:none; touch-action:none;
@@ -496,40 +518,45 @@
   }
 
   /* ================= 🌌 亚空间系统 ================= */
-  /* 入口抽屉：跟状态栏/背包用同一套"贴边拉手滑出"语言，z-index比背包高一点、比桌宠低 */
-  #pocket-space-drawer{
-    position:fixed; right:24px; bottom:24px; z-index:420;
-    display:flex; align-items:stretch;
-    transform:translateX(calc(100% - 44px));
-    transition:transform .32s cubic-bezier(.22,1,.36,1);
-  }
-  #pocket-space-drawer.open{ transform:translateX(0); }
-  #pocket-space-handle{
-    flex-shrink:0; width:44px; align-self:stretch;
-    background:var(--glass); border:1px solid var(--glass-border);
-    border-radius:14px 0 0 14px; backdrop-filter:blur(10px);
+  /* 入口弹窗：桌面居中大弹窗（几乎占满），手机底部抽屉，和商店/背包同一套动效语言 */
+  /* z-index 比背包高一点、但依然比桌宠低，桌宠拖进来时始终露在弹窗上面 */
+  #pocket-space-mask{
+    position:fixed; inset:0; z-index:490; background:rgba(10,8,30,.5);
     display:flex; align-items:center; justify-content:center;
-    font-size:17px; color:#fff; cursor:pointer;
+    opacity:0; pointer-events:none; transition:opacity .3s ease;
   }
-  #pocket-space-body{
-    background:var(--glass); border:1px solid var(--glass-border); border-left:none;
-    border-radius:0 14px 14px 0; backdrop-filter:blur(10px);
-    padding:14px; display:flex; flex-direction:column; gap:8px; width:132px;
+  #pocket-space-mask.show{ opacity:1; pointer-events:auto; }
+  #pocket-space-panel{
+    position:relative;
+    width:min(1040px, 94vw); height:min(860px, 86vh); overflow-y:auto;
+    background:linear-gradient(160deg,#221a45,#1a1436); border:1px solid var(--glass-border);
+    border-radius:26px; padding:30px; box-shadow:0 24px 60px rgba(0,0,0,.55);
+    transform:translateY(18px); opacity:0; transition:transform .34s cubic-bezier(.22,1,.36,1), opacity .3s ease;
   }
-  #pocket-space-body h4{ margin:0; font-size:12px; color:#fff; }
-  #pocket-space-body .ps-sub{ font-size:10px; color:#a8a4cc; line-height:1.5; }
+  #pocket-space-mask.show #pocket-space-panel{ transform:translateY(0); opacity:1; }
+  #pocket-space-drag-handle{ display:none; }
+  #pocket-space-panel h3{ margin:0 0 4px; font-size:18px; color:#fff; }
+  #pocket-space-panel .ps-sub{ font-size:12px; color:#a8a4cc; margin-bottom:20px; }
+  #pocket-space-close{
+    position:absolute; top:20px; right:22px; width:34px; height:34px; border-radius:50%;
+    border:1px solid var(--glass-border); background:rgba(255,255,255,.1); color:#fff;
+    font-size:15px; cursor:pointer;
+  }
+  #pocket-space-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:20px;
+  }
   .pocket-space-entry{
-    position:relative; border-radius:12px; overflow:hidden; cursor:pointer;
+    position:relative; border-radius:16px; overflow:hidden; cursor:pointer;
     border:2px solid var(--glass-border); transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
   }
-  .pocket-space-entry img{ display:block; width:100%; height:78px; object-fit:cover; }
+  .pocket-space-entry img{ display:block; width:100%; height:200px; object-fit:cover; }
   .pocket-space-entry span{
-    position:absolute; left:0; right:0; bottom:0; padding:4px 6px; font-size:10px; color:#fff;
-    background:linear-gradient(0deg,rgba(0,0,0,.55),transparent); text-align:center;
+    position:absolute; left:0; right:0; bottom:0; padding:8px 10px; font-size:12px; color:#fff;
+    background:linear-gradient(0deg,rgba(0,0,0,.6),transparent); text-align:center;
   }
   /* 桌宠拖到入口附近时的高亮态：轻微放大+发光边框，提示"松手可以放进去" */
   .pocket-space-entry.drag-hover{
-    transform:scale(1.08); border-color:var(--aqua);
+    transform:scale(1.04); border-color:var(--aqua);
     box-shadow:0 0 0 4px rgba(92,225,230,.25), 0 8px 20px rgba(0,0,0,.4);
   }
   /* 桌宠"撞了一下"入口的橡皮筋弹跳，复用 petBounce 曲线的思路 */
@@ -538,6 +565,14 @@
     0%{ transform:scale(1); } 30%{ transform:scale(1.18); }
     55%{ transform:scale(.92); } 100%{ transform:scale(1); }
   }
+  /* 桌宠被吸进去之后，小小地"住"在亚空间缩略图里，直到番茄钟结束再冒出来 */
+  .ps-resident-pet{
+    position:absolute; left:50%; bottom:10px; width:30%; max-width:70px;
+    transform:translateX(-50%) scale(0); transform-origin:bottom center;
+    transition:transform .35s cubic-bezier(.34,1.56,.64,1); pointer-events:none;
+    filter:drop-shadow(0 6px 10px rgba(0,0,0,.45));
+  }
+  .pocket-space-entry.pet-resident .ps-resident-pet{ transform:translateX(-50%) scale(1); }
 
   /* 桌宠被"吸入"亚空间时的缩小淡出动画 */
   #pet-wrap.entering-space #pet-body{
@@ -625,15 +660,15 @@
     position:absolute; inset:0; width:100%; height:100%;
   }
   #pomodoro-widget{
-    position:absolute; left:50%; top:12%; transform:translateX(-50%);
-    text-align:center; color:#fff;
+    position:absolute; left:24px; top:24px;
+    text-align:left; color:#fff;
   }
   #pomodoro-widget .pw-time{
-    font-family:'ZCOOL KuaiLe','Noto Sans SC',sans-serif; font-size:clamp(48px,9vw,88px);
-    text-shadow:0 4px 18px rgba(0,0,0,.5); letter-spacing:2px;
+    font-family:'ZCOOL KuaiLe','Noto Sans SC',sans-serif; font-size:clamp(32px,5vw,56px);
+    text-shadow:0 4px 18px rgba(0,0,0,.5); letter-spacing:1px;
   }
   #pomodoro-widget .pw-label{ font-size:12px; color:#e4e1fa; opacity:.85; margin-top:2px; }
-  #pomodoro-widget .pw-controls{ margin-top:18px; display:flex; gap:10px; justify-content:center; }
+  #pomodoro-widget .pw-controls{ margin-top:14px; display:flex; gap:10px; justify-content:flex-start; }
   #pomodoro-widget button{
     padding:9px 20px; border-radius:999px; border:1px solid rgba(255,255,255,.35); cursor:pointer;
     background:rgba(255,255,255,.14); backdrop-filter:blur(8px); color:#fff; font-size:12px; font-family:inherit;
@@ -672,24 +707,44 @@
     }
     #pet-bubble::after{ left:auto; right:20px; transform:none; }
 
-    /* 状态面板 & 背包：收窄宽度，贴底加安全区 padding，避免和手势条冲突 */
+    /* 状态面板：收窄宽度，贴底加安全区 padding，避免和手势条冲突 */
     .status-panel{
       left:12px; bottom:calc(12px + env(safe-area-inset-bottom));
     }
     .status-panel-body{
       max-width:calc(100vw - 132px); font-size:11px; padding:10px 14px;
     }
+
+    /* 背包弹窗：手机上改成底部抽屉 */
+    #backpack-mask{ align-items:flex-end; }
     #backpack-panel{
-      left:12px; bottom:calc(126px + env(safe-area-inset-bottom));
-      width:min(220px, calc(100vw - 88px));
+      width:100%; max-width:100%; max-height:78vh;
+      border-radius:24px 24px 0 0;
+      padding:14px 20px calc(20px + env(safe-area-inset-bottom));
+      transform:translateY(100%);
+    }
+    #backpack-mask.show #backpack-panel{ transform:translateY(0); }
+    #backpack-drag-handle{
+      display:block; width:40px; height:4px; border-radius:999px;
+      background:rgba(255,255,255,.35); margin:2px auto 14px;
     }
 
-    /* 亚空间抽屉：贴右边缘，同样收窄避免溢出 */
-    #pocket-space-drawer{
-      right:12px; bottom:calc(126px + env(safe-area-inset-bottom));
+    /* 亚空间弹窗：手机上同样改成底部抽屉，缩略图矮一点 */
+    #pocket-space-mask{ align-items:flex-end; }
+    #pocket-space-panel{
+      width:100%; max-width:100%; height:82vh;
+      border-radius:24px 24px 0 0;
+      padding:16px 20px calc(20px + env(safe-area-inset-bottom));
+      transform:translateY(100%);
     }
-    #pocket-space-body{ width:104px; }
-    .pocket-space-entry img{ height:60px; }
+    #pocket-space-mask.show #pocket-space-panel{ transform:translateY(0); }
+    #pocket-space-drag-handle{
+      display:block; width:40px; height:4px; border-radius:999px;
+      background:rgba(255,255,255,.35); margin:2px auto 14px;
+    }
+    #pocket-space-close{ top:14px; right:16px; }
+    #pocket-space-grid{ grid-template-columns:repeat(2, 1fr); gap:12px; }
+    .pocket-space-entry img{ height:110px; }
 
     /* 番茄钟卡片弹窗：跟商店一样改成底部滑入，手机上更好操作 */
     #pomodoro-mask{ align-items:flex-end; }
@@ -697,7 +752,7 @@
       width:100%; max-width:100%; border-radius:24px 24px 0 0;
       padding:22px 22px calc(22px + env(safe-area-inset-bottom));
     }
-    #pomodoro-widget{ top:9%; }
+    #pomodoro-widget{ left:16px; top:calc(16px + env(safe-area-inset-top)); }
 
     /* 全屏播放层里的真全屏按钮避让刘海/挖孔屏 */
     #ps-real-fullscreen-btn{
@@ -846,28 +901,38 @@
     好感度：<b id="affinity">0</b><br>
     积分：<b class="credits" id="credits">0</b><br>
     <button id="shop-btn" type="button">🛍️ 打开商店</button>
-    <button id="backpack-btn" type="button" style="margin-top:8px;margin-left:6px;padding:6px 12px;border-radius:999px;cursor:pointer;border:1px solid var(--glass-border);background:var(--glass);color:#c9c6e8;font-size:12px;font-family:inherit;">🎒 背包</button><br>
+    <button id="backpack-btn" type="button" class="sp-mini-btn">🎒 背包</button>
+    <button id="pocket-space-btn" type="button" class="sp-mini-btn">🌌 亚空间</button><br>
     <button id="demo-checkin-btn" type="button" title="正式版应该由博客的每日打卡/浏览量触发，这里先放一个按钮方便你现在就试手感">模拟打卡 +10积分</button>
   </div>
   <button id="status-panel-handle" type="button" aria-label="展开/收起状态栏">📊</button>
 </div>
 
-<div id="backpack-panel">
-  <h4>我的背包</h4>
-  <div id="backpack-empty">还没有食物，先去商店买点吧～</div>
-  <div id="backpack-grid"></div>
+<div id="backpack-mask">
+  <div id="backpack-panel">
+    <div id="backpack-drag-handle"></div>
+    <h4>我的背包</h4>
+    <div id="backpack-empty">还没有食物，先去商店买点吧～</div>
+    <div id="backpack-grid"></div>
+    <button id="backpack-close" type="button">关闭</button>
+  </div>
 </div>
 
-<div id="pocket-space-drawer">
-  <div id="pocket-space-body">
-    <h4>🌌 亚空间</h4>
-    <div class="ps-sub">把桌宠拖进来试试～</div>
-    <div class="pocket-space-entry" id="pocket-space-entry-1" data-space-id="cozy-room">
-      <img src="images/pocket-space/pocket-space-1-room.webp" alt="番茄钟小屋"/>
-      <span>番茄钟小屋</span>
+<div id="pocket-space-mask">
+  <div id="pocket-space-panel">
+    <div id="pocket-space-drag-handle"></div>
+    <button id="pocket-space-close" type="button">✕</button>
+    <h3>🌌 亚空间</h3>
+    <div class="ps-sub">把桌宠拖到下面的场景里，陪她坐一会儿吧～</div>
+    <div id="pocket-space-grid">
+      <div class="pocket-space-entry" id="pocket-space-entry-1" data-space-id="cozy-room">
+        <img src="images/pocket-space/pocket-space-1-room.webp" alt="番茄钟小屋"/>
+        <img class="ps-resident-pet" id="ps-resident-pet-1" alt=""/>
+        <span>番茄钟小屋</span>
+      </div>
+      <!-- 以后新增亚空间，直接照着上面这个 .pocket-space-entry 结构往这里加 -->
     </div>
   </div>
-  <button id="pocket-space-handle" type="button" aria-label="展开/收起亚空间">🌌</button>
 </div>
 
 <div id="shop-mask">
@@ -1524,8 +1589,10 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
     showBubbleTyped('买到了' + food.name + '，去背包里拖给她吃吧～');
   }
 
+  const backpackMask = document.getElementById('backpack-mask');
   const backpackPanel = document.getElementById('backpack-panel');
   const backpackBtn = document.getElementById('backpack-btn');
+  const backpackClose = document.getElementById('backpack-close');
   const backpackGrid = document.getElementById('backpack-grid');
   const backpackEmpty = document.getElementById('backpack-empty');
 
@@ -1579,10 +1646,17 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
     });
   }
 
-  backpackBtn.addEventListener('click', () => {
+  function openBackpack(){
     renderBackpack();
-    backpackPanel.classList.toggle('show');
-  });
+    statusPanel.classList.remove('open');
+    backpackMask.classList.add('show');
+  }
+  function closeBackpack(){
+    backpackMask.classList.remove('show');
+  }
+  backpackBtn.addEventListener('click', openBackpack);
+  backpackClose.addEventListener('click', closeBackpack);
+  backpackMask.addEventListener('click', (e) => { if(e.target === backpackMask) closeBackpack(); });
   renderBackpack();
 
   demoCheckinBtn.addEventListener('click', () => {
@@ -1825,14 +1899,23 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
   headzone.addEventListener('mouseleave', () => { lastTouchX = null; });
 
   // ============ 🌌 亚空间系统 ============
-  const pocketSpaceDrawer = document.getElementById('pocket-space-drawer');
-  const pocketSpaceHandle = document.getElementById('pocket-space-handle');
+  const pocketSpaceMask = document.getElementById('pocket-space-mask');
+  const pocketSpaceBtn = document.getElementById('pocket-space-btn');
+  const pocketSpaceClose = document.getElementById('pocket-space-close');
   const entry1 = document.getElementById('pocket-space-entry-1');
+  const psResidentPet1 = document.getElementById('ps-resident-pet-1');
   const spaceSmokeFx = document.getElementById('space-smoke-fx');
 
-  pocketSpaceHandle.addEventListener('click', () => {
-    pocketSpaceDrawer.classList.toggle('open');
-  });
+  function openPocketSpace(){
+    statusPanel.classList.remove('open');
+    pocketSpaceMask.classList.add('show');
+  }
+  function closePocketSpace(){
+    pocketSpaceMask.classList.remove('show');
+  }
+  pocketSpaceBtn.addEventListener('click', openPocketSpace);
+  pocketSpaceClose.addEventListener('click', closePocketSpace);
+  pocketSpaceMask.addEventListener('click', (e) => { if(e.target === pocketSpaceMask) closePocketSpace(); });
 
   // 烟雾序列帧预加载（39帧，480x480，带透明通道）
   const SMOKE_FRAME_COUNT = 39;
@@ -1842,17 +1925,17 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
   }
   const smokeImages = SMOKE_FRAMES.map((src) => { const im = new Image(); im.src = src; return im; });
 
-  // 拖拽中：判断桌宠是否悬停在亚空间入口附近
+  // 拖拽中：判断桌宠是否悬停在亚空间入口附近（只有亚空间弹窗打开时才判定）
   let spaceHoverActive = false;
   function checkSpaceHover(clientX, clientY){
-    if(!pocketSpaceDrawer.classList.contains('open')){
+    if(!pocketSpaceMask.classList.contains('show')){
       if(spaceHoverActive){ spaceHoverActive = false; entry1.classList.remove('drag-hover'); }
       return;
     }
     const r = entry1.getBoundingClientRect();
     const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
     const dist = Math.hypot(clientX - cx, clientY - cy);
-    const hover = dist < 80;
+    const hover = dist < 90;
     if(hover !== spaceHoverActive){
       spaceHoverActive = hover;
       entry1.classList.toggle('drag-hover', hover);
@@ -1878,7 +1961,8 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
     }, 42); // 约24fps
   }
 
-  // 拖桌宠进入亚空间的完整序列：缩小淡出 + 入口弹跳 + 烟雾 + 弹出番茄钟卡片
+  // 拖桌宠进入亚空间的完整序列：
+  // 弹跳 + 烟雾同时炸开 → 桌宠缩小消失 → 小小地"住"进亚空间缩略图里，停留一下让你看清她进去了 → 弹出番茄钟卡片
   function enterPocketSpace(){
     wrap.classList.add('entering-space');
     entry1.classList.add('entry-bump');
@@ -1888,13 +1972,21 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
     playSmokeBurst(r.left + r.width / 2, r.top + r.height / 2, () => {
       wrap.classList.remove('entering-space');
       wrap.style.display = 'none';
-      pocketSpaceDrawer.classList.remove('open');
-      openPomodoroCard();
+      // 桌宠"住"进了亚空间缩略图里
+      if(psResidentPet1){
+        psResidentPet1.src = currentIdle;
+        entry1.classList.add('pet-resident');
+      }
+      setTimeout(() => {
+        closePocketSpace();
+        openPomodoroCard();
+      }, 550);
     });
   }
 
   // 桌宠从亚空间重新"冒出来"，恢复 free 状态
   function exitToFreeFromSpace(){
+    if(psResidentPet1) entry1.classList.remove('pet-resident');
     wrap.style.display = '';
     setImg(currentIdle);
     wrap.classList.add('emerging-space');
@@ -2047,6 +2139,8 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
   }
   window.addEventListener('resize', () => { if(pocketSpaceFullscreen.classList.contains('show')) resizeCanvas(); });
   window.addEventListener('orientationchange', () => { if(pocketSpaceFullscreen.classList.contains('show')) setTimeout(resizeCanvas, 200); });
+  // 切真全屏/退出真全屏那一刻也重新适配一次画布，保证"挂机"模式下动画始终铺满
+  document.addEventListener('fullscreenchange', () => { if(pocketSpaceFullscreen.classList.contains('show')) setTimeout(resizeCanvas, 60); });
 
   psRealFullscreenBtn.addEventListener('click', () => {
     if(!document.fullscreenElement){
@@ -2084,10 +2178,10 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
 
   function launchFullscreenPomodoro(){
     pomodoroMask.classList.remove('show');
-    // 打开亚空间全屏时强制收起其它抽屉，避免层级打架
+    // 打开亚空间全屏时强制收起其它弹窗/抽屉，避免层级打架
     statusPanel.classList.remove('open');
-    backpackPanel.classList.remove('show');
-    pocketSpaceDrawer.classList.remove('open');
+    backpackMask.classList.remove('show');
+    pocketSpaceMask.classList.remove('show');
 
     psBg.style.backgroundImage = "url('images/pocket-space/pocket-space-1-room.jpg')";
     pocketSpaceFullscreen.classList.add('show');
