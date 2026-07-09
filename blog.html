@@ -235,6 +235,7 @@
 
   /* 手机端适配 */
   .mobile-fab{ display:none; }
+  #mobile-action-dock{ display:none; }
   .sidebar-backdrop{ display:none; }
   .sidebar-close{ display:none; }
   .pagination{ display:flex; align-items:center; justify-content:center; gap:8px; margin-top:30px; flex-wrap:wrap; }
@@ -267,8 +268,41 @@
     .sidebar-backdrop{ display:block; position:fixed; inset:0; z-index:190; background:rgba(8,6,20,.55); backdrop-filter:blur(2px); opacity:0; pointer-events:none; transition:opacity .3s; }
     .sidebar-backdrop.open{ opacity:1; pointer-events:auto; }
     .sidebar-close{ display:flex; align-items:center; justify-content:center; width:30px;height:30px;border-radius:50%;background:var(--glass);border:1px solid var(--glass-border); color:#fff; font-size:15px; margin-bottom:14px; cursor:pointer; }
-    .mobile-fab{ display:flex; align-items:center; justify-content:center; position:fixed; right:18px; bottom:22px; z-index:150; width:52px;height:52px;border-radius:50%; background:linear-gradient(135deg,var(--aqua),var(--violet)); box-shadow:0 12px 28px -8px rgba(92,225,230,.6); color:#12102b; font-size:20px; border:none; cursor:pointer; transition:.25s; }
+    .mobile-fab{
+      display:flex; align-items:center; justify-content:center;
+      background:linear-gradient(135deg,var(--aqua),var(--violet));
+      color:#12102b; border:none; cursor:pointer; transition:.25s;
+    }
     .mobile-fab:active{transform:scale(.92);}
+
+    /* 桌宠功能按钮(📊) + 搜索/导航按钮(🔍) 共用一个底座：同一水平线、同大小，垂直堆叠，
+       所有尺寸/间距都用 clamp() 连续缩放，不挂在某个固定断点上，任何屏幕比例都是同一套比例关系。
+       这几个值单独定义成变量，是因为下面 #pet-wrap 要用它们算出"刚好贴在底座上方、不会压住按钮"的安全距离 */
+    :root{
+      --dock-btn: clamp(42px, 12vw, 52px);
+      --dock-gap: clamp(8px, 2.2vw, 14px);
+      --dock-pad: clamp(6px, 1.8vw, 9px);
+      --dock-right: clamp(10px, 4vw, 18px);
+      --dock-bottom: clamp(16px, 5vw, 22px);
+      /* 底座总高度 = 上下padding*2 + 两个按钮 + 中间间距 */
+      --dock-height: calc(var(--dock-pad) * 2 + var(--dock-btn) * 2 + var(--dock-gap));
+    }
+    #mobile-action-dock{
+      display:flex; flex-direction:column; align-items:center;
+      gap:var(--dock-gap);
+      position:fixed; z-index:150;
+      right:var(--dock-right);
+      bottom:var(--dock-bottom);
+      padding:var(--dock-pad);
+      background:rgba(20,16,45,.4); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+      border:1px solid var(--glass-border); border-radius:999px;
+      box-shadow:0 12px 28px rgba(0,0,0,.35);
+    }
+    .dock-btn{
+      width:var(--dock-btn); height:var(--dock-btn);
+      border-radius:50%; flex-shrink:0;
+      font-size:clamp(16px, 4.2vw, 20px); line-height:1;
+    }
   }
 </style>
 
@@ -351,7 +385,10 @@
   /* ================= 聊天面板：作为角色容器的子元素，始终贴在角色下方，跟随拖拽移动 ================= */
   #chat-panel{
     position:absolute; top:100%; left:50%; transform:translateX(-50%);
-    margin-top:10px; width:230px; display:flex; flex-direction:column; gap:8px;
+    margin-top:10px; width:230px; display:flex; flex-direction:column; align-items:flex-end; gap:8px;
+  }
+  #chat-body{
+    display:flex; flex-direction:column; gap:8px; width:100%;
   }
   #quick-replies{
     display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end;
@@ -363,6 +400,8 @@
     font-family:inherit;
   }
   #quick-replies button:hover{ background:rgba(255,255,255,.22); transform:translateY(-1px); }
+  /* 手机端呼出输入框用的图标按钮，桌面端始终不需要，直接隐藏 */
+  #chat-input-toggle{ display:none; }
   #chat-input-row{
     display:flex; gap:6px;
   }
@@ -403,6 +442,8 @@
     display:flex; align-items:center; justify-content:center;
     font-size:17px; color:#fff; cursor:pointer;
   }
+  /* 桌宠旁边呼出状态栏抽屉的按钮：只在手机端出现，桌面端用不到（桌面还是拉手那一套） */
+  #pet-menu-btn{ display:none; }
 
   #shop-btn{
     display:inline-flex; align-items:center; gap:6px; margin-top:8px;
@@ -688,9 +729,11 @@
 
 
   @media (max-width:760px){
-    /* 桌宠本体缩小，避免占屏过多，并留出底部安全区 */
+    /* 桌宠本体缩小，避免占屏过多；贴底距离 = 底座自己的 bottom偏移 + 底座总高度 + 一点呼吸间隙，
+       这样不管屏幕多宽多窄，桌宠都刚好贴在📊/🔍底座正上方，绝不会压住按钮 */
     #pet-wrap{
-      right:12px; bottom:calc(96px + env(safe-area-inset-bottom));
+      right:12px;
+      bottom:calc(var(--dock-bottom) + var(--dock-height) + clamp(14px, 4vw, 20px) + env(safe-area-inset-bottom));
       width:104px; height:134px;
     }
 
@@ -701,18 +744,46 @@
     }
     #quick-replies{ justify-content:flex-end; }
 
+    /* 快捷回复 + 输入框默认都收起，一起藏在💬图标背后；
+       这个图标本身也不常驻显示，要在角色身上快速点两下才会冒出来，省地方也避免手滑误触 */
+    #chat-body{ display:none; }
+    #chat-panel.input-open #chat-body{ display:flex; }
+    #chat-input-toggle{
+      display:none;
+      align-items:center; justify-content:center;
+      width:30px; height:30px; padding:0; border-radius:50%;
+      font-size:14px; line-height:1;
+      background:var(--glass); border:1px solid var(--glass-border); color:#fff;
+      backdrop-filter:blur(8px);
+    }
+    #pet-wrap.chat-icon-on #chat-input-toggle{ display:inline-flex; }
+
     /* 气泡同理，避免溢出 */
     #pet-bubble{
       left:auto; right:0; transform:none; max-width:min(230px, calc(100vw - 24px));
     }
     #pet-bubble::after{ left:auto; right:20px; transform:none; }
 
-    /* 状态面板：收窄宽度，贴底加安全区 padding，避免和手势条冲突 */
-    .status-panel{
-      left:12px; bottom:calc(12px + env(safe-area-inset-bottom));
+    /* 状态栏在手机端不再用"半隐藏拉手"，改成跟角色放一起的独立按钮（现在收进了 #mobile-action-dock 底座里，
+       和搜索/导航按钮同一水平线、同大小、上下堆叠），点开后整块内容从屏幕底部滑上来，
+       和商店/背包/亚空间是同一套底部抽屉语言 */
+    #status-panel-handle{ display:none; }
+    #pet-menu-btn{
+      display:flex; align-items:center; justify-content:center;
+      background:rgba(255,255,255,.14); color:#fff; border:none; cursor:pointer;
     }
+    .status-panel{
+      left:0; right:0; bottom:0; width:100%;
+      transform:translateY(100%);
+      transition:transform .32s cubic-bezier(.22,1,.36,1);
+    }
+    .status-panel.open{ transform:translateY(0); }
     .status-panel-body{
-      max-width:calc(100vw - 132px); font-size:11px; padding:10px 14px;
+      width:100%; flex:1; max-width:none;
+      border:1px solid var(--glass-border); border-bottom:none;
+      border-radius:24px 24px 0 0;
+      padding:20px 20px calc(20px + env(safe-area-inset-bottom));
+      font-size:12px;
     }
 
     /* 背包弹窗：手机上改成底部抽屉 */
@@ -892,7 +963,6 @@
 </div>
 
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
-<button class="mobile-fab" id="mobileFab" aria-label="打开搜索/导航">🔍</button>
 
 <!-- ================= 注入的桌宠系统 HTML 开始 ================= -->
 <div class="status-panel" id="statusPanel">
@@ -996,6 +1066,11 @@
 
 <audio id="pomodoro-audio" src="images/pocket-space/pomodoro-bgm.mp3" loop preload="none"></audio>
 
+<div id="mobile-action-dock">
+  <button id="pet-menu-btn" type="button" class="dock-btn" aria-label="打开桌宠功能">📊</button>
+  <button class="mobile-fab dock-btn" id="mobileFab" aria-label="打开搜索/导航">🔍</button>
+</div>
+
 <div id="pet-wrap">
   <div id="pet-bubble"></div>
   <div id="pet-body">
@@ -1004,14 +1079,17 @@
   <div id="pet-headzone"></div>
 
   <div id="chat-panel">
-    <div id="quick-replies">
-      <button type="button" data-topic="daily">分享日常</button>
-      <button type="button" data-topic="tech">聊点技术</button>
-      <button type="button" data-topic="friend">找搭子</button>
-    </div>
-    <div id="chat-input-row">
-      <input id="chat-input" type="text" maxlength="60" placeholder="跟我说点什么...(回车发送)"/>
-      <button id="chat-send" type="button">发送</button>
+    <button id="chat-input-toggle" type="button" aria-label="打字聊天">💬</button>
+    <div id="chat-body">
+      <div id="quick-replies">
+        <button type="button" data-topic="daily">分享日常</button>
+        <button type="button" data-topic="tech">聊点技术</button>
+        <button type="button" data-topic="friend">找搭子</button>
+      </div>
+      <div id="chat-input-row">
+        <input id="chat-input" type="text" maxlength="60" placeholder="跟我说点什么...(回车发送)"/>
+        <button id="chat-send" type="button">发送</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1596,11 +1674,17 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
   const backpackGrid = document.getElementById('backpack-grid');
   const backpackEmpty = document.getElementById('backpack-empty');
 
-  // 状态栏抽屉：默认收起，点拉手展开/收起
+  // 状态栏抽屉：桌面点拉手展开/收起；手机端点角色旁边的独立按钮，效果一样（都是切 .open）
   const statusPanel = document.getElementById('statusPanel');
   const statusPanelHandle = document.getElementById('status-panel-handle');
+  const petMenuBtn = document.getElementById('pet-menu-btn');
   if(statusPanelHandle){
     statusPanelHandle.addEventListener('click', () => {
+      statusPanel.classList.toggle('open');
+    });
+  }
+  if(petMenuBtn){
+    petMenuBtn.addEventListener('click', () => {
       statusPanel.classList.toggle('open');
     });
   }
@@ -1781,6 +1865,23 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
   const chatInput = document.getElementById('chat-input');
   const chatSend = document.getElementById('chat-send');
   const quickReplies = document.getElementById('quick-replies');
+  const chatPanel = document.getElementById('chat-panel');
+  const chatInputToggle = document.getElementById('chat-input-toggle');
+
+  // 手机端：输入框默认收起，点💬图标才展开（桌面端这个按钮本身是隐藏的，不影响桌面已有的常驻输入框）
+  chatInputToggle.addEventListener('click', () => {
+    const opening = !chatPanel.classList.contains('input-open');
+    chatPanel.classList.toggle('input-open', opening);
+    chatInputToggle.textContent = opening ? '✕' : '💬';
+    if(opening) chatInput.focus();
+  });
+  // 发送完之后手机端自动收回输入框，界面更清爽（桌面端没有 .input-open 这个状态，不受影响）
+  function collapseMobileChatInput(){
+    if(chatPanel.classList.contains('input-open')){
+      chatPanel.classList.remove('input-open');
+      chatInputToggle.textContent = '💬';
+    }
+  }
 
   let typeInterval = null;
   let bubbleHideTimer = null;
@@ -1841,6 +1942,7 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
     showBubbleTyped(replyForInput(text));
     reactHappyPulse();
     chatInput.value = '';
+    collapseMobileChatInput();
   }
 
   chatSend.addEventListener('click', handleSend);
@@ -2257,8 +2359,26 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
   let dragOffsetX = 0, dragOffsetY = 0;
   const chatPanelEl = document.getElementById('chat-panel');
 
+  // 手机端：快速点两下角色才会冒出💬图标（桌面端没有这个隐藏逻辑，图标本来就一直是display:none不显示）
+  let lastPetTapTime = 0;
+  function checkDoubleTapForChatIcon(){
+    const now = Date.now();
+    if(now - lastPetTapTime < 350){
+      const showing = wrap.classList.toggle('chat-icon-on');
+      if(!showing){
+        // 图标被收起时，如果输入框正开着，一起收起，避免图标没了但面板还开着
+        chatPanel.classList.remove('input-open');
+        chatInputToggle.textContent = '💬';
+      }
+      lastPetTapTime = 0;
+    } else {
+      lastPetTapTime = now;
+    }
+  }
+
   function startDrag(clientX, clientY){
     isDragging = true;
+    checkDoubleTapForChatIcon();
     wrap.classList.add('dragging');
     clearTimeout(reactionTimer);
     setImg(IMG.grab);
