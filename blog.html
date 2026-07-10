@@ -337,55 +337,21 @@
   }
   #pet-wrap.dragging{ cursor:grabbing; transition:none; } /* 拖拽中不要过渡，跟手 */
 
-  /* 贴边悬浮球（docked）：默认状态，纯透明液态玻璃贴片，完全贴平在边缘 */
+  /* 贴边悬浮球（docked）：默认状态，仿手机悬浮球贴在屏幕边缘，露出一部分方便一眼看到、一点就能拖出来 */
   #pet-wrap.docked{
-    width:clamp(50px, 13vw, 60px); height:clamp(76px, 20vw, 92px);
-    overflow:hidden; position:fixed;
-    background:rgba(255,255,255,.05);
-    backdrop-filter:blur(24px) saturate(180%) brightness(1.08);
-    -webkit-backdrop-filter:blur(24px) saturate(180%) brightness(1.08);
-    border:1px solid rgba(255,255,255,.4);
-    box-shadow:0 10px 30px rgba(0,0,0,.28), inset 0 1px 1px rgba(255,255,255,.55), inset 0 -12px 18px rgba(255,255,255,.05);
-    animation:liquidBreathe 3.6s ease-in-out infinite;
-  }
-  #pet-wrap.docked[data-dock-side="right"]{ border-radius:28px 0 0 28px; border-right:none; }
-  #pet-wrap.docked[data-dock-side="left"]{ border-radius:0 28px 28px 0; border-left:none; }
-  /* 玻璃高光：一小块柔光斜着打在贴片左上角，纯靠 CSS 渐变，不带任何色调 */
-  #pet-wrap.docked::before{
-    content:''; position:absolute; top:6%; left:14%; width:34%; height:32%;
-    background:linear-gradient(135deg, rgba(255,255,255,.65), rgba(255,255,255,0) 72%);
-    border-radius:50%; filter:blur(1px); pointer-events:none;
-  }
-  @keyframes liquidBreathe{
-    0%,100%{ transform:scale(1); }
-    50%{ transform:scale(1.025); }
+    width:clamp(46px, 12vw, 56px); height:clamp(46px, 12vw, 56px);
+    border-radius:50%; overflow:hidden;
+    box-shadow:0 8px 22px rgba(0,0,0,.4);
+    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.25), rgba(30,24,60,.35));
+    backdrop-filter:blur(6px);
   }
   #pet-wrap.docked #pet-headzone,
   #pet-wrap.docked #pet-bubble,
   #pet-wrap.docked #chat-panel{ display:none; }
   #pet-wrap.docked #pet-img{
-    object-fit:cover; filter:none; opacity:.92;
-    transform:scale(1.8) translateY(4%);
+    object-fit:cover; filter:none;
+    transform:scale(1.7) translateY(8%);
   }
-
-  /* ================= 💧 贴边提示：纯透明玻璃光条，靠近边缘时浮出，和贴边胶囊同一种材质 ================= */
-  #liquid-dock-fx{
-    position:fixed; inset:0; z-index:495; /* 桌宠(500)之下，纯视觉，不挡任何点击/拖拽 */
-    pointer-events:none;
-  }
-  #liquid-edge-glow{
-    position:absolute; width:10px; height:60px; top:50%;
-    background:rgba(255,255,255,.08);
-    backdrop-filter:blur(20px) saturate(180%) brightness(1.1);
-    -webkit-backdrop-filter:blur(20px) saturate(180%) brightness(1.1);
-    border:1px solid rgba(255,255,255,.4);
-    box-shadow:inset 0 1px 1px rgba(255,255,255,.5);
-    opacity:0; transform:translateY(-50%) scaleY(.4);
-    transition:opacity .16s ease, transform .16s cubic-bezier(.22,1,.36,1), height .16s ease;
-  }
-  #liquid-edge-glow.active{ opacity:1; transform:translateY(-50%) scaleY(1); }
-  #liquid-edge-glow.side-left{ left:0; border-radius:0 16px 16px 0; border-left:none; }
-  #liquid-edge-glow.side-right{ right:0; border-radius:16px 0 0 16px; border-right:none; }
 
   #pet-body{
     position:relative; width:100%; height:100%;
@@ -1121,11 +1087,6 @@
 <div id="mobile-action-dock">
   <button id="pet-menu-btn" type="button" class="dock-btn" aria-label="打开桌宠功能">📊</button>
   <button class="mobile-fab dock-btn" id="mobileFab" aria-label="打开搜索/导航">🔍</button>
-</div>
-
-<!-- 贴边提示：桌宠靠近边缘时，边上会浮出一条纯透明的玻璃光条，跟桌宠贴边后的胶囊是同一种材质 -->
-<div id="liquid-dock-fx">
-  <div id="liquid-edge-glow"></div>
 </div>
 
 <div id="pet-wrap">
@@ -2421,28 +2382,25 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
   function getFreeSize(){
     return window.innerWidth <= 760 ? {w:104, h:134} : {w:150, h:190};
   }
-  function getDockSize(){
-    // 和 CSS 里 .docked 的 clamp() 保持一致（宽/高两个方向都要跟上）
-    return {
-      w: Math.min(60, Math.max(50, window.innerWidth * 0.13)),
-      h: Math.min(92, Math.max(76, window.innerWidth * 0.20))
-    };
+  function getDockBallSize(){
+    // 和 CSS 里 .docked 的 clamp(46px,12vw,56px) 保持一致
+    return Math.min(56, Math.max(46, window.innerWidth * 0.12));
   }
   function clampTop(topPx, h){
     return Math.max(4, Math.min(window.innerHeight - h - 4, topPx));
   }
 
   function setDocked(side, topPx){
-    const {w, h} = getDockSize();
+    const ball = getDockBallSize();
     wrap.classList.add('docked');
     wrap.dataset.dockSide = side;
     wrap.style.width = '';
     wrap.style.height = '';
     wrap.style.bottom = 'auto';
-    const top = clampTop(topPx, h);
+    const top = clampTop(topPx, ball);
     wrap.style.top = top + 'px';
-    // 液态玻璃贴片完全贴平在边缘，不留缝隙、不探出屏幕外
-    wrap.style.left = (side === 'right' ? (window.innerWidth - w) : 0) + 'px';
+    const visible = ball * 0.55; // 贴边露出比例，剩下探出屏幕外一点，更像悬浮球吸住的样子
+    wrap.style.left = (side === 'right' ? (window.innerWidth - visible) : (-(ball - visible))) + 'px';
     wrap.style.right = 'auto';
   }
 
@@ -2454,31 +2412,6 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
     const {w, h} = getFreeSize();
     wrap.style.left = Math.max(4, Math.min(window.innerWidth - w - 4, leftPx)) + 'px';
     wrap.style.top = clampTop(topPx, h) + 'px';
-  }
-
-  // ---------- 💧 液态吸附特效：拖拽时靠近边缘会有"水黏过去"的提示，松手吸附时融合一下 ----------
-  const liquidEdgeGlow = document.getElementById('liquid-edge-glow');
-  const EDGE_NEAR_PX = 130; // 离边缘小于这个距离，就开始浮出玻璃光条
-
-  function updateLiquidFX(clientX, clientY){
-    const distLeft = clientX;
-    const distRight = window.innerWidth - clientX;
-    const dist = Math.min(distLeft, distRight);
-    if(dist > EDGE_NEAR_PX){
-      liquidEdgeGlow.classList.remove('active');
-      return;
-    }
-    const side = distLeft < distRight ? 'left' : 'right';
-    const t = 1 - Math.max(0, Math.min(1, dist / EDGE_NEAR_PX)); // 0=刚进入范围，1=已经贴到边上
-    liquidEdgeGlow.classList.add('active');
-    liquidEdgeGlow.classList.toggle('side-left', side === 'left');
-    liquidEdgeGlow.classList.toggle('side-right', side === 'right');
-    liquidEdgeGlow.style.top = clientY + 'px';
-    liquidEdgeGlow.style.height = (50 + t * 90) + 'px';
-  }
-
-  function hideLiquidFX(){
-    liquidEdgeGlow.classList.remove('active');
   }
 
   // 默认贴边悬浮球：右边，垂直方向大概在屏幕45%高度，首次摆放不要有滑入动画
@@ -2514,7 +2447,6 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
     wrap.classList.add('dragging');
     clearTimeout(reactionTimer);
     setImg(IMG.grab);
-    hideLiquidFX();
     const rect = wrap.getBoundingClientRect();
     dragOffsetX = clientX - rect.left;
     dragOffsetY = clientY - rect.top;
@@ -2543,7 +2475,6 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
     wrap.style.left = x + 'px';
     wrap.style.top = y + 'px';
     checkSpaceHover(clientX, clientY);
-    updateLiquidFX(clientX, clientY);
   }
 
   function endDrag(){
@@ -2554,14 +2485,12 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
     if(spaceHoverActive){
       spaceHoverActive = false;
       entry1.classList.remove('drag-hover');
-      hideLiquidFX();
       enterPocketSpace();
       return;
     }
 
     if(!dragMoved){
       // 单纯点了一下，没有拖动
-      hideLiquidFX();
       if(wasDockedBeforeDrag){
         // 点了一下悬浮球：原地展开成完整桌宠，从吸附的那一侧"冒出来"
         const {w} = getFreeSize();
@@ -2580,19 +2509,15 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
       return;
     }
 
-    // 有实际拖动：松手位置离左右边缘够近（和液态特效同一个判定范围）就"融合吸附"成悬浮球，否则留在原地当摆件
+    // 有实际拖动：松手位置离左右边缘够近就吸附成悬浮球，否则留在原地当摆件
     const rect = wrap.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
-    const distLeft = centerX, distRight = window.innerWidth - centerX;
-    if(distLeft <= EDGE_NEAR_PX || distRight <= EDGE_NEAR_PX){
-      const side = distLeft < distRight ? 'left' : 'right';
-      const {h} = getDockSize();
-      const dockTop = clampTop(rect.top, h);
-      setDocked(side, dockTop);
-      // 贴边胶囊自己有 CSS 过渡把它"长"出来，光条只需要跟着淡出，不用额外做融合动画
-      setTimeout(hideLiquidFX, 80);
+    const threshold = window.innerWidth * 0.18;
+    if(centerX < threshold){
+      setDocked('left', rect.top);
+    } else if(centerX > window.innerWidth - threshold){
+      setDocked('right', rect.top);
     } else {
-      hideLiquidFX();
       setFree(rect.left, rect.top);
       wrap.classList.add('falling');
       setImg(IMG.fall);
