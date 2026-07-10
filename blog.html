@@ -238,6 +238,41 @@
   #mobile-action-dock{ display:none; }
   .sidebar-backdrop{ display:none; }
   .sidebar-close{ display:none; }
+
+  /* 侧边栏搜索：只在手机端显示，桌面端已经有顶部大搜索框了，不需要重复一份 */
+  .sidebar-search{ display:none; }
+
+  /* 侧边栏搜索：输入框 + 紧跟其下的内联结果列表，跟顶部大搜索框是两套独立入口，互不影响 */
+  .sidebar-search{ position:relative; margin-bottom:12px; }
+  .sidebar-search input{
+    width:100%; background:rgba(0,0,0,.3); border:1px solid var(--glass-border);
+    border-radius:100px; padding:10px 14px 10px 36px; font-size:13px; color:#fff;
+    font-family:'JetBrains Mono',monospace; outline:none; transition:.2s; box-sizing:border-box;
+  }
+  .sidebar-search input:focus{ border-color:var(--aqua); background:rgba(0,0,0,.45); }
+  .sidebar-search input::placeholder{ color:var(--muted); font-size:12px; opacity:.8; }
+  .sidebar-search .icon{ position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:13px; opacity:.7; pointer-events:none; }
+
+  .sidebar-search-results{
+    display:none; flex-direction:column; gap:2px; margin:8px 0 16px;
+    background:rgba(0,0,0,.25); border:1px solid var(--glass-border); border-radius:12px;
+    overflow-y:auto; max-height:46vh;
+  }
+  .sidebar-search-results.show{ display:flex; }
+  .sidebar-search-results a{
+    display:flex; gap:10px; align-items:center; padding:8px 10px; text-decoration:none;
+    border-bottom:1px solid rgba(255,255,255,.06); transition:background .15s;
+  }
+  .sidebar-search-results a:last-child{ border-bottom:none; }
+  .sidebar-search-results a:hover{ background:rgba(255,255,255,.08); }
+  .sidebar-search-results .ssr-thumb{
+    width:36px; height:36px; border-radius:8px; object-fit:cover; flex-shrink:0; background:rgba(255,255,255,.08);
+  }
+  .sidebar-search-results .ssr-text{ min-width:0; flex:1; }
+  .sidebar-search-results .ssr-title{ font-size:12.5px; color:#fff; line-height:1.4; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .sidebar-search-results .ssr-title mark{background:linear-gradient(120deg,var(--coral),var(--pink));color:#1a0f2b;padding:0 2px;border-radius:3px;}
+  .sidebar-search-results .ssr-meta{ font-size:10.5px; color:var(--muted); margin-top:2px; }
+  .sidebar-search-results .ssr-empty{ padding:14px; text-align:center; font-size:12px; color:var(--muted); }
   .pagination{ display:flex; align-items:center; justify-content:center; gap:8px; margin-top:30px; flex-wrap:wrap; }
   .pagination button{
     min-width:34px; height:34px; padding:0 10px; border-radius:100px; border:1px solid var(--glass-border);
@@ -268,6 +303,7 @@
     .sidebar-backdrop{ display:block; position:fixed; inset:0; z-index:190; background:rgba(8,6,20,.55); backdrop-filter:blur(2px); opacity:0; pointer-events:none; transition:opacity .3s; }
     .sidebar-backdrop.open{ opacity:1; pointer-events:auto; }
     .sidebar-close{ display:flex; align-items:center; justify-content:center; width:30px;height:30px;border-radius:50%;background:var(--glass);border:1px solid var(--glass-border); color:#fff; font-size:15px; margin-bottom:14px; cursor:pointer; }
+    .sidebar-search{ display:block; }
     .mobile-fab{
       display:flex; align-items:center; justify-content:center;
       background:linear-gradient(135deg,var(--aqua),var(--violet));
@@ -908,6 +944,13 @@
 <div class="shell">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-close" id="sidebarClose">✕</div>
+
+    <div class="sidebar-search">
+      <span class="icon">🔍</span>
+      <input id="sidebar-search-input" type="text" placeholder="搜索文章标题或摘要..." autocomplete="off"/>
+    </div>
+    <div class="sidebar-search-results" id="sidebar-search-results"></div>
+
     <div class="avatar-row">
       <div class="avatar-circle">J</div>
       <div>
@@ -1452,8 +1495,46 @@ function escapeHtml(str){
   return div.innerHTML;
 }
 
+function setupSidebarSearch(){
+  const input = document.getElementById('sidebar-search-input');
+  const resultsEl = document.getElementById('sidebar-search-results');
+  if(!input || !resultsEl) return;
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim();
+    if(!q){
+      resultsEl.classList.remove('show');
+      resultsEl.innerHTML = '';
+      return;
+    }
+    const qLower = q.toLowerCase();
+    const matched = allPosts.filter(p =>
+      (p.title || '').toLowerCase().includes(qLower) ||
+      (p.excerpt || '').toLowerCase().includes(qLower)
+    ).slice(0, 8);
+
+    resultsEl.classList.add('show');
+    if(matched.length === 0){
+      resultsEl.innerHTML = `<div class="ssr-empty">没找到包含"${escapeHtml(q)}"的文章，换个词试试？</div>`;
+      return;
+    }
+    resultsEl.innerHTML = matched.map(p => `
+      <a href="/post.html?id=${p.id}">
+        ${p.cover
+          ? `<img class="ssr-thumb" src="${p.cover}" alt="" loading="lazy" onerror="this.style.display='none'">`
+          : `<div class="ssr-thumb"></div>`}
+        <div class="ssr-text">
+          <div class="ssr-title">${highlight(p.title || '无标题', q)}</div>
+          <div class="ssr-meta">${p.date ? p.date : ''}${p.category ? ' · ' + escapeHtml(p.category) : ''}</div>
+        </div>
+      </a>
+    `).join('');
+  });
+}
+
 loadPosts();
 setupSearch();
+setupSidebarSearch();
 
 /* ================= 动态背景图轮播 ================= */
 async function initBgCarousel() {
