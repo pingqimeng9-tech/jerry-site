@@ -461,7 +461,7 @@
 <div class="blob blob2"></div>
 <div class="blob blob3"></div>
 
-<!-- 导航栏优化：JERRY.DEV 链接回主页，引入汉堡菜单 -->
+<!-- 导航栏优化：增加登录组件挂载点 -->
 <nav>
   <a href="/" class="logo">JERRY.DEV</a>
   <div class="nav-right">
@@ -472,6 +472,11 @@
       <a href="/blog.html">博客</a>
       <a href="/rumi.html">Rumi英语</a>
     </div>
+
+    <!-- ==================== 【新增】登录组件挂载点 ==================== -->
+    <div id="jerry-auth-slot" style="margin: 0 10px;"></div>
+    <!-- ============================================================ -->
+
     <div class="btn-border-wrap"><a href="#contact" class="cta">联系我</a></div>
     
     <!-- 移动端汉堡按钮 -->
@@ -666,6 +671,17 @@
 <footer>
   © 2026 Jerry · built with intent, not templates
 </footer>
+
+
+<!-- ==================== 【新增】Supabase 与 用户系统核心脚本 ==================== -->
+<!-- 1. Supabase 官方环境支持 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<!-- 2. 用户系统配置（需确保此 js 路径与 index.html 同级或正确相对路径） -->
+<script src="./user-system.js"></script>
+<!-- 3. 登录 UI 组件渲染 -->
+<script src="./login-widget.js"></script>
+<!-- ========================================================================= -->
+
 
 <script>
 /* ================= 汉堡菜单逻辑 ================= */
