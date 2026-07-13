@@ -41,7 +41,7 @@ const JerrySite = (function () {
   async function signInWithGoogle() {
     const { error } = await client.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.href } // 登录完跳回当前页
+      options: { redirectTo: 'https://callmiruko.cc' } // 登录完跳回当前页
     });
     if (error) throw error;
     // 会跳转去google登录页，跳回来之后 onAuthStateChange 会自动触发，不需要额外处理
