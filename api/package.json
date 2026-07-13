@@ -1,0 +1,17 @@
+{
+  "name": "jerry-site-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@notionhq/client": "^5.22.0",
+    "notion-to-md": "^3.1.9",
+    "@supabase/supabase-js": "^2.45.0"
+  }
+}
