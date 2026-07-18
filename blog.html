@@ -28,7 +28,22 @@
     background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%);
   }
 
-  body{ margin:0; min-height:100vh; color:var(--ink); font-family:'Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased; }
+  body{
+    margin:0; min-height:100vh; color:var(--ink); font-family:'Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(circle at 15% 20%, #6A5CFF55, transparent 45%),
+      radial-gradient(circle at 85% 15%, #FF8CD955, transparent 45%),
+      radial-gradient(circle at 75% 80%, #5CE1E645, transparent 45%),
+      radial-gradient(circle at 20% 85%, #FF7A5C45, transparent 45%),
+      linear-gradient(135deg,#12102b,#1b1440,#0e1a3a,#1a1030);
+    background-size:200% 200%,200% 200%,200% 200%,200% 200%,400% 400%;
+    animation:bgshift 26s ease-in-out infinite;
+  }
+  @keyframes bgshift{
+    0%{background-position:0% 0%,100% 0%,100% 100%,0% 100%,0% 50%;}
+    50%{background-position:40% 60%,60% 40%,40% 60%,60% 40%,100% 50%;}
+    100%{background-position:0% 0%,100% 0%,100% 100%,0% 100%,0% 50%;}
+  }
 
   /* 荧光闪烁粒子 */
   #sparkle-field{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
@@ -59,7 +74,7 @@
   .mono{font-family:'JetBrains Mono',monospace;}
   .serif{font-family:'Noto Serif SC',serif;}
 
-  /* 导航栏 */
+  /* 导航栏 & 登录UI */
   nav{
     display:flex; justify-content:space-between; align-items:center; padding:18px clamp(20px,5vw,56px);
     position:sticky; top:0; background:rgba(20,16,45,.45); backdrop-filter:blur(18px);
@@ -70,12 +85,25 @@
   nav .links a{margin-left:6px;padding:8px 14px;border-radius:100px;font-size:14px;opacity:.75;transition:.2s;}
   nav .links a:hover{opacity:1;background:var(--glass);}
   nav .links a.active{opacity:1;background:var(--glass-strong);}
+  
+  /* 登录组件 UI */
+  .auth-slot { display:flex; align-items:center; gap:12px; margin: 0 10px; }
+  .auth-btn-login {
+    padding: 8px 18px; border-radius: 100px; background: rgba(255,255,255,.08); border: 1px solid var(--glass-border);
+    color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; transition: .2s; backdrop-filter: blur(4px);
+  }
+  .auth-btn-login:hover { background: rgba(255,255,255,.18); transform:translateY(-1px); }
+  .auth-user-info { display:flex; align-items:center; gap:8px; padding: 4px 12px 4px 4px; border-radius: 100px; background: var(--glass); border: 1px solid var(--glass-border); cursor: pointer; transition: .2s; }
+  .auth-user-info:hover { background: var(--glass-strong); }
+  .auth-user-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(120deg,var(--coral),var(--pink)); color:#1a0f2b; display:flex; align-items:center; justify-content:center; font-weight:900; font-size: 13px; font-family:'Noto Serif SC',serif;}
+  .auth-user-name { font-size: 13px; font-weight: 500; }
+
   nav .cta{
     padding:10px 20px;border-radius:100px;background:linear-gradient(120deg,var(--coral),var(--pink));
     color:#1a0f2b;font-weight:700;font-size:13.5px;box-shadow:0 8px 24px -8px #FF7A5C88;transition:.25s;
   }
   nav .cta:hover{transform:translateY(-2px);}
-  @media (max-width:820px){ nav .links a{display:none;} }
+  @media (max-width:820px){ nav .links a{display:none;} nav .cta{display:none;} }
 
   @property --border-angle{ syntax:'<angle>'; inherits:false; initial-value:0deg; }
   .btn-border-wrap{ position:relative; display:inline-block; border-radius:100px; }
@@ -129,7 +157,7 @@
 
   .cat-jump{display:flex;flex-direction:column;gap:4px;margin-bottom:20px;}
   .cat-jump-label, .recent-label, .archive-label{font-size:11px;color:var(--aqua);font-family:'JetBrains Mono',monospace;font-weight:700;margin-bottom:8px;letter-spacing:.05em;}
-  .cat-jump a{font-size:13px;color:var(--muted);padding:6px 10px;border-radius:8px;transition:.2s;display:flex;justify-content:space-between;}
+  .cat-jump a{font-size:13px;color:var(--muted);padding:6px 10px;border-radius:8px;transition:.2s;display:flex;justify-content:space-between;cursor:pointer;}
   .cat-jump a:hover{background:var(--glass);color:#fff;}
   .cat-jump a .count{font-family:'JetBrains Mono',monospace;font-size:11px;opacity:.6;}
 
@@ -146,7 +174,7 @@
 
   /* ================= 右侧栏：打卡/积分/天气/公告 ================= */
   .widgets{ width:270px; flex-shrink:0; display:flex; flex-direction:column; gap:16px; position:sticky; top:88px; }
-  @media (max-width:1180px){ .widgets{ display:none; } } /* 空间不够时先隐藏，保证主内容区可读性 */
+  @media (max-width:1180px){ .widgets{ display:none; } }
   .widget-card{
     background:var(--glass); border:1px solid var(--glass-border); backdrop-filter:blur(16px);
     border-radius:16px; padding:16px 18px;
@@ -185,7 +213,7 @@
   .announce-date{ font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--aqua); display:block; margin-bottom:3px; }
 
   /* ================= 锁定分类：分类栏上的锁链tab + 会员弹窗 ================= */
-  .tabbar a.locked{ display:inline-flex; align-items:center; gap:4px; }
+  .tabbar a.locked{ display:inline-flex; align-items:center; gap:4px; cursor: pointer; }
   .tabbar a.locked .chain{ font-size:11px; opacity:.85; }
 
   .lock-modal-mask{
@@ -201,13 +229,14 @@
   }
   .lock-modal-mask.open .lock-modal{ transform:translateY(0) scale(1); }
   .lock-modal .close-lock{ position:absolute; top:18px; right:20px; cursor:pointer; opacity:.6; font-size:17px; }
-  .lock-modal .cake-visual{ font-size:52px; line-height:1; margin-bottom:6px; filter:drop-shadow(0 6px 14px rgba(255,201,60,.35)); }
+  .lock-modal .cake-visual{ font-size:52px; line-height:1; margin-bottom:12px; filter:drop-shadow(0 6px 14px rgba(255,201,60,.35)); }
   .lock-modal .badge{
     display:inline-flex; align-items:center; gap:6px; background:rgba(255,201,60,.15); color:#FFC93C;
     border:1px solid rgba(255,201,60,.4); font-size:13px; font-weight:700; padding:6px 16px; border-radius:100px; margin-bottom:18px;
   }
-  .lock-modal h3{ font-size:23px; margin:0 0 14px; line-height:1.4; }
+  .lock-modal h3{ margin:0 0 14px; line-height:1.4; }
   .lock-modal p.desc{ font-size:15.5px; color:#e5e0f7; line-height:1.85; margin-bottom:22px; }
+  
   .lock-modal .content-list{ text-align:left; background:rgba(255,255,255,.05); border-radius:16px; padding:16px 18px; margin-bottom:22px; }
   .lock-modal .content-list li{ font-size:14px; line-height:2.1; color:#e5e0f7; list-style:none; }
   .lock-modal .content-list li::before{ content:'✦ '; color:#FF9ED2; }
@@ -227,13 +256,6 @@
     background:#000; color:#fff; font-size:13px; font-weight:700; text-decoration:none; transition:.2s;
   }
   .twitter-follow-btn:hover{ background:#1a1a1a; transform:translateY(-1px); }
-  .wechat-group-hint{
-    display:flex; align-items:center; gap:10px; font-size:12.5px; color:var(--muted);
-  }
-  .wechat-group-hint .qr-thumb{
-    width:56px; height:56px; border-radius:10px; object-fit:cover; border:1px solid var(--glass-border); background:rgba(255,255,255,.06);
-    flex-shrink:0;
-  }
 
   .login-gate-box{ padding:8px 0 6px; }
   .login-gate-box .lock-icon{ font-size:44px; margin-bottom:14px; }
@@ -244,8 +266,9 @@
   .unlock-btn{
     padding:14px; border-radius:100px; border:none; cursor:pointer; font-size:15px; font-weight:800;
     background:linear-gradient(120deg,#FF4D4D,#FF7A5C); background-size:200% 100%;
-    color:#fff; box-shadow:0 10px 24px -10px rgba(255,77,77,.55);
+    color:#fff; box-shadow:0 10px 24px -10px rgba(255,77,77,.55); transition:.2s;
   }
+  .unlock-btn:hover{ transform: translateY(-2px); box-shadow:0 14px 28px -10px rgba(255,77,77,.65); }
   .unlock-btn:disabled{ opacity:.7; cursor:default; }
   .cancel-btn{
     padding:14px; border-radius:100px; border:1px solid var(--glass-border); cursor:pointer; font-size:15px; font-weight:700;
@@ -265,8 +288,9 @@
   .coffee-modal p.desc{ font-size:14.5px; }
   .coffee-btn{
     padding:14px; border-radius:100px; border:none; cursor:pointer; font-size:15px; font-weight:800;
-    background:linear-gradient(120deg,#6B5CFF,#B98CFF); color:#fff; box-shadow:0 10px 24px -10px rgba(107,92,255,.55);
+    background:linear-gradient(120deg,#6B5CFF,#B98CFF); color:#fff; box-shadow:0 10px 24px -10px rgba(107,92,255,.55); transition:.2s;
   }
+  .coffee-btn:hover{ transform: translateY(-2px); }
 
   /* 解锁特效：礼花碎片 */
   .confetti-piece{
@@ -281,7 +305,7 @@
   .main-controls { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; gap: 10px; flex-wrap:wrap;}
   
   .tabbar{ display:flex; gap:8px; background:var(--glass); border:1px solid var(--glass-border); backdrop-filter:blur(16px); border-radius:100px; padding:6px; flex-wrap:wrap; }
-  .tabbar a{ padding:9px 18px; border-radius:100px; font-size:13.5px; color:var(--muted); transition:.2s; }
+  .tabbar a{ padding:9px 18px; border-radius:100px; font-size:13.5px; color:var(--muted); transition:.2s; cursor:pointer;}
   .tabbar a.active{background:linear-gradient(120deg,var(--coral),var(--pink));color:#1a0f2b;font-weight:700;}
   .tabbar a:not(.active):hover{background:rgba(255,255,255,.08);color:#fff;}
 
@@ -314,19 +338,17 @@
   
   .view-gallery .post-preview { 
     flex: 1; padding: 18px 22px; font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.7; overflow: hidden;
-    /* 核心：Notion 同款文字渐隐效果 */
     mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
   }
-  /* 有封面图时不需要文字渐隐遮罩，图片本身铺满，靠.post-bottom的深色底衬托标题可读性 */
   .view-gallery .post-preview.has-cover {
     padding: 0; mask-image: none; -webkit-mask-image: none;
   }
   .view-gallery .post-cover-img {
     width: 100%; height: 100%; object-fit: cover; display: block;
   }
-  .view-gallery .post-preview.has-cover .post-preview-text { display: none; } /* 有图时藏文字 */
-  .view-gallery .post-preview:not(.has-cover) .post-cover-img { display: none; } /* 没图时藏图片标签 */
+  .view-gallery .post-preview.has-cover .post-preview-text { display: none; } 
+  .view-gallery .post-preview:not(.has-cover) .post-cover-img { display: none; } 
   
   .view-gallery .post-bottom { 
     background: rgba(0,0,0,0.25); border-top: 1px solid var(--glass-border); padding: 14px 22px; flex-shrink: 0;
@@ -335,7 +357,7 @@
     font-family: 'Noto Serif SC', serif; font-weight: 700; font-size: 16px; margin-bottom: 6px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px;
   }
-  .view-gallery .post-title::before { content: "📄"; font-size: 14px; } /* 添加类似 Notion 的前置 icon */
+  .view-gallery .post-title::before { content: "📄"; font-size: 14px; } 
 
   /* ================= 🔲 列表视图 (List Style) ================= */
   .view-list .post-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
@@ -343,17 +365,17 @@
   .view-list .post-preview { 
     font-size: 13.5px; color: var(--muted); line-height: 1.75; margin-bottom: 12px;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-    mask-image: none; -webkit-mask-image: none; order: 2; /* 摘要在下方 */
+    mask-image: none; -webkit-mask-image: none; order: 2;
   }
-  .view-list .post-cover-img { display: none; } /* 列表视图保持纯文字，不显示封面图 */
+  .view-list .post-cover-img { display: none; }
   .view-list .post-bottom { 
-    background: transparent; border: none; padding: 0; order: 1; /* 标题在上方 */
+    background: transparent; border: none; padding: 0; order: 1; 
   }
   .view-list .post-title { 
     font-family: 'Noto Serif SC', serif; font-weight: 700; font-size: 18px; margin-bottom: 8px; 
     white-space: normal;
   }
-  .view-list .post-title::before { content: ""; display: none; } /* 列表模式隐藏 icon */
+  .view-list .post-title::before { content: ""; display: none; }
 
   .state-box{ text-align:center;padding:60px 20px;color:var(--muted); background:var(--glass);border:1px solid var(--glass-border);border-radius:18px; }
   .state-box.error{color:#FF9E8A;}
@@ -372,41 +394,8 @@
   #mobile-action-dock{ display:none; }
   .sidebar-backdrop{ display:none; }
   .sidebar-close{ display:none; }
-
-  /* 侧边栏搜索：只在手机端显示，桌面端已经有顶部大搜索框了，不需要重复一份 */
   .sidebar-search{ display:none; }
 
-  /* 侧边栏搜索：输入框 + 紧跟其下的内联结果列表，跟顶部大搜索框是两套独立入口，互不影响 */
-  .sidebar-search{ position:relative; margin-bottom:12px; }
-  .sidebar-search input{
-    width:100%; background:rgba(0,0,0,.3); border:1px solid var(--glass-border);
-    border-radius:100px; padding:10px 14px 10px 36px; font-size:13px; color:#fff;
-    font-family:'JetBrains Mono',monospace; outline:none; transition:.2s; box-sizing:border-box;
-  }
-  .sidebar-search input:focus{ border-color:var(--aqua); background:rgba(0,0,0,.45); }
-  .sidebar-search input::placeholder{ color:var(--muted); font-size:12px; opacity:.8; }
-  .sidebar-search .icon{ position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:13px; opacity:.7; pointer-events:none; }
-
-  .sidebar-search-results{
-    display:none; flex-direction:column; gap:2px; margin:8px 0 16px;
-    background:rgba(0,0,0,.25); border:1px solid var(--glass-border); border-radius:12px;
-    overflow-y:auto; max-height:46vh;
-  }
-  .sidebar-search-results.show{ display:flex; }
-  .sidebar-search-results a{
-    display:flex; gap:10px; align-items:center; padding:8px 10px; text-decoration:none;
-    border-bottom:1px solid rgba(255,255,255,.06); transition:background .15s;
-  }
-  .sidebar-search-results a:last-child{ border-bottom:none; }
-  .sidebar-search-results a:hover{ background:rgba(255,255,255,.08); }
-  .sidebar-search-results .ssr-thumb{
-    width:36px; height:36px; border-radius:8px; object-fit:cover; flex-shrink:0; background:rgba(255,255,255,.08);
-  }
-  .sidebar-search-results .ssr-text{ min-width:0; flex:1; }
-  .sidebar-search-results .ssr-title{ font-size:12.5px; color:#fff; line-height:1.4; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .sidebar-search-results .ssr-title mark{background:linear-gradient(120deg,var(--coral),var(--pink));color:#1a0f2b;padding:0 2px;border-radius:3px;}
-  .sidebar-search-results .ssr-meta{ font-size:10.5px; color:var(--muted); margin-top:2px; }
-  .sidebar-search-results .ssr-empty{ padding:14px; text-align:center; font-size:12px; color:var(--muted); }
   .pagination{ display:flex; align-items:center; justify-content:center; gap:8px; margin-top:30px; flex-wrap:wrap; }
   .pagination button{
     min-width:34px; height:34px; padding:0 10px; border-radius:100px; border:1px solid var(--glass-border);
@@ -424,9 +413,8 @@
     .tabbar::-webkit-scrollbar{display:none;}
     .tabbar a{flex-shrink:0;}
     
-    .view-switcher { display: none; } /* 手机端空间有限，默认隐藏切换按钮，直接走响应式单列 */
-
-    .view-gallery .post-grid { grid-template-columns: 1fr; } /* 手机端强制单列 */
+    .view-switcher { display: none; } 
+    .view-gallery .post-grid { grid-template-columns: 1fr; } 
 
     .sidebar{
       position:fixed; top:0; left:0; height:100%; width:82%; max-width:320px;
@@ -444,607 +432,29 @@
       color:#12102b; border:none; cursor:pointer; transition:.25s;
     }
     .mobile-fab:active{transform:scale(.92);}
-
-    /* 桌宠功能按钮(📊) + 搜索/导航按钮(🔍) 共用一个底座：同一水平线、同大小，垂直堆叠，
-       所有尺寸/间距都用 clamp() 连续缩放，不挂在某个固定断点上，任何屏幕比例都是同一套比例关系。
-       这几个值单独定义成变量，是因为下面 #pet-wrap 要用它们算出"刚好贴在底座上方、不会压住按钮"的安全距离 */
+    
     :root{
       --dock-btn: clamp(42px, 12vw, 52px);
       --dock-gap: clamp(8px, 2.2vw, 14px);
       --dock-pad: clamp(6px, 1.8vw, 9px);
       --dock-right: clamp(10px, 4vw, 18px);
       --dock-bottom: clamp(16px, 5vw, 22px);
-      /* 底座总高度 = 上下padding*2 + 两个按钮 + 中间间距 */
       --dock-height: calc(var(--dock-pad) * 2 + var(--dock-btn) * 2 + var(--dock-gap));
     }
     #mobile-action-dock{
       display:flex; flex-direction:column; align-items:center;
-      gap:var(--dock-gap);
-      position:fixed; z-index:150;
-      right:var(--dock-right);
-      bottom:var(--dock-bottom);
+      gap:var(--dock-gap); position:fixed; z-index:150;
+      right:var(--dock-right); bottom:var(--dock-bottom);
       padding:var(--dock-pad);
       background:rgba(20,16,45,.4); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
-      border:1px solid var(--glass-border); border-radius:999px;
-      box-shadow:0 12px 28px rgba(0,0,0,.35);
+      border:1px solid var(--glass-border); border-radius:999px; box-shadow:0 12px 28px rgba(0,0,0,.35);
     }
     .dock-btn{
       width:var(--dock-btn); height:var(--dock-btn);
-      border-radius:50%; flex-shrink:0;
-      font-size:clamp(16px, 4.2vw, 20px); line-height:1;
+      border-radius:50%; flex-shrink:0; font-size:clamp(16px, 4.2vw, 20px); line-height:1;
     }
   }
 </style>
-
-<!-- 独立注入的桌宠 CSS -->
-<style id="pet-system-styles">
-  /*
-    ================= 🧩 图层顺序总表（z-index）=================
-    数值越大越靠上，改动前先看这张表，别随手加大数字。
-
-      400   （已废弃，背包/亚空间改用弹窗，见下方485/490）
-      420   （已废弃）
-      465   （预留）
-      480   .status-panel       状态栏抽屉
-      485   #backpack-mask      背包弹窗（桌面居中弹窗/手机底部抽屉，必须盖过状态栏、但让桌宠露在上面方便拖食物）
-      490   #pocket-space-mask  亚空间弹窗（桌面大弹窗/手机底部抽屉，同样让桌宠露在上面方便拖进去）
-      500   #pet-wrap           桌宠本体（含气泡 #pet-bubble、聊天面板 #chat-panel，
-                                 这两个是桌宠的绝对定位子元素，跟着父级层级走，不用单独设）
-      900   #pocket-space-fullscreen 亚空间全屏播放层（盖过桌宠和抽屉，打开时会强制收起状态栏/背包/亚空间弹窗）
-      1000  #shop-mask / #pomodoro-mask  商店弹层 / 番茄钟卡片弹层（互斥使用，不会同时开）
-      1500  #drag-food-ghost    背包食物拖拽中的幽灵元素（必须盖过一切，含商店）
-      1600  #space-smoke-fx     进入亚空间瞬间的一次性烟雾特效（短暂出现，盖过桌宠）
-    ============================================================
-  */
-
-  /* ================= 桌宠本体 ================= */
-  #pet-wrap{
-    position:fixed; right:24px; bottom:150px; z-index:500;
-    width:150px; height:190px;
-    cursor:grab; user-select:none; touch-action:none;
-    transition:width .28s cubic-bezier(.34,1.56,.64,1), height .28s cubic-bezier(.34,1.56,.64,1),
-               left .28s cubic-bezier(.34,1.56,.64,1), top .28s cubic-bezier(.34,1.56,.64,1);
-  }
-  #pet-wrap.dragging{ cursor:grabbing; transition:none; } /* 拖拽中不要过渡，跟手 */
-
-  /* 贴边悬浮球（docked）：默认状态，仿手机悬浮球贴在屏幕边缘，露出一部分方便一眼看到、一点就能拖出来 */
-  #pet-wrap.docked{
-    width:clamp(46px, 12vw, 56px); height:clamp(46px, 12vw, 56px);
-    border-radius:50%; overflow:hidden;
-    box-shadow:0 8px 22px rgba(0,0,0,.4);
-    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.25), rgba(30,24,60,.35));
-    backdrop-filter:blur(6px);
-  }
-  #pet-wrap.docked #pet-headzone,
-  #pet-wrap.docked #pet-bubble,
-  #pet-wrap.docked #chat-panel{ display:none; }
-  #pet-wrap.docked #pet-img{
-    object-fit:cover; filter:none;
-    transform:scale(1.7) translateY(8%);
-  }
-
-  #pet-body{
-    position:relative; width:100%; height:100%;
-    transition:transform .15s ease;
-  }
-  #pet-wrap.dragging #pet-body{transform:scale(1.05);}
-  #pet-wrap.falling #pet-body{animation:fallBounce .65s cubic-bezier(.35,0,.55,1.6);}
-  @keyframes fallBounce{
-    0%{transform:translateY(0) scale(1.05,.95);}
-    38%{transform:translateY(64px) scale(1.08,.9);}
-    60%{transform:translateY(64px) scale(.94,1.08);}
-    80%{transform:translateY(-10px) scale(1.03,.97);}
-    100%{transform:translateY(0) scale(1);}
-  }
-
-  /* 完整展示全身（不裁腿），图片按比例撑满容器 */
-  #pet-img{
-    display:block; width:100%; height:100%; object-fit:contain;
-    filter:drop-shadow(0 12px 20px rgba(0,0,0,.45));
-    pointer-events:none;
-  }
-
-  /* 头部感应区域（不可见，用来判定"摸头"），占整体高度前45%（大头chibi比例） */
-  #pet-headzone{
-    position:absolute; top:0; left:0; width:100%; height:45%;
-  }
-
-  /* 气泡 */
-  #pet-bubble{
-    position:absolute; bottom:100%; left:50%; transform:translateX(-50%);
-    margin-bottom:6px; min-width:150px; max-width:230px;
-    background:rgba(255,255,255,.95); color:#2a2340;
-    border:2px solid var(--pink); border-radius:14px; padding:10px 14px;
-    font-size:13px; line-height:1.6; text-align:center;
-    opacity:0; pointer-events:none; transition:opacity .3s ease;
-    box-shadow:0 8px 20px rgba(0,0,0,.3);
-  }
-  #pet-bubble.show{opacity:1;}
-  #pet-bubble::after{
-    content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%);
-    border:8px solid transparent; border-top-color:var(--pink);
-  }
-  #pet-bubble .caret{
-    display:inline-block; width:2px; height:12px; background:#2a2340;
-    vertical-align:-2px; margin-left:1px; animation:caretBlink .8s steps(1) infinite;
-  }
-  @keyframes caretBlink{ 50%{ opacity:0; } }
-
-  /* ================= 聊天面板：作为角色容器的子元素，始终贴在角色下方，跟随拖拽移动 ================= */
-  #chat-panel{
-    position:absolute; top:100%; left:50%; transform:translateX(-50%);
-    margin-top:10px; width:230px; display:flex; flex-direction:column; align-items:flex-end; gap:8px;
-  }
-  #chat-body{
-    display:flex; flex-direction:column; gap:8px; width:100%;
-  }
-  #quick-replies{
-    display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end;
-  }
-  #quick-replies button{
-    font-size:11px; padding:5px 10px; border-radius:999px; cursor:pointer;
-    background:var(--glass); border:1px solid var(--glass-border); color:#e4e1fa;
-    backdrop-filter:blur(6px); transition:background .2s ease, transform .15s ease;
-    font-family:inherit;
-  }
-  #quick-replies button:hover{ background:rgba(255,255,255,.22); transform:translateY(-1px); }
-  /* 手机端呼出输入框用的图标按钮，桌面端始终不需要，直接隐藏 */
-  #chat-input-toggle{ display:none; }
-  #chat-input-row{
-    display:flex; gap:6px;
-  }
-  #chat-input{
-    flex:1; min-width:0; padding:9px 12px; border-radius:12px; font-size:16px;
-    border:1px solid var(--glass-border); background:rgba(255,255,255,.12); color:#fff;
-    outline:none; font-family:inherit;
-  }
-  #chat-input::placeholder{ color:#a8a4cc; }
-  #chat-input:focus{ border-color:var(--pink); background:rgba(255,255,255,.18); }
-  #chat-send{
-    padding:9px 14px; border-radius:12px; border:none; cursor:pointer;
-    background:linear-gradient(135deg,var(--pink),var(--violet)); color:#fff; font-size:12px;
-    font-family:inherit; flex-shrink:0;
-  }
-  #chat-send:active{ transform:scale(.96); }
-
-  /* ================= 状态栏抽屉：默认收起，只露出右侧拉手，点开后整块滑出 ================= */
-  .status-panel{
-    position:fixed; left:24px; bottom:24px; z-index:480;
-    display:flex; align-items:stretch;
-    transform:translateX(calc(-100% + 44px));
-    transition:transform .32s cubic-bezier(.22,1,.36,1);
-  }
-  .status-panel.open{ transform:translateX(0); }
-  .status-panel-body{
-    background:var(--glass); border:1px solid var(--glass-border); border-right:none;
-    border-radius:14px 0 0 14px;
-    backdrop-filter:blur(10px); padding:14px 18px; font-size:12px; color:#c9c6e8;
-    font-family:'JetBrains Mono',monospace; line-height:1.9; white-space:nowrap;
-  }
-  .status-panel-body b{color:var(--aqua);}
-  .status-panel-body .credits{color:#ffd27a;}
-  #status-panel-handle{
-    flex-shrink:0; width:44px; align-self:stretch;
-    background:var(--glass); border:1px solid var(--glass-border);
-    border-radius:0 14px 14px 0; backdrop-filter:blur(10px);
-    display:flex; align-items:center; justify-content:center;
-    font-size:17px; color:#fff; cursor:pointer;
-  }
-  /* 桌宠旁边呼出状态栏抽屉的按钮：只在手机端出现，桌面端用不到（桌面还是拉手那一套） */
-  #pet-menu-btn{ display:none; }
-
-  #shop-btn{
-    display:inline-flex; align-items:center; gap:6px; margin-top:8px;
-    padding:6px 12px; border-radius:999px; cursor:pointer; border:none;
-    background:linear-gradient(135deg,var(--coral),var(--pink)); color:#fff;
-    font-size:12px; font-family:inherit;
-  }
-  #demo-checkin-btn{
-    display:inline-flex; align-items:center; gap:4px; margin-top:8px; margin-left:6px;
-    padding:6px 10px; border-radius:999px; cursor:pointer;
-    background:var(--glass); border:1px solid var(--glass-border); color:#c9c6e8;
-    font-size:11px; font-family:inherit;
-  }
-  /* 状态栏里的背包/亚空间小按钮，共用一套样式 */
-  .sp-mini-btn{
-    margin-top:8px; margin-left:6px; padding:6px 12px; border-radius:999px; cursor:pointer;
-    border:1px solid var(--glass-border); background:var(--glass); color:#c9c6e8;
-    font-size:12px; font-family:inherit;
-  }
-
-  /* ================= 商店弹窗（不做背景虚化，只留一层淡淡的遮罩） ================= */
-  #shop-mask{
-    position:fixed; inset:0; z-index:1000; background:rgba(10,8,30,.45);
-    display:flex; align-items:center; justify-content:center;
-    opacity:0; pointer-events:none; transition:opacity .3s ease;
-  }
-  #shop-mask.show{ opacity:1; pointer-events:auto; }
-  #shop-panel{
-    position:relative;
-    width:min(420px, 88vw); max-height:80vh; overflow-y:auto;
-    background:linear-gradient(160deg,#221a45,#1a1436); border:1px solid var(--glass-border);
-    border-radius:20px; padding:22px; box-shadow:0 20px 50px rgba(0,0,0,.5);
-    transform:translateY(16px); opacity:0; transition:transform .32s cubic-bezier(.22,1,.36,1), opacity .3s ease;
-  }
-  #shop-mask.show #shop-panel{ transform:translateY(0); opacity:1; }
-  #shop-drag-handle{ display:none; }
-  #shop-fullscreen-toggle{ display:none; }
-  #shop-panel h3{margin:0 0 4px; font-size:16px; color:#fff;}
-  #shop-panel .shop-sub{font-size:12px; color:#a8a4cc; margin-bottom:16px;}
-  #shop-grid{
-    display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;
-  }
-  .food-card{
-    background:var(--glass); border:1px solid var(--glass-border); border-radius:14px;
-    padding:12px 8px; text-align:center; cursor:pointer; transition:transform .15s ease, background .2s ease;
-  }
-  .food-card:hover{background:rgba(255,255,255,.18); transform:translateY(-2px);}
-  .food-card:active{transform:scale(.96);}
-  .food-card.disabled{opacity:.4; cursor:not-allowed; transform:none;}
-  .food-emoji{font-size:28px; display:block; margin-bottom:6px;}
-  .food-name{font-size:12px; color:#fff; margin-bottom:2px;}
-  .food-price{font-size:11px; color:#ffd27a;}
-  #shop-close{
-    display:block; margin:18px auto 0; padding:8px 22px; border-radius:999px; border:none;
-    cursor:pointer; background:var(--glass); border:1px solid var(--glass-border); color:#fff;
-    font-size:12px; font-family:inherit;
-  }
-
-  /* ================= 背包弹窗：桌面居中弹窗，手机底部抽屉，和商店同一套动效语言 ================= */
-  /* z-index 故意比桌宠(500)低，这样桌宠依旧露在弹窗上面，方便把食物从背包拖到她身上 */
-  #backpack-mask{
-    position:fixed; inset:0; z-index:485; background:rgba(10,8,30,.4);
-    display:flex; align-items:center; justify-content:center;
-    opacity:0; pointer-events:none; transition:opacity .3s ease;
-  }
-  #backpack-mask.show{ opacity:1; pointer-events:auto; }
-  #backpack-panel{
-    position:relative;
-    width:min(300px, 88vw); max-height:74vh; overflow-y:auto;
-    background:var(--glass); border:1px solid var(--glass-border); border-radius:20px;
-    backdrop-filter:blur(14px); padding:20px; box-shadow:0 20px 50px rgba(0,0,0,.5);
-    transform:translateY(16px); opacity:0; transition:transform .32s cubic-bezier(.22,1,.36,1), opacity .3s ease;
-  }
-  #backpack-mask.show #backpack-panel{ transform:translateY(0); opacity:1; }
-  #backpack-drag-handle{ display:none; }
-  #backpack-panel h4{margin:0 0 8px; font-size:13px; color:#fff;}
-  #backpack-empty{font-size:12px; color:#a8a4cc; text-align:center; padding:10px 0;}
-  #backpack-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;}
-  #backpack-close{
-    display:block; margin:16px auto 0; padding:6px 20px; border-radius:999px; border:none;
-    cursor:pointer; background:rgba(255,255,255,.1); border:1px solid var(--glass-border); color:#c9c6e8;
-    font-size:11px; font-family:inherit;
-  }
-  .bp-item{
-    position:relative; background:rgba(255,255,255,.08); border:1px solid var(--glass-border);
-    border-radius:12px; padding:8px 4px; text-align:center; cursor:grab; user-select:none; touch-action:none;
-  }
-  .bp-item:active{cursor:grabbing;}
-  .bp-item .bp-emoji{font-size:22px; display:block;}
-  .bp-item .bp-count{
-    position:absolute; top:-6px; right:-6px; background:var(--pink); color:#fff;
-    font-size:10px; border-radius:999px; width:16px; height:16px; line-height:16px;
-  }
-
-  /* 拖拽中跟随手指/鼠标的浮动食物图标 */
-  #drag-food-ghost{
-    position:fixed; z-index:1500; font-size:30px; pointer-events:none; display:none;
-    transform:translate(-50%,-50%); transition:transform .18s ease, opacity .18s ease;
-    filter:drop-shadow(0 4px 8px rgba(0,0,0,.4));
-  }
-
-  /* 角色"蹦跳"期待反应：食物在远处晃悠时角色会小幅度上下跳 */
-  #pet-wrap.food-excited #pet-body{ animation:petBounce .5s ease-in-out infinite; }
-  @keyframes petBounce{
-    0%,100%{ transform:translateY(0); }
-    50%{ transform:translateY(-12px); }
-  }
-  /* 食物靠近时角色期待地微微前倾 */
-  #pet-wrap.food-near #pet-body{ animation:petLean .4s ease-in-out infinite alternate; }
-  @keyframes petLean{
-    0%{ transform:scale(1.03) rotate(-1deg); }
-    100%{ transform:scale(1.06) rotate(1deg); }
-  }
-
-  /* ================= 🌌 亚空间系统 ================= */
-  /* 入口弹窗：桌面居中大弹窗（几乎占满），手机底部抽屉，和商店/背包同一套动效语言 */
-  /* z-index 比背包高一点、但依然比桌宠低，桌宠拖进来时始终露在弹窗上面 */
-  #pocket-space-mask{
-    position:fixed; inset:0; z-index:490; background:rgba(10,8,30,.5);
-    display:flex; align-items:center; justify-content:center;
-    opacity:0; pointer-events:none; transition:opacity .3s ease;
-  }
-  #pocket-space-mask.show{ opacity:1; pointer-events:auto; }
-  #pocket-space-panel{
-    position:relative;
-    width:min(1040px, 94vw); height:min(860px, 86vh); overflow-y:auto;
-    background:linear-gradient(160deg,#221a45,#1a1436); border:1px solid var(--glass-border);
-    border-radius:26px; padding:30px; box-shadow:0 24px 60px rgba(0,0,0,.55);
-    transform:translateY(18px); opacity:0; transition:transform .34s cubic-bezier(.22,1,.36,1), opacity .3s ease;
-  }
-  #pocket-space-mask.show #pocket-space-panel{ transform:translateY(0); opacity:1; }
-  #pocket-space-drag-handle{ display:none; }
-  #pocket-space-panel h3{ margin:0 0 4px; font-size:18px; color:#fff; }
-  #pocket-space-panel .ps-sub{ font-size:12px; color:#a8a4cc; margin-bottom:20px; }
-  #pocket-space-close{
-    position:absolute; top:20px; right:22px; width:34px; height:34px; border-radius:50%;
-    border:1px solid var(--glass-border); background:rgba(255,255,255,.1); color:#fff;
-    font-size:15px; cursor:pointer;
-  }
-  #pocket-space-grid{
-    display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:20px;
-  }
-  .pocket-space-entry{
-    position:relative; border-radius:16px; overflow:hidden; cursor:pointer;
-    border:2px solid var(--glass-border); transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
-  }
-  .pocket-space-entry img{ display:block; width:100%; height:200px; object-fit:cover; }
-  .pocket-space-entry span{
-    position:absolute; left:0; right:0; bottom:0; padding:8px 10px; font-size:12px; color:#fff;
-    background:linear-gradient(0deg,rgba(0,0,0,.6),transparent); text-align:center;
-  }
-  /* 桌宠拖到入口附近时的高亮态：轻微放大+发光边框，提示"松手可以放进去" */
-  .pocket-space-entry.drag-hover{
-    transform:scale(1.04); border-color:var(--aqua);
-    box-shadow:0 0 0 4px rgba(92,225,230,.25), 0 8px 20px rgba(0,0,0,.4);
-  }
-  /* 桌宠"撞了一下"入口的橡皮筋弹跳，复用 petBounce 曲线的思路 */
-  .pocket-space-entry.entry-bump{ animation:entryBump .5s cubic-bezier(.34,1.56,.64,1); }
-  @keyframes entryBump{
-    0%{ transform:scale(1); } 30%{ transform:scale(1.18); }
-    55%{ transform:scale(.92); } 100%{ transform:scale(1); }
-  }
-  /* 桌宠被吸进去之后，小小地"住"在亚空间缩略图里，直到番茄钟结束再冒出来 */
-  .ps-resident-pet{
-    position:absolute; left:50%; bottom:10px; width:30%; max-width:70px;
-    transform:translateX(-50%) scale(0); transform-origin:bottom center;
-    transition:transform .35s cubic-bezier(.34,1.56,.64,1); pointer-events:none;
-    filter:drop-shadow(0 6px 10px rgba(0,0,0,.45));
-  }
-  .pocket-space-entry.pet-resident .ps-resident-pet{ transform:translateX(-50%) scale(1); }
-
-  /* 桌宠被"吸入"亚空间时的缩小淡出动画 */
-  #pet-wrap.entering-space #pet-body{
-    animation:petEnterSpace .5s cubic-bezier(.45,0,.55,1) forwards;
-  }
-  @keyframes petEnterSpace{
-    0%{ transform:scale(1); opacity:1; }
-    100%{ transform:scale(.25); opacity:0; }
-  }
-  /* 桌宠从亚空间重新"冒出来"的反向动画 */
-  #pet-wrap.emerging-space #pet-body{
-    animation:petEmergeSpace .55s cubic-bezier(.34,1.56,.64,1);
-  }
-  @keyframes petEmergeSpace{
-    0%{ transform:scale(.2); opacity:0; } 60%{ transform:scale(1.1); opacity:1; } 100%{ transform:scale(1); opacity:1; }
-  }
-
-  /* 进入瞬间叠在入口位置的一次性烟雾特效 */
-  #space-smoke-fx{
-    position:fixed; width:160px; height:160px; z-index:1600;
-    pointer-events:none; display:none; transform:translate(-50%,-50%);
-    background-size:cover; background-position:center;
-  }
-
-  /* 番茄钟弹窗（卡片态，还不是全屏） */
-  #pomodoro-mask{
-    position:fixed; inset:0; z-index:1000; background:rgba(10,8,30,.45);
-    display:flex; align-items:center; justify-content:center;
-    opacity:0; pointer-events:none; transition:opacity .3s ease;
-  }
-  #pomodoro-mask.show{ opacity:1; pointer-events:auto; }
-  #pomodoro-card{
-    width:min(320px, 88vw); background:linear-gradient(160deg,#221a45,#1a1436);
-    border:1px solid var(--glass-border); border-radius:22px; padding:24px;
-    box-shadow:0 20px 50px rgba(0,0,0,.5); text-align:center;
-  }
-  #pomodoro-card h3{ margin:0 0 4px; font-size:16px; color:#fff; }
-  #pomodoro-card .pm-sub{ font-size:11px; color:#a8a4cc; margin-bottom:16px; }
-  .pm-tabs{ display:flex; gap:6px; background:rgba(255,255,255,.06); border-radius:999px; padding:4px; margin-bottom:16px; }
-  .pm-tab{
-    flex:1; padding:8px 0; border-radius:999px; border:none; cursor:pointer;
-    background:transparent; color:#c9c6e8; font-size:12px; font-family:inherit; transition:.2s;
-  }
-  .pm-tab.active{ background:linear-gradient(135deg,var(--pink),var(--violet)); color:#fff; }
-  .pm-presets{ display:flex; gap:8px; justify-content:center; margin-bottom:10px; flex-wrap:wrap; }
-  .pm-preset{
-    padding:7px 14px; border-radius:999px; cursor:pointer; font-size:12px; font-family:inherit;
-    background:var(--glass); border:1px solid var(--glass-border); color:#e4e1fa; transition:.2s;
-  }
-  .pm-preset.active{ background:linear-gradient(135deg,var(--coral),var(--pink)); color:#fff; border-color:transparent; }
-  #pm-custom-row{ display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:18px; }
-  #pm-custom-row input{
-    width:64px; text-align:center; padding:6px 8px; border-radius:10px; font-size:13px;
-    border:1px solid var(--glass-border); background:rgba(255,255,255,.1); color:#fff; font-family:inherit;
-  }
-  #pm-custom-row span{ font-size:11px; color:#a8a4cc; }
-  #pm-start-btn{
-    width:96px; height:96px; border-radius:50%; border:none; cursor:pointer; margin:0 auto;
-    background:linear-gradient(135deg,var(--aqua),var(--violet)); color:#12102b;
-    font-size:16px; font-weight:700; font-family:inherit; box-shadow:0 10px 24px rgba(92,225,230,.4);
-    transition:transform .15s ease;
-  }
-  #pm-start-btn:active{ transform:scale(.94); }
-  #pomodoro-close{
-    display:block; margin:16px auto 0; padding:6px 20px; border-radius:999px; border:none;
-    cursor:pointer; background:var(--glass); border:1px solid var(--glass-border); color:#c9c6e8;
-    font-size:11px; font-family:inherit;
-  }
-  /* 321 准备倒数：盖住卡片内容，大数字用圆体字 */
-  #pm-countdown{
-    display:none; font-family:'ZCOOL KuaiLe', 'Noto Sans SC', sans-serif;
-    font-size:72px; color:#fff; padding:30px 0; text-shadow:0 4px 14px rgba(0,0,0,.4);
-  }
-
-  /* ================= 全屏播放层 ================= */
-  #pocket-space-fullscreen{
-    position:fixed; inset:0; height:100vh; height:100dvh; z-index:900;
-    display:none; background:#0e1a3a;
-  }
-  #pocket-space-fullscreen.show{ display:block; }
-  #ps-bg{
-    position:absolute; inset:0; background-size:cover; background-position:center;
-  }
-  #pocket-space-canvas{
-    position:absolute; inset:0; width:100%; height:100%;
-  }
-  #pomodoro-widget{
-    position:absolute; left:24px; top:24px;
-    text-align:left; color:#fff;
-  }
-  #pomodoro-widget .pw-time{
-    font-family:'ZCOOL KuaiLe','Noto Sans SC',sans-serif; font-size:clamp(32px,5vw,56px);
-    text-shadow:0 4px 18px rgba(0,0,0,.5); letter-spacing:1px;
-  }
-  #pomodoro-widget .pw-label{ font-size:12px; color:#e4e1fa; opacity:.85; margin-top:2px; }
-  #pomodoro-widget .pw-controls{ margin-top:14px; display:flex; gap:10px; justify-content:flex-start; }
-  #pomodoro-widget button{
-    padding:9px 20px; border-radius:999px; border:1px solid rgba(255,255,255,.35); cursor:pointer;
-    background:rgba(255,255,255,.14); backdrop-filter:blur(8px); color:#fff; font-size:12px; font-family:inherit;
-  }
-  #ps-real-fullscreen-btn{
-    position:absolute; right:calc(18px + env(safe-area-inset-right)); top:calc(18px + env(safe-area-inset-top));
-    width:38px; height:38px; border-radius:50%; border:1px solid rgba(255,255,255,.35);
-    background:rgba(255,255,255,.12); color:#fff; font-size:15px; cursor:pointer;
-  }
-  #pomodoro-toast{
-    position:absolute; left:50%; bottom:14%; transform:translateX(-50%) translateY(20px);
-    background:rgba(255,255,255,.95); color:#2a2340; padding:12px 20px; border-radius:16px;
-    font-size:13px; box-shadow:0 10px 26px rgba(0,0,0,.35); opacity:0; pointer-events:none;
-    transition:opacity .35s ease, transform .35s ease;
-  }
-  #pomodoro-toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
-
-
-  @media (max-width:760px){
-    /* 桌宠本体缩小，避免占屏过多；贴底距离 = 底座自己的 bottom偏移 + 底座总高度 + 一点呼吸间隙，
-       这样不管屏幕多宽多窄，桌宠都刚好贴在📊/🔍底座正上方，绝不会压住按钮 */
-    #pet-wrap{
-      right:12px;
-      bottom:calc(var(--dock-bottom) + var(--dock-height) + clamp(14px, 4vw, 20px) + env(safe-area-inset-bottom));
-      width:104px; height:134px;
-    }
-
-    /* 聊天面板：不再以桌宠为中心居中（会溢出屏幕右边），改成贴右对齐，宽度自适应视口 */
-    #chat-panel{
-      left:auto; right:0; transform:none;
-      width:min(230px, calc(100vw - 24px));
-    }
-    #quick-replies{ justify-content:flex-end; }
-
-    /* 快捷回复 + 输入框默认都收起，一起藏在💬图标背后；
-       这个图标本身也不常驻显示，要在角色身上快速点两下才会冒出来，省地方也避免手滑误触 */
-    #chat-body{ display:none; }
-    #chat-panel.input-open #chat-body{ display:flex; }
-    #chat-input-toggle{
-      display:none;
-      align-items:center; justify-content:center;
-      width:30px; height:30px; padding:0; border-radius:50%;
-      font-size:14px; line-height:1;
-      background:var(--glass); border:1px solid var(--glass-border); color:#fff;
-      backdrop-filter:blur(8px);
-    }
-    #pet-wrap.chat-icon-on #chat-input-toggle{ display:inline-flex; }
-
-    /* 气泡同理，避免溢出 */
-    #pet-bubble{
-      left:auto; right:0; transform:none; max-width:min(230px, calc(100vw - 24px));
-    }
-    #pet-bubble::after{ left:auto; right:20px; transform:none; }
-
-    /* 状态栏在手机端不再用"半隐藏拉手"，改成跟角色放一起的独立按钮（现在收进了 #mobile-action-dock 底座里，
-       和搜索/导航按钮同一水平线、同大小、上下堆叠），点开后整块内容从屏幕底部滑上来，
-       和商店/背包/亚空间是同一套底部抽屉语言 */
-    #status-panel-handle{ display:none; }
-    #pet-menu-btn{
-      display:flex; align-items:center; justify-content:center;
-      background:rgba(255,255,255,.14); color:#fff; border:none; cursor:pointer;
-    }
-    .status-panel{
-      left:0; right:0; bottom:0; width:100%;
-      transform:translateY(100%);
-      transition:transform .32s cubic-bezier(.22,1,.36,1);
-    }
-    .status-panel.open{ transform:translateY(0); }
-    .status-panel-body{
-      width:100%; flex:1; max-width:none;
-      border:1px solid var(--glass-border); border-bottom:none;
-      border-radius:24px 24px 0 0;
-      padding:20px 20px calc(20px + env(safe-area-inset-bottom));
-      font-size:12px;
-    }
-
-    /* 背包弹窗：手机上改成底部抽屉 */
-    #backpack-mask{ align-items:flex-end; }
-    #backpack-panel{
-      width:100%; max-width:100%; max-height:78vh;
-      border-radius:24px 24px 0 0;
-      padding:14px 20px calc(20px + env(safe-area-inset-bottom));
-      transform:translateY(100%);
-    }
-    #backpack-mask.show #backpack-panel{ transform:translateY(0); }
-    #backpack-drag-handle{
-      display:block; width:40px; height:4px; border-radius:999px;
-      background:rgba(255,255,255,.35); margin:2px auto 14px;
-    }
-
-    /* 亚空间弹窗：手机上同样改成底部抽屉，缩略图矮一点 */
-    #pocket-space-mask{ align-items:flex-end; }
-    #pocket-space-panel{
-      width:100%; max-width:100%; height:82vh;
-      border-radius:24px 24px 0 0;
-      padding:16px 20px calc(20px + env(safe-area-inset-bottom));
-      transform:translateY(100%);
-    }
-    #pocket-space-mask.show #pocket-space-panel{ transform:translateY(0); }
-    #pocket-space-drag-handle{
-      display:block; width:40px; height:4px; border-radius:999px;
-      background:rgba(255,255,255,.35); margin:2px auto 14px;
-    }
-    #pocket-space-close{ top:14px; right:16px; }
-    #pocket-space-grid{ grid-template-columns:repeat(2, 1fr); gap:12px; }
-    .pocket-space-entry img{ height:110px; }
-
-    /* 番茄钟卡片弹窗：跟商店一样改成底部滑入，手机上更好操作 */
-    #pomodoro-mask{ align-items:flex-end; }
-    #pomodoro-card{
-      width:100%; max-width:100%; border-radius:24px 24px 0 0;
-      padding:22px 22px calc(22px + env(safe-area-inset-bottom));
-    }
-    #pomodoro-widget{ left:16px; top:calc(16px + env(safe-area-inset-top)); }
-
-    /* 全屏播放层里的真全屏按钮避让刘海/挖孔屏 */
-    #ps-real-fullscreen-btn{
-      top:calc(14px + env(safe-area-inset-top));
-    }
-
-    /* 商店：改为从底部滑入的抽屉，而不是居中弹窗 */
-    #shop-mask{ align-items:flex-end; }
-    #shop-panel{
-      width:100%; max-width:100%; max-height:82vh;
-      border-radius:24px 24px 0 0;
-      padding:14px 20px calc(20px + env(safe-area-inset-bottom));
-      transform:translateY(100%);
-    }
-    #shop-mask.show #shop-panel{ transform:translateY(0); }
-    #shop-panel.fullscreen{
-      max-height:100vh; height:100vh; border-radius:0;
-      padding-top:calc(14px + env(safe-area-inset-top));
-    }
-    #shop-drag-handle{
-      display:block; width:40px; height:4px; border-radius:999px;
-      background:rgba(255,255,255,.35); margin:2px auto 14px;
-    }
-    #shop-fullscreen-toggle{
-      display:flex; align-items:center; justify-content:center;
-      position:absolute; top:14px; right:16px; width:32px; height:32px;
-      border-radius:50%; background:rgba(255,255,255,.1); border:1px solid var(--glass-border);
-      color:#fff; font-size:15px; cursor:pointer; z-index:1;
-    }
-    #shop-grid{ grid-template-columns:repeat(4, 1fr); }
-  }
-</style>
-
 </head>
 <body>
 
@@ -1058,13 +468,18 @@
 <div id="danmaku-container"></div>
 
 <nav id="nav">
-  <a class="logo" href="/">JERRY.DEV</a>
+  <!-- 修改：更换 Logo 文案 -->
+  <a class="logo" href="/">Jerry知识库</a>
   <div class="links">
-    <a href="/#reflect">反思</a>
+    <!-- 修改：反思换成了主页 -->
+    <a href="/">主页</a>
     <a href="/blog.html" class="active">博客</a>
     <a href="/rumi.html">Rumi英语</a>
   </div>
-  <div id="jerry-auth-slot" style="margin: 0 10px;"></div>
+  
+  <!-- 动态登录 UI 槽位 -->
+  <div class="auth-slot" id="jerry-auth-slot"></div>
+  
   <div class="btn-border-wrap"><a href="/#contact" class="cta">联系我</a></div>
 </nav>
 
@@ -1132,10 +547,10 @@
   <main class="main">
     <div class="main-controls">
       <div class="tabbar mono" id="tabbar">
-        <a href="#all" class="active" data-filter="all">全部</a>
+        <a class="active" data-filter="all">全部</a>
       </div>
       
-      <!-- 试图切换控件 -->
+      <!-- 视图切换控件 -->
       <div class="view-switcher" id="view-switcher">
         <button data-view="gallery" class="active" title="图库视图">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> 图库
@@ -1146,7 +561,6 @@
       </div>
     </div>
 
-    <!-- 默认加上 view-gallery 类以应用图库样式 -->
     <div id="content-area" class="view-gallery">
       <div class="state-box">
         <div class="spinner"></div>
@@ -1170,259 +584,105 @@
     </div>
     <div class="widget-card">
       <div class="widget-title">📣 更新日志</div>
-      <div class="announce-list" id="announceList"></div>
+      <div class="announce-list" id="announceList">
+        <div class="announce-item"><span class="announce-date">2026-07-17</span>优化多端阅读体验与会员弹窗系统。</div>
+        <div class="announce-item"><span class="announce-date">2026-07-10</span>修复若干已知问题，新增打卡功能。</div>
+      </div>
     </div>
   </aside>
 </div>
 
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
+<!-- 锁定分类的动态弹窗 -->
 <div class="lock-modal-mask" id="lockModalMask">
   <div class="lock-modal" id="lockModalBody">
-    <!-- 内容由 JS 根据登录状态动态渲染（未登录 / 已登录未解锁 / 已解锁），见 renderLockModal() -->
+    <!-- 内容由 JS 动态渲染 -->
   </div>
 </div>
 
+<!-- 解锁后的二次咖啡弹窗 -->
 <div class="lock-modal-mask" id="coffeeModalMask">
   <div class="lock-modal coffee-modal">
-    <span class="close-lock" id="coffeeModalClose">✕</span>
-    <div class="cake-visual">☕🎂</div>
+    <span class="close-lock" onclick="closeCoffeeModal()">✕</span>
+    <div class="cake-visual">☕</div>
     <h3>解锁成功！谢谢你 ✨</h3>
-    <p class="desc">如果这份技术拆解对你有帮助，觉得还不错的话，可以请 Jerry 喝杯咖啡，这对我持续做免费内容是很大的鼓励～</p>
+    <p class="desc">如果这份技术拆解对你有帮助，可以请 Jerry 喝杯咖啡，这对我持续做免费内容是很大的鼓励～</p>
     <div class="modal-btn-row">
-      <button class="cancel-btn" id="coffeeSkipBtn">暂不了</button>
-      <a class="coffee-btn" style="text-decoration:none;display:flex;align-items:center;justify-content:center;flex:1;" href="https://ifdian.net/a/rumi-ai" target="_blank" rel="noopener">☕ 请我喝咖啡</a>
+      <button class="cancel-btn" onclick="closeCoffeeModal()">暂不了</button>
+      <a class="coffee-btn" style="text-decoration:none;display:flex;align-items:center;justify-content:center;flex:1;" href="https://ifdian.net/a/rumi-ai" target="_blank" rel="noopener" onclick="closeCoffeeModal()">☕ 请我喝咖啡</a>
     </div>
   </div>
 </div>
-
-<!-- ================= 注入的桌宠系统 HTML 开始 ================= -->
-<div class="status-panel" id="statusPanel">
-  <div class="status-panel-body">
-    摸头进度：<b id="touchCount">0</b><br>
-    好感度：<b id="affinity">0</b><br>
-    积分：<b class="credits" id="credits">0</b><br>
-    <button id="shop-btn" type="button">🛍️ 打开商店</button>
-    <button id="backpack-btn" type="button" class="sp-mini-btn">🎒 背包</button>
-    <button id="pocket-space-btn" type="button" class="sp-mini-btn">🌌 亚空间</button><br>
-    <button id="demo-checkin-btn" type="button" title="正式版应该由博客的每日打卡/浏览量触发，这里先放一个按钮方便你现在就试手感">模拟打卡 +10积分</button>
-  </div>
-  <button id="status-panel-handle" type="button" aria-label="展开/收起状态栏">📊</button>
-</div>
-
-<div id="backpack-mask">
-  <div id="backpack-panel">
-    <div id="backpack-drag-handle"></div>
-    <h4>我的背包</h4>
-    <div id="backpack-empty">还没有食物，先去商店买点吧～</div>
-    <div id="backpack-grid"></div>
-    <button id="backpack-close" type="button">关闭</button>
-  </div>
-</div>
-
-<div id="pocket-space-mask">
-  <div id="pocket-space-panel">
-    <div id="pocket-space-drag-handle"></div>
-    <button id="pocket-space-close" type="button">✕</button>
-    <h3>🌌 亚空间</h3>
-    <div class="ps-sub">把桌宠拖到下面的场景里，陪她坐一会儿吧～</div>
-    <div id="pocket-space-grid">
-      <div class="pocket-space-entry" id="pocket-space-entry-1" data-space-id="cozy-room">
-        <img src="images/pocket-space/pocket-space-1-room.webp" alt="番茄钟小屋"/>
-        <img class="ps-resident-pet" id="ps-resident-pet-1" alt=""/>
-        <span>番茄钟小屋</span>
-      </div>
-      <!-- 以后新增亚空间，直接照着上面这个 .pocket-space-entry 结构往这里加 -->
-    </div>
-  </div>
-</div>
-
-<div id="shop-mask">
-  <div id="shop-panel">
-    <div id="shop-drag-handle"></div>
-    <button id="shop-fullscreen-toggle" type="button" title="全屏显示">⤢</button>
-    <h3>桌宠小卖部</h3>
-    <div class="shop-sub">花积分买点吃的，买到后去背包把食物拖给她吃～</div>
-    <div id="shop-grid"></div>
-    <button id="shop-close" type="button">关闭</button>
-  </div>
-</div>
-
-<div id="drag-food-ghost"></div>
-<div id="space-smoke-fx"></div>
-
-<!-- 番茄钟弹窗（卡片态） -->
-<div id="pomodoro-mask">
-  <div id="pomodoro-card">
-    <h3>番茄钟小屋</h3>
-    <div class="pm-sub">选个时长，进去陪她坐一会儿吧</div>
-
-    <div id="pm-normal-view">
-      <div class="pm-tabs">
-        <button type="button" class="pm-tab active" data-mode="countdown">倒计时</button>
-        <button type="button" class="pm-tab" data-mode="stopwatch">正计时</button>
-      </div>
-      <div class="pm-presets" id="pm-presets">
-        <button type="button" class="pm-preset" data-min="15">15分钟</button>
-        <button type="button" class="pm-preset active" data-min="25">25分钟</button>
-        <button type="button" class="pm-preset" data-min="45">45分钟</button>
-      </div>
-      <div id="pm-custom-row">
-        <input type="number" id="pm-custom-min" min="1" max="180" placeholder="自定义"/>
-        <span>分钟</span>
-      </div>
-      <button id="pm-start-btn" type="button">开始</button>
-    </div>
-
-    <div id="pm-countdown">3</div>
-
-    <button id="pomodoro-close" type="button">先不用了</button>
-  </div>
-</div>
-
-<!-- 亚空间全屏播放层 -->
-<div id="pocket-space-fullscreen">
-  <div id="ps-bg"></div>
-  <canvas id="pocket-space-canvas"></canvas>
-  <div id="pomodoro-widget">
-    <div class="pw-time" id="pw-time">25:00</div>
-    <div class="pw-label" id="pw-label">专注中～</div>
-    <div class="pw-controls">
-      <button id="pw-pause-btn" type="button">⏸ 暂停</button>
-      <button id="pw-end-btn" type="button">⏹ 结束</button>
-    </div>
-  </div>
-  <button id="ps-real-fullscreen-btn" type="button" title="真全屏">⛶</button>
-  <div id="pomodoro-toast">完成一个番茄钟啦🍅</div>
-</div>
-
-<audio id="pomodoro-audio" src="images/pocket-space/pomodoro-bgm.mp3" loop preload="none"></audio>
 
 <div id="mobile-action-dock">
-  <button id="pet-menu-btn" type="button" class="dock-btn" aria-label="打开桌宠功能">📊</button>
   <button class="mobile-fab dock-btn" id="mobileFab" aria-label="打开搜索/导航">🔍</button>
 </div>
 
-<div id="pet-wrap">
-  <div id="pet-bubble"></div>
-  <div id="pet-body">
-    <img id="pet-img" src="images/pet/normal1.png" alt="桌宠"/>
-  </div>
-  <div id="pet-headzone"></div>
-
-  <div id="chat-panel">
-    <button id="chat-input-toggle" type="button" aria-label="打字聊天">💬</button>
-    <div id="chat-body">
-      <div id="quick-replies">
-        <button type="button" data-topic="daily">分享日常</button>
-        <button type="button" data-topic="tech">聊点技术</button>
-        <button type="button" data-topic="friend">找搭子</button>
-      </div>
-      <div id="chat-input-row">
-        <input id="chat-input" type="text" maxlength="60" placeholder="跟我说点什么...(回车发送)"/>
-        <button id="chat-send" type="button">发送</button>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- ================= 注入的桌宠系统 HTML 结束 ================= -->
+<!-- 真实登录系统：必须放在下面主脚本之前，保证 JerrySite 先定义好 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/user-system.js"></script>
+<script src="/login-widget.js"></script>
 
 <script>
-let allPosts = [];
+// ==================== 1. 全局配置与状态 ====================
+const LOCKED_CATEGORY = 'Rumi英语技术';
+// ★ 生日限免的真实截止时间：改这一行日期就能调整限免窗口，过了这个时间自动只显示付费选项
+const UNLOCK_DEADLINE = new Date('2026-07-24T23:59:59+08:00');
+function isOfferExpired(){ return Date.now() > UNLOCK_DEADLINE.getTime(); }
 const CATEGORY_ORDER = ['技术分享', '心情随笔', '思维日记'];
-let currentViewMode = 'gallery'; // 默认试图模式
+let allPosts = [];
+let currentViewMode = 'gallery'; 
+let currentCategoryFilter = 'all'; // 统一过滤状态
+let currentPage = 1;
+const PAGE_SIZE = 10;
 
-/* ============ 试图切换逻辑 ============ */
-function setupViewSwitcher() {
-  const buttons = document.querySelectorAll('#view-switcher button');
-  const contentArea = document.getElementById('content-area');
-  
-  buttons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const mode = btn.dataset.view;
-      currentViewMode = mode;
-      
-      // 切换激活状态
-      buttons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      
-      // 切换容器 Class
-      contentArea.className = ''; 
-      contentArea.classList.add(`view-${mode}`);
-    });
-  });
-}
-setupViewSwitcher();
+// ==================== 2. 真实登录系统（接入 user-system.js / Supabase）====================
+// window.currentUser 由 JerrySite 的登录状态实时同步，任何页面登录，其它页面刷新后状态都一致
+// （原理：Supabase 的 session 存在 localStorage 里，同源的所有页面共享同一份）
+window.currentUser = null;
+window.hasUnlockedRumi = false;
 
-/* ============ 手机端适配 ============ */
-const MOBILE_BQ = window.matchMedia('(max-width:760px)');
-function isMobile(){ return MOBILE_BQ.matches; }
-
-function setupMobileChrome(){
-  const sidebar = document.getElementById('sidebar');
-  const backdrop = document.getElementById('sidebarBackdrop');
-  const fab = document.getElementById('mobileFab');
-  const closeBtn = document.getElementById('sidebarClose');
-
-  function openSidebar(){ sidebar.classList.add('open'); backdrop.classList.add('open'); }
-  function closeSidebar(){ sidebar.classList.remove('open'); backdrop.classList.remove('open'); }
-
-  fab.addEventListener('click', openSidebar);
-  closeBtn.addEventListener('click', closeSidebar);
-  backdrop.addEventListener('click', closeSidebar);
-
-  const nav = document.getElementById('nav');
-  const controls = document.querySelector('.main-controls');
-  function syncStickyTop(){
-    controls.style.top = nav.offsetHeight + 'px';
-  }
-  syncStickyTop();
-  window.addEventListener('resize', syncStickyTop);
+function renderAuthUI(user){
+  window.currentUser = user || null;
+  // login-widget.js 自己会往 #jerry-auth-slot 里渲染登录按钮/头像，这里不用重复渲染，
+  // 只需要在登录状态变化时，同步刷新跟登录状态相关的其它UI（弹窗/右侧栏）
+  if(document.getElementById('lockModalMask')?.classList.contains('open')) openLockModal();
+  if(typeof initCheckinWidget === 'function') initCheckinWidget();
+  if(typeof initPointsWidget === 'function') initPointsWidget();
 }
 
-async function loadPosts(){
-  const contentArea = document.getElementById('content-area');
-  try {
-    const res = await fetch('/api/posts');
-    const data = await res.json();
-
-    if(!data.ok){
-      contentArea.innerHTML = `<div class="state-box error">加载失败：${escapeHtml(data.error || '未知错误')}</div>`;
-      return;
-    }
-    if(!data.posts || data.posts.length === 0){
-      contentArea.innerHTML = `<div class="state-box">还没有发布任何文章，去 Notion 里写第一篇吧 ✍️</div>`;
-      return;
-    }
-
-    allPosts = data.posts;
-    buildStats(allPosts);
-    buildCategoryTabs(allPosts);
-    buildCategoryJump(allPosts);
-    buildRecentList(allPosts);
-    buildArchive(allPosts);
-    setupMobileChrome();
-    
-    renderMobilePaged(allPosts, 1);
-
-  } catch (err) {
-    contentArea.innerHTML = `<div class="state-box error">网络请求失败：${escapeHtml(err.message)}</div>`;
-  }
+if(window.JerrySite){
+  JerrySite.onAuthChange(renderAuthUI);
+} else {
+  console.warn('JerrySite 未加载，检查 user-system.js 的 script 标签是否放在这段代码之前');
 }
 
-function buildStats(posts){
-  const postsEl = document.getElementById('statPosts');
-  const viewsEl = document.getElementById('statViews');
-  if(!postsEl || !viewsEl) return;
-  postsEl.textContent = posts.length;
-  const totalViews = posts.reduce((sum, p) => sum + (p.views || 0), 0);
-  viewsEl.textContent = totalViews >= 1000 ? (totalViews/1000).toFixed(1) + 'K' : totalViews;
+function triggerLoginAndUnlock(){
+  closeLockModal();
+  // 复用 login-widget.js 已经建好的登录按钮，模拟点击弹出真正的登录弹窗（Google / 邮箱验证码）
+  document.getElementById('jerryLoginBtn')?.click();
+}
+function mockLogout(){
+  if(window.JerrySite) JerrySite.signOut();
+}
+// 初始化交给上面的 JerrySite.onAuthChange 触发，这里不需要再裸调用一次
+// (裸调用会把刚同步好的真实登录状态覆盖回 null)
+
+// ==================== 3. 分类与文章处理 ====================
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>'"]/g, tag => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+  }[tag]));
 }
 
 function normalizeCategory(raw){
   const cat = (raw || '未分类').trim();
-  // Rumi英语技术 分类之前因为大小写/全半角不一致被当成了两个不同分类，这里统一按不区分大小写归并成同一个
-  if(typeof LOCKED_CATEGORY !== 'undefined' && cat.toLowerCase() === LOCKED_CATEGORY.toLowerCase()) return LOCKED_CATEGORY;
+  // 修复重复分类 Bug：无视大小写
+  if(cat.toLowerCase() === LOCKED_CATEGORY.toLowerCase() || cat.toLowerCase() === 'rumi英语') {
+    return LOCKED_CATEGORY;
+  }
   return cat;
 }
 
@@ -1433,38 +693,58 @@ function groupByCategory(posts){
     if(!groups[cat]) groups[cat] = [];
     groups[cat].push(p);
   });
-  const orderedKeys = [
-    ...CATEGORY_ORDER.filter(c => groups[c]),
-    ...Object.keys(groups).filter(c => !CATEGORY_ORDER.includes(c))
-  ];
-  return orderedKeys.map(key => ({ category: key, posts: groups[key] }));
+  return groups;
 }
 
-function renderSections(posts){
-  const contentArea = document.getElementById('content-area');
-  const sections = groupByCategory(posts);
+// ==================== 4. 统一布局渲染 (分页 + 筛选) ====================
+// 现在无论是手机端还是桌面端，全部走这个单一的渲染逻辑
+function renderPaged(posts, page){
+  currentPage = page || 1;
+  const filtered = currentCategoryFilter === 'all' 
+    ? posts 
+    : posts.filter(p => normalizeCategory(p.category) === currentCategoryFilter);
+  
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  currentPage = Math.min(currentPage, totalPages);
+  
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageItems = filtered.slice(start, start + PAGE_SIZE);
 
-  contentArea.innerHTML = sections.map(sec => `
-    <div class="cat-section" id="cat-${slugify(sec.category)}">
-      <div class="cat-header">
+  const contentArea = document.getElementById('content-area');
+  
+  if(filtered.length === 0){
+    contentArea.innerHTML = `<div class="state-box">该分类下还没有内容</div>`;
+    return;
+  }
+  
+  // 渲染当前页的内容
+  contentArea.innerHTML = `
+    <div class="cat-section">
+      <div class="cat-header" style="${currentCategoryFilter === 'all' ? 'display:none;' : ''}">
         <span class="dot"></span>
-        <h2>${escapeHtml(sec.category)}</h2>
-        <span class="cat-count mono">${sec.posts.length} 篇</span>
+        <h2>${escapeHtml(currentCategoryFilter)}</h2>
+        <span class="cat-count mono">${filtered.length} 篇</span>
       </div>
       <div class="post-grid">
-        ${sec.posts.map(postCardHtml).join('')}
+        ${pageItems.map(post => postCardHtml(post)).join('')}
       </div>
     </div>
-  `).join('');
+    ${buildPaginationHtml(currentPage, totalPages)}
+  `;
+
+  // 绑定分页按钮点击
+  contentArea.querySelectorAll('.pagination button[data-page]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      renderPaged(allPosts, parseInt(btn.dataset.page, 10));
+      document.getElementById('content-area')?.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
 }
 
-// 统一的卡片渲染结构，通过父容器的 .view-gallery 或 .view-list 切换样式
-function postCardHtml(post, alreadyEscaped){
-  const title = alreadyEscaped ? (post.title || '无标题') : escapeHtml(post.title || '无标题');
-  const excerpt = post.excerpt ? (alreadyEscaped ? post.excerpt : escapeHtml(post.excerpt)) : '暂无内容预览...';
+function postCardHtml(post){
+  const title = escapeHtml(post.title || '无标题');
+  const excerpt = post.excerpt ? escapeHtml(post.excerpt) : '暂无内容预览...';
 
-  // 图片和文字都放进DOM里，具体显示哪个由CSS按当前视图模式（图库/列表）决定，
-  // 这样列表视图不会因为"只塞了一张图进去"而变成没有文字的空卡片
   const coverImg = post.cover
     ? `<img class="post-cover-img" src="${post.cover}" alt="" loading="lazy" onerror="this.style.display='none'">`
     : '';
@@ -1479,43 +759,11 @@ function postCardHtml(post, alreadyEscaped){
         <div class="post-title" title="${title}">${title}</div>
         <div class="post-meta">
           ${post.date ? `<span>📅 ${post.date}</span>` : ''}
-          ${post.category ? `<span>🏷️ ${escapeHtml(post.category)}</span>` : ''}
+          ${post.category ? `<span>🏷️ ${escapeHtml(normalizeCategory(post.category))}</span>` : ''}
         </div>
       </div>
     </a>
   `;
-}
-
-const PAGE_SIZE = 10;
-let mobileFilter = 'all';
-let mobilePage = 1;
-
-function renderMobilePaged(posts, page){
-  mobilePage = page || 1;
-  const filtered = mobileFilter === 'all' ? posts : posts.filter(p => normalizeCategory(p.category) === mobileFilter);
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  mobilePage = Math.min(mobilePage, totalPages);
-  const start = (mobilePage - 1) * PAGE_SIZE;
-  const pageItems = filtered.slice(start, start + PAGE_SIZE);
-
-  const contentArea = document.getElementById('content-area');
-  if(filtered.length === 0){
-    contentArea.innerHTML = `<div class="state-box">这个分类下还没有文章</div>`;
-    return;
-  }
-  contentArea.innerHTML = `
-    <div class="cat-section">
-      <div class="post-grid">${pageItems.map(postCardHtml).join('')}</div>
-    </div>
-    ${buildPaginationHtml(mobilePage, totalPages)}
-  `;
-
-  contentArea.querySelectorAll('.pagination button[data-page]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      renderMobilePaged(allPosts, parseInt(btn.dataset.page, 10));
-      document.getElementById('content-area')?.scrollIntoView({behavior:'smooth', block:'start'});
-    });
-  });
 }
 
 function buildPaginationHtml(page, total){
@@ -1532,1944 +780,264 @@ function buildPaginationHtml(page, total){
     : `<button data-page="${p}" class="${p===page?'active':''}">${p}</button>`
   ).join('');
 
-  return `
-    <div class="pagination">
-      <button data-page="${Math.max(1,page-1)}" ${page===1?'disabled':''}>‹</button>
-      ${btns}
-      <button data-page="${Math.min(total,page+1)}" ${page===total?'disabled':''}>›</button>
-    </div>
-  `;
+  return `<div class="pagination">${btns}</div>`;
 }
 
-const LOCKED_CATEGORY = 'Rumi英语技术';
+// ==================== 5. 视图切换与导航构建 ====================
+function setupViewSwitcher() {
+  const buttons = document.querySelectorAll('#view-switcher button');
+  const contentArea = document.getElementById('content-area');
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const mode = btn.dataset.view;
+      currentViewMode = mode;
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      contentArea.className = ''; 
+      contentArea.classList.add(`view-${mode}`);
+    });
+  });
+}
+setupViewSwitcher();
 
 function buildCategoryTabs(posts){
   const tabbar = document.getElementById('tabbar');
-  const sections = groupByCategory(posts).filter(sec => sec.category !== LOCKED_CATEGORY);
-  const tabsHtml = sections.map(sec => `<a href="#" data-filter="${escapeHtml(sec.category)}">${escapeHtml(sec.category)}</a>`).join('');
-  const lockedTabHtml = `<a href="#" data-filter="${LOCKED_CATEGORY}" class="locked"><span class="chain">🔗</span>${LOCKED_CATEGORY}<span class="chain">🔗</span></a>`;
-  tabbar.innerHTML = `<a href="#" class="active" data-filter="all">全部</a>` + tabsHtml + lockedTabHtml;
+  const jumpBox = document.getElementById('cat-jump');
+  const groups = groupByCategory(posts);
+  
+  const orderedKeys = [
+    ...CATEGORY_ORDER.filter(c => groups[c]),
+    ...Object.keys(groups).filter(c => !CATEGORY_ORDER.includes(c) && c !== LOCKED_CATEGORY)
+  ];
+  if (groups[LOCKED_CATEGORY]) orderedKeys.push(LOCKED_CATEGORY);
 
-  tabbar.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
+  let tabHtml = `<a class="active" data-filter="all">全部</a>`;
+  let jumpHtml = `<div class="cat-jump-label">分类导航</div>`;
 
-      if(a.dataset.filter === LOCKED_CATEGORY){
+  orderedKeys.forEach(cat => {
+    const count = groups[cat].length;
+    const isLocked = cat === LOCKED_CATEGORY;
+    const displayCat = isLocked ? `🔗${cat}🔗` : cat;
+    
+    tabHtml += `<a data-filter="${cat}" class="${isLocked ? 'locked' : ''}">${displayCat}</a>`;
+    jumpHtml += `<a data-filter="${cat}" class="${isLocked ? 'locked' : ''}"><span>${displayCat}</span> <span class="count">${count}</span></a>`;
+  });
+
+  tabbar.innerHTML = tabHtml;
+  jumpBox.innerHTML = jumpHtml;
+
+  // 绑定所有分类点击事件
+  document.querySelectorAll('[data-filter]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      const cat = e.currentTarget.dataset.filter;
+      if(cat === LOCKED_CATEGORY && !window.hasUnlockedRumi) {
         openLockModal();
-        return; // 锁定分类不切换active、不筛选，只弹窗
+        return;
       }
-
-      tabbar.querySelectorAll('a').forEach(x => x.classList.remove('active'));
-      a.classList.add('active');
-      mobileFilter = a.dataset.filter;
-      renderMobilePaged(allPosts, 1);
-      document.getElementById('content-area')?.scrollIntoView({behavior:'smooth', block:'start'});
+      switchCategory(cat);
+      if(window.innerWidth <= 760) closeSidebar();
     });
   });
 }
 
-/* ============ 会员锁定分类弹窗 + 解锁特效 ============ */
-const RUMI_UNLOCK_KEY = 'rumiTechUnlocked';
-// 生日限免 7 天：从公告栏记录的上线日 2026-07-16 起算，到 2026-07-23 结束
-const UNLOCK_DEADLINE = new Date('2026-07-23T23:59:59+08:00');
-
-function daysLeft(){
-  const ms = UNLOCK_DEADLINE.getTime() - Date.now();
-  return Math.max(0, Math.ceil(ms / 86400000));
+function switchCategory(cat) {
+  currentCategoryFilter = cat;
+  
+  // 更新激活样式
+  document.querySelectorAll('[data-filter]').forEach(el => {
+    if(el.dataset.filter === cat) el.classList.add('active');
+    else el.classList.remove('active');
+  });
+  
+  // 重新渲染列表
+  renderPaged(allPosts, 1);
 }
-function isOfferExpired(){ return Date.now() > UNLOCK_DEADLINE.getTime(); }
-function isLoggedIn(){ return !!(window.JerrySite && JerrySite.isLoggedIn()); }
-function isUnlocked(){ return localStorage.getItem(RUMI_UNLOCK_KEY) === '1'; }
 
-const MEMBERSHIP_CARD_HTML = `
-  <div class="membership-card">
-    <div class="m-row">
-      <span class="m-price-full">¥199</span>
-      <span class="m-price-off">¥98/年</span>
-      <span style="font-size:12.5px;color:var(--muted);">关注 Twitter 立减</span>
-    </div>
-    <div class="m-note">成为 Jerry 年度会员可解锁完整内容库并加入交流群，关注 Twitter 后私信截图即可享折后价。</div>
-    <div class="m-actions">
-      <a class="twitter-follow-btn" href="https://x.com/zengaihua327711" target="_blank" rel="noopener">𝕏 关注 @zengaihua327711</a>
-      <div class="wechat-group-hint">
-        <img class="qr-thumb" src="images/wechat-group-qr.jpg" alt="微信群二维码" onerror="this.style.display='none'">
-        <span>扫码加入微信交流群</span>
+// ==================== 6. 会员弹窗系统 ====================
+function openLockModal() {
+  const modalMask = document.getElementById('lockModalMask');
+  const modalBody = document.getElementById('lockModalBody');
+
+  // 限免已过期：只剩付费选项，不管登没登录都看不到免费解锁按钮
+  if (isOfferExpired()) {
+    modalBody.innerHTML = `
+      <span class="close-lock" onclick="closeLockModal()">✕</span>
+      <div class="cake-visual">🔒</div>
+      <h3 style="font-size: 24px;">生日限免已结束</h3>
+      <p class="desc">7天限时免费分享已经结束啦，这部分内容现在只对付费会员开放。</p>
+      <div class="membership-card">
+        <div class="m-row">
+          <span class="m-price-full">年会员 ¥199</span>
+          <span class="m-price-off">立减到 ¥98</span>
+        </div>
+        <p class="m-note">加入内部微信群，第一时间获取干货和辅导更新。</p>
+        <div class="m-actions">
+          <a href="https://x.com/zengaihua327711" target="_blank" rel="noopener" class="twitter-follow-btn">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 22.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.008 4.075H5.059z"/></svg>
+            前往关注
+          </a>
+        </div>
       </div>
-    </div>
-  </div>
-`;
-
-function renderLockModal(){
-  const body = document.getElementById('lockModalBody');
-  const closeBtnHtml = `<span class="close-lock" id="lockModalClose">✕</span>`;
-
-  if(!isLoggedIn()){
-    body.innerHTML = `
-      ${closeBtnHtml}
-      <div class="login-gate-box">
-        <div class="lock-icon">🔒</div>
-        <div class="badge">🎂 Jerry生日限时免费 · 仅剩 ${daysLeft()} 天</div>
-        <h3>Rumi英语技术 · 会员专区</h3>
-        <p>这里是完整的技术拆解内容，<b>请先登录</b>才能查看详情并解锁哦～</p>
-        <button class="login-now-btn" id="lockGoLoginBtn">👤 立即登录</button>
+      <div class="modal-btn-row">
+        <button class="cancel-btn" onclick="closeLockModal()" style="flex:1;">好的</button>
       </div>
     `;
+    modalMask.classList.add('open');
     return;
   }
 
-  if(isUnlocked()){
-    body.innerHTML = `
-      ${closeBtnHtml}
-      <div class="cake-visual">🎉🎂</div>
-      <div class="badge">已解锁</div>
-      <h3>Rumi英语技术 · 会员专区</h3>
-      <p class="desc">你已经解锁过这部分内容啦，随时回来看～</p>
-      <ul class="content-list">
-        <li>动画视频提示词（分镜/运镜/风格锁定）</li>
-        <li>角色形象图片提示词</li>
-        <li>SOP 生成布局 / 批量产出流程</li>
-        <li>完整变现流程拆解</li>
-      </ul>
-      ${MEMBERSHIP_CARD_HTML}
+  // 未登录状态
+  if (!window.currentUser) {
+    modalBody.innerHTML = `
+      <span class="close-lock" onclick="closeLockModal()">✕</span>
+      <div class="cake-visual">🎂</div>
+      <h3 style="font-size: 26px;">Jerry的生日限时分享</h3>
+      <p class="desc">
+        这是 <strong>🔗Rumi英语技术🔗</strong> 会员专栏。<br>
+        因为 Jerry 过生日，此专栏 <strong>限时 7 天免费解锁</strong> 获取完整权益！<br>
+        请先登录以验证权限。
+      </p>
+      <div class="modal-btn-row">
+        <button class="cancel-btn" onclick="closeLockModal()">取消</button>
+        <button class="login-now-btn" onclick="triggerLoginAndUnlock()">立即登录解锁</button>
+      </div>
     `;
-    return;
+  } 
+  // 已登录未解锁
+  else {
+    const daysLeft = Math.max(0, Math.ceil((UNLOCK_DEADLINE.getTime() - Date.now()) / (1000*60*60*24)));
+    modalBody.innerHTML = `
+      <span class="close-lock" onclick="closeLockModal()">✕</span>
+      <div class="cake-visual">🎂</div>
+      <h3 style="font-size: 26px; color: #FFC93C; font-family:'Noto Serif SC',serif;">Jerry过生日啦！</h3>
+      <p class="desc" style="font-size: 15px; margin-bottom: 16px;">
+        为了庆祝，限时分享我的技术库，<strong style="color:#FF9E8A;">还剩 ${daysLeft} 天</strong>！<br>
+        原需付费入群获取，今日点击即可全部解锁。
+      </p>
+
+      <div class="content-list">
+        <li>视频提示词与图片提示词库</li>
+        <li>SOP 自动化生成布局</li>
+        <li>Rumi英语变现致富流程</li>
+        <li>独家 AI 提效工作流</li>
+      </div>
+
+      <div class="membership-card">
+        <div class="m-row">
+          <span class="m-price-full">年会员 ¥199</span>
+          <span class="m-price-off">限时折扣价 ¥98</span>
+        </div>
+        <p class="m-note">加入内部微信群，第一时间获取干货和辅导更新。</p>
+        <div class="m-actions">
+          <a href="https://x.com/zengaihua327711" target="_blank" rel="noopener" class="twitter-follow-btn">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 22.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.008 4.075H5.059z"/></svg>
+            前往关注
+          </a>
+        </div>
+      </div>
+
+      <div class="modal-btn-row">
+        <button class="cancel-btn" onclick="closeLockModal()">取消</button>
+        <button class="unlock-btn" onclick="executeUnlock()">🎉 立即解锁</button>
+      </div>
+    `;
   }
-
-  const expired = isOfferExpired();
-  body.innerHTML = `
-    ${closeBtnHtml}
-    <div class="cake-visual">🎂</div>
-    <div class="badge">${expired ? '限时免费已结束' : `🎂 Jerry生日限时免费 · 仅剩 ${daysLeft()} 天`}</div>
-    <h3>Rumi英语技术 · 会员专区</h3>
-    <p class="desc">这部分是我平时做 Rumi 英语这套内容背后的完整技术拆解，本来是要收费的，借生日这几天限时免费分享给大家。</p>
-    <ul class="content-list">
-      <li>动画视频提示词（分镜/运镜/风格锁定）</li>
-      <li>角色形象图片提示词</li>
-      <li>SOP 生成布局 / 批量产出流程</li>
-      <li>完整变现流程拆解</li>
-    </ul>
-    ${MEMBERSHIP_CARD_HTML}
-    <div class="modal-btn-row">
-      <button class="cancel-btn" id="lockCancelBtn">取消</button>
-      <button class="unlock-btn" id="unlockBtn" ${expired ? 'disabled' : ''}>${expired ? '限免已结束' : '🔓 立即解锁'}</button>
-    </div>
-  `;
+  modalMask.classList.add('open');
 }
 
-function openLockModal(){
-  renderLockModal();
-  document.getElementById('lockModalMask').classList.add('open');
-}
-function closeLockModal(){
+function closeLockModal() {
   document.getElementById('lockModalMask').classList.remove('open');
 }
-function openCoffeeModal(){
-  document.getElementById('coffeeModalMask').classList.add('open');
+
+function triggerLoginAndUnlock() {
+  // 这里可以换成你真实的登录弹窗/跳转逻辑
+  mockLogin(); 
+  closeLockModal();
+  setTimeout(openLockModal, 300); // 登录完后重新打开弹窗，此时会显示已登录版本的UI
 }
-function closeCoffeeModal(){
+
+function executeUnlock() {
+  window.hasUnlockedRumi = true; // 设置全局状态为已解锁
+  closeLockModal();
+  fireConfetti();
+  
+  // 延迟弹出二次咖啡弹窗，并在后台切好视图
+  setTimeout(() => {
+    switchCategory(LOCKED_CATEGORY); // 视图静默切换到该栏目
+    document.getElementById('coffeeModalMask').classList.add('open');
+  }, 1200);
+}
+
+function closeCoffeeModal() {
   document.getElementById('coffeeModalMask').classList.remove('open');
 }
 
-document.getElementById('lockModalMask').addEventListener('click', (e) => {
-  if(e.target.id === 'lockModalMask' || e.target.id === 'lockModalClose') closeLockModal();
-});
-
-// 弹窗内容是动态渲染的，用事件委托处理里面的按钮点击
-document.getElementById('lockModalBody').addEventListener('click', (e) => {
-  if(e.target.id === 'lockGoLoginBtn'){
-    if(window.openJerryLoginModal) window.openJerryLoginModal();
-    return;
-  }
-  if(e.target.id === 'lockCancelBtn'){
-    closeLockModal();
-    return;
-  }
-  if(e.target.id === 'unlockBtn' && !e.target.disabled){
-    const btn = e.target;
-    btn.disabled = true;
-    btn.textContent = '解锁中…';
-    localStorage.setItem(RUMI_UNLOCK_KEY, '1');
-    fireConfetti();
-    setTimeout(() => {
-      btn.textContent = '🎉 已解锁！';
-      setTimeout(() => {
-        closeLockModal();
-        // 解锁后把这个分类当成普通分类筛选展示（如果 Notion 里已经有对应文章的话）
-        const tabbar = document.getElementById('tabbar');
-        tabbar.querySelectorAll('a').forEach(x => x.classList.remove('active'));
-        tabbar.querySelector(`a[data-filter="${LOCKED_CATEGORY}"]`)?.classList.add('active');
-        mobileFilter = LOCKED_CATEGORY;
-        renderMobilePaged(allPosts, 1);
-        openCoffeeModal();
-      }, 900);
-    }, 600);
-  }
-});
-
-document.getElementById('coffeeModalMask').addEventListener('click', (e) => {
-  if(e.target.id === 'coffeeModalMask' || e.target.id === 'coffeeModalClose' || e.target.id === 'coffeeSkipBtn') closeCoffeeModal();
-});
-
-// 登录状态变化时，如果锁定弹窗正开着，刷新一下里面的内容
-// （登录系统脚本插入在本文件靠后的位置，这里等 DOMContentLoaded 之后再挂载，确保 window.JerrySite 已就绪）
-document.addEventListener('DOMContentLoaded', () => {
-  if(window.JerrySite){
-    JerrySite.onAuthChange(() => {
-      if(document.getElementById('lockModalMask').classList.contains('open')) renderLockModal();
-      initCheckinWidget();
-      initPointsWidget();
-    });
-  }
-});
-
 function fireConfetti(){
-  const colors = ['#FF7A5C','#FF8CD9','#FFC93C','#5CE1E6','#B18CFF'];
-  for(let i=0;i<60;i++){
+  const colors = ['#FF7A5C', '#5CE1E6', '#B18CFF', '#FFC93C', '#FF8CD9'];
+  for(let i=0; i<60; i++){
     const piece = document.createElement('div');
     piece.className = 'confetti-piece';
-    const size = 6 + Math.random()*6;
-    piece.style.width = size+'px';
-    piece.style.height = (size*0.4)+'px';
-    piece.style.left = Math.random()*100+'vw';
-    piece.style.background = colors[Math.floor(Math.random()*colors.length)];
-    piece.style.animationDuration = (2.2 + Math.random()*1.6)+'s';
-    piece.style.transform = `rotate(${Math.random()*360}deg)`;
+    piece.style.left = Math.random() * 100 + 'vw';
+    piece.style.backgroundColor = colors[Math.floor(Math.random()*colors.length)];
+    piece.style.width = Math.random() * 8 + 6 + 'px';
+    piece.style.height = piece.style.width;
+    piece.style.animationDuration = Math.random() * 2 + 2 + 's';
+    piece.style.animationDelay = Math.random() * 0.3 + 's';
     document.body.appendChild(piece);
     setTimeout(() => piece.remove(), 4000);
   }
 }
 
-function buildCategoryJump(posts){
-  const el = document.getElementById('cat-jump');
-  const sections = groupByCategory(posts).filter(sec => sec.category !== LOCKED_CATEGORY);
-  el.innerHTML = `<div class="cat-jump-label">分类导航</div>` + sections.map(sec => `
-    <a href="#" data-filter="${escapeHtml(sec.category)}">
-      <span>${escapeHtml(sec.category)}</span>
-      <span class="count">${sec.posts.length}</span>
-    </a>
-  `).join('');
+// ==================== 7. 页面基础功能集成 ====================
+function setupMobileChrome(){
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  const fab = document.getElementById('mobileFab');
+  const closeBtn = document.getElementById('sidebarClose');
 
-  el.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
-      const tabbar = document.getElementById('tabbar');
-      tabbar.querySelectorAll('a').forEach(x => x.classList.remove('active'));
-      tabbar.querySelector(`a[data-filter="${a.dataset.filter}"]`)?.classList.add('active');
-      mobileFilter = a.dataset.filter;
-      renderMobilePaged(allPosts, 1);
-      document.getElementById('sidebar')?.classList.remove('open');
-      document.getElementById('sidebarBackdrop')?.classList.remove('open');
-      document.getElementById('content-area')?.scrollIntoView({behavior:'smooth', block:'start'});
-    });
-  });
+  window.openSidebar = () => { sidebar.classList.add('open'); backdrop.classList.add('open'); }
+  window.closeSidebar = () => { sidebar.classList.remove('open'); backdrop.classList.remove('open'); }
+
+  fab.addEventListener('click', openSidebar);
+  closeBtn.addEventListener('click', closeSidebar);
+  backdrop.addEventListener('click', closeSidebar);
 }
 
-function buildRecentList(posts){
-  const el = document.getElementById('recent-list');
-  const recent = [...posts]
-    .filter(p => p.date)
-    .sort((a,b) => new Date(b.date) - new Date(a.date))
-    .slice(0, 6);
-  el.innerHTML = `<div class="recent-label">最近更新</div>` + recent.map(p => `
-    <a href="/post.html?id=${p.id}">${escapeHtml(p.title || '无标题')}</a>
-  `).join('');
-}
-
-function buildArchive(posts){
-  const el = document.getElementById('archive-list');
-  const groups = {};
-  posts.forEach(p => {
-    if(!p.date) return;
-    const ym = p.date.slice(0,7);
-    groups[ym] = (groups[ym] || 0) + 1;
-  });
-  const keys = Object.keys(groups).sort().reverse();
-  el.innerHTML = `<div class="archive-label">归档</div>` + keys.map(ym => `
-    <a href="#" data-ym="${ym}">
-      <span>${ym}</span>
-      <span class="count">${groups[ym]}</span>
-    </a>
-  `).join('');
-
-  el.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
-      const ym = a.dataset.ym;
-      const filtered = allPosts.filter(p => p.date && p.date.slice(0,7) === ym);
-      mobileFilter = 'all';
-      renderMobilePaged(filtered, 1);
-      document.getElementById('sidebar')?.classList.remove('open');
-      document.getElementById('sidebarBackdrop')?.classList.remove('open');
-      document.getElementById('content-area')?.scrollIntoView({behavior:'smooth', block:'start'});
-    });
-  });
-}
-
-function setupSearch(){
-  const input = document.getElementById('search-input');
-  const countEl = document.getElementById('search-count');
-
-  input.addEventListener('input', () => {
-    const q = input.value.trim();
-    if(!q){
-      countEl.style.display = 'none';
-      renderSections(allPosts);
-      return;
-    }
-    const qLower = q.toLowerCase();
-    const matched = allPosts.filter(p =>
-      (p.title || '').toLowerCase().includes(qLower) ||
-      (p.excerpt || '').toLowerCase().includes(qLower)
-    );
-    countEl.style.display = 'block';
-    countEl.textContent = `找到 ${matched.length} 篇内容匹配`;
-
-    const contentArea = document.getElementById('content-area');
-    if(matched.length === 0){
-      contentArea.innerHTML = `<div class="state-box">没找到包含"${escapeHtml(q)}"的文章，换个词试试？</div>`;
-      return;
-    }
-    contentArea.innerHTML = `
-      <div class="cat-section">
-        <div class="post-grid">
-          ${matched.map(p => postCardHtml({...p, title: highlight(p.title, q), excerpt: highlight(p.excerpt, q)}, true)).join('')}
-        </div>
-      </div>
-    `;
-  });
-}
-
-function highlight(text, q){
-  if(!text) return text;
-  const escaped = escapeHtml(text);
-  const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return escaped.replace(new RegExp('(' + escapedQ + ')', 'gi'), '<mark>$1</mark>');
-}
-
-function slugify(str){ return str.replace(/\s+/g, '-').toLowerCase(); }
-function escapeHtml(str){
-  const div = document.createElement('div');
-  div.textContent = str == null ? '' : str;
-  return div.innerHTML;
-}
-
-function setupSidebarSearch(){
-  const input = document.getElementById('sidebar-search-input');
-  const resultsEl = document.getElementById('sidebar-search-results');
-  if(!input || !resultsEl) return;
-
-  input.addEventListener('input', () => {
-    const q = input.value.trim();
-    if(!q){
-      resultsEl.classList.remove('show');
-      resultsEl.innerHTML = '';
-      return;
-    }
-    const qLower = q.toLowerCase();
-    const matched = allPosts.filter(p =>
-      (p.title || '').toLowerCase().includes(qLower) ||
-      (p.excerpt || '').toLowerCase().includes(qLower)
-    ).slice(0, 8);
-
-    resultsEl.classList.add('show');
-    if(matched.length === 0){
-      resultsEl.innerHTML = `<div class="ssr-empty">没找到包含"${escapeHtml(q)}"的文章，换个词试试？</div>`;
-      return;
-    }
-    resultsEl.innerHTML = matched.map(p => `
-      <a href="/post.html?id=${p.id}">
-        ${p.cover
-          ? `<img class="ssr-thumb" src="${p.cover}" alt="" loading="lazy" onerror="this.style.display='none'">`
-          : `<div class="ssr-thumb"></div>`}
-        <div class="ssr-text">
-          <div class="ssr-title">${highlight(p.title || '无标题', q)}</div>
-          <div class="ssr-meta">${p.date ? p.date : ''}${p.category ? ' · ' + escapeHtml(p.category) : ''}</div>
-        </div>
-      </a>
-    `).join('');
-  });
-}
-
-loadPosts();
-setupSearch();
-
-/* ============================================================
-   右侧栏：打卡 / 桌宠积分 / 天气 / 公告
-   打卡和积分依赖 window.JerrySite（登录系统），如果这个页面还没接入 user-system.js，
-   会自动降级成"登录后可用"的提示文案，不会报错
-   ============================================================ */
-async function initCheckinWidget(){
-  const body = document.getElementById('checkinWidgetBody');
-  if(!window.JerrySite || !JerrySite.isLoggedIn()){
-    body.innerHTML = `<div class="login-hint">登录后可以打卡攒积分～</div>`;
-    return;
-  }
-  try{
-    const status = await JerrySite.getMyStatus();
-    body.innerHTML = `
-      <div class="checkin-row">
-        <div class="checkin-streak">${status.streak || 0}<span>天连续</span></div>
-        <button class="checkin-btn ${status.checked_in_today ? 'done' : ''}" id="checkinBtn" ${status.checked_in_today ? 'disabled' : ''}>
-          ${status.checked_in_today ? '✓ 已打卡' : '打卡'}
-        </button>
-      </div>
-    `;
-    document.getElementById('checkinBtn')?.addEventListener('click', async () => {
-      const res = await JerrySite.checkinToday();
-      if(res.ok) { initCheckinWidget(); initPointsWidget(); }
-    });
-  }catch(e){ body.innerHTML = `<div class="login-hint">打卡数据加载失败</div>`; }
-}
-
-async function initPointsWidget(){
-  const body = document.getElementById('pointsWidgetBody');
-  if(!window.JerrySite || !JerrySite.isLoggedIn()){
-    body.innerHTML = `<div class="login-hint">积分可以在Zara小房间换喂养道具</div>`;
-    return;
-  }
-  try{
-    const status = await JerrySite.getMyStatus();
-    body.innerHTML = `
-      <div class="points-row">⚡ <span class="points-num">${status.points || 0}</span></div>
-      <a class="widget-link" href="/zara-room.html">去喂养Zara →</a>
-    `;
-  }catch(e){ body.innerHTML = `<div class="login-hint">积分加载失败</div>`; }
-}
-
-async function initWeatherWidget(){
-  const body = document.getElementById('weatherWidgetBody');
-  if(!navigator.geolocation){
-    body.innerHTML = `<div class="login-hint">浏览器不支持定位</div>`;
-    return;
-  }
-  navigator.geolocation.getCurrentPosition(async (pos) => {
-    try{
-      const { latitude, longitude } = pos.coords;
-      // Open-Meteo：免费、不需要API key，直接前端调用即可
-      const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code`);
-      const data = await res.json();
-      const temp = Math.round(data.current.temperature_2m);
-      const { icon, desc } = weatherCodeToIcon(data.current.weather_code);
-      body.innerHTML = `
-        <div class="weather-row">
-          <div class="weather-icon">${icon}</div>
-          <div>
-            <div class="weather-temp">${temp}°C</div>
-            <div class="weather-desc">${desc}</div>
-          </div>
-        </div>
-        <div class="weather-loc">📍 你的当前位置</div>
-      `;
-    }catch(e){ body.innerHTML = `<div class="login-hint">天气加载失败</div>`; }
-  }, () => {
-    body.innerHTML = `<div class="login-hint">需要定位权限才能显示天气</div>`;
-  }, { timeout: 8000 });
-}
-function weatherCodeToIcon(code){
-  // WMO weather code 简化映射
-  if(code === 0) return { icon:'☀️', desc:'晴朗' };
-  if([1,2,3].includes(code)) return { icon:'⛅', desc:'多云' };
-  if([45,48].includes(code)) return { icon:'🌫️', desc:'有雾' };
-  if([51,53,55,61,63,65,80,81,82].includes(code)) return { icon:'🌧️', desc:'有雨' };
-  if([71,73,75,77,85,86].includes(code)) return { icon:'🌨️', desc:'有雪' };
-  if([95,96,99].includes(code)) return { icon:'⛈️', desc:'雷雨' };
-  return { icon:'🌤️', desc:'' };
-}
-
-function initAnnounceWidget(){
-  // 先手写几条，以后要是想接Notion自动同步，把这个数组换成一个fetch调用就行
-  const ANNOUNCEMENTS = [
-    { date:'2026-07-16', text:'博客首页图库改成一行3个，桌面端加宽铺满' },
-    { date:'2026-07-16', text:'新增 Rumi英语技术 分类，生日限时免费解锁' },
-    { date:'2026-07-15', text:'Zara的3D小房间上线，支持移动/坐下/躺下/番茄钟' }
-  ];
-  document.getElementById('announceList').innerHTML = ANNOUNCEMENTS.map(a => `
-    <div class="announce-item"><span class="announce-date mono">${a.date}</span>${escapeHtml(a.text)}</div>
-  `).join('');
-}
-
-initCheckinWidget();
-initPointsWidget();
-initWeatherWidget();
-initAnnounceWidget();
-setupSidebarSearch();
-
-/* ================= 动态背景图轮播 ================= */
-async function initBgCarousel() {
-  const layer1 = document.getElementById('bg-layer-1');
-  const layer2 = document.getElementById('bg-layer-2');
-  if (!layer1 || !layer2) return;
-
+async function loadPosts(){
+  const contentArea = document.getElementById('content-area');
   try {
-    const res = await fetch('images/bg/manifest.json');
-    const images = await res.json();
-    if (!images || images.length === 0) return;
+    // 真实请求后端 Notion API 数据
+    const res = await fetch('/api/posts');
+    const data = await res.json();
 
-    let currentIndex = 0;
-    let currentLayer = layer1;
-    let nextLayer = layer2;
-
-    images.sort(() => Math.random() - 0.5);
-
-    function changeBackground() {
-      const imgName = images[currentIndex];
-      const imgUrl = `images/bg/${imgName}`;
-
-      const imgObj = new Image();
-      imgObj.src = imgUrl;
-      imgObj.onload = () => {
-        nextLayer.style.backgroundImage = `url('${imgUrl}')`;
-        nextLayer.classList.add('active');
-        currentLayer.classList.remove('active');
-        [currentLayer, nextLayer] = [nextLayer, currentLayer];
-        currentIndex = (currentIndex + 1) % images.length;
-      };
+    if(!data.ok){
+      contentArea.innerHTML = `<div class="state-box error">加载失败：${escapeHtml(data.error || '未知错误')}</div>`;
+      return;
     }
-
-    changeBackground();
-    setInterval(changeBackground, 10000); 
+    
+    allPosts = data.posts || [];
   } catch (err) {
-    console.error('加载背景失败:', err);
+    // 移除了 mock 占位数据，保留真实的报错逻辑
+    console.error("数据请求错误:", err);
+    contentArea.innerHTML = `<div class="state-box error">数据加载失败，请检查网络或后台接口服务。</div>`;
+    return;
   }
+
+  if(allPosts.length === 0){
+    contentArea.innerHTML = `<div class="state-box">还没有发布任何文章</div>`;
+    return;
+  }
+
+  buildCategoryTabs(allPosts);
+  setupMobileChrome();
+  
+  // 初始渲染全部列表
+  renderPaged(allPosts, 1);
 }
-window.addEventListener('DOMContentLoaded', initBgCarousel);
 
-/* ================= 发光粒子 ================= */
-(function(){
-  const field = document.getElementById('sparkle-field');
-  if(!field) return;
-  const COUNT = 35;
-  for(let i = 0; i < COUNT; i++){
-    const dot = document.createElement('div');
-    dot.className = 'sparkle';
-    const size = 1.5 + Math.random() * 2.5;
-    dot.style.width = size + 'px';
-    dot.style.height = size + 'px';
-    dot.style.left = Math.random() * 100 + '%';
-    dot.style.top = Math.random() * 100 + '%';
-    dot.style.animationDuration = (6 + Math.random() * 6) + 's';
-    dot.style.animationDelay = (Math.random() * 8) + 's';
-    field.appendChild(dot);
-  }
-})();
+// 启动页面
+document.addEventListener('DOMContentLoaded', loadPosts);
 
-/* ================= 顶部弹幕 ================= */
-(function initDanmaku() {
-  const container = document.getElementById('danmaku-container');
-  if (!container) return;
-  
-  const texts = [
-    "太酷了！UI审美完全在线", "这背景好通透，求壁纸！", "膜拜大佬~", 
-    "日常打卡来看更新", "学到了学到了", "这个搜索框爱了", 
-    "催更催更！", "前排围观", "记笔记了，干货满满", 
-    "66666 梦幻联动", "好有科技感的设计", "感谢分享~", "Mark一下以后看"
-  ];
-  const tracks = [10, 50, 90]; 
-  
-  setInterval(() => {
-    const el = document.createElement('div');
-    el.className = 'danmaku-item';
-    el.textContent = texts[Math.floor(Math.random() * texts.length)];
-    el.style.top = tracks[Math.floor(Math.random() * tracks.length)] + 'px';
-    el.style.animationDuration = (12 + Math.random() * 6) + 's';
-    container.appendChild(el);
-    setTimeout(() => el.remove(), 20000);
-  }, 1800); 
-})();
 </script>
-
-<!-- ================= 注入的桌宠系统脚本 开始 ================= -->
-<script>
-(function(){
-  const wrap = document.getElementById('pet-wrap');
-  const headzone = document.getElementById('pet-headzone');
-  const bubble = document.getElementById('pet-bubble');
-  const petImg = document.getElementById('pet-img');
-  const touchCountEl = document.getElementById('touchCount');
-  const affinityEl = document.getElementById('affinity');
-
-  const IMG = {
-    normal1: 'images/pet/normal1.png',
-    normal2: 'images/pet/normal2.png',
-    blink: 'images/pet/normal-close_eye.png',
-    touch1: 'images/pet/touchhead1.png',
-    touch2: 'images/pet/touchhead2.png',
-    touch3: 'images/pet/touchhead3.png',
-    grab: 'images/pet/mouse_grab.png',
-    fall: 'images/pet/felldown.png',
-    eat1: 'images/pet/eat1.png',
-    eat2: 'images/pet/eat2.png',
-    eat3: 'images/pet/eat3.png',
-    eat4: 'images/pet/eat4.png',
-    eat5: 'images/pet/eat5.png',
-    eat6: 'images/pet/eat6.png',
-    eat7: 'images/pet/eat7.png',
-    eat8: 'images/pet/eat8.png'
-  };
-
-  // ============ 状态变量 ============
-  let touchCount = 0;
-  let lastTouchX = null;
-  let currentIdle = IMG.normal1;   // 当前待机姿势（normal1 / normal2 轮换）
-  let reactionTimer = null;        // 用于"临时表情"结束后恢复待机
-  let isDragging = false;
-  let affinity = parseInt(localStorage.getItem('pet_affinity') || '0', 10);
-  affinityEl.textContent = affinity;
-
-  function setImg(src){ petImg.src = src; }
-
-  // 临时切到某个反应图，duration 毫秒后恢复到当前待机姿势
-  function reactTo(src, duration){
-    setImg(src);
-    clearTimeout(reactionTimer);
-    reactionTimer = setTimeout(() => {
-      if(!isDragging) setImg(currentIdle);
-    }, duration);
-  }
-
-  // ============ 待机：随机切换姿势 + 定时眨眼 ============
-  function idleLoop(){
-    if(!isDragging){
-      if(Math.random() < 0.3){
-        currentIdle = currentIdle === IMG.normal1 ? IMG.normal2 : IMG.normal1;
-      }
-      setImg(currentIdle);
-    }
-    setTimeout(idleLoop, 4000 + Math.random() * 3000);
-  }
-  setTimeout(idleLoop, 4000);
-
-  function blink(){
-    if(!isDragging){
-      setImg(IMG.blink);
-      setTimeout(() => { if(!isDragging) setImg(currentIdle); }, 150);
-    }
-    setTimeout(blink, 3000 + Math.random() * 2000);
-  }
-  setTimeout(blink, 2500);
-
-  // ============ 摸头交互 ============
-  function showBubble(text, duration){
-    bubble.textContent = text;
-    bubble.classList.add('show');
-    clearTimeout(bubble._hideTimer);
-    bubble._hideTimer = setTimeout(() => bubble.classList.remove('show'), duration || 1800);
-  }
-
-  function addAffinity(n){
-    affinity += n;
-    affinityEl.textContent = affinity;
-    localStorage.setItem('pet_affinity', affinity);
-  }
-
-  // ============ 积分 + 商店 + 喂饭 ============
-  const creditsEl = document.getElementById('credits');
-  let credits = parseInt(localStorage.getItem('pet_credits') || '30', 10); 
-  creditsEl.textContent = credits;
-
-  function addCredits(n){
-    credits += n;
-    creditsEl.textContent = credits;
-    localStorage.setItem('pet_credits', credits);
-  }
-
-  const FOODS = [
-    { name:'苹果', emoji:'🍎', price:5,  affinity:1 },
-    { name:'咖啡', emoji:'☕', price:8,  affinity:2 },
-    { name:'泡面', emoji:'🍜', price:10, affinity:2 },
-    { name:'奶茶', emoji:'🧋', price:12, affinity:2 },
-    { name:'蛋糕', emoji:'🍰', price:15, affinity:3 },
-    { name:'披萨', emoji:'🍕', price:20, affinity:4 }
-  ];
-  const FOOD_BY_NAME = {};
-  FOODS.forEach(f => FOOD_BY_NAME[f.name] = f);
-
-  const shopMask = document.getElementById('shop-mask');
-  const shopGrid = document.getElementById('shop-grid');
-  const shopBtn = document.getElementById('shop-btn');
-  const shopClose = document.getElementById('shop-close');
-  const shopPanel = document.getElementById('shop-panel');
-  const shopFullscreenToggle = document.getElementById('shop-fullscreen-toggle');
-  const demoCheckinBtn = document.getElementById('demo-checkin-btn');
-
-  function renderShop(){
-    shopGrid.innerHTML = '';
-    FOODS.forEach((food) => {
-      const card = document.createElement('div');
-      const affordable = credits >= food.price;
-      card.className = 'food-card' + (affordable ? '' : ' disabled');
-      card.innerHTML =
-        '<span class="food-emoji">' + food.emoji + '</span>' +
-        '<div class="food-name">' + food.name + '</div>' +
-        '<div class="food-price">' + food.price + ' 积分</div>';
-      card.addEventListener('click', () => buyFood(food));
-      shopGrid.appendChild(card);
-    });
-  }
-
-  // ============ 背包 ============
-  let inventory = JSON.parse(localStorage.getItem('pet_inventory') || '{}');
-
-  function saveInventory(){
-    localStorage.setItem('pet_inventory', JSON.stringify(inventory));
-  }
-
-  function buyFood(food){
-    if(credits < food.price) return;
-    addCredits(-food.price);
-    inventory[food.name] = (inventory[food.name] || 0) + 1;
-    saveInventory();
-    renderShop();
-    renderBackpack();
-    showBubbleTyped('买到了' + food.name + '，去背包里拖给她吃吧～');
-  }
-
-  const backpackMask = document.getElementById('backpack-mask');
-  const backpackPanel = document.getElementById('backpack-panel');
-  const backpackBtn = document.getElementById('backpack-btn');
-  const backpackClose = document.getElementById('backpack-close');
-  const backpackGrid = document.getElementById('backpack-grid');
-  const backpackEmpty = document.getElementById('backpack-empty');
-
-  // 状态栏抽屉：桌面点拉手展开/收起；手机端点角色旁边的独立按钮，效果一样（都是切 .open）
-  const statusPanel = document.getElementById('statusPanel');
-  const statusPanelHandle = document.getElementById('status-panel-handle');
-  const petMenuBtn = document.getElementById('pet-menu-btn');
-  if(statusPanelHandle){
-    statusPanelHandle.addEventListener('click', () => {
-      statusPanel.classList.toggle('open');
-    });
-  }
-  if(petMenuBtn){
-    petMenuBtn.addEventListener('click', () => {
-      statusPanel.classList.toggle('open');
-    });
-  }
-
-  function renderBackpack(){
-    backpackGrid.innerHTML = '';
-    const owned = Object.keys(inventory).filter(name => inventory[name] > 0);
-    backpackEmpty.style.display = owned.length ? 'none' : 'block';
-    owned.forEach((name) => {
-      const food = FOOD_BY_NAME[name];
-      if(!food) return;
-      const item = document.createElement('div');
-      item.className = 'bp-item';
-      item.innerHTML =
-        '<span class="bp-emoji">' + food.emoji + '</span>' +
-        '<span class="bp-count">' + inventory[name] + '</span>';
-      item.addEventListener('mousedown', (e) => startFoodDrag(e.clientX, e.clientY, food));
-      item.addEventListener('touchstart', (e) => {
-        const t = e.touches[0];
-        startFoodDrag(t.clientX, t.clientY, food);
-      }, {passive:true});
-      backpackGrid.appendChild(item);
-    });
-  }
-
-  function openShop(){
-    renderShop();
-    shopMask.classList.add('show');
-  }
-  function closeShop(){
-    shopMask.classList.remove('show');
-    shopPanel.classList.remove('fullscreen');
-    if(shopFullscreenToggle) shopFullscreenToggle.textContent = '⤢';
-  }
-
-  shopBtn.addEventListener('click', openShop);
-  shopClose.addEventListener('click', closeShop);
-  shopMask.addEventListener('click', (e) => { if(e.target === shopMask) closeShop(); });
-  if(shopFullscreenToggle){
-    shopFullscreenToggle.addEventListener('click', () => {
-      const isFull = shopPanel.classList.toggle('fullscreen');
-      shopFullscreenToggle.textContent = isFull ? '⤡' : '⤢';
-    });
-  }
-
-  function openBackpack(){
-    renderBackpack();
-    statusPanel.classList.remove('open');
-    backpackMask.classList.add('show');
-  }
-  function closeBackpack(){
-    backpackMask.classList.remove('show');
-  }
-  backpackBtn.addEventListener('click', openBackpack);
-  backpackClose.addEventListener('click', closeBackpack);
-  backpackMask.addEventListener('click', (e) => { if(e.target === backpackMask) closeBackpack(); });
-  renderBackpack();
-
-  demoCheckinBtn.addEventListener('click', () => {
-    addCredits(10);
-    showBubbleTyped('打卡成功，+10积分！');
-    reactTo(IMG.touch1, 700);
-  });
-
-  // ============ 拖拽喂食 ============
-  const dragGhost = document.getElementById('drag-food-ghost');
-  const NEAR_RADIUS = 110;  
-  let feeding = null;       
-
-  function mouthPoint(){
-    const rect = wrap.getBoundingClientRect();
-    return { x: rect.left + rect.width / 2, y: rect.top + rect.height * 0.42 };
-  }
-
-  let eatLoopTimer = null;
-  function startEatLoop(){
-    stopEatLoop();
-    const frames = [IMG.eat1, IMG.eat2, IMG.eat3];
-    let i = 0;
-    setImg(frames[0]);
-    eatLoopTimer = setInterval(() => {
-      i = (i + 1) % frames.length;
-      setImg(frames[i]);
-    }, 380);
-  }
-  function stopEatLoop(){
-    clearInterval(eatLoopTimer);
-    eatLoopTimer = null;
-  }
-
-  function startFoodDrag(clientX, clientY, food){
-    feeding = { food, near:false };
-    clearTimeout(reactionTimer);
-    dragGhost.textContent = food.emoji;
-    dragGhost.style.left = clientX + 'px';
-    dragGhost.style.top = clientY + 'px';
-    dragGhost.style.display = 'block';
-    wrap.classList.add('food-excited');
-    startEatLoop();
-  }
-
-  function moveFoodDrag(clientX, clientY){
-    if(!feeding) return;
-    dragGhost.style.left = clientX + 'px';
-    dragGhost.style.top = clientY + 'px';
-    const mp = mouthPoint();
-    const dist = Math.hypot(clientX - mp.x, clientY - mp.y);
-    const isNear = dist <= NEAR_RADIUS;
-    if(isNear && !feeding.near){
-      feeding.near = true;
-      wrap.classList.remove('food-excited');
-      wrap.classList.add('food-near');
-      stopEatLoop();
-      setImg(IMG.eat4);
-    } else if(!isNear && feeding.near){
-      feeding.near = false;
-      wrap.classList.remove('food-near');
-      wrap.classList.add('food-excited');
-      startEatLoop();
-    }
-  }
-
-  function endFoodDrag(clientX, clientY){
-    if(!feeding) return;
-    const food = feeding.food;
-    const wasNear = feeding.near;
-    wrap.classList.remove('food-excited', 'food-near');
-    stopEatLoop();
-
-    if(wasNear){
-      dragGhost.style.transform = 'translate(-50%,-50%) scale(0.1)';
-      dragGhost.style.opacity = '0';
-      setTimeout(() => {
-        dragGhost.style.display = 'none';
-        dragGhost.style.transform = 'translate(-50%,-50%) scale(1)';
-        dragGhost.style.opacity = '1';
-      }, 220);
-
-      inventory[food.name] = Math.max(0, (inventory[food.name] || 1) - 1);
-      saveInventory();
-      renderBackpack();
-      addAffinity(food.affinity);
-      showBubbleTyped('唔姆～' + food.name + '真好吃！好感度+' + food.affinity);
-
-      const savorFrames = [IMG.eat5, IMG.eat6, IMG.eat7, IMG.eat8];
-      let i = 0;
-      setImg(savorFrames[0]);
-      const savorTimer = setInterval(() => {
-        i++;
-        if(i >= savorFrames.length){
-          clearInterval(savorTimer);
-          setImg(currentIdle);
-          return;
-        }
-        setImg(savorFrames[i]);
-      }, 650);
-    } else {
-      dragGhost.style.display = 'none';
-      setImg(currentIdle);
-    }
-    feeding = null;
-  }
-
-  window.addEventListener('mousemove', (e) => moveFoodDrag(e.clientX, e.clientY));
-  window.addEventListener('mouseup', (e) => endFoodDrag(e.clientX, e.clientY));
-  window.addEventListener('touchmove', (e) => {
-    if(!feeding) return;
-    const t = e.touches[0];
-    moveFoodDrag(t.clientX, t.clientY);
-  }, {passive:true});
-  window.addEventListener('touchend', (e) => {
-    if(!feeding) return;
-    const t = e.changedTouches[0];
-    endFoodDrag(t.clientX, t.clientY);
-  });
-
-  // ============ 对话系统 ============
-  const chatInput = document.getElementById('chat-input');
-  const chatSend = document.getElementById('chat-send');
-  const quickReplies = document.getElementById('quick-replies');
-  const chatPanel = document.getElementById('chat-panel');
-  const chatInputToggle = document.getElementById('chat-input-toggle');
-
-  // 手机端：输入框默认收起，点💬图标才展开（桌面端这个按钮本身是隐藏的，不影响桌面已有的常驻输入框）
-  chatInputToggle.addEventListener('click', () => {
-    const opening = !chatPanel.classList.contains('input-open');
-    chatPanel.classList.toggle('input-open', opening);
-    chatInputToggle.textContent = opening ? '✕' : '💬';
-    if(opening) chatInput.focus();
-  });
-  // 发送完之后手机端自动收回输入框，界面更清爽（桌面端没有 .input-open 这个状态，不受影响）
-  function collapseMobileChatInput(){
-    if(chatPanel.classList.contains('input-open')){
-      chatPanel.classList.remove('input-open');
-      chatInputToggle.textContent = '💬';
-    }
-  }
-
-  let typeInterval = null;
-  let bubbleHideTimer = null;
-
-  function showBubbleTyped(text, speed){
-    clearInterval(typeInterval);
-    clearTimeout(bubbleHideTimer);
-    speed = speed || 42;
-    bubble.classList.add('show');
-    bubble.innerHTML = '<span class="typed"></span><span class="caret"></span>';
-    const typedEl = bubble.querySelector('.typed');
-    let i = 0;
-    typeInterval = setInterval(() => {
-      typedEl.textContent += text[i];
-      i++;
-      if(i >= text.length){
-        clearInterval(typeInterval);
-        const caret = bubble.querySelector('.caret');
-        if(caret) caret.remove();
-        bubbleHideTimer = setTimeout(() => bubble.classList.remove('show'), 2600);
-      }
-    }, speed);
-  }
-
-  function reactHappyPulse(){
-    reactTo(IMG.touch1, 700);
-  }
-
-  const GENERAL_REPLIES = [
-    '嗯……这句我先记下来，回头研究研究。',
-    '摸摸下巴，好像有点道理，但我说不上来哪里。',
-    '在？我这边正在后台假装编译中……',
-    '你这话让我 CPU 占用瞬间飙到 80%。',
-    '继续说，我在认真监听 stdin。'
-  ];
-
-  const KEYWORD_REPLIES = [
-    { keys: ['你好', 'hi', 'hello', '在吗'], reply: '嗨～我在的，今天也是想bug的一天。' },
-    { keys: ['喂', '饿', '吃饭', '好饿'], reply: '肚子叫了？去旁边的商店给我买点吃的吧！' },
-    { keys: ['谢谢', '辛苦'], reply: '不用谢啦，能被需要我也很开心~' },
-    { keys: ['bug', 'BUG', '报错', 'error'], reply: '报错先别慌，把堆栈复制给我……啊我其实看不了，去问真正的AI吧。' },
-    { keys: ['累', '好困', '不想动'], reply: '要不休息一下？我陪你摸鱼五分钟。' }
-  ];
-
-  function replyForInput(text){
-    const lower = text.toLowerCase();
-    for(const item of KEYWORD_REPLIES){
-      if(item.keys.some(k => lower.includes(k.toLowerCase()))){
-        return item.reply;
-      }
-    }
-    return GENERAL_REPLIES[Math.floor(Math.random() * GENERAL_REPLIES.length)];
-  }
-
-  function handleSend(){
-    const text = chatInput.value.trim();
-    if(!text) return;
-    showBubbleTyped(replyForInput(text));
-    reactHappyPulse();
-    chatInput.value = '';
-    collapseMobileChatInput();
-  }
-
-  chatSend.addEventListener('click', handleSend);
-  chatInput.addEventListener('keydown', (e) => {
-    if(e.key === 'Enter') handleSend();
-  });
-
-  const TOPIC_REPLIES = {
-    daily: [
-      '今天摸了三小时鱼，写了十行代码，效率感人。',
-      '刚刚在后台偷偷刷了会儿新闻，别告诉主人。'
-    ],
-    tech: [
-      '最近在看一点前端动画的东西，感觉比想象中难。',
-      '如果我有真正的AI大脑就好了……那个功能还在排期里。'
-    ],
-    friend: [
-      '要不要把我推荐给你的朋友？我保证不吵不闹（大概）。',
-      '找搭子的话，我建议先去评论区喊一嗓子。'
-    ]
-  };
-
-  quickReplies.addEventListener('click', (e) => {
-    const btn = e.target.closest('button[data-topic]');
-    if(!btn) return;
-    const list = TOPIC_REPLIES[btn.dataset.topic] || GENERAL_REPLIES;
-    const line = list[Math.floor(Math.random() * list.length)];
-    showBubbleTyped(line);
-    reactHappyPulse();
-  });
-
-  headzone.addEventListener('mousemove', (e) => {
-    if(isDragging || feeding) return;
-    const x = e.clientX;
-    if(lastTouchX !== null && Math.abs(x - lastTouchX) > 4){
-      touchCount++;
-      touchCountEl.textContent = touchCount;
-      if(touchCount === 3){
-        reactTo(IMG.touch1, 900);
-        showBubble('嗯...摸摸头的感觉不错~');
-        addAffinity(1);
-      } else if(touchCount === 6){
-        reactTo(IMG.touch2, 1200);
-        showBubble('再摸就要碳基过载了喵！');
-        addAffinity(2);
-      } else if(touchCount === 9){
-        reactTo(IMG.touch3, 1600);
-        showBubble('好感度+++ 已解锁「被摸头认证」');
-        addAffinity(3);
-        touchCount = 0;
-        touchCountEl.textContent = 0;
-      }
-    }
-    lastTouchX = x;
-  });
-  headzone.addEventListener('mouseleave', () => { lastTouchX = null; });
-
-  // ============ 🌌 亚空间系统 ============
-  const pocketSpaceMask = document.getElementById('pocket-space-mask');
-  const pocketSpaceBtn = document.getElementById('pocket-space-btn');
-  const pocketSpaceClose = document.getElementById('pocket-space-close');
-  const entry1 = document.getElementById('pocket-space-entry-1');
-  const psResidentPet1 = document.getElementById('ps-resident-pet-1');
-  const spaceSmokeFx = document.getElementById('space-smoke-fx');
-
-  function openPocketSpace(){
-    statusPanel.classList.remove('open');
-    pocketSpaceMask.classList.add('show');
-  }
-  function closePocketSpace(){
-    pocketSpaceMask.classList.remove('show');
-  }
-  pocketSpaceBtn.addEventListener('click', openPocketSpace);
-  pocketSpaceClose.addEventListener('click', closePocketSpace);
-  pocketSpaceMask.addEventListener('click', (e) => { if(e.target === pocketSpaceMask) closePocketSpace(); });
-
-  // 烟雾序列帧预加载（39帧，480x480，带透明通道）
-  const SMOKE_FRAME_COUNT = 39;
-  const SMOKE_FRAMES = [];
-  for(let i = 0; i < SMOKE_FRAME_COUNT; i++){
-    SMOKE_FRAMES.push('images/pocket-space/frames/smoke_' + String(i).padStart(3, '0') + '.webp');
-  }
-  const smokeImages = SMOKE_FRAMES.map((src) => { const im = new Image(); im.src = src; return im; });
-
-  // 拖拽中：判断桌宠是否悬停在亚空间入口附近（只有亚空间弹窗打开时才判定）
-  let spaceHoverActive = false;
-  function checkSpaceHover(clientX, clientY){
-    if(!pocketSpaceMask.classList.contains('show')){
-      if(spaceHoverActive){ spaceHoverActive = false; entry1.classList.remove('drag-hover'); }
-      return;
-    }
-    const r = entry1.getBoundingClientRect();
-    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-    const dist = Math.hypot(clientX - cx, clientY - cy);
-    const hover = dist < 90;
-    if(hover !== spaceHoverActive){
-      spaceHoverActive = hover;
-      entry1.classList.toggle('drag-hover', hover);
-    }
-  }
-
-  // 一次性播放一遍烟雾（正放到底，不循环），放完回调
-  function playSmokeBurst(x, y, cb){
-    spaceSmokeFx.style.left = x + 'px';
-    spaceSmokeFx.style.top = y + 'px';
-    spaceSmokeFx.style.display = 'block';
-    let i = 0;
-    spaceSmokeFx.style.backgroundImage = 'url(' + SMOKE_FRAMES[0] + ')';
-    const timer = setInterval(() => {
-      i++;
-      if(i >= SMOKE_FRAME_COUNT){
-        clearInterval(timer);
-        spaceSmokeFx.style.display = 'none';
-        cb && cb();
-        return;
-      }
-      spaceSmokeFx.style.backgroundImage = 'url(' + SMOKE_FRAMES[i] + ')';
-    }, 42); // 约24fps
-  }
-
-  // 拖桌宠进入亚空间的完整序列：
-  // 弹跳 + 烟雾同时炸开 → 桌宠缩小消失 → 小小地"住"进亚空间缩略图里，停留一下让你看清她进去了 → 弹出番茄钟卡片
-  function enterPocketSpace(){
-    wrap.classList.add('entering-space');
-    entry1.classList.add('entry-bump');
-    setTimeout(() => entry1.classList.remove('entry-bump'), 500);
-
-    const r = entry1.getBoundingClientRect();
-    playSmokeBurst(r.left + r.width / 2, r.top + r.height / 2, () => {
-      wrap.classList.remove('entering-space');
-      wrap.style.display = 'none';
-      // 桌宠"住"进了亚空间缩略图里
-      if(psResidentPet1){
-        psResidentPet1.src = currentIdle;
-        entry1.classList.add('pet-resident');
-      }
-      setTimeout(() => {
-        closePocketSpace();
-        openPomodoroCard();
-      }, 550);
-    });
-  }
-
-  // 桌宠从亚空间重新"冒出来"，恢复 free 状态
-  function exitToFreeFromSpace(){
-    if(psResidentPet1) entry1.classList.remove('pet-resident');
-    wrap.style.display = '';
-    setImg(currentIdle);
-    wrap.classList.add('emerging-space');
-    setTimeout(() => wrap.classList.remove('emerging-space'), 600);
-  }
-
-  // ---------- 番茄钟卡片（正/倒计时切换 + 321准备） ----------
-  const pomodoroMask = document.getElementById('pomodoro-mask');
-  const pomodoroCard = document.getElementById('pomodoro-card');
-  const pmNormalView = document.getElementById('pm-normal-view');
-  const pmCountdownEl = document.getElementById('pm-countdown');
-  const pmTabs = pomodoroCard.querySelectorAll('.pm-tab');
-  const pmPresetsWrap = document.getElementById('pm-presets');
-  const pmCustomRow = document.getElementById('pm-custom-row');
-  const pmCustomMin = document.getElementById('pm-custom-min');
-  const pmStartBtn = document.getElementById('pm-start-btn');
-  const pomodoroCloseBtn = document.getElementById('pomodoro-close');
-
-  let pmMode = 'countdown';
-  let pmMinutes = 25;
-
-  function openPomodoroCard(){
-    pmNormalView.style.display = '';
-    pmCountdownEl.style.display = 'none';
-    pomodoroCloseBtn.style.display = '';
-    pomodoroMask.classList.add('show');
-  }
-
-  pmTabs.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      pmTabs.forEach((b) => b.classList.remove('active'));
-      btn.classList.add('active');
-      pmMode = btn.dataset.mode;
-      const showCountdownOpts = pmMode === 'countdown';
-      pmPresetsWrap.style.display = showCountdownOpts ? 'flex' : 'none';
-      pmCustomRow.style.display = showCountdownOpts ? 'flex' : 'none';
-    });
-  });
-
-  pmPresetsWrap.querySelectorAll('.pm-preset').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      pmPresetsWrap.querySelectorAll('.pm-preset').forEach((b) => b.classList.remove('active'));
-      btn.classList.add('active');
-      pmMinutes = parseInt(btn.dataset.min, 10);
-      pmCustomMin.value = '';
-    });
-  });
-  pmCustomMin.addEventListener('input', () => {
-    if(pmCustomMin.value){
-      pmPresetsWrap.querySelectorAll('.pm-preset').forEach((b) => b.classList.remove('active'));
-    }
-  });
-
-  pomodoroCloseBtn.addEventListener('click', () => {
-    pomodoroMask.classList.remove('show');
-    exitToFreeFromSpace();
-  });
-
-  // ---------- 短促清脆的准备音效（Web Audio 合成，不需要额外音频文件） ----------
-  let audioCtx = null;
-  function getAudioCtx(){
-    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if(audioCtx.state === 'suspended') audioCtx.resume();
-    return audioCtx;
-  }
-  function playBeep(highPitch){
-    const ctx = getAudioCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.value = highPitch ? 1180 : 880;
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.28, ctx.currentTime + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.18);
-    osc.connect(gain).connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.2);
-  }
-
-  // ---------- 背景音乐：GainNode 淡入淡出，mp3本身干净无缝loop ----------
-  const pomodoroAudio = document.getElementById('pomodoro-audio');
-  let bgmSource = null, bgmGain = null;
-  function setupBgmGraph(){
-    if(bgmSource) return;
-    const ctx = getAudioCtx();
-    bgmSource = ctx.createMediaElementSource(pomodoroAudio);
-    bgmGain = ctx.createGain();
-    bgmGain.gain.value = 0;
-    bgmSource.connect(bgmGain).connect(ctx.destination);
-  }
-  function fadeInBgm(){
-    setupBgmGraph();
-    const ctx = getAudioCtx();
-    pomodoroAudio.currentTime = 0;
-    pomodoroAudio.play().catch(() => {});
-    bgmGain.gain.cancelScheduledValues(ctx.currentTime);
-    bgmGain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    bgmGain.gain.linearRampToValueAtTime(0.55, ctx.currentTime + 1.5);
-  }
-  function fadeOutBgm(cb){
-    const ctx = getAudioCtx();
-    bgmGain.gain.cancelScheduledValues(ctx.currentTime);
-    bgmGain.gain.setValueAtTime(bgmGain.gain.value, ctx.currentTime);
-    bgmGain.gain.linearRampToValueAtTime(0.0001, ctx.currentTime + 1.2);
-    setTimeout(() => { pomodoroAudio.pause(); cb && cb(); }, 1250);
-  }
-
-  // ---------- 全屏播放层：Canvas 逐帧 ping-pong 循环 ----------
-  const pocketSpaceFullscreen = document.getElementById('pocket-space-fullscreen');
-  const psBg = document.getElementById('ps-bg');
-  const psCanvas = document.getElementById('pocket-space-canvas');
-  const psCtx = psCanvas.getContext('2d');
-  const psRealFullscreenBtn = document.getElementById('ps-real-fullscreen-btn');
-  const pomodoroToast = document.getElementById('pomodoro-toast');
-
-  let canvasFrameIndex = 0, canvasDirection = 1, canvasRafId = null, lastFrameTime = 0;
-  const CANVAS_FPS = 20;
-
-  function resizeCanvas(){
-    psCanvas.width = window.innerWidth;
-    psCanvas.height = window.innerHeight;
-  }
-  function drawImageCover(img, cw, ch){
-    const iw = img.naturalWidth || 480, ih = img.naturalHeight || 480;
-    const scale = Math.max(cw / iw, ch / ih);
-    const w = iw * scale, h = ih * scale;
-    psCtx.clearRect(0, 0, cw, ch);
-    psCtx.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h);
-  }
-  function canvasLoop(ts){
-    if(!lastFrameTime) lastFrameTime = ts;
-    if(ts - lastFrameTime > 1000 / CANVAS_FPS){
-      lastFrameTime = ts;
-      const img = smokeImages[canvasFrameIndex];
-      if(img && img.complete) drawImageCover(img, psCanvas.width, psCanvas.height);
-      canvasFrameIndex += canvasDirection;
-      if(canvasFrameIndex >= SMOKE_FRAME_COUNT - 1){ canvasFrameIndex = SMOKE_FRAME_COUNT - 1; canvasDirection = -1; }
-      else if(canvasFrameIndex <= 0){ canvasFrameIndex = 0; canvasDirection = 1; }
-    }
-    canvasRafId = requestAnimationFrame(canvasLoop);
-  }
-  function startCanvasLoop(){
-    resizeCanvas();
-    canvasFrameIndex = 0; canvasDirection = 1; lastFrameTime = 0;
-    canvasRafId = requestAnimationFrame(canvasLoop);
-  }
-  function stopCanvasLoop(){
-    if(canvasRafId) cancelAnimationFrame(canvasRafId);
-    canvasRafId = null;
-  }
-  window.addEventListener('resize', () => { if(pocketSpaceFullscreen.classList.contains('show')) resizeCanvas(); });
-  window.addEventListener('orientationchange', () => { if(pocketSpaceFullscreen.classList.contains('show')) setTimeout(resizeCanvas, 200); });
-  // 切真全屏/退出真全屏那一刻也重新适配一次画布，保证"挂机"模式下动画始终铺满
-  document.addEventListener('fullscreenchange', () => { if(pocketSpaceFullscreen.classList.contains('show')) setTimeout(resizeCanvas, 60); });
-
-  psRealFullscreenBtn.addEventListener('click', () => {
-    if(!document.fullscreenElement){
-      pocketSpaceFullscreen.requestFullscreen && pocketSpaceFullscreen.requestFullscreen().catch(() => {});
-    } else {
-      document.exitFullscreen && document.exitFullscreen();
-    }
-  });
-
-  // ---------- 计时器状态机（正计时/倒计时共用） ----------
-  const pwTime = document.getElementById('pw-time');
-  const pwLabel = document.getElementById('pw-label');
-  const pwPauseBtn = document.getElementById('pw-pause-btn');
-  const pwEndBtn = document.getElementById('pw-end-btn');
-
-  let pmIsCountdown = true, pmTargetMinutes = 25, pmTotalSeconds = 0, pmElapsedSeconds = 0, pmPaused = false, timerInterval = null;
-
-  function updateTimerDisplay(overrideSeconds){
-    const secs = overrideSeconds !== undefined ? overrideSeconds : (pmIsCountdown ? (pmTotalSeconds - pmElapsedSeconds) : pmElapsedSeconds);
-    const clamped = Math.max(0, secs);
-    const m = Math.floor(clamped / 60), s = clamped % 60;
-    pwTime.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
-  }
-  function tickTimer(){
-    if(pmPaused) return;
-    pmElapsedSeconds++;
-    if(pmIsCountdown){
-      const remain = pmTotalSeconds - pmElapsedSeconds;
-      if(remain <= 0){ updateTimerDisplay(0); finishPomodoro(true); return; }
-      updateTimerDisplay(remain);
-    } else {
-      updateTimerDisplay(pmElapsedSeconds);
-    }
-  }
-
-  function launchFullscreenPomodoro(){
-    pomodoroMask.classList.remove('show');
-    // 打开亚空间全屏时强制收起其它弹窗/抽屉，避免层级打架
-    statusPanel.classList.remove('open');
-    backpackMask.classList.remove('show');
-    pocketSpaceMask.classList.remove('show');
-
-    psBg.style.backgroundImage = "url('images/pocket-space/pocket-space-1-room.jpg')";
-    pocketSpaceFullscreen.classList.add('show');
-    startCanvasLoop();
-    fadeInBgm();
-
-    pmIsCountdown = (pmMode === 'countdown');
-    pmTotalSeconds = pmTargetMinutes * 60;
-    pmElapsedSeconds = 0;
-    pmPaused = false;
-    pwPauseBtn.textContent = '⏸ 暂停';
-    pwLabel.textContent = pmIsCountdown ? '专注中～' : '正在计时～';
-    updateTimerDisplay(pmIsCountdown ? pmTotalSeconds : 0);
-
-    clearInterval(timerInterval);
-    timerInterval = setInterval(tickTimer, 1000);
-  }
-
-  function showSpaceToast(text){
-    pomodoroToast.textContent = text;
-    pomodoroToast.classList.add('show');
-    setTimeout(() => pomodoroToast.classList.remove('show'), 2600);
-  }
-
-  function finishPomodoro(completedNaturally){
-    clearInterval(timerInterval);
-    const earnedMinutes = pmIsCountdown ? pmTargetMinutes : Math.max(1, Math.round(pmElapsedSeconds / 60));
-    const reward = Math.max(2, Math.round(earnedMinutes / 5));
-    addCredits(reward);
-    addAffinity(1);
-    showSpaceToast(completedNaturally ? ('完成一个番茄钟啦🍅 +' + reward + '积分') : ('先休息一下，也奖励你 +' + reward + '积分'));
-    fadeOutBgm(() => {
-      stopCanvasLoop();
-      pocketSpaceFullscreen.classList.remove('show');
-      exitToFreeFromSpace();
-    });
-  }
-
-  pwPauseBtn.addEventListener('click', () => {
-    pmPaused = !pmPaused;
-    pwPauseBtn.textContent = pmPaused ? '▶ 继续' : '⏸ 暂停';
-    pwLabel.textContent = pmPaused ? '暂停中…' : (pmIsCountdown ? '专注中～' : '正在计时～');
-  });
-  pwEndBtn.addEventListener('click', () => finishPomodoro(false));
-
-  pmStartBtn.addEventListener('click', () => {
-    let minutes = pmMinutes;
-    const customVal = parseInt(pmCustomMin.value, 10);
-    if(pmMode === 'countdown' && customVal > 0) minutes = customVal;
-    pmTargetMinutes = minutes;
-
-    pmNormalView.style.display = 'none';
-    pomodoroCloseBtn.style.display = 'none';
-    pmCountdownEl.style.display = 'block';
-
-    let n = 3;
-    pmCountdownEl.textContent = n;
-    playBeep(false);
-    const iv = setInterval(() => {
-      n--;
-      if(n <= 0){
-        clearInterval(iv);
-        playBeep(true);
-        launchFullscreenPomodoro();
-        return;
-      }
-      pmCountdownEl.textContent = n;
-      playBeep(false);
-    }, 700);
-  });
-
-  // ============ 拖拽 + 贴边吸附（悬浮球） ============
-  let dragOffsetX = 0, dragOffsetY = 0;
-  let dragMoved = false, dragStartX = 0, dragStartY = 0;
-  let wasDockedBeforeDrag = false, dockSideAtDragStart = 'right';
-  const chatPanelEl = document.getElementById('chat-panel');
-
-  function getFreeSize(){
-    return window.innerWidth <= 760 ? {w:104, h:134} : {w:150, h:190};
-  }
-  function getDockBallSize(){
-    // 和 CSS 里 .docked 的 clamp(46px,12vw,56px) 保持一致
-    return Math.min(56, Math.max(46, window.innerWidth * 0.12));
-  }
-  function clampTop(topPx, h){
-    return Math.max(4, Math.min(window.innerHeight - h - 4, topPx));
-  }
-
-  function setDocked(side, topPx){
-    const ball = getDockBallSize();
-    wrap.classList.add('docked');
-    wrap.dataset.dockSide = side;
-    wrap.style.width = '';
-    wrap.style.height = '';
-    wrap.style.bottom = 'auto';
-    const top = clampTop(topPx, ball);
-    wrap.style.top = top + 'px';
-    const visible = ball * 0.55; // 贴边露出比例，剩下探出屏幕外一点，更像悬浮球吸住的样子
-    wrap.style.left = (side === 'right' ? (window.innerWidth - visible) : (-(ball - visible))) + 'px';
-    wrap.style.right = 'auto';
-  }
-
-  function setFree(leftPx, topPx){
-    wrap.classList.remove('docked');
-    delete wrap.dataset.dockSide;
-    wrap.style.right = 'auto';
-    wrap.style.bottom = 'auto';
-    const {w, h} = getFreeSize();
-    wrap.style.left = Math.max(4, Math.min(window.innerWidth - w - 4, leftPx)) + 'px';
-    wrap.style.top = clampTop(topPx, h) + 'px';
-  }
-
-  // 默认贴边悬浮球：右边，垂直方向大概在屏幕45%高度，首次摆放不要有滑入动画
-  wrap.style.transition = 'none';
-  setDocked('right', window.innerHeight * 0.42);
-  requestAnimationFrame(() => { wrap.style.transition = ''; });
-
-
-  // 手机端：快速点两下角色才会冒出💬图标（桌面端没有这个隐藏逻辑，图标本来就一直是display:none不显示）
-  let lastPetTapTime = 0;
-  function checkDoubleTapForChatIcon(){
-    const now = Date.now();
-    if(now - lastPetTapTime < 350){
-      const showing = wrap.classList.toggle('chat-icon-on');
-      if(!showing){
-        // 图标被收起时，如果输入框正开着，一起收起，避免图标没了但面板还开着
-        chatPanel.classList.remove('input-open');
-        chatInputToggle.textContent = '💬';
-      }
-      lastPetTapTime = 0;
-    } else {
-      lastPetTapTime = now;
-    }
-  }
-
-  function startDrag(clientX, clientY){
-    isDragging = true;
-    dragMoved = false;
-    dragStartX = clientX; dragStartY = clientY;
-    wasDockedBeforeDrag = wrap.classList.contains('docked');
-    dockSideAtDragStart = wrap.dataset.dockSide || 'right';
-    checkDoubleTapForChatIcon();
-    wrap.classList.add('dragging');
-    clearTimeout(reactionTimer);
-    setImg(IMG.grab);
-    const rect = wrap.getBoundingClientRect();
-    dragOffsetX = clientX - rect.left;
-    dragOffsetY = clientY - rect.top;
-    wrap.style.right = 'auto';
-    wrap.style.bottom = 'auto';
-    if(wasDockedBeforeDrag){
-      // 从悬浮球状态直接拖走：先展开回正常大小，手指/鼠标保持在桌宠中心，感觉更自然
-      wrap.classList.remove('docked');
-      wrap.style.width = '';
-      wrap.style.height = '';
-      const {w, h} = getFreeSize();
-      dragOffsetX = w / 2;
-      dragOffsetY = h / 2;
-    }
-  }
-
-  function moveDrag(clientX, clientY){
-    if(!isDragging) return;
-    if(Math.abs(clientX - dragStartX) > 4 || Math.abs(clientY - dragStartY) > 4) dragMoved = true;
-    let x = clientX - dragOffsetX;
-    let y = clientY - dragOffsetY;
-    const extraW = Math.max(0, (chatPanelEl.offsetWidth - wrap.offsetWidth) / 2);
-    const chatBelow = chatPanelEl.offsetHeight + 12; 
-    x = Math.max(extraW, Math.min(window.innerWidth - wrap.offsetWidth - extraW, x));
-    y = Math.max(-40, Math.min(window.innerHeight - wrap.offsetHeight - chatBelow, y));
-    wrap.style.left = x + 'px';
-    wrap.style.top = y + 'px';
-    checkSpaceHover(clientX, clientY);
-  }
-
-  function endDrag(){
-    if(!isDragging) return;
-    isDragging = false;
-    wrap.classList.remove('dragging');
-
-    if(spaceHoverActive){
-      spaceHoverActive = false;
-      entry1.classList.remove('drag-hover');
-      enterPocketSpace();
-      return;
-    }
-
-    if(!dragMoved){
-      // 单纯点了一下，没有拖动
-      if(wasDockedBeforeDrag){
-        // 点了一下悬浮球：原地展开成完整桌宠，从吸附的那一侧"冒出来"
-        const {w} = getFreeSize();
-        const topPx = parseFloat(wrap.style.top) || 0;
-        const leftPx = dockSideAtDragStart === 'left' ? 12 : (window.innerWidth - w - 12);
-        setFree(leftPx, topPx);
-        return;
-      }
-      wrap.classList.add('falling');
-      setImg(IMG.fall);
-      showBubble('哎呀，被摔了一下！');
-      setTimeout(() => {
-        wrap.classList.remove('falling');
-        setImg(currentIdle);
-      }, 650);
-      return;
-    }
-
-    // 有实际拖动：松手位置离左右边缘够近就吸附成悬浮球，否则留在原地当摆件
-    const rect = wrap.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const threshold = window.innerWidth * 0.18;
-    if(centerX < threshold){
-      setDocked('left', rect.top);
-    } else if(centerX > window.innerWidth - threshold){
-      setDocked('right', rect.top);
-    } else {
-      setFree(rect.left, rect.top);
-      wrap.classList.add('falling');
-      setImg(IMG.fall);
-      setTimeout(() => wrap.classList.remove('falling'), 650);
-    }
-  }
-
-  wrap.addEventListener('mousedown', (e) => {
-    if(e.target.closest('#chat-panel')) return; 
-    startDrag(e.clientX, e.clientY);
-  });
-  window.addEventListener('mousemove', (e) => moveDrag(e.clientX, e.clientY));
-  window.addEventListener('mouseup', endDrag);
-
-  wrap.addEventListener('touchstart', (e) => {
-    if(e.target.closest('#chat-panel')) return;
-    const t = e.touches[0];
-    startDrag(t.clientX, t.clientY);
-  }, {passive:true});
-
-  window.addEventListener('touchmove', (e) => {
-    if(!isDragging) return;
-    const t = e.touches[0];
-    moveDrag(t.clientX, t.clientY);
-  }, {passive:true});
-
-  window.addEventListener('touchend', endDrag);
-
-})();
-</script>
-<!-- ================= 注入的桌宠系统脚本 结束 ================= -->
-
-
-<!-- ================= 通行证登录系统（与 index.html 共用同一 Supabase 后端） ================= -->
-<!-- 引入 Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-
-<!-- 合并：user-system.js -->
-<script>
-/* ============================================================
-   Jerry.dev 用户系统 —— 登录 / 打卡 / 浏览点赞埋点 / Zara积分
-   ============================================================ */
-const SUPABASE_URL = 'https://ytvhnawoaepwfsgqqnzs.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_EfxYndz6uTCRevj2YyCO0A_936qng6d';
-
-const JerrySite = (function () {
-  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  let currentUser = null;
-  const listeners = [];
-
-  function notify() {
-    listeners.forEach(fn => { try { fn(currentUser); } catch (e) { console.error(e); } });
-  }
-
-  function onAuthChange(fn) {
-    listeners.push(fn);
-    fn(currentUser);
-  }
-
-  client.auth.onAuthStateChange((_event, session) => {
-    currentUser = session?.user || null;
-    notify();
-  });
-
-  async function init() {
-    const { data: { session } } = await client.auth.getSession();
-    currentUser = session?.user || null;
-    notify();
-    return currentUser;
-  }
-
-  async function signInWithGoogle() {
-    const { error } = await client.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.href }
-    });
-    if (error) throw error;
-  }
-
-  async function sendEmailCode(email) {
-    const { error } = await client.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: true }
-    });
-    if (error) throw error;
-  }
-
-  async function verifyEmailCode(email, code) {
-    const { data, error } = await client.auth.verifyOtp({
-      email,
-      token: code,
-      type: 'email'
-    });
-    if (error) throw error;
-    return data.user;
-  }
-
-  async function signOut() {
-    await client.auth.signOut();
-  }
-
-  function getUser() { return currentUser; }
-  function isLoggedIn() { return !!currentUser; }
-
-  async function rpc(name, params) {
-    const { data, error } = await client.rpc(name, params);
-    if (error) throw error;
-    return data;
-  }
-
-  const checkinToday = () => rpc('daily_checkin');
-  const recordView = (postId) => rpc('record_view', { p_post_id: String(postId) });
-  const toggleLike = (postId) => rpc('toggle_like', { p_post_id: String(postId) });
-  const feedZara = (itemId, cost) => rpc('feed_zara', { p_item_id: itemId, p_cost: cost });
-  const getMyStatus = () => rpc('get_my_status');
-
-  async function getComments(postId) {
-    const { data, error } = await client
-      .from('comments')
-      .select('id, content, created_at, user_id, profiles(display_name, avatar_url)')
-      .eq('post_id', String(postId))
-      .order('created_at', { ascending: true });
-    if (error) throw error;
-    return data;
-  }
-
-  async function postComment(postId, content) {
-    if (!currentUser) throw new Error('需要先登录');
-    const { error } = await client.from('comments').insert({
-      post_id: String(postId),
-      user_id: currentUser.id,
-      content
-    });
-    if (error) throw error;
-  }
-
-  async function deleteComment(commentId) {
-    const { error } = await client.from('comments').delete().eq('id', commentId);
-    if (error) throw error;
-  }
-
-  return {
-    init, onAuthChange,
-    signInWithGoogle, sendEmailCode, verifyEmailCode, signOut,
-    getUser, isLoggedIn,
-    checkinToday, recordView, toggleLike, feedZara, getMyStatus,
-    getComments, postComment, deleteComment
-  };
-})();
-
-document.addEventListener('DOMContentLoaded', () => { JerrySite.init(); });
-</script>
-
-<!-- 合并：login-widget.js -->
-<script>
-/* ============================================================
-   登录组件 UI (优化实战版) —— 依赖 user-system.js 先加载
-   ============================================================ */
-(function () {
-  const STYLE = `
-    #jerry-auth-slot{ position:relative; display:inline-flex; align-items:center; }
-
-    .jerry-login-btn{
-      display:inline-flex; align-items:center; gap:6px;
-      padding:8px 20px; border-radius:100px; border:1px solid rgba(255,255,255,.28);
-      background:rgba(255,255,255,.10); color:#fff; font-size:14px; font-weight:600; cursor:pointer;
-      font-family:inherit; transition:.3s; backdrop-filter:blur(10px);
-    }
-    .jerry-login-btn:hover{ background:rgba(255,255,255,.18); transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,.2); }
-    body.theme-light .jerry-login-btn{ background:#fff; border-color:rgba(43,36,64,.18); color:#2B2440; }
-
-    .jerry-user-chip{
-      display:inline-flex; align-items:center; gap:8px; cursor:pointer;
-      padding:5px 14px 5px 5px; border-radius:100px; background:rgba(255,255,255,.10);
-      border:1px solid rgba(255,255,255,.22); transition:.2s; backdrop-filter:blur(10px);
-    }
-    .jerry-user-chip:hover{ background:rgba(255,255,255,.18); }
-    body.theme-light .jerry-user-chip{ background:#fff; border-color:rgba(43,36,64,.16); }
-    .jerry-user-chip img{ width:28px;height:28px;border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,.2); }
-    .jerry-user-chip .pts{ font-family:'JetBrains Mono',monospace; font-size:13px; color:#FFC93C; font-weight:700; }
-
-    .jerry-modal-mask{
-      position:fixed; inset:0; z-index:9999; background:rgba(8,6,20,.65); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
-      display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .jerry-modal-mask.open{ opacity:1; pointer-events:auto; }
-
-    .jerry-modal{
-      position:relative; width:min(360px, 90vw); background:linear-gradient(145deg, #1f1845, #120d2b); border:1px solid rgba(255,255,255,.18);
-      border-radius:24px; padding:32px; color:#fff; font-family:inherit;
-      transform:translateY(24px) scale(0.98); transition:.3s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 24px 48px -12px rgba(0,0,0,0.6);
-    }
-    .jerry-modal-mask.open .jerry-modal{ transform:translateY(0) scale(1); }
-    body.theme-light .jerry-modal{ background:#fff; color:#2B2440; border-color:rgba(43,36,64,.14); box-shadow: 0 24px 48px -12px rgba(0,0,0,0.1); }
-
-    .jerry-modal h3{ margin:0 0 24px; font-size:18px; text-align:center; font-weight:700; }
-    .jerry-tabs{ display:flex; gap:6px; margin-bottom:20px; background:rgba(255,255,255,.06); border-radius:100px; padding:4px; }
-    body.theme-light .jerry-tabs{ background:rgba(43,36,64,.06); }
-    .jerry-tab{ flex:1; text-align:center; padding:8px 0; border-radius:100px; font-size:13px; font-weight:500; cursor:pointer; opacity:.6; transition:.2s; }
-    .jerry-tab.active{ background:rgba(255,255,255,.14); opacity:1; }
-    body.theme-light .jerry-tab.active{ background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.08); }
-
-    .jerry-google-btn{
-      width:100%; padding:12px; border-radius:100px; border:1px solid rgba(255,255,255,.28);
-      background:#fff; color:#120d2b; font-weight:700; font-size:14px; cursor:pointer;
-      display:flex; align-items:center; justify-content:center; gap:10px; transition:.2s;
-    }
-    .jerry-google-btn:hover{ background:#f0f0f0; transform:translateY(-1px); }
-    .jerry-google-btn:disabled{ opacity:0.7; cursor:not-allowed; transform:none; }
-    
-    .jerry-email-pane input{
-      width:100%; box-sizing:border-box; padding:12px 16px; border-radius:12px; margin-bottom:12px;
-      border:1px solid rgba(255,255,255,.22); background:rgba(0,0,0,.2); color:inherit; font-size:14px; outline:none; transition:.2s;
-    }
-    .jerry-email-pane input:focus{ border-color:#B18CFF; background:rgba(0,0,0,.4); }
-    body.theme-light .jerry-email-pane input{ border-color:rgba(43,36,64,.18); background:#faf8ff; }
-    
-    .jerry-email-pane button{
-      width:100%; padding:12px; border-radius:100px; border:none; cursor:pointer;
-      background:linear-gradient(120deg,var(--coral,#FF7A5C),var(--pink,#FF8CD9)); color:#fff; font-weight:700; font-size:14px; transition:.2s;
-    }
-    .jerry-email-pane button:hover:not(:disabled){ opacity:0.9; transform:translateY(-1px); box-shadow:0 8px 20px -6px rgba(255,122,92,0.5); }
-    .jerry-email-pane button:disabled{ opacity:0.5; cursor:not-allowed; transform:none; filter:grayscale(0.5); }
-
-    .jerry-msg{ font-size:12px; margin-top:10px; text-align:center; min-height:18px; }
-    .jerry-msg.error{ color:#FF5C5C; }
-    .jerry-msg.success{ color:#5CE68A; }
-    .jerry-hint{ font-size:12px; opacity:.5; margin-top:12px; text-align:center; line-height:1.5; }
-    .jerry-close{ position:absolute; top:20px; right:20px; width:28px; height:28px; border-radius:50%; background:rgba(255,255,255,.1); display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:.7; font-size:14px; transition:.2s; }
-    .jerry-close:hover{ opacity:1; background:rgba(255,255,255,.2); }
-  `;
-
-  function injectStyle() {
-    if(document.getElementById('jerry-auth-style')) return;
-    const s = document.createElement('style');
-    s.id = 'jerry-auth-style';
-    s.textContent = STYLE;
-    document.head.appendChild(s);
-  }
-
-  function buildModal() {
-    const mask = document.createElement('div');
-    mask.className = 'jerry-modal-mask';
-    mask.innerHTML = `
-      <div class="jerry-modal">
-        <div class="jerry-close">✕</div>
-        <h3>通行证登录</h3>
-        <div class="jerry-tabs">
-          <div class="jerry-tab active" data-pane="google">Google</div>
-          <div class="jerry-tab" data-pane="email">邮箱验证码</div>
-        </div>
-        
-        <div class="jerry-pane" data-pane="google">
-          <button class="jerry-google-btn" id="jerryGoogleBtn">
-            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34 5.5 29.3 3.5 24 3.5 12.7 3.5 3.5 12.7 3.5 24S12.7 44.5 24 44.5 44.5 35.3 44.5 24c0-1.2-.1-2.4-.3-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.6 18.9 12 24 12c3.1 0 5.8 1.1 8 3l6-6C34 5.5 29.3 3.5 24 3.5c-7.6 0-14.1 4.3-17.4 10.6z"/><path fill="#4CAF50" d="M24 44.5c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.3 35.9 26.8 36.8 24 36.8c-5.3 0-9.7-3.3-11.3-8l-6.5 5C9.8 40.1 16.3 44.5 24 44.5z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.4l6.2 5.2C40.5 36 44.5 30.6 44.5 24c0-1.2-.1-2.4-.3-3.5z"/></svg>
-            Google 账号一键登录
-          </button>
-          <div class="jerry-hint">若网络无法访问 Google<br>请切换至"邮箱验证码"登录</div>
-          <div class="jerry-msg" id="googleMsg"></div>
-        </div>
-
-        <div class="jerry-pane jerry-email-pane" data-pane="email" style="display:none;">
-          <input type="email" id="jerryEmailInput" placeholder="输入你的邮箱地址" autocomplete="email" />
-          <button id="jerrySendCodeBtn">发送验证码</button>
-          <input type="text" id="jerryCodeInput" placeholder="请输入6位验证码" style="display:none; margin-top:12px;" autocomplete="one-time-code" />
-          <button id="jerryVerifyBtn" style="display:none; margin-top:12px;">验证并登录</button>
-          <div class="jerry-msg" id="emailMsg"></div>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(mask);
-    return mask;
-  }
-
-  function setup() {
-    injectStyle();
-    const slot = document.getElementById('jerry-auth-slot');
-    if (!slot) return; 
-
-    const modal = buildModal();
-    window.openJerryLoginModal = () => modal.classList.add('open');
-    const closeModal = () => {
-      modal.classList.remove('open');
-      document.getElementById('emailMsg').textContent = '';
-      document.getElementById('emailMsg').className = 'jerry-msg';
-    };
-
-    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-    modal.querySelector('.jerry-close').addEventListener('click', closeModal);
-
-    const emailMsg = modal.querySelector('#emailMsg');
-    const showMsg = (text, type='error') => {
-      emailMsg.textContent = text;
-      emailMsg.className = `jerry-msg ${type}`;
-    };
-
-    modal.querySelectorAll('.jerry-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        modal.querySelectorAll('.jerry-tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        modal.querySelectorAll('.jerry-pane').forEach(p => {
-          p.style.display = p.dataset.pane === tab.dataset.pane ? 'block' : 'none';
-        });
-        showMsg('');
-      });
-    });
-
-    const googleBtn = modal.querySelector('#jerryGoogleBtn');
-    googleBtn.addEventListener('click', async () => {
-      try {
-        googleBtn.disabled = true;
-        googleBtn.innerHTML = '正在拉起授权...';
-        await JerrySite.signInWithGoogle();
-      } catch (err) {
-        googleBtn.disabled = false;
-        googleBtn.innerHTML = 'Google 账号一键登录';
-        modal.querySelector('#googleMsg').textContent = '调起失败：' + err.message;
-        modal.querySelector('#googleMsg').className = 'jerry-msg error';
-      }
-    });
-
-    const sendBtn = modal.querySelector('#jerrySendCodeBtn');
-    sendBtn.addEventListener('click', async () => {
-      const email = modal.querySelector('#jerryEmailInput').value.trim();
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!email || !emailRegex.test(email)) return showMsg('请输入有效的邮箱地址');
-      
-      try {
-        sendBtn.disabled = true;
-        sendBtn.textContent = '发送中...';
-        showMsg('');
-        
-        await JerrySite.sendEmailCode(email);
-        
-        modal.querySelector('#jerryCodeInput').style.display = 'block';
-        modal.querySelector('#jerryVerifyBtn').style.display = 'block';
-        sendBtn.textContent = '已发送验证码';
-        showMsg('验证码已发送至邮箱，请查收', 'success');
-      } catch (err) {
-        sendBtn.disabled = false;
-        sendBtn.textContent = '发送验证码';
-        showMsg(err.message.includes('rate') ? '发送太频繁，请稍后再试' : '发送失败：' + err.message);
-      }
-    });
-
-    const verifyBtn = modal.querySelector('#jerryVerifyBtn');
-    verifyBtn.addEventListener('click', async () => {
-      const email = modal.querySelector('#jerryEmailInput').value.trim();
-      const code = modal.querySelector('#jerryCodeInput').value.trim();
-      if (!code || code.length < 6) return showMsg('请输入完整的6位验证码');
-
-      try {
-        verifyBtn.disabled = true;
-        verifyBtn.textContent = '验证中...';
-        showMsg('');
-        
-        await JerrySite.verifyEmailCode(email, code);
-        closeModal();
-      } catch (err) {
-        verifyBtn.disabled = false;
-        verifyBtn.textContent = '验证并登录';
-        showMsg('验证码错误或已过期，请重试');
-      }
-    });
-
-    function render(user) {
-      if (user) {
-        const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email.split('@')[0];
-        const avatar = user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(user.id)}&backgroundColor=1f1845`;
-        slot.innerHTML = `
-          <div class="jerry-user-chip" id="jerryUserChip" title="点击退出登录">
-            <img src="${avatar}" alt="Avatar">
-            <span>${name}</span>
-            <span class="pts" id="jerryPtsDisplay">...</span>
-          </div>
-        `;
-        slot.querySelector('#jerryUserChip').addEventListener('click', () => {
-          if (confirm('确定要退出当前账号吗？')) JerrySite.signOut();
-        });
-        
-        JerrySite.getMyStatus().then(status => {
-          const el = document.getElementById('jerryPtsDisplay');
-          if (el && status.logged_in) el.textContent = `⚡${status.points}`;
-        }).catch(() => {
-          document.getElementById('jerryPtsDisplay').textContent = '⚡--';
-        });
-      } else {
-        slot.innerHTML = `<button class="jerry-login-btn" id="jerryLoginBtn">通行证登录</button>`;
-        slot.querySelector('#jerryLoginBtn').addEventListener('click', () => modal.classList.add('open'));
-        
-        if(sendBtn) {
-            sendBtn.disabled = false; sendBtn.textContent = '发送验证码';
-            verifyBtn.disabled = false; verifyBtn.textContent = '验证并登录';
-            modal.querySelector('#jerryCodeInput').style.display = 'none';
-            verifyBtn.style.display = 'none';
-            modal.querySelector('#jerryEmailInput').value = '';
-            modal.querySelector('#jerryCodeInput').value = '';
-        }
-      }
-    }
-
-    JerrySite.onAuthChange(render);
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setup);
-  } else {
-    setup();
-  }
-})();
-</script>
-
 </body>
 </html>
