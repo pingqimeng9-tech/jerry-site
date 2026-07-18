@@ -189,33 +189,84 @@
   .tabbar a.locked .chain{ font-size:11px; opacity:.85; }
 
   .lock-modal-mask{
-    position:fixed; inset:0; z-index:300; background:rgba(8,6,20,.65); backdrop-filter:blur(4px);
+    position:fixed; inset:0; z-index:300; background:rgba(8,6,20,.7); backdrop-filter:blur(4px);
     display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:.25s;
+    padding:20px;
   }
   .lock-modal-mask.open{ opacity:1; pointer-events:auto; }
   .lock-modal{
-    width:min(420px,90vw); background:#1b1440; border:1px solid var(--glass-border); border-radius:22px;
-    padding:30px 26px; color:#fff; text-align:center; position:relative;
+    width:min(480px,92vw); max-height:88vh; overflow-y:auto; background:#1b1440; border:1px solid var(--glass-border); border-radius:24px;
+    padding:36px 30px; color:#fff; text-align:center; position:relative;
     transform:translateY(16px) scale(.96); transition:.3s;
   }
   .lock-modal-mask.open .lock-modal{ transform:translateY(0) scale(1); }
-  .lock-modal .close-lock{ position:absolute; top:16px; right:18px; cursor:pointer; opacity:.6; font-size:15px; }
+  .lock-modal .close-lock{ position:absolute; top:18px; right:20px; cursor:pointer; opacity:.6; font-size:17px; }
+  .lock-modal .cake-visual{ font-size:52px; line-height:1; margin-bottom:6px; filter:drop-shadow(0 6px 14px rgba(255,201,60,.35)); }
   .lock-modal .badge{
     display:inline-flex; align-items:center; gap:6px; background:rgba(255,201,60,.15); color:#FFC93C;
-    border:1px solid rgba(255,201,60,.4); font-size:11.5px; padding:5px 14px; border-radius:100px; margin-bottom:16px;
+    border:1px solid rgba(255,201,60,.4); font-size:13px; font-weight:700; padding:6px 16px; border-radius:100px; margin-bottom:18px;
   }
-  .lock-modal h3{ font-size:19px; margin:0 0 10px; }
-  .lock-modal p.desc{ font-size:13px; color:var(--muted); line-height:1.7; margin-bottom:18px; }
-  .lock-modal .content-list{ text-align:left; background:rgba(255,255,255,.05); border-radius:14px; padding:14px 16px; margin-bottom:20px; }
-  .lock-modal .content-list li{ font-size:12.5px; line-height:2; color:#e5e0f7; list-style:none; }
+  .lock-modal h3{ font-size:23px; margin:0 0 14px; line-height:1.4; }
+  .lock-modal p.desc{ font-size:15.5px; color:#e5e0f7; line-height:1.85; margin-bottom:22px; }
+  .lock-modal .content-list{ text-align:left; background:rgba(255,255,255,.05); border-radius:16px; padding:16px 18px; margin-bottom:22px; }
+  .lock-modal .content-list li{ font-size:14px; line-height:2.1; color:#e5e0f7; list-style:none; }
   .lock-modal .content-list li::before{ content:'✦ '; color:#FF9ED2; }
+
+  /* 会员价目栏 */
+  .membership-card{
+    text-align:left; background:linear-gradient(145deg, rgba(255,201,60,.12), rgba(255,122,92,.08));
+    border:1px solid rgba(255,201,60,.35); border-radius:16px; padding:16px 18px; margin-bottom:22px;
+  }
+  .membership-card .m-row{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
+  .membership-card .m-price-full{ font-size:14px; color:var(--muted); text-decoration:line-through; }
+  .membership-card .m-price-off{ font-size:22px; font-weight:800; color:#FFC93C; font-family:'JetBrains Mono',monospace; }
+  .membership-card .m-note{ font-size:13px; color:#e5e0f7; line-height:1.7; margin-bottom:12px; }
+  .membership-card .m-actions{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .twitter-follow-btn{
+    display:inline-flex; align-items:center; gap:6px; padding:9px 16px; border-radius:100px; border:1px solid rgba(255,255,255,.25);
+    background:#000; color:#fff; font-size:13px; font-weight:700; text-decoration:none; transition:.2s;
+  }
+  .twitter-follow-btn:hover{ background:#1a1a1a; transform:translateY(-1px); }
+  .wechat-group-hint{
+    display:flex; align-items:center; gap:10px; font-size:12.5px; color:var(--muted);
+  }
+  .wechat-group-hint .qr-thumb{
+    width:56px; height:56px; border-radius:10px; object-fit:cover; border:1px solid var(--glass-border); background:rgba(255,255,255,.06);
+    flex-shrink:0;
+  }
+
+  .login-gate-box{ padding:8px 0 6px; }
+  .login-gate-box .lock-icon{ font-size:44px; margin-bottom:14px; }
+  .login-gate-box p{ font-size:15px; color:#e5e0f7; line-height:1.8; margin-bottom:22px; }
+
+  .modal-btn-row{ display:flex; gap:12px; }
+  .modal-btn-row .unlock-btn, .modal-btn-row .cancel-btn{ flex:1; }
   .unlock-btn{
-    width:100%; padding:13px; border-radius:100px; border:none; cursor:pointer; font-size:14px; font-weight:800;
+    padding:14px; border-radius:100px; border:none; cursor:pointer; font-size:15px; font-weight:800;
+    background:linear-gradient(120deg,#FF4D4D,#FF7A5C); background-size:200% 100%;
+    color:#fff; box-shadow:0 10px 24px -10px rgba(255,77,77,.55);
+  }
+  .unlock-btn:disabled{ opacity:.7; cursor:default; }
+  .cancel-btn{
+    padding:14px; border-radius:100px; border:1px solid var(--glass-border); cursor:pointer; font-size:15px; font-weight:700;
+    background:rgba(255,255,255,.08); color:#cfc9e8; transition:.2s;
+  }
+  .cancel-btn:hover{ background:rgba(255,255,255,.14); color:#fff; }
+  .login-now-btn{
+    width:100%; padding:14px; border-radius:100px; border:none; cursor:pointer; font-size:15px; font-weight:800;
     background:linear-gradient(120deg,var(--coral),var(--pink),#FFC93C); background-size:200% 100%;
     color:#1a0f2b; animation:unlockShimmer 2.5s linear infinite;
   }
   @keyframes unlockShimmer{ to{ background-position:200% 0; } }
-  .unlock-btn:disabled{ opacity:.7; cursor:default; animation:none; }
+
+  /* 解锁成功后的"请喝咖啡"二次弹窗 */
+  .coffee-modal .cake-visual{ font-size:46px; }
+  .coffee-modal h3{ font-size:20px; }
+  .coffee-modal p.desc{ font-size:14.5px; }
+  .coffee-btn{
+    padding:14px; border-radius:100px; border:none; cursor:pointer; font-size:15px; font-weight:800;
+    background:linear-gradient(120deg,#6B5CFF,#B98CFF); color:#fff; box-shadow:0 10px 24px -10px rgba(107,92,255,.55);
+  }
 
   /* 解锁特效：礼花碎片 */
   .confetti-piece{
@@ -1013,6 +1064,7 @@
     <a href="/blog.html" class="active">博客</a>
     <a href="/rumi.html">Rumi英语</a>
   </div>
+  <div id="jerry-auth-slot" style="margin: 0 10px;"></div>
   <div class="btn-border-wrap"><a href="/#contact" class="cta">联系我</a></div>
 </nav>
 
@@ -1126,18 +1178,21 @@
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
 <div class="lock-modal-mask" id="lockModalMask">
-  <div class="lock-modal">
-    <span class="close-lock" id="lockModalClose">✕</span>
-    <div class="badge">🎂 Jerry生日限时免费</div>
-    <h3>Rumi英语技术 · 会员专区</h3>
-    <p class="desc">这部分是我平时做 Rumi 英语这套内容背后的完整技术拆解，本来是要收费的，借生日这几天限时免费分享。</p>
-    <ul class="content-list">
-      <li>动画视频提示词（分镜/运镜/风格锁定）</li>
-      <li>角色形象图片提示词</li>
-      <li>SOP 生成布局 / 批量产出流程</li>
-      <li>完整变现流程拆解</li>
-    </ul>
-    <button class="unlock-btn" id="unlockBtn">🔓 立即解锁</button>
+  <div class="lock-modal" id="lockModalBody">
+    <!-- 内容由 JS 根据登录状态动态渲染（未登录 / 已登录未解锁 / 已解锁），见 renderLockModal() -->
+  </div>
+</div>
+
+<div class="lock-modal-mask" id="coffeeModalMask">
+  <div class="lock-modal coffee-modal">
+    <span class="close-lock" id="coffeeModalClose">✕</span>
+    <div class="cake-visual">☕🎂</div>
+    <h3>解锁成功！谢谢你 ✨</h3>
+    <p class="desc">如果这份技术拆解对你有帮助，觉得还不错的话，可以请 Jerry 喝杯咖啡，这对我持续做免费内容是很大的鼓励～</p>
+    <div class="modal-btn-row">
+      <button class="cancel-btn" id="coffeeSkipBtn">暂不了</button>
+      <a class="coffee-btn" style="text-decoration:none;display:flex;align-items:center;justify-content:center;flex:1;" href="https://ifdian.net/a/rumi-ai" target="_blank" rel="noopener">☕ 请我喝咖啡</a>
+    </div>
   </div>
 </div>
 
@@ -1364,10 +1419,17 @@ function buildStats(posts){
   viewsEl.textContent = totalViews >= 1000 ? (totalViews/1000).toFixed(1) + 'K' : totalViews;
 }
 
+function normalizeCategory(raw){
+  const cat = (raw || '未分类').trim();
+  // Rumi英语技术 分类之前因为大小写/全半角不一致被当成了两个不同分类，这里统一按不区分大小写归并成同一个
+  if(typeof LOCKED_CATEGORY !== 'undefined' && cat.toLowerCase() === LOCKED_CATEGORY.toLowerCase()) return LOCKED_CATEGORY;
+  return cat;
+}
+
 function groupByCategory(posts){
   const groups = {};
   posts.forEach(p => {
-    const cat = p.category || '未分类';
+    const cat = normalizeCategory(p.category);
     if(!groups[cat]) groups[cat] = [];
     groups[cat].push(p);
   });
@@ -1430,7 +1492,7 @@ let mobilePage = 1;
 
 function renderMobilePaged(posts, page){
   mobilePage = page || 1;
-  const filtered = mobileFilter === 'all' ? posts : posts.filter(p => (p.category || '未分类') === mobileFilter);
+  const filtered = mobileFilter === 'all' ? posts : posts.filter(p => normalizeCategory(p.category) === mobileFilter);
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   mobilePage = Math.min(mobilePage, totalPages);
   const start = (mobilePage - 1) * PAGE_SIZE;
@@ -1508,38 +1570,156 @@ function buildCategoryTabs(posts){
 
 /* ============ 会员锁定分类弹窗 + 解锁特效 ============ */
 const RUMI_UNLOCK_KEY = 'rumiTechUnlocked';
+// 生日限免 7 天：从公告栏记录的上线日 2026-07-16 起算，到 2026-07-23 结束
+const UNLOCK_DEADLINE = new Date('2026-07-23T23:59:59+08:00');
+
+function daysLeft(){
+  const ms = UNLOCK_DEADLINE.getTime() - Date.now();
+  return Math.max(0, Math.ceil(ms / 86400000));
+}
+function isOfferExpired(){ return Date.now() > UNLOCK_DEADLINE.getTime(); }
+function isLoggedIn(){ return !!(window.JerrySite && JerrySite.isLoggedIn()); }
+function isUnlocked(){ return localStorage.getItem(RUMI_UNLOCK_KEY) === '1'; }
+
+const MEMBERSHIP_CARD_HTML = `
+  <div class="membership-card">
+    <div class="m-row">
+      <span class="m-price-full">¥199</span>
+      <span class="m-price-off">¥98/年</span>
+      <span style="font-size:12.5px;color:var(--muted);">关注 Twitter 立减</span>
+    </div>
+    <div class="m-note">成为 Jerry 年度会员可解锁完整内容库并加入交流群，关注 Twitter 后私信截图即可享折后价。</div>
+    <div class="m-actions">
+      <a class="twitter-follow-btn" href="https://x.com/zengaihua327711" target="_blank" rel="noopener">𝕏 关注 @zengaihua327711</a>
+      <div class="wechat-group-hint">
+        <img class="qr-thumb" src="images/wechat-group-qr.jpg" alt="微信群二维码" onerror="this.style.display='none'">
+        <span>扫码加入微信交流群</span>
+      </div>
+    </div>
+  </div>
+`;
+
+function renderLockModal(){
+  const body = document.getElementById('lockModalBody');
+  const closeBtnHtml = `<span class="close-lock" id="lockModalClose">✕</span>`;
+
+  if(!isLoggedIn()){
+    body.innerHTML = `
+      ${closeBtnHtml}
+      <div class="login-gate-box">
+        <div class="lock-icon">🔒</div>
+        <div class="badge">🎂 Jerry生日限时免费 · 仅剩 ${daysLeft()} 天</div>
+        <h3>Rumi英语技术 · 会员专区</h3>
+        <p>这里是完整的技术拆解内容，<b>请先登录</b>才能查看详情并解锁哦～</p>
+        <button class="login-now-btn" id="lockGoLoginBtn">👤 立即登录</button>
+      </div>
+    `;
+    return;
+  }
+
+  if(isUnlocked()){
+    body.innerHTML = `
+      ${closeBtnHtml}
+      <div class="cake-visual">🎉🎂</div>
+      <div class="badge">已解锁</div>
+      <h3>Rumi英语技术 · 会员专区</h3>
+      <p class="desc">你已经解锁过这部分内容啦，随时回来看～</p>
+      <ul class="content-list">
+        <li>动画视频提示词（分镜/运镜/风格锁定）</li>
+        <li>角色形象图片提示词</li>
+        <li>SOP 生成布局 / 批量产出流程</li>
+        <li>完整变现流程拆解</li>
+      </ul>
+      ${MEMBERSHIP_CARD_HTML}
+    `;
+    return;
+  }
+
+  const expired = isOfferExpired();
+  body.innerHTML = `
+    ${closeBtnHtml}
+    <div class="cake-visual">🎂</div>
+    <div class="badge">${expired ? '限时免费已结束' : `🎂 Jerry生日限时免费 · 仅剩 ${daysLeft()} 天`}</div>
+    <h3>Rumi英语技术 · 会员专区</h3>
+    <p class="desc">这部分是我平时做 Rumi 英语这套内容背后的完整技术拆解，本来是要收费的，借生日这几天限时免费分享给大家。</p>
+    <ul class="content-list">
+      <li>动画视频提示词（分镜/运镜/风格锁定）</li>
+      <li>角色形象图片提示词</li>
+      <li>SOP 生成布局 / 批量产出流程</li>
+      <li>完整变现流程拆解</li>
+    </ul>
+    ${MEMBERSHIP_CARD_HTML}
+    <div class="modal-btn-row">
+      <button class="cancel-btn" id="lockCancelBtn">取消</button>
+      <button class="unlock-btn" id="unlockBtn" ${expired ? 'disabled' : ''}>${expired ? '限免已结束' : '🔓 立即解锁'}</button>
+    </div>
+  `;
+}
 
 function openLockModal(){
+  renderLockModal();
   document.getElementById('lockModalMask').classList.add('open');
 }
 function closeLockModal(){
   document.getElementById('lockModalMask').classList.remove('open');
 }
-document.getElementById('lockModalClose').addEventListener('click', closeLockModal);
+function openCoffeeModal(){
+  document.getElementById('coffeeModalMask').classList.add('open');
+}
+function closeCoffeeModal(){
+  document.getElementById('coffeeModalMask').classList.remove('open');
+}
+
 document.getElementById('lockModalMask').addEventListener('click', (e) => {
-  if(e.target.id === 'lockModalMask') closeLockModal();
+  if(e.target.id === 'lockModalMask' || e.target.id === 'lockModalClose') closeLockModal();
 });
 
-document.getElementById('unlockBtn').addEventListener('click', () => {
-  const btn = document.getElementById('unlockBtn');
-  btn.disabled = true;
-  btn.textContent = '解锁中…';
-  localStorage.setItem(RUMI_UNLOCK_KEY, '1');
-  fireConfetti();
-  setTimeout(() => {
-    btn.textContent = '🎉 已解锁！';
+// 弹窗内容是动态渲染的，用事件委托处理里面的按钮点击
+document.getElementById('lockModalBody').addEventListener('click', (e) => {
+  if(e.target.id === 'lockGoLoginBtn'){
+    if(window.openJerryLoginModal) window.openJerryLoginModal();
+    return;
+  }
+  if(e.target.id === 'lockCancelBtn'){
+    closeLockModal();
+    return;
+  }
+  if(e.target.id === 'unlockBtn' && !e.target.disabled){
+    const btn = e.target;
+    btn.disabled = true;
+    btn.textContent = '解锁中…';
+    localStorage.setItem(RUMI_UNLOCK_KEY, '1');
+    fireConfetti();
     setTimeout(() => {
-      closeLockModal();
-      btn.disabled = false;
-      btn.textContent = '🔓 立即解锁';
-      // 解锁后把这个分类当成普通分类筛选展示（如果 Notion 里已经有对应文章的话）
-      const tabbar = document.getElementById('tabbar');
-      tabbar.querySelectorAll('a').forEach(x => x.classList.remove('active'));
-      tabbar.querySelector(`a[data-filter="${LOCKED_CATEGORY}"]`)?.classList.add('active');
-      mobileFilter = LOCKED_CATEGORY;
-      renderMobilePaged(allPosts, 1);
-    }, 900);
-  }, 600);
+      btn.textContent = '🎉 已解锁！';
+      setTimeout(() => {
+        closeLockModal();
+        // 解锁后把这个分类当成普通分类筛选展示（如果 Notion 里已经有对应文章的话）
+        const tabbar = document.getElementById('tabbar');
+        tabbar.querySelectorAll('a').forEach(x => x.classList.remove('active'));
+        tabbar.querySelector(`a[data-filter="${LOCKED_CATEGORY}"]`)?.classList.add('active');
+        mobileFilter = LOCKED_CATEGORY;
+        renderMobilePaged(allPosts, 1);
+        openCoffeeModal();
+      }, 900);
+    }, 600);
+  }
+});
+
+document.getElementById('coffeeModalMask').addEventListener('click', (e) => {
+  if(e.target.id === 'coffeeModalMask' || e.target.id === 'coffeeModalClose' || e.target.id === 'coffeeSkipBtn') closeCoffeeModal();
+});
+
+// 登录状态变化时，如果锁定弹窗正开着，刷新一下里面的内容
+// （登录系统脚本插入在本文件靠后的位置，这里等 DOMContentLoaded 之后再挂载，确保 window.JerrySite 已就绪）
+document.addEventListener('DOMContentLoaded', () => {
+  if(window.JerrySite){
+    JerrySite.onAuthChange(() => {
+      if(document.getElementById('lockModalMask').classList.contains('open')) renderLockModal();
+      initCheckinWidget();
+      initPointsWidget();
+    });
+  }
 });
 
 function fireConfetti(){
@@ -2908,6 +3088,388 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
 })();
 </script>
 <!-- ================= 注入的桌宠系统脚本 结束 ================= -->
+
+
+<!-- ================= 通行证登录系统（与 index.html 共用同一 Supabase 后端） ================= -->
+<!-- 引入 Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+<!-- 合并：user-system.js -->
+<script>
+/* ============================================================
+   Jerry.dev 用户系统 —— 登录 / 打卡 / 浏览点赞埋点 / Zara积分
+   ============================================================ */
+const SUPABASE_URL = 'https://ytvhnawoaepwfsgqqnzs.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_EfxYndz6uTCRevj2YyCO0A_936qng6d';
+
+const JerrySite = (function () {
+  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentUser = null;
+  const listeners = [];
+
+  function notify() {
+    listeners.forEach(fn => { try { fn(currentUser); } catch (e) { console.error(e); } });
+  }
+
+  function onAuthChange(fn) {
+    listeners.push(fn);
+    fn(currentUser);
+  }
+
+  client.auth.onAuthStateChange((_event, session) => {
+    currentUser = session?.user || null;
+    notify();
+  });
+
+  async function init() {
+    const { data: { session } } = await client.auth.getSession();
+    currentUser = session?.user || null;
+    notify();
+    return currentUser;
+  }
+
+  async function signInWithGoogle() {
+    const { error } = await client.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.href }
+    });
+    if (error) throw error;
+  }
+
+  async function sendEmailCode(email) {
+    const { error } = await client.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: true }
+    });
+    if (error) throw error;
+  }
+
+  async function verifyEmailCode(email, code) {
+    const { data, error } = await client.auth.verifyOtp({
+      email,
+      token: code,
+      type: 'email'
+    });
+    if (error) throw error;
+    return data.user;
+  }
+
+  async function signOut() {
+    await client.auth.signOut();
+  }
+
+  function getUser() { return currentUser; }
+  function isLoggedIn() { return !!currentUser; }
+
+  async function rpc(name, params) {
+    const { data, error } = await client.rpc(name, params);
+    if (error) throw error;
+    return data;
+  }
+
+  const checkinToday = () => rpc('daily_checkin');
+  const recordView = (postId) => rpc('record_view', { p_post_id: String(postId) });
+  const toggleLike = (postId) => rpc('toggle_like', { p_post_id: String(postId) });
+  const feedZara = (itemId, cost) => rpc('feed_zara', { p_item_id: itemId, p_cost: cost });
+  const getMyStatus = () => rpc('get_my_status');
+
+  async function getComments(postId) {
+    const { data, error } = await client
+      .from('comments')
+      .select('id, content, created_at, user_id, profiles(display_name, avatar_url)')
+      .eq('post_id', String(postId))
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    return data;
+  }
+
+  async function postComment(postId, content) {
+    if (!currentUser) throw new Error('需要先登录');
+    const { error } = await client.from('comments').insert({
+      post_id: String(postId),
+      user_id: currentUser.id,
+      content
+    });
+    if (error) throw error;
+  }
+
+  async function deleteComment(commentId) {
+    const { error } = await client.from('comments').delete().eq('id', commentId);
+    if (error) throw error;
+  }
+
+  return {
+    init, onAuthChange,
+    signInWithGoogle, sendEmailCode, verifyEmailCode, signOut,
+    getUser, isLoggedIn,
+    checkinToday, recordView, toggleLike, feedZara, getMyStatus,
+    getComments, postComment, deleteComment
+  };
+})();
+
+document.addEventListener('DOMContentLoaded', () => { JerrySite.init(); });
+</script>
+
+<!-- 合并：login-widget.js -->
+<script>
+/* ============================================================
+   登录组件 UI (优化实战版) —— 依赖 user-system.js 先加载
+   ============================================================ */
+(function () {
+  const STYLE = `
+    #jerry-auth-slot{ position:relative; display:inline-flex; align-items:center; }
+
+    .jerry-login-btn{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:8px 20px; border-radius:100px; border:1px solid rgba(255,255,255,.28);
+      background:rgba(255,255,255,.10); color:#fff; font-size:14px; font-weight:600; cursor:pointer;
+      font-family:inherit; transition:.3s; backdrop-filter:blur(10px);
+    }
+    .jerry-login-btn:hover{ background:rgba(255,255,255,.18); transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,.2); }
+    body.theme-light .jerry-login-btn{ background:#fff; border-color:rgba(43,36,64,.18); color:#2B2440; }
+
+    .jerry-user-chip{
+      display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+      padding:5px 14px 5px 5px; border-radius:100px; background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.22); transition:.2s; backdrop-filter:blur(10px);
+    }
+    .jerry-user-chip:hover{ background:rgba(255,255,255,.18); }
+    body.theme-light .jerry-user-chip{ background:#fff; border-color:rgba(43,36,64,.16); }
+    .jerry-user-chip img{ width:28px;height:28px;border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,.2); }
+    .jerry-user-chip .pts{ font-family:'JetBrains Mono',monospace; font-size:13px; color:#FFC93C; font-weight:700; }
+
+    .jerry-modal-mask{
+      position:fixed; inset:0; z-index:9999; background:rgba(8,6,20,.65); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+      display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .jerry-modal-mask.open{ opacity:1; pointer-events:auto; }
+
+    .jerry-modal{
+      position:relative; width:min(360px, 90vw); background:linear-gradient(145deg, #1f1845, #120d2b); border:1px solid rgba(255,255,255,.18);
+      border-radius:24px; padding:32px; color:#fff; font-family:inherit;
+      transform:translateY(24px) scale(0.98); transition:.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 24px 48px -12px rgba(0,0,0,0.6);
+    }
+    .jerry-modal-mask.open .jerry-modal{ transform:translateY(0) scale(1); }
+    body.theme-light .jerry-modal{ background:#fff; color:#2B2440; border-color:rgba(43,36,64,.14); box-shadow: 0 24px 48px -12px rgba(0,0,0,0.1); }
+
+    .jerry-modal h3{ margin:0 0 24px; font-size:18px; text-align:center; font-weight:700; }
+    .jerry-tabs{ display:flex; gap:6px; margin-bottom:20px; background:rgba(255,255,255,.06); border-radius:100px; padding:4px; }
+    body.theme-light .jerry-tabs{ background:rgba(43,36,64,.06); }
+    .jerry-tab{ flex:1; text-align:center; padding:8px 0; border-radius:100px; font-size:13px; font-weight:500; cursor:pointer; opacity:.6; transition:.2s; }
+    .jerry-tab.active{ background:rgba(255,255,255,.14); opacity:1; }
+    body.theme-light .jerry-tab.active{ background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.08); }
+
+    .jerry-google-btn{
+      width:100%; padding:12px; border-radius:100px; border:1px solid rgba(255,255,255,.28);
+      background:#fff; color:#120d2b; font-weight:700; font-size:14px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; gap:10px; transition:.2s;
+    }
+    .jerry-google-btn:hover{ background:#f0f0f0; transform:translateY(-1px); }
+    .jerry-google-btn:disabled{ opacity:0.7; cursor:not-allowed; transform:none; }
+    
+    .jerry-email-pane input{
+      width:100%; box-sizing:border-box; padding:12px 16px; border-radius:12px; margin-bottom:12px;
+      border:1px solid rgba(255,255,255,.22); background:rgba(0,0,0,.2); color:inherit; font-size:14px; outline:none; transition:.2s;
+    }
+    .jerry-email-pane input:focus{ border-color:#B18CFF; background:rgba(0,0,0,.4); }
+    body.theme-light .jerry-email-pane input{ border-color:rgba(43,36,64,.18); background:#faf8ff; }
+    
+    .jerry-email-pane button{
+      width:100%; padding:12px; border-radius:100px; border:none; cursor:pointer;
+      background:linear-gradient(120deg,var(--coral,#FF7A5C),var(--pink,#FF8CD9)); color:#fff; font-weight:700; font-size:14px; transition:.2s;
+    }
+    .jerry-email-pane button:hover:not(:disabled){ opacity:0.9; transform:translateY(-1px); box-shadow:0 8px 20px -6px rgba(255,122,92,0.5); }
+    .jerry-email-pane button:disabled{ opacity:0.5; cursor:not-allowed; transform:none; filter:grayscale(0.5); }
+
+    .jerry-msg{ font-size:12px; margin-top:10px; text-align:center; min-height:18px; }
+    .jerry-msg.error{ color:#FF5C5C; }
+    .jerry-msg.success{ color:#5CE68A; }
+    .jerry-hint{ font-size:12px; opacity:.5; margin-top:12px; text-align:center; line-height:1.5; }
+    .jerry-close{ position:absolute; top:20px; right:20px; width:28px; height:28px; border-radius:50%; background:rgba(255,255,255,.1); display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:.7; font-size:14px; transition:.2s; }
+    .jerry-close:hover{ opacity:1; background:rgba(255,255,255,.2); }
+  `;
+
+  function injectStyle() {
+    if(document.getElementById('jerry-auth-style')) return;
+    const s = document.createElement('style');
+    s.id = 'jerry-auth-style';
+    s.textContent = STYLE;
+    document.head.appendChild(s);
+  }
+
+  function buildModal() {
+    const mask = document.createElement('div');
+    mask.className = 'jerry-modal-mask';
+    mask.innerHTML = `
+      <div class="jerry-modal">
+        <div class="jerry-close">✕</div>
+        <h3>通行证登录</h3>
+        <div class="jerry-tabs">
+          <div class="jerry-tab active" data-pane="google">Google</div>
+          <div class="jerry-tab" data-pane="email">邮箱验证码</div>
+        </div>
+        
+        <div class="jerry-pane" data-pane="google">
+          <button class="jerry-google-btn" id="jerryGoogleBtn">
+            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34 5.5 29.3 3.5 24 3.5 12.7 3.5 3.5 12.7 3.5 24S12.7 44.5 24 44.5 44.5 35.3 44.5 24c0-1.2-.1-2.4-.3-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.6 18.9 12 24 12c3.1 0 5.8 1.1 8 3l6-6C34 5.5 29.3 3.5 24 3.5c-7.6 0-14.1 4.3-17.4 10.6z"/><path fill="#4CAF50" d="M24 44.5c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.3 35.9 26.8 36.8 24 36.8c-5.3 0-9.7-3.3-11.3-8l-6.5 5C9.8 40.1 16.3 44.5 24 44.5z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.4l6.2 5.2C40.5 36 44.5 30.6 44.5 24c0-1.2-.1-2.4-.3-3.5z"/></svg>
+            Google 账号一键登录
+          </button>
+          <div class="jerry-hint">若网络无法访问 Google<br>请切换至"邮箱验证码"登录</div>
+          <div class="jerry-msg" id="googleMsg"></div>
+        </div>
+
+        <div class="jerry-pane jerry-email-pane" data-pane="email" style="display:none;">
+          <input type="email" id="jerryEmailInput" placeholder="输入你的邮箱地址" autocomplete="email" />
+          <button id="jerrySendCodeBtn">发送验证码</button>
+          <input type="text" id="jerryCodeInput" placeholder="请输入6位验证码" style="display:none; margin-top:12px;" autocomplete="one-time-code" />
+          <button id="jerryVerifyBtn" style="display:none; margin-top:12px;">验证并登录</button>
+          <div class="jerry-msg" id="emailMsg"></div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(mask);
+    return mask;
+  }
+
+  function setup() {
+    injectStyle();
+    const slot = document.getElementById('jerry-auth-slot');
+    if (!slot) return; 
+
+    const modal = buildModal();
+    window.openJerryLoginModal = () => modal.classList.add('open');
+    const closeModal = () => {
+      modal.classList.remove('open');
+      document.getElementById('emailMsg').textContent = '';
+      document.getElementById('emailMsg').className = 'jerry-msg';
+    };
+
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    modal.querySelector('.jerry-close').addEventListener('click', closeModal);
+
+    const emailMsg = modal.querySelector('#emailMsg');
+    const showMsg = (text, type='error') => {
+      emailMsg.textContent = text;
+      emailMsg.className = `jerry-msg ${type}`;
+    };
+
+    modal.querySelectorAll('.jerry-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        modal.querySelectorAll('.jerry-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        modal.querySelectorAll('.jerry-pane').forEach(p => {
+          p.style.display = p.dataset.pane === tab.dataset.pane ? 'block' : 'none';
+        });
+        showMsg('');
+      });
+    });
+
+    const googleBtn = modal.querySelector('#jerryGoogleBtn');
+    googleBtn.addEventListener('click', async () => {
+      try {
+        googleBtn.disabled = true;
+        googleBtn.innerHTML = '正在拉起授权...';
+        await JerrySite.signInWithGoogle();
+      } catch (err) {
+        googleBtn.disabled = false;
+        googleBtn.innerHTML = 'Google 账号一键登录';
+        modal.querySelector('#googleMsg').textContent = '调起失败：' + err.message;
+        modal.querySelector('#googleMsg').className = 'jerry-msg error';
+      }
+    });
+
+    const sendBtn = modal.querySelector('#jerrySendCodeBtn');
+    sendBtn.addEventListener('click', async () => {
+      const email = modal.querySelector('#jerryEmailInput').value.trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email || !emailRegex.test(email)) return showMsg('请输入有效的邮箱地址');
+      
+      try {
+        sendBtn.disabled = true;
+        sendBtn.textContent = '发送中...';
+        showMsg('');
+        
+        await JerrySite.sendEmailCode(email);
+        
+        modal.querySelector('#jerryCodeInput').style.display = 'block';
+        modal.querySelector('#jerryVerifyBtn').style.display = 'block';
+        sendBtn.textContent = '已发送验证码';
+        showMsg('验证码已发送至邮箱，请查收', 'success');
+      } catch (err) {
+        sendBtn.disabled = false;
+        sendBtn.textContent = '发送验证码';
+        showMsg(err.message.includes('rate') ? '发送太频繁，请稍后再试' : '发送失败：' + err.message);
+      }
+    });
+
+    const verifyBtn = modal.querySelector('#jerryVerifyBtn');
+    verifyBtn.addEventListener('click', async () => {
+      const email = modal.querySelector('#jerryEmailInput').value.trim();
+      const code = modal.querySelector('#jerryCodeInput').value.trim();
+      if (!code || code.length < 6) return showMsg('请输入完整的6位验证码');
+
+      try {
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = '验证中...';
+        showMsg('');
+        
+        await JerrySite.verifyEmailCode(email, code);
+        closeModal();
+      } catch (err) {
+        verifyBtn.disabled = false;
+        verifyBtn.textContent = '验证并登录';
+        showMsg('验证码错误或已过期，请重试');
+      }
+    });
+
+    function render(user) {
+      if (user) {
+        const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email.split('@')[0];
+        const avatar = user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(user.id)}&backgroundColor=1f1845`;
+        slot.innerHTML = `
+          <div class="jerry-user-chip" id="jerryUserChip" title="点击退出登录">
+            <img src="${avatar}" alt="Avatar">
+            <span>${name}</span>
+            <span class="pts" id="jerryPtsDisplay">...</span>
+          </div>
+        `;
+        slot.querySelector('#jerryUserChip').addEventListener('click', () => {
+          if (confirm('确定要退出当前账号吗？')) JerrySite.signOut();
+        });
+        
+        JerrySite.getMyStatus().then(status => {
+          const el = document.getElementById('jerryPtsDisplay');
+          if (el && status.logged_in) el.textContent = `⚡${status.points}`;
+        }).catch(() => {
+          document.getElementById('jerryPtsDisplay').textContent = '⚡--';
+        });
+      } else {
+        slot.innerHTML = `<button class="jerry-login-btn" id="jerryLoginBtn">通行证登录</button>`;
+        slot.querySelector('#jerryLoginBtn').addEventListener('click', () => modal.classList.add('open'));
+        
+        if(sendBtn) {
+            sendBtn.disabled = false; sendBtn.textContent = '发送验证码';
+            verifyBtn.disabled = false; verifyBtn.textContent = '验证并登录';
+            modal.querySelector('#jerryCodeInput').style.display = 'none';
+            verifyBtn.style.display = 'none';
+            modal.querySelector('#jerryEmailInput').value = '';
+            modal.querySelector('#jerryCodeInput').value = '';
+        }
+      }
+    }
+
+    JerrySite.onAuthChange(render);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setup);
+  } else {
+    setup();
+  }
+})();
+</script>
 
 </body>
 </html>
