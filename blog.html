@@ -1554,20 +1554,59 @@ function buildCategoryTabs(posts){
     a.addEventListener('click', (e) => {
       e.preventDefault();
 
-      if(a.dataset.filter === LOCKED_CATEGORY){
-        openLockModal();
-        return; // 锁定分类不切换active、不筛选，只弹窗
-      }
+if (a.dataset.filter === LOCKED_CATEGORY) {
 
-      tabbar.querySelectorAll('a').forEach(x => x.classList.remove('active'));
-      a.classList.add('active');
-      mobileFilter = a.dataset.filter;
-      renderMobilePaged(allPosts, 1);
-      document.getElementById('content-area')?.scrollIntoView({behavior:'smooth', block:'start'});
-    });
-  });
+    // 已登录并且已经拥有权限
+    if (isLoggedIn() && isUnlocked()) {
+
+        tabbar.querySelectorAll('a').forEach(x => x.classList.remove('active'));
+        a.classList.add('active');
+
+        mobileFilter = LOCKED_CATEGORY;
+        renderMobilePaged(allPosts, 1);
+
+        document.getElementById('content-area')
+            ?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+
+    } else {
+
+        openLockModal();
+
+    }
+
+    return;
 }
 
+a.addEventListener('click', () => {
+
+    // Rumi 分类需要权限
+    if (a.dataset.filter === LOCKED_CATEGORY) {
+
+        // 未登录或未解锁 -> 弹窗
+        if (!isLoggedIn() || !isUnlocked()) {
+            openLockModal();
+            return;
+        }
+
+        // 已登录且已解锁，继续往下执行公共逻辑
+    }
+
+    // 所有分类共用逻辑（包括已解锁的 Rumi）
+    tabbar.querySelectorAll('a').forEach(x => x.classList.remove('active'));
+    a.classList.add('active');
+
+    mobileFilter = a.dataset.filter;
+    renderMobilePaged(allPosts, 1);
+
+    document.getElementById('content-area')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+    });
+
+});
 /* ============ 会员锁定分类弹窗 + 解锁特效 ============ */
 const RUMI_UNLOCK_KEY = 'rumiTechUnlocked';
 // 生日限免 7 天：从公告栏记录的上线日 2026-07-16 起算，到 2026-07-23 结束
@@ -1599,146 +1638,190 @@ const MEMBERSHIP_CARD_HTML = `
   </div>
 `;
 
+// =========================
+// 权限弹窗
+// =========================
+
 function renderLockModal(){
-  const body = document.getElementById('lockModalBody');
-  const closeBtnHtml = `<span class="close-lock" id="lockModalClose">✕</span>`;
 
-  if(!isLoggedIn()){
-    body.innerHTML = `
-      ${closeBtnHtml}
-      <div class="login-gate-box">
-        <div class="lock-icon">🔒</div>
-        <div class="badge">🎂 Jerry生日限时免费 · 仅剩 ${daysLeft()} 天</div>
-        <h3>Rumi英语技术 · 会员专区</h3>
-        <p>这里是完整的技术拆解内容，<b>请先登录</b>才能查看详情并解锁哦～</p>
-        <button class="login-now-btn" id="lockGoLoginBtn">👤 立即登录</button>
-      </div>
+    const body = document.getElementById('lockModalBody');
+
+    const closeBtnHtml = `
+        <span class="close-lock" id="lockModalClose">✕</span>
     `;
-    return;
-  }
 
-  if(isUnlocked()){
-    body.innerHTML = `
-      ${closeBtnHtml}
-      <div class="cake-visual">🎉🎂</div>
-      <div class="badge">已解锁</div>
-      <h3>Rumi英语技术 · 会员专区</h3>
-      <p class="desc">你已经解锁过这部分内容啦，随时回来看～</p>
-      <ul class="content-list">
-        <li>动画视频提示词（分镜/运镜/风格锁定）</li>
-        <li>角色形象图片提示词</li>
-        <li>SOP 生成布局 / 批量产出流程</li>
-        <li>完整变现流程拆解</li>
-      </ul>
-      ${MEMBERSHIP_CARD_HTML}
-    `;
-    return;
-  }
+    // 未登录
+    if (!isLoggedIn()) {
 
-  const expired = isOfferExpired();
-  body.innerHTML = `
-    ${closeBtnHtml}
-    <div class="cake-visual">🎂</div>
-    <div class="badge">${expired ? '限时免费已结束' : `🎂 Jerry生日限时免费 · 仅剩 ${daysLeft()} 天`}</div>
-    <h3>Rumi英语技术 · 会员专区</h3>
-    <p class="desc">这部分是我平时做 Rumi 英语这套内容背后的完整技术拆解，本来是要收费的，借生日这几天限时免费分享给大家。</p>
-    <ul class="content-list">
-      <li>动画视频提示词（分镜/运镜/风格锁定）</li>
-      <li>角色形象图片提示词</li>
-      <li>SOP 生成布局 / 批量产出流程</li>
-      <li>完整变现流程拆解</li>
-    </ul>
-    ${MEMBERSHIP_CARD_HTML}
-    <div class="modal-btn-row">
-      <button class="cancel-btn" id="lockCancelBtn">取消</button>
-      <button class="unlock-btn" id="unlockBtn" ${expired ? 'disabled' : ''}>${expired ? '限免已结束' : '🔓 立即解锁'}</button>
-    </div>
-  `;
+        body.innerHTML = `
+            ${closeBtnHtml}
+            <div class="login-gate-box">
+                <div class="lock-icon">🔒</div>
+
+                <div class="badge">
+                    Rumi英语技术 · 会员专区
+                </div>
+
+                <h3>登录后继续</h3>
+
+                <p>
+                    请先登录账号，登录后即可购买或查看会员内容。
+                </p>
+
+                <button
+                    class="login-now-btn"
+                    id="lockGoLoginBtn">
+                    👤 立即登录
+                </button>
+            </div>
+        `;
+
+        return;
+    }
+
+    // 已登录但未解锁
+    if (!isUnlocked()) {
+
+        body.innerHTML = `
+            ${closeBtnHtml}
+            ${MEMBERSHIP_CARD_HTML}
+        `;
+
+        return;
+    }
+
+    // 已登录且已解锁
+    // 正常情况下不会进入这里，直接关闭弹窗
+    closeLockModal();
 }
 
 function openLockModal(){
-  renderLockModal();
-  document.getElementById('lockModalMask').classList.add('open');
+    renderLockModal();
+    document.getElementById('lockModalMask').classList.add('open');
 }
+
 function closeLockModal(){
-  document.getElementById('lockModalMask').classList.remove('open');
+    document.getElementById('lockModalMask').classList.remove('open');
 }
+
 function openCoffeeModal(){
-  document.getElementById('coffeeModalMask').classList.add('open');
+    document.getElementById('coffeeModalMask').classList.add('open');
 }
+
 function closeCoffeeModal(){
-  document.getElementById('coffeeModalMask').classList.remove('open');
+    document.getElementById('coffeeModalMask').classList.remove('open');
 }
 
+// =========================
+// 关闭锁定弹窗
+// =========================
 document.getElementById('lockModalMask').addEventListener('click', (e) => {
-  if(e.target.id === 'lockModalMask' || e.target.id === 'lockModalClose') closeLockModal();
-});
-
-// 弹窗内容是动态渲染的，用事件委托处理里面的按钮点击
-document.getElementById('lockModalBody').addEventListener('click', (e) => {
-  if(e.target.id === 'lockGoLoginBtn'){
-    if(window.openJerryLoginModal) window.openJerryLoginModal();
-    return;
-  }
-  if(e.target.id === 'lockCancelBtn'){
-    closeLockModal();
-    return;
-  }
-  if(e.target.id === 'unlockBtn' && !e.target.disabled){
-    const btn = e.target;
-    btn.disabled = true;
-    btn.textContent = '解锁中…';
-    localStorage.setItem(RUMI_UNLOCK_KEY, '1');
-    fireConfetti();
-    setTimeout(() => {
-      btn.textContent = '🎉 已解锁！';
-      setTimeout(() => {
+    if (
+        e.target.id === 'lockModalMask' ||
+        e.target.id === 'lockModalClose'
+    ) {
         closeLockModal();
-        // 解锁后把这个分类当成普通分类筛选展示（如果 Notion 里已经有对应文章的话）
-        const tabbar = document.getElementById('tabbar');
-        tabbar.querySelectorAll('a').forEach(x => x.classList.remove('active'));
-        tabbar.querySelector(`a[data-filter="${LOCKED_CATEGORY}"]`)?.classList.add('active');
-        mobileFilter = LOCKED_CATEGORY;
-        renderMobilePaged(allPosts, 1);
-        openCoffeeModal();
-      }, 900);
-    }, 600);
-  }
+    }
 });
 
+// =========================
+// 锁定弹窗内部按钮（事件委托）
+// =========================
+document.getElementById('lockModalBody').addEventListener('click', (e) => {
+
+    // 去登录
+    if (e.target.id === 'lockGoLoginBtn') {
+
+        if (window.openJerryLoginModal) {
+            window.openJerryLoginModal();
+        }
+
+        return;
+    }
+
+    // 取消按钮（如果会员卡里有）
+    if (e.target.id === 'lockCancelBtn') {
+
+        closeLockModal();
+
+        return;
+    }
+});
+
+// =========================
+// 关闭咖啡弹窗
+// =========================
 document.getElementById('coffeeModalMask').addEventListener('click', (e) => {
-  if(e.target.id === 'coffeeModalMask' || e.target.id === 'coffeeModalClose' || e.target.id === 'coffeeSkipBtn') closeCoffeeModal();
+
+    if (
+        e.target.id === 'coffeeModalMask' ||
+        e.target.id === 'coffeeModalClose' ||
+        e.target.id === 'coffeeSkipBtn'
+    ) {
+        closeCoffeeModal();
+    }
 });
 
-// 登录状态变化时，如果锁定弹窗正开着，刷新一下里面的内容
-// （登录系统脚本插入在本文件靠后的位置，这里等 DOMContentLoaded 之后再挂载，确保 window.JerrySite 已就绪）
+// =========================
+// 登录状态变化时刷新弹窗
+// =========================
 document.addEventListener('DOMContentLoaded', () => {
-  if(window.JerrySite){
-    JerrySite.onAuthChange(() => {
-      if(document.getElementById('lockModalMask').classList.contains('open')) renderLockModal();
-      initCheckinWidget();
-      initPointsWidget();
-    });
-  }
+
+    if (window.JerrySite) {
+
+        JerrySite.onAuthChange(() => {
+
+            const lockModal = document.getElementById('lockModalMask');
+
+            if (lockModal.classList.contains('open')) {
+                renderLockModal();
+            }
+
+            initCheckinWidget();
+            initPointsWidget();
+        });
+    }
 });
 
+// =========================
+// 礼花（保留备用）
+// =========================
 function fireConfetti(){
-  const colors = ['#FF7A5C','#FF8CD9','#FFC93C','#5CE1E6','#B18CFF'];
-  for(let i=0;i<60;i++){
-    const piece = document.createElement('div');
-    piece.className = 'confetti-piece';
-    const size = 6 + Math.random()*6;
-    piece.style.width = size+'px';
-    piece.style.height = (size*0.4)+'px';
-    piece.style.left = Math.random()*100+'vw';
-    piece.style.background = colors[Math.floor(Math.random()*colors.length)];
-    piece.style.animationDuration = (2.2 + Math.random()*1.6)+'s';
-    piece.style.transform = `rotate(${Math.random()*360}deg)`;
-    document.body.appendChild(piece);
-    setTimeout(() => piece.remove(), 4000);
-  }
-}
 
+    const colors = [
+        '#FF7A5C',
+        '#FF8CD9',
+        '#FFC93C',
+        '#5CE1E6',
+        '#B18CFF'
+    ];
+
+    for (let i = 0; i < 60; i++) {
+
+        const piece = document.createElement('div');
+
+        piece.className = 'confetti-piece';
+
+        const size = 6 + Math.random() * 6;
+
+        piece.style.width = size + 'px';
+        piece.style.height = (size * 0.4) + 'px';
+        piece.style.left = Math.random() * 100 + 'vw';
+
+        piece.style.background =
+            colors[Math.floor(Math.random() * colors.length)];
+
+        piece.style.animationDuration =
+            (2.2 + Math.random() * 1.6) + 's';
+
+        piece.style.transform =
+            `rotate(${Math.random() * 360}deg)`;
+
+        document.body.appendChild(piece);
+
+        setTimeout(() => piece.remove(), 4000);
+    }
+}
 function buildCategoryJump(posts){
   const el = document.getElementById('cat-jump');
   const sections = groupByCategory(posts).filter(sec => sec.category !== LOCKED_CATEGORY);
