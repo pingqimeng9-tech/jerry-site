@@ -1551,61 +1551,38 @@ function buildCategoryTabs(posts){
   tabbar.innerHTML = `<a href="#" class="active" data-filter="all">全部</a>` + lockedTabHtml + tabsHtml;
 
   tabbar.querySelectorAll('a').forEach(a => {
+
+    // 只需要保留这唯一的一个 click 监听器
     a.addEventListener('click', (e) => {
-      e.preventDefault();
+        e.preventDefault(); // 阻止默认的链接跳转
 
-if (a.dataset.filter === LOCKED_CATEGORY) {
+        // =========================
+        // 1. 权限拦截逻辑
+        // =========================
+        if (a.dataset.filter === LOCKED_CATEGORY) {
+            // 未登录或未解锁 -> 弹窗拦截
+            if (!isLoggedIn() || !isUnlocked()) {
+                openLockModal();
+                return; // 这里非常关键！没权限就立刻终止，不执行下面的代码
+            }
+            // 如果有权限，就会无视上面的 return，自动往下走
+        }
 
-    // 已登录并且已经拥有权限
-    if (isLoggedIn() && isUnlocked()) {
-
+        // =========================
+        // 2. 所有分类共用逻辑（有权限就会走到这里）
+        // =========================
         tabbar.querySelectorAll('a').forEach(x => x.classList.remove('active'));
         a.classList.add('active');
 
-        mobileFilter = LOCKED_CATEGORY;
+        mobileFilter = a.dataset.filter;
         renderMobilePaged(allPosts, 1);
 
-        document.getElementById('content-area')
-            ?.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
+        document.getElementById('content-area')?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
 
-    } else {
-
-        openLockModal();
-
-    }
-
-    return;
-}
-
-a.addEventListener('click', () => {
-
-    // Rumi 分类需要权限
-    if (a.dataset.filter === LOCKED_CATEGORY) {
-
-        // 未登录或未解锁 -> 弹窗
-        if (!isLoggedIn() || !isUnlocked()) {
-            openLockModal();
-            return;
-        }
-
-        // 已登录且已解锁，继续往下执行公共逻辑
-    }
-
-    // 所有分类共用逻辑（包括已解锁的 Rumi）
-    tabbar.querySelectorAll('a').forEach(x => x.classList.remove('active'));
-    a.classList.add('active');
-
-    mobileFilter = a.dataset.filter;
-    renderMobilePaged(allPosts, 1);
-
-    document.getElementById('content-area')?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
     });
-
 });
 /* ============ 会员锁定分类弹窗 + 解锁特效 ============ */
 const RUMI_UNLOCK_KEY = 'rumiTechUnlocked';
