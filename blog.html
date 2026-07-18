@@ -109,7 +109,7 @@
   .search-count { text-align: center; font-size: 13px; color: var(--aqua); margin-top: 14px; font-family: 'JetBrains Mono', monospace; display: none; }
 
   /* 布局主体 */
-  .shell{ display:flex; max-width:1180px; margin: 20px auto 40px; gap:22px; padding:0 20px; align-items:flex-start; position:relative; z-index:1; }
+  .shell{ display:flex; max-width:1560px; margin: 20px auto 40px; gap:22px; padding:0 clamp(20px,3vw,40px); align-items:flex-start; position:relative; z-index:1; }
 
   .sidebar{ width:250px; flex-shrink:0; background:var(--glass); border:1px solid var(--glass-border); backdrop-filter:blur(18px); border-radius:20px; padding:22px; position:sticky; top:88px; }
   .avatar-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
@@ -142,7 +142,89 @@
   .archive-list a:hover{color:var(--aqua);}
   .archive-list .count{font-family:'JetBrains Mono',monospace;font-size:11px;opacity:.6;}
 
-  .main{flex:1;min-width:0;max-width:850px;}
+  .main{flex:1;min-width:0;}
+
+  /* ================= 右侧栏：打卡/积分/天气/公告 ================= */
+  .widgets{ width:270px; flex-shrink:0; display:flex; flex-direction:column; gap:16px; position:sticky; top:88px; }
+  @media (max-width:1180px){ .widgets{ display:none; } } /* 空间不够时先隐藏，保证主内容区可读性 */
+  .widget-card{
+    background:var(--glass); border:1px solid var(--glass-border); backdrop-filter:blur(16px);
+    border-radius:16px; padding:16px 18px;
+  }
+  .widget-title{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--aqua); font-weight:700; margin-bottom:10px; letter-spacing:.03em; }
+
+  /* 打卡 */
+  .checkin-row{ display:flex; align-items:center; justify-content:space-between; }
+  .checkin-streak{ font-size:22px; font-weight:800; }
+  .checkin-streak span{ font-size:11px; color:var(--muted); font-weight:400; margin-left:4px; }
+  .checkin-btn{
+    padding:7px 14px; border-radius:100px; border:none; cursor:pointer; font-size:12px; font-weight:700;
+    background:linear-gradient(120deg,var(--coral),var(--pink)); color:#1a0f2b;
+  }
+  .checkin-btn.done{ background:rgba(255,255,255,.1); color:var(--muted); cursor:default; }
+  .checkin-btn:disabled{ opacity:.6; }
+
+  /* 积分/桌宠 */
+  .points-row{ display:flex; align-items:center; gap:10px; }
+  .points-num{ font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:800; color:#FFC93C; }
+  .widget-link{ font-size:11.5px; color:var(--aqua); text-decoration:none; margin-top:8px; display:inline-block; }
+  .widget-link:hover{ text-decoration:underline; }
+  .login-hint{ font-size:11.5px; color:var(--muted); line-height:1.6; }
+
+  /* 天气 */
+  .weather-row{ display:flex; align-items:center; gap:12px; }
+  .weather-icon{ font-size:30px; }
+  .weather-temp{ font-size:20px; font-weight:800; }
+  .weather-desc{ font-size:11px; color:var(--muted); margin-top:2px; }
+  .weather-loc{ font-size:10.5px; color:var(--muted); margin-top:6px; }
+
+  /* 公告栏 */
+  .announce-list{ display:flex; flex-direction:column; gap:10px; }
+  .announce-item{ font-size:12px; line-height:1.6; padding-bottom:10px; border-bottom:1px solid var(--glass-border); }
+  .announce-item:last-child{ border-bottom:none; padding-bottom:0; }
+  .announce-date{ font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--aqua); display:block; margin-bottom:3px; }
+
+  /* ================= 锁定分类：分类栏上的锁链tab + 会员弹窗 ================= */
+  .tabbar a.locked{ display:inline-flex; align-items:center; gap:4px; }
+  .tabbar a.locked .chain{ font-size:11px; opacity:.85; }
+
+  .lock-modal-mask{
+    position:fixed; inset:0; z-index:300; background:rgba(8,6,20,.65); backdrop-filter:blur(4px);
+    display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:.25s;
+  }
+  .lock-modal-mask.open{ opacity:1; pointer-events:auto; }
+  .lock-modal{
+    width:min(420px,90vw); background:#1b1440; border:1px solid var(--glass-border); border-radius:22px;
+    padding:30px 26px; color:#fff; text-align:center; position:relative;
+    transform:translateY(16px) scale(.96); transition:.3s;
+  }
+  .lock-modal-mask.open .lock-modal{ transform:translateY(0) scale(1); }
+  .lock-modal .close-lock{ position:absolute; top:16px; right:18px; cursor:pointer; opacity:.6; font-size:15px; }
+  .lock-modal .badge{
+    display:inline-flex; align-items:center; gap:6px; background:rgba(255,201,60,.15); color:#FFC93C;
+    border:1px solid rgba(255,201,60,.4); font-size:11.5px; padding:5px 14px; border-radius:100px; margin-bottom:16px;
+  }
+  .lock-modal h3{ font-size:19px; margin:0 0 10px; }
+  .lock-modal p.desc{ font-size:13px; color:var(--muted); line-height:1.7; margin-bottom:18px; }
+  .lock-modal .content-list{ text-align:left; background:rgba(255,255,255,.05); border-radius:14px; padding:14px 16px; margin-bottom:20px; }
+  .lock-modal .content-list li{ font-size:12.5px; line-height:2; color:#e5e0f7; list-style:none; }
+  .lock-modal .content-list li::before{ content:'✦ '; color:#FF9ED2; }
+  .unlock-btn{
+    width:100%; padding:13px; border-radius:100px; border:none; cursor:pointer; font-size:14px; font-weight:800;
+    background:linear-gradient(120deg,var(--coral),var(--pink),#FFC93C); background-size:200% 100%;
+    color:#1a0f2b; animation:unlockShimmer 2.5s linear infinite;
+  }
+  @keyframes unlockShimmer{ to{ background-position:200% 0; } }
+  .unlock-btn:disabled{ opacity:.7; cursor:default; animation:none; }
+
+  /* 解锁特效：礼花碎片 */
+  .confetti-piece{
+    position:fixed; top:-10px; z-index:400; pointer-events:none; border-radius:2px;
+    animation:confettiFall linear forwards;
+  }
+  @keyframes confettiFall{
+    to{ transform:translateY(105vh) rotate(540deg); opacity:0.2; }
+  }
 
   /* ================= 🎛️ 视图控制栏 (分类 + 切换试图) ================= */
   .main-controls { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; gap: 10px; flex-wrap:wrap;}
@@ -175,7 +257,8 @@
   .post-meta{display:flex;gap:14px;font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
 
   /* ================= 🖼️ 图库视图 (Notion Gallery Style - 默认) ================= */
-  .view-gallery .post-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .view-gallery .post-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  @media (max-width:1280px){ .view-gallery .post-grid { grid-template-columns: repeat(2, 1fr); } }
   .view-gallery .post-card { flex-direction: column; height: 250px; padding: 0; }
   
   .view-gallery .post-preview { 
@@ -926,8 +1009,6 @@
 <nav id="nav">
   <a class="logo" href="/">JERRY.DEV</a>
   <div class="links">
-    <a href="/#about">我是谁</a>
-    <a href="/#timeline">经历</a>
     <a href="/#reflect">反思</a>
     <a href="/blog.html" class="active">博客</a>
     <a href="/rumi.html">Rumi英语</a>
@@ -1021,9 +1102,44 @@
       </div>
     </div>
   </main>
+
+  <aside class="widgets">
+    <div class="widget-card">
+      <div class="widget-title">📅 每日打卡</div>
+      <div id="checkinWidgetBody"><div class="login-hint">登录后可以打卡攒积分～</div></div>
+    </div>
+    <div class="widget-card">
+      <div class="widget-title">⚡ 桌宠积分</div>
+      <div id="pointsWidgetBody"><div class="login-hint">积分可以在Zara小房间换喂养道具</div></div>
+    </div>
+    <div class="widget-card">
+      <div class="widget-title">🌤️ 今日天气</div>
+      <div id="weatherWidgetBody"><div class="login-hint">正在获取位置…</div></div>
+    </div>
+    <div class="widget-card">
+      <div class="widget-title">📣 更新日志</div>
+      <div class="announce-list" id="announceList"></div>
+    </div>
+  </aside>
 </div>
 
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<div class="lock-modal-mask" id="lockModalMask">
+  <div class="lock-modal">
+    <span class="close-lock" id="lockModalClose">✕</span>
+    <div class="badge">🎂 Jerry生日限时免费</div>
+    <h3>Rumi英语技术 · 会员专区</h3>
+    <p class="desc">这部分是我平时做 Rumi 英语这套内容背后的完整技术拆解，本来是要收费的，借生日这几天限时免费分享。</p>
+    <ul class="content-list">
+      <li>动画视频提示词（分镜/运镜/风格锁定）</li>
+      <li>角色形象图片提示词</li>
+      <li>SOP 生成布局 / 批量产出流程</li>
+      <li>完整变现流程拆解</li>
+    </ul>
+    <button class="unlock-btn" id="unlockBtn">🔓 立即解锁</button>
+  </div>
+</div>
 
 <!-- ================= 注入的桌宠系统 HTML 开始 ================= -->
 <div class="status-panel" id="statusPanel">
@@ -1232,7 +1348,7 @@ async function loadPosts(){
     buildArchive(allPosts);
     setupMobileChrome();
     
-    if(isMobile()){ renderMobilePaged(allPosts); } else { renderSections(allPosts); }
+    renderMobilePaged(allPosts, 1);
 
   } catch (err) {
     contentArea.innerHTML = `<div class="state-box error">网络请求失败：${escapeHtml(err.message)}</div>`;
@@ -1363,43 +1479,109 @@ function buildPaginationHtml(page, total){
   `;
 }
 
+const LOCKED_CATEGORY = 'Rumi英语技术';
+
 function buildCategoryTabs(posts){
   const tabbar = document.getElementById('tabbar');
-  const sections = groupByCategory(posts);
-  const tabsHtml = sections.map(sec => `<a href="#cat-${slugify(sec.category)}" data-filter="${escapeHtml(sec.category)}">${escapeHtml(sec.category)}</a>`).join('');
-  tabbar.innerHTML = `<a href="#all" class="active" data-filter="all">全部</a>` + tabsHtml;
+  const sections = groupByCategory(posts).filter(sec => sec.category !== LOCKED_CATEGORY);
+  const tabsHtml = sections.map(sec => `<a href="#" data-filter="${escapeHtml(sec.category)}">${escapeHtml(sec.category)}</a>`).join('');
+  const lockedTabHtml = `<a href="#" data-filter="${LOCKED_CATEGORY}" class="locked"><span class="chain">🔗</span>${LOCKED_CATEGORY}<span class="chain">🔗</span></a>`;
+  tabbar.innerHTML = `<a href="#" class="active" data-filter="all">全部</a>` + tabsHtml + lockedTabHtml;
 
   tabbar.querySelectorAll('a').forEach(a => {
     a.addEventListener('click', (e) => {
       e.preventDefault();
+
+      if(a.dataset.filter === LOCKED_CATEGORY){
+        openLockModal();
+        return; // 锁定分类不切换active、不筛选，只弹窗
+      }
+
       tabbar.querySelectorAll('a').forEach(x => x.classList.remove('active'));
       a.classList.add('active');
-
-      if(isMobile()){
-        mobileFilter = a.dataset.filter;
-        renderMobilePaged(allPosts, 1);
-        document.getElementById('content-area')?.scrollIntoView({behavior:'smooth', block:'start'});
-        return;
-      }
-
-      if(a.dataset.filter !== 'all'){
-        document.getElementById('cat-' + slugify(a.dataset.filter))?.scrollIntoView({behavior:'smooth', block:'start'});
-      } else {
-        document.getElementById('content-area')?.scrollIntoView({behavior:'smooth', block:'start'});
-      }
+      mobileFilter = a.dataset.filter;
+      renderMobilePaged(allPosts, 1);
+      document.getElementById('content-area')?.scrollIntoView({behavior:'smooth', block:'start'});
     });
   });
 }
 
+/* ============ 会员锁定分类弹窗 + 解锁特效 ============ */
+const RUMI_UNLOCK_KEY = 'rumiTechUnlocked';
+
+function openLockModal(){
+  document.getElementById('lockModalMask').classList.add('open');
+}
+function closeLockModal(){
+  document.getElementById('lockModalMask').classList.remove('open');
+}
+document.getElementById('lockModalClose').addEventListener('click', closeLockModal);
+document.getElementById('lockModalMask').addEventListener('click', (e) => {
+  if(e.target.id === 'lockModalMask') closeLockModal();
+});
+
+document.getElementById('unlockBtn').addEventListener('click', () => {
+  const btn = document.getElementById('unlockBtn');
+  btn.disabled = true;
+  btn.textContent = '解锁中…';
+  localStorage.setItem(RUMI_UNLOCK_KEY, '1');
+  fireConfetti();
+  setTimeout(() => {
+    btn.textContent = '🎉 已解锁！';
+    setTimeout(() => {
+      closeLockModal();
+      btn.disabled = false;
+      btn.textContent = '🔓 立即解锁';
+      // 解锁后把这个分类当成普通分类筛选展示（如果 Notion 里已经有对应文章的话）
+      const tabbar = document.getElementById('tabbar');
+      tabbar.querySelectorAll('a').forEach(x => x.classList.remove('active'));
+      tabbar.querySelector(`a[data-filter="${LOCKED_CATEGORY}"]`)?.classList.add('active');
+      mobileFilter = LOCKED_CATEGORY;
+      renderMobilePaged(allPosts, 1);
+    }, 900);
+  }, 600);
+});
+
+function fireConfetti(){
+  const colors = ['#FF7A5C','#FF8CD9','#FFC93C','#5CE1E6','#B18CFF'];
+  for(let i=0;i<60;i++){
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    const size = 6 + Math.random()*6;
+    piece.style.width = size+'px';
+    piece.style.height = (size*0.4)+'px';
+    piece.style.left = Math.random()*100+'vw';
+    piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+    piece.style.animationDuration = (2.2 + Math.random()*1.6)+'s';
+    piece.style.transform = `rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 4000);
+  }
+}
+
 function buildCategoryJump(posts){
   const el = document.getElementById('cat-jump');
-  const sections = groupByCategory(posts);
+  const sections = groupByCategory(posts).filter(sec => sec.category !== LOCKED_CATEGORY);
   el.innerHTML = `<div class="cat-jump-label">分类导航</div>` + sections.map(sec => `
-    <a href="#cat-${slugify(sec.category)}">
+    <a href="#" data-filter="${escapeHtml(sec.category)}">
       <span>${escapeHtml(sec.category)}</span>
       <span class="count">${sec.posts.length}</span>
     </a>
   `).join('');
+
+  el.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const tabbar = document.getElementById('tabbar');
+      tabbar.querySelectorAll('a').forEach(x => x.classList.remove('active'));
+      tabbar.querySelector(`a[data-filter="${a.dataset.filter}"]`)?.classList.add('active');
+      mobileFilter = a.dataset.filter;
+      renderMobilePaged(allPosts, 1);
+      document.getElementById('sidebar')?.classList.remove('open');
+      document.getElementById('sidebarBackdrop')?.classList.remove('open');
+      document.getElementById('content-area')?.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
 }
 
 function buildRecentList(posts){
@@ -1434,14 +1616,10 @@ function buildArchive(posts){
       e.preventDefault();
       const ym = a.dataset.ym;
       const filtered = allPosts.filter(p => p.date && p.date.slice(0,7) === ym);
-      if(isMobile()){
-        mobileFilter = 'all';
-        renderMobilePaged(filtered, 1);
-        document.getElementById('sidebar')?.classList.remove('open');
-        document.getElementById('sidebarBackdrop')?.classList.remove('open');
-      } else {
-        renderSections(filtered);
-      }
+      mobileFilter = 'all';
+      renderMobilePaged(filtered, 1);
+      document.getElementById('sidebar')?.classList.remove('open');
+      document.getElementById('sidebarBackdrop')?.classList.remove('open');
       document.getElementById('content-area')?.scrollIntoView({behavior:'smooth', block:'start'});
     });
   });
@@ -1534,6 +1712,106 @@ function setupSidebarSearch(){
 
 loadPosts();
 setupSearch();
+
+/* ============================================================
+   右侧栏：打卡 / 桌宠积分 / 天气 / 公告
+   打卡和积分依赖 window.JerrySite（登录系统），如果这个页面还没接入 user-system.js，
+   会自动降级成"登录后可用"的提示文案，不会报错
+   ============================================================ */
+async function initCheckinWidget(){
+  const body = document.getElementById('checkinWidgetBody');
+  if(!window.JerrySite || !JerrySite.isLoggedIn()){
+    body.innerHTML = `<div class="login-hint">登录后可以打卡攒积分～</div>`;
+    return;
+  }
+  try{
+    const status = await JerrySite.getMyStatus();
+    body.innerHTML = `
+      <div class="checkin-row">
+        <div class="checkin-streak">${status.streak || 0}<span>天连续</span></div>
+        <button class="checkin-btn ${status.checked_in_today ? 'done' : ''}" id="checkinBtn" ${status.checked_in_today ? 'disabled' : ''}>
+          ${status.checked_in_today ? '✓ 已打卡' : '打卡'}
+        </button>
+      </div>
+    `;
+    document.getElementById('checkinBtn')?.addEventListener('click', async () => {
+      const res = await JerrySite.checkinToday();
+      if(res.ok) { initCheckinWidget(); initPointsWidget(); }
+    });
+  }catch(e){ body.innerHTML = `<div class="login-hint">打卡数据加载失败</div>`; }
+}
+
+async function initPointsWidget(){
+  const body = document.getElementById('pointsWidgetBody');
+  if(!window.JerrySite || !JerrySite.isLoggedIn()){
+    body.innerHTML = `<div class="login-hint">积分可以在Zara小房间换喂养道具</div>`;
+    return;
+  }
+  try{
+    const status = await JerrySite.getMyStatus();
+    body.innerHTML = `
+      <div class="points-row">⚡ <span class="points-num">${status.points || 0}</span></div>
+      <a class="widget-link" href="/zara-room.html">去喂养Zara →</a>
+    `;
+  }catch(e){ body.innerHTML = `<div class="login-hint">积分加载失败</div>`; }
+}
+
+async function initWeatherWidget(){
+  const body = document.getElementById('weatherWidgetBody');
+  if(!navigator.geolocation){
+    body.innerHTML = `<div class="login-hint">浏览器不支持定位</div>`;
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    try{
+      const { latitude, longitude } = pos.coords;
+      // Open-Meteo：免费、不需要API key，直接前端调用即可
+      const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code`);
+      const data = await res.json();
+      const temp = Math.round(data.current.temperature_2m);
+      const { icon, desc } = weatherCodeToIcon(data.current.weather_code);
+      body.innerHTML = `
+        <div class="weather-row">
+          <div class="weather-icon">${icon}</div>
+          <div>
+            <div class="weather-temp">${temp}°C</div>
+            <div class="weather-desc">${desc}</div>
+          </div>
+        </div>
+        <div class="weather-loc">📍 你的当前位置</div>
+      `;
+    }catch(e){ body.innerHTML = `<div class="login-hint">天气加载失败</div>`; }
+  }, () => {
+    body.innerHTML = `<div class="login-hint">需要定位权限才能显示天气</div>`;
+  }, { timeout: 8000 });
+}
+function weatherCodeToIcon(code){
+  // WMO weather code 简化映射
+  if(code === 0) return { icon:'☀️', desc:'晴朗' };
+  if([1,2,3].includes(code)) return { icon:'⛅', desc:'多云' };
+  if([45,48].includes(code)) return { icon:'🌫️', desc:'有雾' };
+  if([51,53,55,61,63,65,80,81,82].includes(code)) return { icon:'🌧️', desc:'有雨' };
+  if([71,73,75,77,85,86].includes(code)) return { icon:'🌨️', desc:'有雪' };
+  if([95,96,99].includes(code)) return { icon:'⛈️', desc:'雷雨' };
+  return { icon:'🌤️', desc:'' };
+}
+
+function initAnnounceWidget(){
+  // 先手写几条，以后要是想接Notion自动同步，把这个数组换成一个fetch调用就行
+  const ANNOUNCEMENTS = [
+    { date:'2026-07-16', text:'博客首页图库改成一行3个，桌面端加宽铺满' },
+    { date:'2026-07-16', text:'新增 Rumi英语技术 分类，生日限时免费解锁' },
+    { date:'2026-07-15', text:'Zara的3D小房间上线，支持移动/坐下/躺下/番茄钟' }
+  ];
+  document.getElementById('announceList').innerHTML = ANNOUNCEMENTS.map(a => `
+    <div class="announce-item"><span class="announce-date mono">${a.date}</span>${escapeHtml(a.text)}</div>
+  `).join('');
+}
+
+initCheckinWidget();
+initPointsWidget();
+initWeatherWidget();
+initAnnounceWidget();
 setupSidebarSearch();
 
 /* ================= 动态背景图轮播 ================= */
