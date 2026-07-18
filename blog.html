@@ -1548,7 +1548,7 @@ function buildCategoryTabs(posts){
   const sections = groupByCategory(posts).filter(sec => sec.category !== LOCKED_CATEGORY);
   const tabsHtml = sections.map(sec => `<a href="#" data-filter="${escapeHtml(sec.category)}">${escapeHtml(sec.category)}</a>`).join('');
   const lockedTabHtml = `<a href="#" data-filter="${LOCKED_CATEGORY}" class="locked"><span class="chain">🔗</span>${LOCKED_CATEGORY}<span class="chain">🔗</span></a>`;
-  tabbar.innerHTML = `<a href="#" class="active" data-filter="all">全部</a>` + tabsHtml + lockedTabHtml;
+  tabbar.innerHTML = `<a href="#" class="active" data-filter="all">全部</a>` + lockedTabHtml + tabsHtml;
 
   tabbar.querySelectorAll('a').forEach(a => {
     a.addEventListener('click', (e) => {
@@ -1988,8 +1988,19 @@ function initAnnounceWidget(){
   `).join('');
 }
 
-initCheckinWidget();
-initPointsWidget();
+// 打卡/积分依赖真实登录状态，等 window.jerrySiteReady 就绪后再初始化，
+// 避免"脚本还没加载完就先判断成未登录"的竞态问题（天气/公告不依赖登录，照常立即加载）
+async function waitForJerrySiteReady(){
+  while(!window.jerrySiteReady){
+    await new Promise(r => setTimeout(r, 20));
+  }
+  try { await window.jerrySiteReady; } catch(e){}
+}
+(async () => {
+  await waitForJerrySiteReady();
+  initCheckinWidget();
+  initPointsWidget();
+})();
 initWeatherWidget();
 initAnnounceWidget();
 setupSidebarSearch();
@@ -3208,7 +3219,10 @@ const JerrySite = (function () {
   };
 })();
 
-document.addEventListener('DOMContentLoaded', () => { JerrySite.init(); });
+// 立即触发一次会话恢复检测，并把这个 promise 暴露出去，
+// 让页面里其他需要"准确知道登录状态"的逻辑（比如会员弹窗）可以先 await 它，
+// 不需要靠 DOMContentLoaded 时序去猜，避免"明明登录了却检测成未登录"的竞态问题
+window.jerrySiteReady = JerrySite.init();
 </script>
 
 <!-- 合并：login-widget.js -->
