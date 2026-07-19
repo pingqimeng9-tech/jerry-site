@@ -1555,8 +1555,11 @@ function buildCategoryTabs(posts){
       e.preventDefault();
 
       if(a.dataset.filter === LOCKED_CATEGORY){
-        openLockModal();
-        return; // 锁定分类不切换active、不筛选，只弹窗
+        if(!isUnlocked()){
+          openLockModal(); // 没有权限：弹窗检测/引导解锁，不切换分类
+          return;
+        }
+        // 已经有权限：和其他分类栏完全一样，直接正常切换展示，不再弹窗
       }
 
       tabbar.querySelectorAll('a').forEach(x => x.classList.remove('active'));
