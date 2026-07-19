@@ -9,6 +9,33 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
 
 <style>
+/* ================= 新增：桌宠与亚空间优化样式 ================= */
+    /* 进站欢迎视频：贴网页右边底部，大小与桌宠保持一致 */
+    #intro-pet-video {
+        position: fixed;
+        right: 0;
+        bottom: 20px; 
+        width: 150px; 
+        height: 150px;
+        z-index: 10000;
+        object-fit: contain;
+        pointer-events: none; /* 防止挡住背后的点击事件 */
+        transition: opacity 0.5s ease; /* 视频播放完平滑淡出 */
+    }
+
+    /* 亚空间专属弹跳动画：模仿角色摔倒的Q弹反馈 */
+    @keyframes subspace-bounce {
+        0%, 100% { transform: scale(1) translateY(0); }
+        30% { transform: scale(1.12) translateY(-20px); } /* 向上弹并拉伸 */
+        50% { transform: scale(0.95) translateY(0); }     /* 落地挤压变扁 */
+        70% { transform: scale(1.05) translateY(-8px); }   /* 微弱二次弹跳 */
+    }
+    .subspace-bounce-anim {
+        animation: subspace-bounce 0.6s cubic-bezier(0.28, 0.84, 0.42, 1);
+    }
+</style>
+
+<style>
   :root{
     --glass:rgba(255,255,255,.10); --glass-strong:rgba(255,255,255,.16); --glass-border:rgba(255,255,255,.28);
     --ink:#ffffff; --muted:#c9c6e8; --coral:#FF7A5C; --aqua:#5CE1E6; --violet:#B18CFF; --pink:#FF8CD9;
@@ -1048,6 +1075,11 @@
 </head>
 <body>
 
+<!-- 进站透明视频容器：使用绝对稳妥的 webm 格式 -->
+<video id="intro-pet-video" muted playsinline autoplay>
+    <source src="./images/welcome-pet.webm" type="video/webm">
+</video>
+
 <div class="bg-wrapper">
   <div id="bg-layer-1" class="bg-layer"></div>
   <div id="bg-layer-2" class="bg-layer"></div>
@@ -1551,10 +1583,11 @@ function buildCategoryTabs(posts){
   tabbar.innerHTML = `<a href="#" class="active" data-filter="all">全部</a>` + lockedTabHtml + tabsHtml;
 
   tabbar.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', (e) => {
+    a.addEventListener('click', async (e) => {
       e.preventDefault();
 
       if(a.dataset.filter === LOCKED_CATEGORY){
+        await waitForJerrySiteReady(); // 先等登录系统就绪，避免脚本还没加载完就误判"未登录"
         if(!isUnlocked()){
           openLockModal(); // 没有权限：弹窗检测/引导解锁，不切换分类
           return;
@@ -1572,8 +1605,28 @@ function buildCategoryTabs(posts){
 }
 
 /* ============ 会员锁定分类弹窗 + 解锁特效 ============ */
-const RUMI_UNLOCK_KEY = 'rumiTechUnlocked';
+// 解锁状态现在是真实的账号级权限（Supabase category_unlocks 表），不再是本地localStorage假开关。
+// unlockedCategories 是从服务器拉回来之后缓存在内存里的Set，登录/解锁成功后会重新拉取刷新，
+// isUnlocked() 只是读这个缓存做同步判断（给UI用），真正的权限判定服务器端每次都会再核对一遍。
+let unlockedCategories = new Set();
+
+async function refreshUnlockStatus(){
+  if(!window.JerrySite || !JerrySite.isLoggedIn()){
+    unlockedCategories = new Set();
+    return;
+  }
+  try{
+    const status = await JerrySite.getMyStatus();
+    unlockedCategories = new Set(status.unlocked_categories || []);
+  }catch(e){
+    console.error('拉取解锁状态失败:', e);
+  }
+}
+
 // 生日限免 7 天：从公告栏记录的上线日 2026-07-16 起算，到 2026-07-23 结束
+// ⚠️ 这个日期只用来给前端显示倒计时文案，真正拦截是否能解锁的判断在 Supabase 的
+// unlock_category() 函数里（服务器时钟为准），这里改日期只是为了文案跟服务器端保持一致，
+// 光改这一行、不改数据库那边的日期，是没法延长限免的
 const UNLOCK_DEADLINE = new Date('2026-07-23T23:59:59+08:00');
 
 function daysLeft(){
@@ -1582,7 +1635,7 @@ function daysLeft(){
 }
 function isOfferExpired(){ return Date.now() > UNLOCK_DEADLINE.getTime(); }
 function isLoggedIn(){ return !!(window.JerrySite && JerrySite.isLoggedIn()); }
-function isUnlocked(){ return localStorage.getItem(RUMI_UNLOCK_KEY) === '1'; }
+function isUnlocked(){ return unlockedCategories.has(LOCKED_CATEGORY); }
 
 const MEMBERSHIP_CARD_HTML = `
   <div class="membership-card">
@@ -1691,9 +1744,24 @@ document.getElementById('lockModalBody').addEventListener('click', (e) => {
     const btn = e.target;
     btn.disabled = true;
     btn.textContent = '解锁中…';
-    localStorage.setItem(RUMI_UNLOCK_KEY, '1');
-    fireConfetti();
-    setTimeout(() => {
+    JerrySite.unlockCategory(LOCKED_CATEGORY).then(async (res) => {
+      if(!res.ok){
+        // 服务器判定失败：真实原因是啥就告诉用户啥，不能假装成功
+        btn.disabled = false;
+        if(res.reason === 'expired'){
+          btn.textContent = '限免已结束';
+          renderLockModal(); // 重新渲染成"已过期"的状态（isOfferExpired基于本地时间的展示，服务器判断更准，这里直接刷新modal内容为准）
+        } else if(res.reason === 'not_logged_in'){
+          btn.textContent = '请先登录';
+          renderLockModal();
+        } else {
+          btn.textContent = '解锁失败，重试';
+        }
+        return;
+      }
+      // 服务器确认解锁成功，才更新本地缓存和UI，不是点了按钮就直接当作成功
+      unlockedCategories.add(LOCKED_CATEGORY);
+      fireConfetti();
       btn.textContent = '🎉 已解锁！';
       setTimeout(() => {
         closeLockModal();
@@ -1705,7 +1773,11 @@ document.getElementById('lockModalBody').addEventListener('click', (e) => {
         renderMobilePaged(allPosts, 1);
         openCoffeeModal();
       }, 900);
-    }, 600);
+    }).catch((err) => {
+      console.error('解锁请求失败:', err);
+      btn.disabled = false;
+      btn.textContent = '网络错误，重试';
+    });
   }
 });
 
@@ -1717,7 +1789,8 @@ document.getElementById('coffeeModalMask').addEventListener('click', (e) => {
 // （登录系统脚本插入在本文件靠后的位置，这里等 DOMContentLoaded 之后再挂载，确保 window.JerrySite 已就绪）
 document.addEventListener('DOMContentLoaded', () => {
   if(window.JerrySite){
-    JerrySite.onAuthChange(() => {
+    JerrySite.onAuthChange(async () => {
+      await refreshUnlockStatus();
       if(document.getElementById('lockModalMask').classList.contains('open')) renderLockModal();
       initCheckinWidget();
       initPointsWidget();
@@ -3187,6 +3260,7 @@ const JerrySite = (function () {
   const toggleLike = (postId) => rpc('toggle_like', { p_post_id: String(postId) });
   const feedZara = (itemId, cost) => rpc('feed_zara', { p_item_id: itemId, p_cost: cost });
   const getMyStatus = () => rpc('get_my_status');
+  const unlockCategory = (category) => rpc('unlock_category', { p_category: String(category) });
 
   async function getComments(postId) {
     const { data, error } = await client
@@ -3217,7 +3291,7 @@ const JerrySite = (function () {
     init, onAuthChange,
     signInWithGoogle, sendEmailCode, verifyEmailCode, signOut,
     getUser, isLoggedIn,
-    checkinToday, recordView, toggleLike, feedZara, getMyStatus,
+    checkinToday, recordView, toggleLike, feedZara, getMyStatus, unlockCategory,
     getComments, postComment, deleteComment
   };
 })();
@@ -3485,6 +3559,42 @@ window.jerrySiteReady = JerrySite.init();
   } else {
     setup();
   }
+})();
+</script>
+
+<script>
+(function() {
+    const introVideo = document.getElementById('intro-pet-video');
+    
+    // 智能探测器：自动寻找你网页里原本存在的那个桌宠/吸附球元素
+    let petBall = document.getElementById('pet-ball') 
+               || document.getElementById('live2d') 
+               || document.getElementById('live2d-canvas')
+               || document.querySelector('.waifu'); 
+
+    if (introVideo) {
+        // 进站强制隐藏原本的桌宠，只显现欢迎视频
+        if (petBall) petBall.style.display = 'none';
+
+        // 监听视频播放完毕事件
+        introVideo.addEventListener('ended', () => {
+            introVideo.style.opacity = '0'; // 播放完平滑淡出
+            setTimeout(() => {
+                introVideo.style.display = 'none'; // 彻底隐形
+                if (petBall) {
+                    petBall.style.display = 'block'; // 唤醒原本的桌宠
+                    petBall.classList.add('subspace-bounce-anim'); // 赋予它亚空间Q弹震撼登场动画
+                }
+            }, 500);
+        });
+
+        // 浏览器容错防拦截机制：万一被主动拦截，直接降级显示常规桌宠，保证网页不卡死
+        introVideo.play().catch(err => {
+            console.warn('自动播放被浏览器拦截，已自动免错降级。', err);
+            introVideo.style.display = 'none';
+            if (petBall) petBall.style.display = 'block';
+        });
+    }
 })();
 </script>
 
