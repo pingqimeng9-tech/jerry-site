@@ -105,19 +105,10 @@
   .music-card iframe{ border-radius:10px; display:block; }
 
   .article-card{
-    flex:1; min-width:0; position:relative;
+    flex:1; min-width:0;
     background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(18px);
     border-radius:20px;padding:34px clamp(20px,4vw,44px);
   }
-  /* 右上角"可查看时长"徽章：只在锁定分类且试用期内出现，数字每分钟自己刷新一次 */
-  .view-time-badge{
-    position:absolute; top:18px; right:18px; z-index:2;
-    display:flex; align-items:center; gap:6px;
-    background:rgba(255,201,60,.15); color:#FFC93C; border:1px solid rgba(255,201,60,.4);
-    padding:6px 14px; border-radius:100px; font-size:12px; font-weight:700;
-    font-family:'JetBrains Mono',monospace; backdrop-filter:blur(8px); white-space:nowrap;
-  }
-  @media (max-width:640px){ .view-time-badge{ position:static; display:inline-flex; margin-bottom:14px; } }
   .breadcrumb{font-size:12px;color:var(--muted);margin-bottom:14px;}
   .cover-banner{ width:100%; max-height:320px; object-fit:cover; border-radius:16px; margin-bottom:20px; border:1px solid var(--glass-border); display:block; }
   .a-title{font-family:'Noto Serif SC',serif;font-weight:900;font-size:clamp(24px,4vw,32px);line-height:1.35;margin-bottom:14px;}
@@ -176,20 +167,6 @@
     width:56px; height:56px; border-radius:10px; object-fit:cover; border:1px solid var(--glass-border); background:rgba(255,255,255,.06);
     flex-shrink:0;
   }
-
-  /* 试用期到期后的三档卡片 */
-  .tier-grid{ display:flex; flex-direction:column; gap:10px; margin-bottom:14px; text-align:left; }
-  .tier-card{ border-radius:16px; padding:14px 16px; border:1px solid var(--glass-border); background:rgba(255,255,255,.05); }
-  .tier-card.tier-dm{ background:linear-gradient(145deg, rgba(255,201,60,.14), rgba(255,122,92,.08)); border-color:rgba(255,201,60,.4); }
-  .tier-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:6px; }
-  .tier-name{ font-size:14.5px; font-weight:800; }
-  .tier-price{ font-family:'JetBrains Mono',monospace; font-weight:800; color:#FFC93C; font-size:15px; }
-  .tier-desc{ font-size:12.5px; color:var(--muted); line-height:1.6; margin-bottom:10px; }
-  .tier-soon{ display:inline-block; font-size:10px; padding:3px 8px; border-radius:100px; background:rgba(255,255,255,.1); color:var(--muted); margin-bottom:8px; }
-  .tier-btn{ width:100%; padding:10px; border-radius:100px; border:none; font-size:13px; font-weight:700; cursor:pointer; text-align:center; text-decoration:none; display:block; box-sizing:border-box; }
-  .tier-btn.disabled{ background:rgba(255,255,255,.08); color:var(--muted); cursor:not-allowed; }
-  .tier-btn.dm{ background:linear-gradient(120deg,#6B5CFF,#B98CFF); color:#fff; }
-  .tier-note{ font-size:11.5px; color:var(--muted); text-align:center; line-height:1.7; margin:0 0 18px; opacity:.85; }
 
   .login-gate-box{ padding:8px 0 6px; }
   .login-gate-box .lock-icon{ font-size:44px; margin-bottom:14px; }
@@ -1011,7 +988,7 @@ async function loadPost(){
     document.title = (post.title || '文章') + ' · Jerry';
 
     const locked = isLockedCategory(post.category);
-    const granted = !locked || isTrialActive();
+    const granted = !locked || isUnlocked();
 
     const titleRowHtml = `
       <div class="a-title-row">
@@ -1039,20 +1016,16 @@ async function loadPost(){
     // 页面背景交给下面的 initBgCarousel() 做多图轮播虚化
     container.innerHTML = `
       <div class="breadcrumb mono">首页 / 博客 ${post.category ? '/ ' + escapeHtml(post.category) : ''}</div>
-      ${locked && unlockedAt !== null ? `<div class="view-time-badge">⏳ 可查看时长 <span id="viewTimeCountdown"></span></div>` : ''}
       ${post.cover ? `<img class="cover-banner" src="${post.cover}" alt="${escapeHtml(post.title || '封面图')}"/>` : ''}
       ${titleRowHtml}
       <div class="a-meta">
         ${post.date ? `<span>📅 ${post.date}</span>` : ''}
         ${post.category ? `<span class="tag">${escapeHtml(post.category)}</span>` : ''}
         <span>👁 <span id="viewCount">${post.views || 0}</span> 次浏览</span>
+        ${locked ? `<span class="days-left">🎂 会员内容可查看剩余 ${daysLeft()} 天</span>` : ''}
       </div>
       <div class="a-body" id="a-body"></div>
     `;
-
-    if(locked && unlockedAt !== null){
-      startTrialCountdown('viewTimeCountdown', () => { loadPost(); }); // 试用期在页面停留期间到期：自动重新加载，切回锁定态
-    }
 
     document.getElementById('a-body').innerHTML = marked.parse(post.markdown || '（正文为空）');
 
@@ -1296,48 +1269,20 @@ function weatherCodeToText(code){
 
 /* ============ 会员锁定分类：状态检测弹窗（与 blog.html 同一套逻辑） ============ */
 const LOCKED_CATEGORY = 'Rumi英语技术';
-let unlockedCategories = new Set();
-const TRIAL_DAYS = 7;
-let unlockedAt = null; // Date | null，当前用户解锁 LOCKED_CATEGORY 的时间，没解锁过就是 null
-
-async function refreshUnlockStatus(){
-  if(!window.JerrySite || !JerrySite.isLoggedIn()){
-    unlockedCategories = new Set();
-    unlockedAt = null;
-    return;
-  }
-  try{
-    const status = await JerrySite.getMyStatus();
-    unlockedCategories = new Set(status.unlocked_categories || []);
-    // category_unlock_times 需要后端配合提供（见 supabase-trial-window.sql），没有这个字段之前
-    // unlockedAt 一直是 null，这时候走"兜底放行"分支，不会把真实已解锁用户挡在付费弹窗外面
-    const times = status.category_unlock_times || {};
-    unlockedAt = times[LOCKED_CATEGORY] ? new Date(times[LOCKED_CATEGORY]) : null;
-  }catch(e){
-    console.error('拉取解锁状态失败:', e);
-  }
-}
+const RUMI_UNLOCK_KEY = 'rumiTechUnlocked';
+// 生日限免 7 天：从公告栏记录的上线日 2026-07-16 起算，到 2026-07-23 结束
+const UNLOCK_DEADLINE = new Date('2026-07-23T23:59:59+08:00');
 
 function isLockedCategory(cat){
   return (cat || '').trim().toLowerCase() === LOCKED_CATEGORY.toLowerCase();
 }
-function trialDaysLeft(){
-  if(!unlockedAt) return null;
-  const expireAt = unlockedAt.getTime() + TRIAL_DAYS * 86400000;
-  return Math.max(0, Math.ceil((expireAt - Date.now()) / 86400000));
+function daysLeft(){
+  const ms = UNLOCK_DEADLINE.getTime() - Date.now();
+  return Math.max(0, Math.ceil(ms / 86400000));
 }
-function trialRemaining(){
-  // 精确到"天+小时"，给右上角徽章和弹窗里的实时倒计时用
-  if(!unlockedAt) return null;
-  const expireAt = unlockedAt.getTime() + TRIAL_DAYS * 86400000;
-  const msLeft = Math.max(0, expireAt - Date.now());
-  const totalHours = Math.floor(msLeft / 3600000);
-  return { d: Math.floor(totalHours / 24), h: totalHours % 24, msLeft };
-}
+function isOfferExpired(){ return Date.now() > UNLOCK_DEADLINE.getTime(); }
 function isLoggedIn(){ return !!(window.JerrySite && JerrySite.isLoggedIn()); }
-function isUnlocked(){ return unlockedCategories.has(LOCKED_CATEGORY); }
-function isTrialActive(){ return isUnlocked() && (unlockedAt === null || trialDaysLeft() > 0); }
-function isTrialExpired(){ return isUnlocked() && unlockedAt !== null && trialDaysLeft() <= 0; }
+function isUnlocked(){ return localStorage.getItem(RUMI_UNLOCK_KEY) === '1'; }
 
 const MEMBERSHIP_CARD_HTML = `
   <div class="membership-card">
@@ -1357,70 +1302,16 @@ const MEMBERSHIP_CARD_HTML = `
   </div>
 `;
 
-const DM_HOST_URL = 'https://ifdian.net/a/rumi-ai';
-function TIER_PAYWALL_HTML(){
-  return `
-    <div class="tier-grid">
-      <div class="tier-card">
-        <div class="tier-head"><span class="tier-name">普通档 · 月会员</span><span class="tier-price">¥30/月</span></div>
-        <div class="tier-soon">测试功能未上线</div>
-        <div class="tier-desc">开通后可自由查看这部分全部内容。</div>
-        <button type="button" class="tier-btn disabled" data-tier="basic">开通会员</button>
-      </div>
-      <div class="tier-card">
-        <div class="tier-head"><span class="tier-name">高档档 · 年会员</span><span class="tier-price">¥365/年</span></div>
-        <div class="tier-soon">测试功能未上线</div>
-        <div class="tier-desc">开通后可自由查看这部分全部内容，并可入群交流。</div>
-        <button type="button" class="tier-btn disabled" data-tier="premium">开通会员</button>
-      </div>
-      <div class="tier-card tier-dm">
-        <div class="tier-head"><span class="tier-name">私信站长解锁</span></div>
-        <div class="tier-desc">私信站长，站长手动帮你解锁。</div>
-        <a class="tier-btn dm" href="${DM_HOST_URL}" target="_blank" rel="noopener">💌 请点击私信站长后请喝咖啡</a>
-      </div>
-    </div>
-    <p class="tier-note">我们一起努力，在ai的道路上创业致富，每天一块钱当做你对我未来的投资，股东们，让我们一起创造属于我们的神话</p>
-  `;
-}
-
-document.getElementById('lockModalBody').addEventListener('click', (e) => {
-  const tierBtn = e.target.closest('.tier-btn.disabled');
-  if(tierBtn) alert('这档会员还在测试中，暂未开放付费，请点击私信站长后请喝咖啡～');
-});
-
-// 弹窗/右上角徽章的实时倒计时：每分钟刷新一次"X天X小时"，不需要秒级精度
-let trialCountdownTimer = null;
-function stopTrialCountdown(){
-  if(trialCountdownTimer){ clearInterval(trialCountdownTimer); trialCountdownTimer = null; }
-}
-function startTrialCountdown(elId, onExpire){
-  stopTrialCountdown();
-  const tick = () => {
-    const el = document.getElementById(elId);
-    const info = trialRemaining();
-    if(!el || !info) { stopTrialCountdown(); return; }
-    if(info.msLeft <= 0){
-      stopTrialCountdown();
-      if(onExpire) onExpire();
-      return;
-    }
-    el.textContent = `${info.d}天${info.h}小时`;
-  };
-  tick();
-  trialCountdownTimer = setInterval(tick, 60000);
-}
-
 function renderLockModal(){
   const body = document.getElementById('lockModalBody');
   const closeBtnHtml = `<span class="close-lock" id="lockModalClose">✕</span>`;
-  stopTrialCountdown();
 
   if(!isLoggedIn()){
     body.innerHTML = `
       ${closeBtnHtml}
       <div class="login-gate-box">
         <div class="lock-icon">🔒</div>
-        <div class="badge">🎂 解锁即享 7 天免费</div>
+        <div class="badge">🎂 Jerry生日限时免费 · 仅剩 ${daysLeft()} 天</div>
         <h3>Rumi英语技术 · 会员专区</h3>
         <p>这里是完整的技术拆解内容，<b>请先登录</b>才能查看详情并解锁哦～</p>
         <button class="login-now-btn" id="lockGoLoginBtn">👤 立即登录</button>
@@ -1429,41 +1320,25 @@ function renderLockModal(){
     return;
   }
 
-  if(isTrialActive()){
-    const info = trialRemaining();
+  if(isUnlocked()){
     body.innerHTML = `
       ${closeBtnHtml}
       <div class="cake-visual">🎉🎂</div>
-      <div class="badge">已解锁${info ? ` · 试用还剩 <span id="lockModalCountdown">${info.d}天${info.h}小时</span>` : ''}</div>
+      <div class="badge">已解锁</div>
       <h3>Rumi英语技术 · 会员专区</h3>
       <p class="desc">你已经解锁过这部分内容啦，正在为你打开文章～</p>
       ${MEMBERSHIP_CARD_HTML}
     `;
-    if(info) startTrialCountdown('lockModalCountdown', () => { renderLockModal(); loadPost(); });
     return;
   }
 
-  if(isTrialExpired()){
-    body.innerHTML = `
-      ${closeBtnHtml}
-      <div class="cake-visual">⏰</div>
-      <div class="badge">7 天免费试用已到期</div>
-      <h3>Rumi英语技术 · 会员专区</h3>
-      <p class="desc">这部分是我平时做 Rumi 英语这套内容背后的完整技术拆解，免费试用期已经结束啦，选一个方式继续解锁吧～</p>
-      ${TIER_PAYWALL_HTML()}
-      <div class="modal-btn-row">
-        <button class="cancel-btn" id="lockCancelBtn">取消</button>
-      </div>
-    `;
-    return;
-  }
-
+  const expired = isOfferExpired();
   body.innerHTML = `
     ${closeBtnHtml}
     <div class="cake-visual">🎂</div>
-    <div class="badge">🎂 解锁即享 7 天免费</div>
+    <div class="badge">${expired ? '限时免费已结束' : `🎂 Jerry生日限时免费 · 仅剩 ${daysLeft()} 天`}</div>
     <h3>Rumi英语技术 · 会员专区</h3>
-    <p class="desc">这部分是我平时做 Rumi 英语这套内容背后的完整技术拆解，本来是要收费的，点击解锁可以免费试用 7 天。</p>
+    <p class="desc">这部分是我平时做 Rumi 英语这套内容背后的完整技术拆解，本来是要收费的，借生日这几天限时免费分享给大家。</p>
     <ul class="content-list">
       <li>动画视频提示词（分镜/运镜/风格锁定）</li>
       <li>角色形象图片提示词</li>
@@ -1473,7 +1348,7 @@ function renderLockModal(){
     ${MEMBERSHIP_CARD_HTML}
     <div class="modal-btn-row">
       <button class="cancel-btn" id="lockCancelBtn">取消</button>
-      <button class="unlock-btn" id="unlockBtn">🔓 立即解锁（7天免费）</button>
+      <button class="unlock-btn" id="unlockBtn" ${expired ? 'disabled' : ''}>${expired ? '限免已结束' : '🔓 立即解锁'}</button>
     </div>
   `;
 }
@@ -1484,7 +1359,6 @@ function openLockModal(){
 }
 function closeLockModal(){
   document.getElementById('lockModalMask').classList.remove('open');
-  stopTrialCountdown();
 }
 function openCoffeeModal(){
   document.getElementById('coffeeModalMask').classList.add('open');
@@ -1511,34 +1385,16 @@ document.getElementById('lockModalBody').addEventListener('click', (e) => {
     const btn = e.target;
     btn.disabled = true;
     btn.textContent = '解锁中…';
-    JerrySite.unlockCategory(LOCKED_CATEGORY).then((res) => {
-      if(!res.ok){
-        btn.disabled = false;
-        if(res.reason === 'not_logged_in'){
-          btn.textContent = '请先登录';
-          renderLockModal();
-        } else if(res.reason === 'already_unlocked'){
-          btn.textContent = '已解锁过';
-          refreshUnlockStatus().then(renderLockModal);
-        } else {
-          btn.textContent = '解锁失败，重试';
-        }
-        return;
-      }
-      unlockedCategories.add(LOCKED_CATEGORY);
-      unlockedAt = res.unlocked_at ? new Date(res.unlocked_at) : new Date();
-      fireConfetti();
+    localStorage.setItem(RUMI_UNLOCK_KEY, '1');
+    fireConfetti();
+    setTimeout(() => {
       btn.textContent = '🎉 已解锁！';
       setTimeout(() => {
         closeLockModal();
         loadPost(); // 重新加载，这次因为已解锁会正常展示正文
         openCoffeeModal();
       }, 900);
-    }).catch((err) => {
-      console.error('解锁请求失败:', err);
-      btn.disabled = false;
-      btn.textContent = '网络错误，重试';
-    });
+    }, 600);
   }
 });
 
@@ -1567,12 +1423,8 @@ function fireConfetti(){
 // （登录系统脚本插入在本文件靠后的位置，这里等 DOMContentLoaded 之后再挂载，确保 window.JerrySite 已就绪）
 document.addEventListener('DOMContentLoaded', () => {
   if(window.JerrySite){
-    JerrySite.onAuthChange(async () => {
-      await refreshUnlockStatus();
-      if(document.getElementById('lockModalMask').classList.contains('open')){
-        renderLockModal();
-        if(isTrialActive()) loadPost(); // 登录/解锁后如果文章之前被拦下了，自动重新加载一次
-      }
+    JerrySite.onAuthChange(() => {
+      if(document.getElementById('lockModalMask').classList.contains('open')) renderLockModal();
     });
   }
 });
@@ -1589,7 +1441,6 @@ async function waitForJerrySiteReady(){
 
 (async () => {
   await waitForJerrySiteReady();
-  await refreshUnlockStatus();
   loadPost();
   initBgCarousel();
   initCheckin();
@@ -2837,7 +2688,6 @@ const JerrySite = (function () {
   const toggleLike = (postId) => rpc('toggle_like', { p_post_id: String(postId) });
   const feedZara = (itemId, cost) => rpc('feed_zara', { p_item_id: itemId, p_cost: cost });
   const getMyStatus = () => rpc('get_my_status');
-  const unlockCategory = (category) => rpc('unlock_category', { p_category: String(category) });
 
   async function getComments(postId) {
     const { data, error } = await client
@@ -2868,7 +2718,7 @@ const JerrySite = (function () {
     init, onAuthChange,
     signInWithGoogle, sendEmailCode, verifyEmailCode, signOut,
     getUser, isLoggedIn,
-    checkinToday, recordView, toggleLike, feedZara, getMyStatus, unlockCategory,
+    checkinToday, recordView, toggleLike, feedZara, getMyStatus,
     getComments, postComment, deleteComment
   };
 })();
