@@ -9,33 +9,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
 
 <style>
-/* ================= 新增：桌宠与亚空间优化样式 ================= */
-    /* 进站欢迎视频：贴网页右边底部，大小与桌宠保持一致 */
-    #intro-pet-video {
-        position: fixed;
-        right: 0;
-        bottom: 20px; 
-        width: 150px; 
-        height: 150px;
-        z-index: 10000;
-        object-fit: contain;
-        pointer-events: none; /* 防止挡住背后的点击事件 */
-        transition: opacity 0.5s ease; /* 视频播放完平滑淡出 */
-    }
-
-    /* 亚空间专属弹跳动画：模仿角色摔倒的Q弹反馈 */
-    @keyframes subspace-bounce {
-        0%, 100% { transform: scale(1) translateY(0); }
-        30% { transform: scale(1.12) translateY(-20px); } /* 向上弹并拉伸 */
-        50% { transform: scale(0.95) translateY(0); }     /* 落地挤压变扁 */
-        70% { transform: scale(1.05) translateY(-8px); }   /* 微弱二次弹跳 */
-    }
-    .subspace-bounce-anim {
-        animation: subspace-bounce 0.6s cubic-bezier(0.28, 0.84, 0.42, 1);
-    }
-</style>
-
-<style>
   :root{
     --glass:rgba(255,255,255,.10); --glass-strong:rgba(255,255,255,.16); --glass-border:rgba(255,255,255,.28);
     --ink:#ffffff; --muted:#c9c6e8; --coral:#FF7A5C; --aqua:#5CE1E6; --violet:#B18CFF; --pink:#FF8CD9;
@@ -1074,11 +1047,6 @@
 
 </head>
 <body>
-
-<!-- 进站透明视频容器：使用绝对稳妥的 webm 格式 -->
-<video id="intro-pet-video" muted playsinline autoplay>
-    <source src="./images/welcome-pet.mov" type="video/mov">
-</video>
 
 <div class="bg-wrapper">
   <div id="bg-layer-1" class="bg-layer"></div>
@@ -3559,42 +3527,6 @@ window.jerrySiteReady = JerrySite.init();
   } else {
     setup();
   }
-})();
-</script>
-
-<script>
-(function() {
-    const introVideo = document.getElementById('intro-pet-video');
-    
-    // 智能探测器：自动寻找你网页里原本存在的那个桌宠/吸附球元素
-    let petBall = document.getElementById('pet-ball') 
-               || document.getElementById('live2d') 
-               || document.getElementById('live2d-canvas')
-               || document.querySelector('.waifu'); 
-
-    if (introVideo) {
-        // 进站强制隐藏原本的桌宠，只显现欢迎视频
-        if (petBall) petBall.style.display = 'none';
-
-        // 监听视频播放完毕事件
-        introVideo.addEventListener('ended', () => {
-            introVideo.style.opacity = '0'; // 播放完平滑淡出
-            setTimeout(() => {
-                introVideo.style.display = 'none'; // 彻底隐形
-                if (petBall) {
-                    petBall.style.display = 'block'; // 唤醒原本的桌宠
-                    petBall.classList.add('subspace-bounce-anim'); // 赋予它亚空间Q弹震撼登场动画
-                }
-            }, 500);
-        });
-
-        // 浏览器容错防拦截机制：万一被主动拦截，直接降级显示常规桌宠，保证网页不卡死
-        introVideo.play().catch(err => {
-            console.warn('自动播放被浏览器拦截，已自动免错降级。', err);
-            introVideo.style.display = 'none';
-            if (petBall) petBall.style.display = 'block';
-        });
-    }
 })();
 </script>
 
