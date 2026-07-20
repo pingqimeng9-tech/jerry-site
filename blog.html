@@ -1631,6 +1631,14 @@ function trialDaysLeft(){
   const expireAt = unlockedAt.getTime() + TRIAL_DAYS * 86400000;
   return Math.max(0, Math.ceil((expireAt - Date.now()) / 86400000));
 }
+function trialRemaining(){
+  // 精确到"天+小时"，给弹窗里的实时倒计时用
+  if(!unlockedAt) return null;
+  const expireAt = unlockedAt.getTime() + TRIAL_DAYS * 86400000;
+  const msLeft = Math.max(0, expireAt - Date.now());
+  const totalHours = Math.floor(msLeft / 3600000);
+  return { d: Math.floor(totalHours / 24), h: totalHours % 24, msLeft };
+}
 function isLoggedIn(){ return !!(window.JerrySite && JerrySite.isLoggedIn()); }
 function isUnlocked(){ return unlockedCategories.has(LOCKED_CATEGORY); } // 是否点过"立即解锁"（哪怕试用期已经过了，这个仍然是true）
 // 兜底原则：后端还没提供 category_unlock_times（unlockedAt===null）之前，只要 isUnlocked() 是true就当"能看"处理，
@@ -1691,9 +1699,32 @@ document.getElementById('lockModalBody').addEventListener('click', (e) => {
   if(tierBtn) alert('这档会员还在测试中，暂未开放付费，请点击私信站长后请喝咖啡～');
 });
 
+// 弹窗里的实时倒计时：每分钟刷新一次"X天X小时"，不需要秒级精度
+let trialCountdownTimer = null;
+function stopTrialCountdown(){
+  if(trialCountdownTimer){ clearInterval(trialCountdownTimer); trialCountdownTimer = null; }
+}
+function startTrialCountdown(elId, onExpire){
+  stopTrialCountdown();
+  const tick = () => {
+    const el = document.getElementById(elId);
+    const info = trialRemaining();
+    if(!el || !info) { stopTrialCountdown(); return; }
+    if(info.msLeft <= 0){
+      stopTrialCountdown();
+      if(onExpire) onExpire();
+      return;
+    }
+    el.textContent = `${info.d}天${info.h}小时`;
+  };
+  tick();
+  trialCountdownTimer = setInterval(tick, 60000);
+}
+
 function renderLockModal(){
   const body = document.getElementById('lockModalBody');
   const closeBtnHtml = `<span class="close-lock" id="lockModalClose">✕</span>`;
+  stopTrialCountdown();
 
   if(!isLoggedIn()){
     body.innerHTML = `
@@ -1710,10 +1741,11 @@ function renderLockModal(){
   }
 
   if(isTrialActive()){
+    const info = trialRemaining();
     body.innerHTML = `
       ${closeBtnHtml}
       <div class="cake-visual">🎉🎂</div>
-      <div class="badge">已解锁${unlockedAt !== null ? ` · 试用还剩 ${trialDaysLeft()} 天` : ''}</div>
+      <div class="badge">已解锁${info ? ` · 试用还剩 <span id="lockModalCountdown">${info.d}天${info.h}小时</span>` : ''}</div>
       <h3>Rumi英语技术 · 会员专区</h3>
       <p class="desc">你已经解锁过这部分内容啦，试用期内随时回来看～</p>
       <ul class="content-list">
@@ -1724,6 +1756,7 @@ function renderLockModal(){
       </ul>
       ${MEMBERSHIP_CARD_HTML}
     `;
+    if(info) startTrialCountdown('lockModalCountdown', () => { renderLockModal(); refreshUnlockStatus(); });
     return;
   }
 
@@ -1769,6 +1802,7 @@ function openLockModal(){
 }
 function closeLockModal(){
   document.getElementById('lockModalMask').classList.remove('open');
+  stopTrialCountdown();
 }
 function openCoffeeModal(){
   document.getElementById('coffeeModalMask').classList.add('open');
