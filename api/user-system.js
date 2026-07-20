@@ -106,6 +106,7 @@ const JerrySite = (function () {
   const toggleLike = (postId) => rpc('toggle_like', { p_post_id: String(postId) });
   const feedZara = (itemId, cost) => rpc('feed_zara', { p_item_id: itemId, p_cost: cost });
   const getMyStatus = () => rpc('get_my_status');
+  const unlockCategory = (category) => rpc('unlock_category', { p_category: String(category) });
 
   // ---------- 评论：走普通表读写（有 RLS 兜底，不需要走RPC）----------
   async function getComments(postId) {
@@ -137,7 +138,7 @@ const JerrySite = (function () {
     init, onAuthChange,
     signInWithGoogle, sendEmailCode, verifyEmailCode, signOut,
     getUser, isLoggedIn,
-    checkinToday, recordView, toggleLike, feedZara, getMyStatus,
+    checkinToday, recordView, toggleLike, feedZara, getMyStatus, unlockCategory,
     getComments, postComment, deleteComment
   };
 })();
