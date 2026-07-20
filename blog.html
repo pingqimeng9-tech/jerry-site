@@ -1608,8 +1608,8 @@ async function refreshUnlockStatus(){
     const status = await JerrySite.getMyStatus();
     unlockedCategories = new Set(status.unlocked_categories || []);
     // category_unlock_times 需要后端一起改，见 supabase-trial-window.sql；改之前这里会一直读到 undefined，
-    // 等价于 unlockedAt=null，此时 trialDaysLeft() 恒为0，行为上跟"试用期已过"一样——
-    // 也就是说后端没跟上之前，前端不会误判成"永久免费"，最多是提前进入付费引导，属于偏保守的降级。
+    // 等价于 unlockedAt=null，此时 isTrialActive() 走"兜底放行"分支——只要 isUnlocked() 是true就当能看，
+    // 跟原始行为（没有7天试用之前）完全一致，不会因为后端没跟上就把真实已解锁的用户挡在付费弹窗外面。
     const times = status.category_unlock_times || {};
     unlockedAt = times[LOCKED_CATEGORY] ? new Date(times[LOCKED_CATEGORY]) : null;
   }catch(e){
@@ -1627,14 +1627,17 @@ const TRIAL_DAYS = 7;
 let unlockedAt = null; // Date | null，当前用户解锁 LOCKED_CATEGORY 的时间，没解锁过就是 null
 
 function trialDaysLeft(){
-  if(!unlockedAt) return 0;
+  if(!unlockedAt) return null; // null = 后端还没给时间戳，不代表"0天"，区分开，避免被当成"已到期"
   const expireAt = unlockedAt.getTime() + TRIAL_DAYS * 86400000;
   return Math.max(0, Math.ceil((expireAt - Date.now()) / 86400000));
 }
 function isLoggedIn(){ return !!(window.JerrySite && JerrySite.isLoggedIn()); }
 function isUnlocked(){ return unlockedCategories.has(LOCKED_CATEGORY); } // 是否点过"立即解锁"（哪怕试用期已经过了，这个仍然是true）
-function isTrialActive(){ return isUnlocked() && trialDaysLeft() > 0; } // 解锁过 且 还在7天免费窗口内
-function isTrialExpired(){ return isUnlocked() && trialDaysLeft() <= 0; } // 解锁过 但 7天已经用完
+// 兜底原则：后端还没提供 category_unlock_times（unlockedAt===null）之前，只要 isUnlocked() 是true就当"能看"处理，
+// 跟改7天试用之前的原始行为完全一致——不能因为后端没跟上，就把已经真实解锁过的老用户挡在付费弹窗外面。
+// 等后端把 unlockedAt 真的传回来了，才会按"是否满7天"精确判断。
+function isTrialActive(){ return isUnlocked() && (unlockedAt === null || trialDaysLeft() > 0); }
+function isTrialExpired(){ return isUnlocked() && unlockedAt !== null && trialDaysLeft() <= 0; }
 
 const MEMBERSHIP_CARD_HTML = `
   <div class="membership-card">
@@ -1710,7 +1713,7 @@ function renderLockModal(){
     body.innerHTML = `
       ${closeBtnHtml}
       <div class="cake-visual">🎉🎂</div>
-      <div class="badge">已解锁 · 试用还剩 ${trialDaysLeft()} 天</div>
+      <div class="badge">已解锁${unlockedAt !== null ? ` · 试用还剩 ${trialDaysLeft()} 天` : ''}</div>
       <h3>Rumi英语技术 · 会员专区</h3>
       <p class="desc">你已经解锁过这部分内容啦，试用期内随时回来看～</p>
       <ul class="content-list">
@@ -3065,6 +3068,14 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
     // 和 CSS 里 .docked 的 clamp(46px,12vw,56px) 保持一致
     return Math.min(56, Math.max(46, window.innerWidth * 0.12));
   }
+  function getDockThreshold(){
+    // 吸附判定范围要跟着贴边球实际渲染出来的大小（clamp缩放后的值）走，不能用一个和球大小无关的
+    // 固定视口百分比——之前是 window.innerWidth*0.18，跟球的clamp尺寸完全没关系：桌面端屏幕越宽这个
+    // 百分比换算出来的判定范围越是远超球体本身好几倍（很容易吸上），手机端屏幕窄、球又被clamp限制在
+    // 46~56px这个小范围里，18%换算出来的判定范围相对手指的拖拽精度就显得太窄，很容易拖到边上也吸不上。
+    // 现在直接拿球的实际尺寸乘一个系数，无论屏幕多宽，判定范围永远和球体大小成比例，行为一致。
+    return getDockBallSize() * 1.8;
+  }
   function clampTop(topPx, h){
     return Math.max(4, Math.min(window.innerHeight - h - 4, topPx));
   }
@@ -3191,7 +3202,7 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
     // 有实际拖动：松手位置离左右边缘够近就吸附成悬浮球，否则留在原地当摆件
     const rect = wrap.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
-    const threshold = window.innerWidth * 0.18;
+    const threshold = getDockThreshold();
     if(centerX < threshold){
       setDocked('left', rect.top);
     } else if(centerX > window.innerWidth - threshold){
