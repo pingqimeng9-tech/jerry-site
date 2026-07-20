@@ -1269,24 +1269,7 @@ function weatherCodeToText(code){
 
 /* ============ 会员锁定分类：状态检测弹窗（与 blog.html 同一套逻辑） ============ */
 const LOCKED_CATEGORY = 'Rumi英语技术';
-let unlockedCategories = new Set();
-
-async function refreshUnlockStatus(){
-  if(!window.JerrySite || !JerrySite.isLoggedIn()){
-    unlockedCategories = new Set();
-    return;
-  }
-  try{
-    const status = await JerrySite.getMyStatus();
-    unlockedCategories = new Set(status.unlocked_categories || []);
-  }catch(e){
-    console.error('拉取解锁状态失败:', e);
-  }
-}
-
 // 生日限免 7 天：从公告栏记录的上线日 2026-07-16 起算，到 2026-07-23 结束
-// ⚠️ 这个日期只用来给前端显示倒计时文案，真正拦截是否能解锁的判断在 Supabase 的
-// unlock_category() 函数里（服务器时钟为准），改这一行不会真的延长限免
 const UNLOCK_DEADLINE = new Date('2026-07-23T23:59:59+08:00');
 
 function isLockedCategory(cat){
@@ -1298,7 +1281,21 @@ function daysLeft(){
 }
 function isOfferExpired(){ return Date.now() > UNLOCK_DEADLINE.getTime(); }
 function isLoggedIn(){ return !!(window.JerrySite && JerrySite.isLoggedIn()); }
-function isUnlocked(){ return unlockedCategories.has(LOCKED_CATEGORY); }
+
+// 解锁状态是每个账号在服务端(Supabase)的权益，不能用 localStorage 判断——
+// 那样谁都能在自己浏览器里绕开登录状态直接"解锁"。rumiStatusCache 只是内存缓存，
+// 每次登录状态变化/解锁成功都会重新从服务端拉取。
+let rumiStatusCache = null;
+async function refreshRumiStatus(){
+  if(!isLoggedIn()){ rumiStatusCache = null; return null; }
+  try{
+    rumiStatusCache = await JerrySite.getMyStatus();
+  }catch(e){
+    rumiStatusCache = null;
+  }
+  return rumiStatusCache;
+}
+function isUnlocked(){ return !!(rumiStatusCache && rumiStatusCache.rumi_tech_unlocked); }
 
 const MEMBERSHIP_CARD_HTML = `
   <div class="membership-card">
@@ -1387,7 +1384,7 @@ document.getElementById('lockModalMask').addEventListener('click', (e) => {
   if(e.target.id === 'lockModalMask' || e.target.id === 'lockModalClose') closeLockModal();
 });
 
-document.getElementById('lockModalBody').addEventListener('click', (e) => {
+document.getElementById('lockModalBody').addEventListener('click', async (e) => {
   if(e.target.id === 'lockGoLoginBtn'){
     if(window.openJerryLoginModal) window.openJerryLoginModal();
     return;
@@ -1401,33 +1398,24 @@ document.getElementById('lockModalBody').addEventListener('click', (e) => {
     const btn = e.target;
     btn.disabled = true;
     btn.textContent = '解锁中…';
-    JerrySite.unlockCategory(LOCKED_CATEGORY).then((res) => {
-      if(!res.ok){
-        btn.disabled = false;
-        if(res.reason === 'expired'){
-          btn.textContent = '限免已结束';
-          renderLockModal();
-        } else if(res.reason === 'not_logged_in'){
-          btn.textContent = '请先登录';
-          renderLockModal();
-        } else {
-          btn.textContent = '解锁失败，重试';
-        }
-        return;
-      }
-      unlockedCategories.add(LOCKED_CATEGORY);
-      fireConfetti();
+    try{
+      await JerrySite.unlockRumiTech(); // 服务端按当前登录账号记录解锁状态
+      await refreshRumiStatus();
+    }catch(err){
+      btn.disabled = false;
+      btn.textContent = '🔓 立即解锁';
+      alert('解锁失败，请稍后再试：' + (err.message || err));
+      return;
+    }
+    fireConfetti();
+    setTimeout(() => {
       btn.textContent = '🎉 已解锁！';
       setTimeout(() => {
         closeLockModal();
         loadPost(); // 重新加载，这次因为已解锁会正常展示正文
         openCoffeeModal();
       }, 900);
-    }).catch((err) => {
-      console.error('解锁请求失败:', err);
-      btn.disabled = false;
-      btn.textContent = '网络错误，重试';
-    });
+    }, 600);
   }
 });
 
@@ -1452,15 +1440,20 @@ function fireConfetti(){
   }
 }
 
-// 登录状态变化时：如果弹窗正开着就刷新内容；如果之前是因为未登录/未解锁被拦下的文章，登录后自动重新检测一次
+// 登录状态变化时：先重新拉一次服务端解锁状态；如果之前是因为未登录/未解锁被拦下的文章，
+// 这时候如果已经有权限了，直接把文章加载出来，不用用户再操作一次
 // （登录系统脚本插入在本文件靠后的位置，这里等 DOMContentLoaded 之后再挂载，确保 window.JerrySite 已就绪）
 document.addEventListener('DOMContentLoaded', () => {
   if(window.JerrySite){
     JerrySite.onAuthChange(async () => {
-      await refreshUnlockStatus();
+      await refreshRumiStatus();
       if(document.getElementById('lockModalMask').classList.contains('open')){
-        renderLockModal();
-        if(isUnlocked()) loadPost(); // 登录/解锁后如果文章之前被拦下了，自动重新加载一次
+        if(isUnlocked()){
+          closeLockModal();
+          loadPost();
+        } else {
+          renderLockModal();
+        }
       }
     });
   }
@@ -1478,7 +1471,7 @@ async function waitForJerrySiteReady(){
 
 (async () => {
   await waitForJerrySiteReady();
-  await refreshUnlockStatus();
+  await refreshRumiStatus();
   loadPost();
   initBgCarousel();
   initCheckin();
@@ -2643,7 +2636,6 @@ initWeather();
 
 
 <!-- ================= 通行证登录系统（与 index.html/blog.html 共用同一 Supabase 后端） ================= -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <!-- 引入 Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
@@ -2726,7 +2718,7 @@ const JerrySite = (function () {
   const toggleLike = (postId) => rpc('toggle_like', { p_post_id: String(postId) });
   const feedZara = (itemId, cost) => rpc('feed_zara', { p_item_id: itemId, p_cost: cost });
   const getMyStatus = () => rpc('get_my_status');
-  const unlockCategory = (category) => rpc('unlock_category', { p_category: String(category) });
+  const unlockRumiTech = () => rpc('unlock_rumi_tech');
 
   async function getComments(postId) {
     const { data, error } = await client
@@ -2757,7 +2749,7 @@ const JerrySite = (function () {
     init, onAuthChange,
     signInWithGoogle, sendEmailCode, verifyEmailCode, signOut,
     getUser, isLoggedIn,
-    checkinToday, recordView, toggleLike, feedZara, getMyStatus, unlockCategory,
+    checkinToday, recordView, toggleLike, feedZara, getMyStatus, unlockRumiTech,
     getComments, postComment, deleteComment
   };
 })();
