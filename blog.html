@@ -542,6 +542,18 @@
     transform:scale(1.7) translateY(8%);
   }
 
+  /* 首次进入页面的开场动作动画：贴右边缘播完welcome-pet逐帧序列，再淡出切换成悬浮球，
+     素材放 images/pet/pet-intro-sheet.png（8列x4行，共32帧，140x187/帧） */
+  #pet-intro{
+    position:fixed; z-index:499; right:-10px; pointer-events:none;
+    width:140px; height:187px;
+    background-image:url('images/pet/pet-intro-sheet.png');
+    background-repeat:no-repeat;
+    background-size:1120px 748px;
+    opacity:0; transition:opacity .35s ease;
+  }
+  #pet-intro.show{ opacity:1; }
+
   #pet-body{
     position:relative; width:100%; height:100%;
     transition:transform .15s ease;
@@ -3138,10 +3150,42 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
     wrap.style.top = clampTop(topPx, h) + 'px';
   }
 
+  // 首次进入页面的开场动作动画：角色贴右边播完一段动作，再淡出切换成悬浮球
+  function playPetIntro(onDone){
+    const introEl = document.createElement('div');
+    introEl.id = 'pet-intro';
+    const cols = 8, rows = 4, total = 32, frameW = 140, frameH = 187;
+    const ballTop = clampTop(window.innerHeight * 0.42, getDockBallSize());
+    // 让开场动画的垂直中心，尽量对齐悬浮球最终落点的中心，淡出/淡入衔接不要跳得太明显
+    introEl.style.top = clampTop(ballTop - (frameH - getDockBallSize()) / 2, frameH) + 'px';
+    introEl.style.backgroundPosition = '0px 0px';
+    document.body.appendChild(introEl);
+    requestAnimationFrame(() => introEl.classList.add('show'));
+
+    let frame = 0;
+    const timer = setInterval(() => {
+      const col = frame % cols, row = Math.floor(frame / cols);
+      introEl.style.backgroundPosition = `-${col * frameW}px -${row * frameH}px`;
+      frame++;
+      if(frame >= total){
+        clearInterval(timer);
+        introEl.classList.remove('show');
+        setTimeout(() => { introEl.remove(); if(onDone) onDone(); }, 350);
+      }
+    }, 1000 / 8);
+  }
+
   // 默认贴边悬浮球：右边，垂直方向大概在屏幕45%高度，首次摆放不要有滑入动画
   wrap.style.transition = 'none';
+  wrap.style.opacity = '0'; // 先藏起来，等开场动作动画播完再出现，避免两个桌宠同时叠在屏幕上
   setDocked('right', window.innerHeight * 0.42);
   requestAnimationFrame(() => { wrap.style.transition = ''; });
+
+  playPetIntro(() => {
+    wrap.style.transition = 'opacity .3s ease';
+    wrap.style.opacity = '1';
+    setTimeout(() => { wrap.style.transition = ''; }, 320);
+  });
 
 
   // 手机端：快速点两下角色才会冒出💬图标（桌面端没有这个隐藏逻辑，图标本来就一直是display:none不显示）
@@ -3192,7 +3236,12 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
     if(Math.abs(clientX - dragStartX) > 4 || Math.abs(clientY - dragStartY) > 4) dragMoved = true;
     let x = clientX - dragOffsetX;
     let y = clientY - dragOffsetY;
-    const extraW = Math.max(0, (chatPanelEl.offsetWidth - wrap.offsetWidth) / 2);
+    // chat-panel 只有桌面端才会以角色为中心水平居中（left:50%+translateX(-50%)），所以桌面端拖拽时
+    // 要多留出 extraW 的边距，不然面板会被裁到屏幕外。手机端 chat-panel 早就改成贴右对齐（right:0，
+    // 见 @media max-width:760px），横向位置跟角色已经脱钩了——继续用这个margin只会在角色离屏幕边缘
+    // 还有几十像素的时候就把它卡住，怎么拖都贴不到真正的边缘，也就吸附不上悬浮球了。
+    const isMobile = window.innerWidth <= 760;
+    const extraW = isMobile ? 0 : Math.max(0, (chatPanelEl.offsetWidth - wrap.offsetWidth) / 2);
     const chatBelow = chatPanelEl.offsetHeight + 12; 
     x = Math.max(extraW, Math.min(window.innerWidth - wrap.offsetWidth - extraW, x));
     y = Math.max(-40, Math.min(window.innerHeight - wrap.offsetHeight - chatBelow, y));
@@ -3385,10 +3434,37 @@ const JerrySite = (function () {
     if (error) throw error;
   }
 
+  async function updateProfile(patch){
+    // patch 形如 { full_name, avatar_url }，只传要改的字段
+    if(!currentUser) throw new Error('需要先登录');
+    const { data, error } = await client.auth.updateUser({ data: patch });
+    if(error) throw error;
+    currentUser = data.user;
+    notify();
+    // profiles 表（评论区头像/昵称是从这张表读的，见 getComments）尽量同步一份，
+    // 如果这张表没开放"改自己这一行"的权限，这里会报错，但不影响上面 auth 那份已经改成功——
+    // 静默失败，不阻塞主流程，只在控制台留个记录方便排查
+    try{
+      await client.from('profiles').update(patch).eq('id', currentUser.id);
+    }catch(e){
+      console.warn('profiles 表同步失败（不影响登录资料本身已更新）:', e);
+    }
+  }
+
+  async function toggleFavorite(postId){
+    // ⚠️ 收藏功能后端还没有对应的表/RPC，这里先占位，调用了会直接抛错，
+    // UI 那边要 catch 住，提示"功能还没上线"，不要让用户以为点了就生效
+    return rpc('toggle_favorite', { p_post_id: String(postId) });
+  }
+  // ⚠️ 下面这两个同样是占位——后端目前没有"查我点赞/收藏过哪些文章"的RPC，
+  // 调用会抛错，UI侧要catch住降级展示，不要让报错糊到用户脸上
+  const getMyLikedPosts = () => rpc('get_my_liked_posts');
+  const getMyFavoritedPosts = () => rpc('get_my_favorited_posts');
+
   return {
     init, onAuthChange,
     signInWithGoogle, sendEmailCode, verifyEmailCode, signOut,
-    getUser, isLoggedIn,
+    getUser, isLoggedIn, updateProfile, toggleFavorite, getMyLikedPosts, getMyFavoritedPosts,
     checkinToday, recordView, toggleLike, feedZara, getMyStatus, unlockCategory,
     getComments, postComment, deleteComment
   };
@@ -3480,6 +3556,63 @@ window.jerrySiteReady = JerrySite.init();
     .jerry-hint{ font-size:12px; opacity:.5; margin-top:12px; text-align:center; line-height:1.5; }
     .jerry-close{ position:absolute; top:20px; right:20px; width:28px; height:28px; border-radius:50%; background:rgba(255,255,255,.1); display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:.7; font-size:14px; transition:.2s; }
     .jerry-close:hover{ opacity:1; background:rgba(255,255,255,.2); }
+
+    /* ============ 头像下拉菜单 ============ */
+    .jerry-dropdown{
+      position:absolute; top:calc(100% + 8px); right:0; min-width:172px; z-index:60;
+      background:#1b1440; border:1px solid rgba(255,255,255,.18); border-radius:16px; padding:6px;
+      box-shadow:0 16px 32px -10px rgba(0,0,0,.5);
+      opacity:0; transform:translateY(-6px) scale(.97); pointer-events:none; transition:.18s;
+    }
+    .jerry-dropdown.open{ opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+    body.theme-light .jerry-dropdown{ background:#fff; border-color:rgba(43,36,64,.14); }
+    .jerry-dropdown-item{
+      display:flex; align-items:center; gap:9px; padding:10px 12px; border-radius:10px; font-size:13.5px;
+      cursor:pointer; transition:.15s; color:inherit;
+    }
+    .jerry-dropdown-item:hover{ background:rgba(255,255,255,.08); }
+    body.theme-light .jerry-dropdown-item:hover{ background:rgba(43,36,64,.06); }
+    .jerry-dropdown-item.danger{ color:#FF8A7A; }
+    .jerry-dropdown-sep{ height:1px; background:rgba(255,255,255,.1); margin:5px 4px; }
+    body.theme-light .jerry-dropdown-sep{ background:rgba(43,36,64,.1); }
+
+    /* ============ 个人中心弹窗 ============ */
+    .jerry-profile-modal{ width:min(420px,92vw); text-align:left; }
+    .jerry-profile-head{ display:flex; align-items:center; gap:14px; margin-bottom:22px; }
+    .jerry-profile-avatar-wrap{ position:relative; flex-shrink:0; }
+    .jerry-profile-avatar-wrap img{ width:64px;height:64px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.2); }
+    .jerry-avatar-reroll{
+      position:absolute; bottom:-2px; right:-2px; width:24px;height:24px;border-radius:50%;
+      background:linear-gradient(120deg,var(--violet,#B18CFF),var(--aqua,#5CE1E6)); border:2px solid #1f1845;
+      display:flex;align-items:center;justify-content:center; font-size:11px; cursor:pointer;
+    }
+    .jerry-profile-name-row{ display:flex; align-items:center; gap:8px; }
+    .jerry-profile-name-row input{
+      flex:1; min-width:0; padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.22);
+      background:rgba(0,0,0,.2); color:inherit; font-size:14px; font-weight:700; outline:none;
+    }
+    .jerry-profile-name-row button{
+      flex-shrink:0; padding:8px 12px; border-radius:10px; border:none; cursor:pointer; font-size:12.5px; font-weight:700;
+      background:linear-gradient(120deg,var(--coral,#FF7A5C),var(--pink,#FF8CD9)); color:#fff;
+    }
+    .jerry-profile-id-row{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--muted,#c9c6e8); margin-top:6px; font-family:'JetBrains Mono',monospace; }
+    .jerry-profile-id-row span.id-copy{ cursor:pointer; text-decoration:underline dotted; }
+    .jerry-profile-msg{ font-size:12px; min-height:16px; margin-top:6px; }
+    .jerry-profile-msg.success{ color:#5CE68A; }
+    .jerry-profile-msg.error{ color:#FF5C5C; }
+
+    .jerry-profile-tabs{ display:flex; gap:6px; margin:20px 0 14px; background:rgba(255,255,255,.06); border-radius:100px; padding:4px; }
+    body.theme-light .jerry-profile-tabs{ background:rgba(43,36,64,.06); }
+    .jerry-profile-tab{ flex:1; text-align:center; padding:8px 0; border-radius:100px; font-size:12.5px; font-weight:600; cursor:pointer; opacity:.6; transition:.2s; }
+    .jerry-profile-tab.active{ background:rgba(255,255,255,.14); opacity:1; }
+    body.theme-light .jerry-profile-tab.active{ background:#fff; }
+    .jerry-profile-list{ max-height:280px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; }
+    .jerry-profile-list a{
+      display:block; padding:10px 12px; border-radius:12px; background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.1); color:inherit; text-decoration:none; font-size:13px; transition:.15s;
+    }
+    .jerry-profile-list a:hover{ background:rgba(255,255,255,.1); }
+    .jerry-profile-empty{ text-align:center; padding:30px 10px; color:var(--muted,#c9c6e8); font-size:12.5px; line-height:1.8; }
   `;
 
   function injectStyle() {
@@ -3524,6 +3657,44 @@ window.jerrySiteReady = JerrySite.init();
     return mask;
   }
 
+  function buildProfileModal() {
+    const mask = document.createElement('div');
+    mask.className = 'jerry-modal-mask';
+    mask.innerHTML = `
+      <div class="jerry-modal jerry-profile-modal">
+        <div class="jerry-close" id="jerryProfileClose">✕</div>
+        <h3>个人中心</h3>
+        <div class="jerry-profile-head">
+          <div class="jerry-profile-avatar-wrap">
+            <img id="jerryProfileAvatar" src="" alt="头像">
+            <div class="jerry-avatar-reroll" id="jerryAvatarReroll" title="换一个头像">🎲</div>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div class="jerry-profile-name-row">
+              <input type="text" id="jerryProfileNameInput" maxlength="24" placeholder="给自己起个名字">
+              <button id="jerryProfileSaveBtn">保存</button>
+            </div>
+            <div class="jerry-profile-id-row">
+              ID：<span id="jerryProfileIdText"></span>
+              <span class="id-copy" id="jerryProfileIdCopy">复制</span>
+            </div>
+          </div>
+        </div>
+        <div class="jerry-profile-msg" id="jerryProfileMsg"></div>
+
+        <div class="jerry-profile-tabs">
+          <div class="jerry-profile-tab active" data-tab="liked">❤️ 我点赞的</div>
+          <div class="jerry-profile-tab" data-tab="favorited">⭐ 我收藏的</div>
+        </div>
+        <div class="jerry-profile-list" id="jerryProfileList">
+          <div class="jerry-profile-empty">加载中…</div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(mask);
+    return mask;
+  }
+
   function setup() {
     injectStyle();
     const slot = document.getElementById('jerry-auth-slot');
@@ -3539,6 +3710,100 @@ window.jerrySiteReady = JerrySite.init();
 
     modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
     modal.querySelector('.jerry-close').addEventListener('click', closeModal);
+
+    // ============ 个人中心弹窗 ============
+    const profileModal = buildProfileModal();
+    const closeProfileModal = () => profileModal.classList.remove('open');
+    profileModal.addEventListener('click', (e) => { if (e.target === profileModal) closeProfileModal(); });
+    profileModal.querySelector('#jerryProfileClose').addEventListener('click', closeProfileModal);
+
+    const profileMsgEl = profileModal.querySelector('#jerryProfileMsg');
+    const showProfileMsg = (text, type = 'error') => {
+      profileMsgEl.textContent = text;
+      profileMsgEl.className = `jerry-profile-msg ${type}`;
+    };
+    const randomAvatarUrl = () => {
+      const seed = Math.random().toString(36).slice(2) + Date.now();
+      return `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(seed)}&backgroundColor=1f1845`;
+    };
+
+    async function loadProfileList(kind){
+      const listEl = profileModal.querySelector('#jerryProfileList');
+      listEl.innerHTML = `<div class="jerry-profile-empty">加载中…</div>`;
+      try{
+        const rows = await (kind === 'liked' ? JerrySite.getMyLikedPosts() : JerrySite.getMyFavoritedPosts());
+        if(!rows || !rows.length){
+          listEl.innerHTML = `<div class="jerry-profile-empty">${kind === 'liked' ? '还没点赞过文章' : '还没收藏过文章'}</div>`;
+          return;
+        }
+        listEl.innerHTML = rows.map(p => `<a href="/post.html?id=${encodeURIComponent(p.id)}">${escapeHtml(p.title || '无标题')}</a>`).join('');
+      }catch(err){
+        // 后端还没有对应的RPC（get_my_liked_posts / get_my_favorited_posts），先友好提示，不要把报错糊用户脸上
+        console.warn('拉取' + kind + '列表失败（可能是后端RPC还没上线）:', err);
+        listEl.innerHTML = `<div class="jerry-profile-empty">这个列表暂时还看不了，后端还需要补一个接口～</div>`;
+      }
+    }
+
+    function openProfileModal(){
+      const user = JerrySite.getUser();
+      if(!user) return;
+      const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email.split('@')[0];
+      const avatar = user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(user.id)}&backgroundColor=1f1845`;
+      profileModal.querySelector('#jerryProfileAvatar').src = avatar;
+      profileModal.querySelector('#jerryProfileNameInput').value = name;
+      profileModal.querySelector('#jerryProfileIdText').textContent = user.id.slice(0, 8) + '…';
+      showProfileMsg('');
+      profileModal.querySelectorAll('.jerry-profile-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+      profileModal.classList.add('open');
+      loadProfileList('liked');
+    }
+    window.openJerryProfileModal = openProfileModal;
+
+    profileModal.querySelector('#jerryProfileIdCopy').addEventListener('click', () => {
+      const user = JerrySite.getUser();
+      if(!user) return;
+      navigator.clipboard.writeText(user.id)
+        .then(() => showProfileMsg('ID 已复制', 'success'))
+        .catch(() => showProfileMsg('复制失败，请手动选中复制'));
+    });
+
+    profileModal.querySelector('#jerryAvatarReroll').addEventListener('click', async () => {
+      const newUrl = randomAvatarUrl();
+      const imgEl = profileModal.querySelector('#jerryProfileAvatar');
+      const prevUrl = imgEl.src;
+      imgEl.src = newUrl;
+      try{
+        await JerrySite.updateProfile({ avatar_url: newUrl });
+        showProfileMsg('头像已更新', 'success');
+      }catch(err){
+        imgEl.src = prevUrl;
+        showProfileMsg('头像更新失败：' + err.message);
+      }
+    });
+
+    profileModal.querySelector('#jerryProfileSaveBtn').addEventListener('click', async () => {
+      const input = profileModal.querySelector('#jerryProfileNameInput');
+      const newName = input.value.trim();
+      if(!newName) { showProfileMsg('名字不能为空'); return; }
+      const btn = profileModal.querySelector('#jerryProfileSaveBtn');
+      btn.disabled = true; btn.textContent = '保存中…';
+      try{
+        await JerrySite.updateProfile({ full_name: newName });
+        showProfileMsg('名字已更新', 'success');
+      }catch(err){
+        showProfileMsg('更新失败：' + err.message);
+      }finally{
+        btn.disabled = false; btn.textContent = '保存';
+      }
+    });
+
+    profileModal.querySelectorAll('.jerry-profile-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        profileModal.querySelectorAll('.jerry-profile-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        loadProfileList(tab.dataset.tab);
+      });
+    });
 
     const emailMsg = modal.querySelector('#emailMsg');
     const showMsg = (text, type='error') => {
@@ -3620,15 +3885,33 @@ window.jerrySiteReady = JerrySite.init();
         const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email.split('@')[0];
         const avatar = user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(user.id)}&backgroundColor=1f1845`;
         slot.innerHTML = `
-          <div class="jerry-user-chip" id="jerryUserChip" title="点击退出登录">
+          <div class="jerry-user-chip" id="jerryUserChip" title="点击查看菜单">
             <img src="${avatar}" alt="Avatar">
             <span>${name}</span>
             <span class="pts" id="jerryPtsDisplay">...</span>
           </div>
+          <div class="jerry-dropdown" id="jerryDropdown">
+            <div class="jerry-dropdown-item" id="jerryOpenProfileItem">👤 个人中心</div>
+            <div class="jerry-dropdown-sep"></div>
+            <div class="jerry-dropdown-item danger" id="jerrySignOutItem">🚪 退出登录</div>
+          </div>
         `;
-        slot.querySelector('#jerryUserChip').addEventListener('click', () => {
+        const dropdownEl = slot.querySelector('#jerryDropdown');
+        const closeDropdown = () => dropdownEl.classList.remove('open');
+        slot.querySelector('#jerryUserChip').addEventListener('click', (e) => {
+          e.stopPropagation();
+          dropdownEl.classList.toggle('open');
+        });
+        slot.querySelector('#jerryOpenProfileItem').addEventListener('click', () => {
+          closeDropdown();
+          openProfileModal();
+        });
+        slot.querySelector('#jerrySignOutItem').addEventListener('click', () => {
+          closeDropdown();
           if (confirm('确定要退出当前账号吗？')) JerrySite.signOut();
         });
+        // 点菜单外面任何地方，自动收起下拉菜单
+        document.addEventListener('click', closeDropdown);
         
         JerrySite.getMyStatus().then(status => {
           const el = document.getElementById('jerryPtsDisplay');
