@@ -1556,6 +1556,7 @@ function buildCategoryTabs(posts){
 
       if(a.dataset.filter === LOCKED_CATEGORY){
         await waitForJerrySiteReady(); // 先等登录系统就绪，避免脚本还没加载完就误判"未登录"
+        await refreshUnlockStatus(); // 每次点开都用服务器最新状态判断，避免"页面刚加载、后台刷新还没跑完"或"另一个标签页里刚解锁"导致误判成未解锁
         if(!isUnlocked()){
           openLockModal(); // 没有权限：弹窗检测/引导解锁，不切换分类
           return;
@@ -2042,6 +2043,7 @@ async function waitForJerrySiteReady(){
 }
 (async () => {
   await waitForJerrySiteReady();
+  await refreshUnlockStatus();
   initCheckinWidget();
   initPointsWidget();
 })();
