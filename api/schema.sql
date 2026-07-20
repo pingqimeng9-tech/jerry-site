@@ -160,6 +160,25 @@ create policy "comments_delete_own"
   using (auth.uid() = user_id);
 
 
+-- ---------- 7. 分类解锁记录：账号级权限，不是前端localStorage开关 ----------
+create table if not exists public.category_unlocks (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  category text not null,
+  unlocked_at timestamptz not null default now(),
+  unique (user_id, category)
+);
+
+alter table public.category_unlocks enable row level security;
+
+drop policy if exists "unlocks_select_own" on public.category_unlocks;
+create policy "unlocks_select_own"
+  on public.category_unlocks for select
+  using (auth.uid() = user_id);
+-- 注意：故意不给 insert/update policy——解锁只能通过下面的 unlock_category() 函数写入，
+-- 前端就算直接调用 supabase.from('category_unlocks').insert(...) 也会被RLS拒绝
+
+
 -- ============================================================
 -- RPC 函数：所有会改积分的操作都走这里，前端只能调用函数、不能直接写表
 -- security definer = 用创建者(超级权限)的身份执行，内部逻辑自己控制安全，
@@ -306,7 +325,39 @@ end;
 $$;
 
 
--- 获取当前用户的完整状态（积分 + 是否今天已打卡 + 连续打卡天数），前端一次调用拿全部数据
+-- 解锁分类：截止日期写死在这个函数里（服务器时钟为准），前端传不了假日期来绕过；
+-- 已经解锁过的话直接幂等返回成功，不会重复插入报错
+create or replace function public.unlock_category(p_category text)
+returns json
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  uid uuid := auth.uid();
+  -- ★ 限免截止时间：改这一行就行，前端显示的倒计时也要跟这个日期对应改，但真正生效以这里为准
+  deadline timestamptz := '2026-07-23 23:59:59+08';
+  already boolean;
+begin
+  if uid is null then
+    return json_build_object('ok', false, 'reason', 'not_logged_in');
+  end if;
+
+  select exists(select 1 from public.category_unlocks where user_id = uid and category = p_category) into already;
+  if already then
+    return json_build_object('ok', true, 'already_unlocked', true);
+  end if;
+
+  if now() > deadline then
+    return json_build_object('ok', false, 'reason', 'expired');
+  end if;
+
+  insert into public.category_unlocks (user_id, category) values (uid, p_category);
+  return json_build_object('ok', true, 'already_unlocked', false);
+end;
+$$;
+
+
+-- 获取当前用户的完整状态（积分 + 是否今天已打卡 + 连续打卡天数 + 已解锁的分类列表），前端一次调用拿全部数据
 create or replace function public.get_my_status()
 returns json
 language plpgsql
@@ -318,6 +369,7 @@ declare
   checked_today boolean;
   streak int;
   anchor date;
+  unlocked_cats text[];
 begin
   if uid is null then
     return json_build_object('logged_in', false);
@@ -325,6 +377,7 @@ begin
 
   select points into pts from public.user_points where user_id = uid;
   select exists(select 1 from public.checkins where user_id = uid and checkin_date = current_date) into checked_today;
+  select coalesce(array_agg(category), '{}') into unlocked_cats from public.category_unlocks where user_id = uid;
 
   -- 连续打卡天数：以"今天"为基准，今天还没打卡就往前推到"昨天"当基准
   -- （这样今天还没打卡之前，昨天连续打的卡不会瞬间清零，符合"到今天结束前都还算数"的直觉）
@@ -344,7 +397,8 @@ begin
     'logged_in', true,
     'points', coalesce(pts, 0),
     'checked_in_today', checked_today,
-    'streak', coalesce(streak, 0)
+    'streak', coalesce(streak, 0),
+    'unlocked_categories', to_jsonb(unlocked_cats)
   );
 end;
 $$;
