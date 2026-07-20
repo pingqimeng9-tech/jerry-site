@@ -3435,29 +3435,34 @@ const JerrySite = (function () {
   }
 
   async function updateProfile(patch){
-    // patch 形如 { full_name, avatar_url }，只传要改的字段
+    // patch 形如 { full_name, avatar_url }，只传要改的字段。
+    // 这里要同时同步两个地方：
+    //  1) auth 用户的 user_metadata（约定用 full_name 这个key）
+    //  2) public.profiles 表（评论区/收藏点赞列表头像昵称是从这张表读的，见 getComments，
+    //     这张表的列名是 display_name，不是 full_name，两边key不一样，得分别映射，不能直接透传同一个patch）
     if(!currentUser) throw new Error('需要先登录');
     const { data, error } = await client.auth.updateUser({ data: patch });
     if(error) throw error;
     currentUser = data.user;
     notify();
-    // profiles 表（评论区头像/昵称是从这张表读的，见 getComments）尽量同步一份，
-    // 如果这张表没开放"改自己这一行"的权限，这里会报错，但不影响上面 auth 那份已经改成功——
-    // 静默失败，不阻塞主流程，只在控制台留个记录方便排查
+
+    const profilesPatch = {};
+    if('full_name' in patch) profilesPatch.display_name = patch.full_name;
+    if('avatar_url' in patch) profilesPatch.avatar_url = patch.avatar_url;
+
     try{
-      await client.from('profiles').update(patch).eq('id', currentUser.id);
+      await client.from('profiles').update(profilesPatch).eq('id', currentUser.id);
     }catch(e){
       console.warn('profiles 表同步失败（不影响登录资料本身已更新）:', e);
     }
   }
 
   async function toggleFavorite(postId){
-    // ⚠️ 收藏功能后端还没有对应的表/RPC，这里先占位，调用了会直接抛错，
-    // UI 那边要 catch 住，提示"功能还没上线"，不要让用户以为点了就生效
+    // 对应 schema 里的 toggle_favorite()。如果 Supabase 那边还没跑过新的 schema.sql，
+    // 这个调用会抛错——UI 那边要 catch 住，提示"功能还没上线"，不要让用户以为点了就生效
     return rpc('toggle_favorite', { p_post_id: String(postId) });
   }
-  // ⚠️ 下面这两个同样是占位——后端目前没有"查我点赞/收藏过哪些文章"的RPC，
-  // 调用会抛错，UI侧要catch住降级展示，不要让报错糊到用户脸上
+  // 对应 schema 里的 get_my_liked_posts() / get_my_favorited_posts()，同样依赖新schema已经跑过
   const getMyLikedPosts = () => rpc('get_my_liked_posts');
   const getMyFavoritedPosts = () => rpc('get_my_favorited_posts');
 

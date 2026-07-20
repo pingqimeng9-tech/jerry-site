@@ -114,6 +114,60 @@
   .a-title{font-family:'Noto Serif SC',serif;font-weight:900;font-size:clamp(24px,4vw,32px);line-height:1.35;margin-bottom:14px;}
   .a-title-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; }
   .a-title-row .a-title{ flex:1; min-width:200px; margin-bottom:0; }
+  .a-title-actions{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .like-inline-btn, .fav-inline-btn{
+    flex-shrink:0; font-size:12.5px; padding:8px 14px; border-radius:100px; cursor:pointer;
+    background:rgba(255,255,255,.08); border:1px solid var(--glass-border); color:#fff; font-family:inherit;
+    display:inline-flex; align-items:center; gap:5px; transition:.2s;
+  }
+  .like-inline-btn:hover, .fav-inline-btn:hover{ background:rgba(255,255,255,.16); }
+  .like-inline-btn.active{ background:rgba(255,92,92,.18); border-color:rgba(255,92,92,.4); color:#FF8080; }
+  .fav-inline-btn.active{ background:rgba(255,201,60,.18); border-color:rgba(255,201,60,.4); color:#FFC93C; }
+  .share-inline-btn{
+    flex-shrink:0; font-size:12.5px; padding:8px 14px; border-radius:100px; cursor:pointer;
+    background:rgba(255,255,255,.08); border:1px solid var(--glass-border); color:#fff; font-family:inherit;
+  }
+  .share-inline-btn:hover{ background:rgba(255,255,255,.16); }
+
+  /* ================= 分享海报弹窗 ================= */
+  .share-modal{
+    width:min(360px,92vw); max-height:90vh; overflow-y:auto; background:#1b1440; border:1px solid var(--glass-border);
+    border-radius:20px; padding:20px; color:#fff;
+  }
+  .share-modal-head{ display:flex; align-items:center; justify-content:space-between; font-size:15px; font-weight:700; margin-bottom:16px; }
+  .share-modal-head .close-lock{ position:static; cursor:pointer; }
+
+  .share-poster{
+    background:#141225; border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:18px; color:#fff;
+  }
+  .poster-brand-row{ display:flex; align-items:center; gap:8px; margin-bottom:14px; }
+  .poster-brand-logo{ width:22px;height:22px;border-radius:50%;object-fit:cover; }
+  .poster-brand-name{ font-weight:800; font-size:13px; }
+  .poster-brand-tag{ margin-left:auto; font-size:11px; color:var(--muted,#9a92bd); }
+  .poster-cover{ width:100%; aspect-ratio:16/10; object-fit:cover; border-radius:12px; margin-bottom:14px; background:#2a2350; display:block; }
+  .poster-user-row{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .poster-user-avatar{ width:34px;height:34px;border-radius:50%;object-fit:cover; }
+  .poster-user-name{ font-size:13px; font-weight:700; }
+  .poster-user-sub{ font-size:11px; color:var(--muted,#9a92bd); }
+  .poster-title{ font-size:16px; font-weight:800; line-height:1.5; margin-bottom:8px; }
+  .poster-excerpt{
+    font-size:12.5px; color:#c9c6e8; line-height:1.7; margin-bottom:16px;
+    display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
+  }
+  .poster-qr-row{ display:flex; align-items:center; gap:14px; padding-top:14px; border-top:1px dashed rgba(255,255,255,.15); }
+  .poster-qr{ width:64px;height:64px; background:#fff; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .poster-qr-title{ font-size:12px; font-weight:700; }
+  .poster-qr-sub{ font-size:11px; color:var(--muted,#9a92bd); margin:2px 0; }
+  .poster-qr-domain{ font-size:11px; color:#5CE1E6; font-family:'JetBrains Mono',monospace; }
+
+  .share-modal-actions{ display:flex; gap:10px; margin-top:18px; }
+  .share-save-btn, .share-copy-btn{
+    flex:1; padding:12px; border-radius:100px; border:none; cursor:pointer; font-size:13.5px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .share-save-btn{ background:#8FE04A; color:#12102b; }
+  .share-copy-btn{ background:rgba(255,255,255,.08); color:#fff; border:1px solid var(--glass-border); }
+  .share-save-btn:disabled, .share-copy-btn:disabled{ opacity:.6; cursor:default; }
   .coffee-inline-btn{
     display:inline-flex; align-items:center; gap:6px; flex-shrink:0; margin-top:4px;
     padding:8px 16px; border-radius:100px; border:1px solid rgba(255,201,60,.4);
@@ -167,6 +221,19 @@
     width:56px; height:56px; border-radius:10px; object-fit:cover; border:1px solid var(--glass-border); background:rgba(255,255,255,.06);
     flex-shrink:0;
   }
+
+  .tier-grid{ display:flex; flex-direction:column; gap:10px; margin-bottom:14px; text-align:left; }
+  .tier-card{ border-radius:16px; padding:14px 16px; border:1px solid var(--glass-border); background:rgba(255,255,255,.05); }
+  .tier-card.tier-dm{ background:linear-gradient(145deg, rgba(255,201,60,.14), rgba(255,122,92,.08)); border-color:rgba(255,201,60,.4); }
+  .tier-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:6px; }
+  .tier-name{ font-size:14.5px; font-weight:800; }
+  .tier-price{ font-family:'JetBrains Mono',monospace; font-weight:800; color:#FFC93C; font-size:15px; }
+  .tier-desc{ font-size:12.5px; color:var(--muted); line-height:1.6; margin-bottom:10px; }
+  .tier-soon{ display:inline-block; font-size:10px; padding:3px 8px; border-radius:100px; background:rgba(255,255,255,.1); color:var(--muted); margin-bottom:8px; }
+  .tier-btn{ width:100%; padding:10px; border-radius:100px; border:none; font-size:13px; font-weight:700; cursor:pointer; text-align:center; text-decoration:none; display:block; box-sizing:border-box; }
+  .tier-btn.disabled{ background:rgba(255,255,255,.08); color:var(--muted); cursor:not-allowed; }
+  .tier-btn.dm{ background:linear-gradient(120deg,#6B5CFF,#B98CFF); color:#fff; }
+  .tier-note{ font-size:11.5px; color:var(--muted); text-align:center; line-height:1.7; margin:0 0 18px; opacity:.85; }
 
   .login-gate-box{ padding:8px 0 6px; }
   .login-gate-box .lock-icon{ font-size:44px; margin-bottom:14px; }
@@ -859,6 +926,9 @@
   }
 </style>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -964,7 +1034,51 @@
   </div>
 </div>
 
+<div class="lock-modal-mask" id="shareModalMask">
+  <div class="share-modal">
+    <div class="share-modal-head">
+      <span>分享海报</span>
+      <span class="close-lock" id="shareModalClose">✕</span>
+    </div>
+
+    <!-- poster 这个div会被html2canvas整个截图保存，样式都得内联在它自己范围内，不要依赖外部才能渲染对 -->
+    <div class="share-poster" id="sharePoster">
+      <div class="poster-brand-row">
+        <img class="poster-brand-logo" src="/images/logo.png" onerror="this.style.display='none'" alt="">
+        <span class="poster-brand-name">JERRY.DEV</span>
+        <span class="poster-brand-tag">· 分享 ·</span>
+      </div>
+      <img class="poster-cover" id="posterCover" src="" alt="">
+      <div class="poster-user-row">
+        <img class="poster-user-avatar" id="posterUserAvatar" src="" alt="">
+        <div>
+          <div class="poster-user-name" id="posterUserName">访客</div>
+          <div class="poster-user-sub">分享了一条动态</div>
+        </div>
+      </div>
+      <div class="poster-title" id="posterTitle"></div>
+      <div class="poster-excerpt" id="posterExcerpt"></div>
+      <div class="poster-qr-row">
+        <div class="poster-qr" id="posterQr"></div>
+        <div class="poster-qr-text">
+          <div class="poster-qr-title">扫码访问</div>
+          <div class="poster-qr-sub">来 JERRY.DEV 看看</div>
+          <div class="poster-qr-domain" id="posterDomain"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="share-modal-actions">
+      <button class="share-save-btn" id="shareSaveBtn">⬇ 保存图片</button>
+      <button class="share-copy-btn" id="shareCopyBtn">🔗 复制链接</button>
+    </div>
+  </div>
+</div>
+
 <script>
+let currentPost = null;
+let currentPostId = null;
+
 async function loadPost(){
   const container = document.getElementById('article-container');
   const params = new URLSearchParams(window.location.search);
@@ -985,6 +1099,8 @@ async function loadPost(){
     }
 
     const post = data.post;
+    currentPost = post;
+    currentPostId = id;
     document.title = (post.title || '文章') + ' · Jerry';
 
     const locked = isLockedCategory(post.category);
@@ -993,7 +1109,12 @@ async function loadPost(){
     const titleRowHtml = `
       <div class="a-title-row">
         <div class="a-title">${escapeHtml(post.title || '无标题')}</div>
-        <a class="coffee-inline-btn" href="https://ifdian.net/a/rumi-ai" target="_blank" rel="noopener">☕ 请我喝咖啡</a>
+        <div class="a-title-actions">
+          <button class="like-inline-btn" id="likeInlineBtn" data-post-id="${escapeHtml(id)}">🤍 <span id="likeInlineText">喜欢</span></button>
+          <button class="fav-inline-btn" id="favInlineBtn" data-post-id="${escapeHtml(id)}">☆ <span id="favInlineText">收藏</span></button>
+          <button class="share-inline-btn" id="shareInlineBtn">🔗 分享</button>
+          <a class="coffee-inline-btn" href="https://ifdian.net/a/rumi-ai" target="_blank" rel="noopener">☕ 请我喝咖啡</a>
+        </div>
       </div>
     `;
 
@@ -1022,7 +1143,7 @@ async function loadPost(){
         ${post.date ? `<span>📅 ${post.date}</span>` : ''}
         ${post.category ? `<span class="tag">${escapeHtml(post.category)}</span>` : ''}
         <span>👁 <span id="viewCount">${post.views || 0}</span> 次浏览</span>
-        ${locked ? `<span class="days-left">🎂 会员内容可查看剩余 ${daysLeft()} 天</span>` : ''}
+        ${locked ? `<span class="days-left">🎂 会员内容试用${trialDaysLeft() !== null ? `还剩 ${trialDaysLeft()} 天` : '中'}</span>` : ''}
       </div>
       <div class="a-body" id="a-body"></div>
     `;
@@ -1032,6 +1153,8 @@ async function loadPost(){
     buildTOC();
     bumpViewCount(id);
     loadSidebarWidgets(id);
+    initLikeFavoriteButtons(id);
+    wireShareButton(post, id);
 
   } catch (err) {
     container.innerHTML = `<div class="state-box error">网络请求失败：${escapeHtml(err.message)}</div>`;
@@ -1160,6 +1283,151 @@ async function loadSidebarWidgets(currentPostId){
   }
 }
 
+/* ================= 点赞 / 收藏按钮 ================= */
+async function initLikeFavoriteButtons(postId){
+  const likeBtn = document.getElementById('likeInlineBtn');
+  const favBtn = document.getElementById('favInlineBtn');
+  if(!likeBtn || !favBtn) return;
+
+  function setLikeUI(active){
+    likeBtn.classList.toggle('active', active);
+    likeBtn.firstChild.textContent = active ? '❤️ ' : '🤍 ';
+    document.getElementById('likeInlineText').textContent = active ? '已喜欢' : '喜欢';
+  }
+  function setFavUI(active){
+    favBtn.classList.toggle('active', active);
+    favBtn.firstChild.textContent = active ? '★ ' : '☆ ';
+    document.getElementById('favInlineText').textContent = active ? '已收藏' : '收藏';
+  }
+
+  // 没登录：按钮可见但点了引导登录，先按"未点过"展示
+  if(!isLoggedIn()){
+    setLikeUI(false);
+    setFavUI(false);
+  } else {
+    try{
+      const [liked, faved] = await Promise.all([
+        JerrySite.getMyLikedPosts().catch(() => []),
+        JerrySite.getMyFavoritedPosts().catch(() => [])
+      ]);
+      setLikeUI(Array.isArray(liked) && liked.some(p => String(p.id) === String(postId)));
+      setFavUI(Array.isArray(faved) && faved.some(p => String(p.id) === String(postId)));
+    }catch(e){
+      console.warn('拉取点赞/收藏状态失败:', e);
+    }
+  }
+
+  likeBtn.onclick = async () => {
+    if(!isLoggedIn()){ if(window.openJerryLoginModal) window.openJerryLoginModal(); return; }
+    likeBtn.disabled = true;
+    try{
+      const res = await JerrySite.toggleLike(postId);
+      setLikeUI(!!res.liked);
+    }catch(err){
+      alert('操作失败：' + (err.message || err));
+    }finally{
+      likeBtn.disabled = false;
+    }
+  };
+
+  favBtn.onclick = async () => {
+    if(!isLoggedIn()){ if(window.openJerryLoginModal) window.openJerryLoginModal(); return; }
+    favBtn.disabled = true;
+    try{
+      const res = await JerrySite.toggleFavorite(postId);
+      setFavUI(!!res.favorited);
+    }catch(err){
+      alert('收藏功能可能还没上线，请稍后再试：' + (err.message || err));
+    }finally{
+      favBtn.disabled = false;
+    }
+  };
+}
+
+/* ================= 分享海报 ================= */
+function excerptFromMarkdown(md, len){
+  if(!md) return '';
+  const plain = md
+    .replace(/!\[.*?\]\(.*?\)/g, '')      // 图片
+    .replace(/\[(.*?)\]\(.*?\)/g, '$1')   // 链接只留文字
+    .replace(/[#>*`_~-]/g, '')            // 常见 markdown 符号
+    .replace(/\n+/g, ' ')
+    .trim();
+  return plain.length > len ? plain.slice(0, len) + '…' : plain;
+}
+
+function wireShareButton(post, postId){
+  const shareBtn = document.getElementById('shareInlineBtn');
+  if(!shareBtn) return;
+  shareBtn.onclick = () => openShareModal(post, postId);
+}
+
+function openShareModal(post, postId){
+  const user = window.JerrySite && JerrySite.getUser ? JerrySite.getUser() : null;
+  const name = user
+    ? (user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || '访客')
+    : '访客';
+  const avatar = user?.user_metadata?.avatar_url
+    || `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(user ? user.id : 'guest')}&backgroundColor=1f1845`;
+
+  document.getElementById('posterUserAvatar').src = avatar;
+  document.getElementById('posterUserName').textContent = name;
+  document.getElementById('posterCover').src = post.cover || '';
+  document.getElementById('posterCover').style.display = post.cover ? 'block' : 'none';
+  document.getElementById('posterTitle').textContent = post.title || '无标题';
+  document.getElementById('posterExcerpt').textContent = excerptFromMarkdown(post.markdown, 80);
+
+  const shareUrl = window.location.href;
+  document.getElementById('posterDomain').textContent = window.location.hostname;
+
+  const qrEl = document.getElementById('posterQr');
+  qrEl.innerHTML = '';
+  if(window.QRCode){
+    new QRCode(qrEl, { text: shareUrl, width: 64, height: 64, correctLevel: QRCode.CorrectLevel.M });
+  }
+
+  document.getElementById('shareModalMask').classList.add('open');
+}
+function closeShareModal(){
+  document.getElementById('shareModalMask').classList.remove('open');
+}
+
+document.getElementById('shareModalMask').addEventListener('click', (e) => {
+  if(e.target.id === 'shareModalMask' || e.target.id === 'shareModalClose') closeShareModal();
+});
+
+document.getElementById('shareSaveBtn')?.addEventListener('click', async () => {
+  const btn = document.getElementById('shareSaveBtn');
+  const poster = document.getElementById('sharePoster');
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = '生成中…';
+  try{
+    const canvas = await html2canvas(poster, { backgroundColor: '#141225', scale: 2, useCORS: true });
+    const link = document.createElement('a');
+    link.download = `${(currentPost?.title || '分享').slice(0, 20)}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }catch(err){
+    alert('图片生成失败，可能是封面图跨域限制导致的：' + (err.message || err));
+  }finally{
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+});
+
+document.getElementById('shareCopyBtn')?.addEventListener('click', async () => {
+  const btn = document.getElementById('shareCopyBtn');
+  try{
+    await navigator.clipboard.writeText(window.location.href);
+    const original = btn.textContent;
+    btn.textContent = '✓ 已复制';
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  }catch(err){
+    alert('复制失败，请手动复制地址栏链接');
+  }
+});
+
 function buildTagCloud(posts){
   const counts = {};
   posts.forEach(p => {
@@ -1267,22 +1535,45 @@ function weatherCodeToText(code){
   return '未知';
 }
 
-/* ============ 会员锁定分类：状态检测弹窗（与 blog.html 同一套逻辑） ============ */
+/* ============ 会员锁定分类：状态检测弹窗（与 blog.html 同一套逻辑，真实账号级权限） ============ */
 const LOCKED_CATEGORY = 'Rumi英语技术';
-const RUMI_UNLOCK_KEY = 'rumiTechUnlocked';
-// 生日限免 7 天：从公告栏记录的上线日 2026-07-16 起算，到 2026-07-23 结束
-const UNLOCK_DEADLINE = new Date('2026-07-23T23:59:59+08:00');
-
 function isLockedCategory(cat){
   return (cat || '').trim().toLowerCase() === LOCKED_CATEGORY.toLowerCase();
 }
-function daysLeft(){
-  const ms = UNLOCK_DEADLINE.getTime() - Date.now();
-  return Math.max(0, Math.ceil(ms / 86400000));
-}
-function isOfferExpired(){ return Date.now() > UNLOCK_DEADLINE.getTime(); }
 function isLoggedIn(){ return !!(window.JerrySite && JerrySite.isLoggedIn()); }
-function isUnlocked(){ return localStorage.getItem(RUMI_UNLOCK_KEY) === '1'; }
+
+// 解锁状态是真实的账号级权限（Supabase category_unlocks 表），不是本地localStorage假开关。
+// unlockedCategories 是从服务器拉回来之后缓存在内存里的Set，登录/解锁成功后会重新拉取刷新。
+let unlockedCategories = new Set();
+const TRIAL_DAYS = 7;
+let unlockedAt = null; // Date | null，当前用户解锁 LOCKED_CATEGORY 的时间
+
+async function refreshUnlockStatus(){
+  if(!isLoggedIn()){ unlockedCategories = new Set(); unlockedAt = null; return; }
+  try{
+    const status = await JerrySite.getMyStatus();
+    unlockedCategories = new Set(status.unlocked_categories || []);
+    const times = status.category_unlock_times || {};
+    unlockedAt = times[LOCKED_CATEGORY] ? new Date(times[LOCKED_CATEGORY]) : null;
+  }catch(e){
+    console.error('拉取解锁状态失败:', e);
+  }
+}
+function trialDaysLeft(){
+  if(!unlockedAt) return null;
+  const expireAt = unlockedAt.getTime() + TRIAL_DAYS * 86400000;
+  return Math.max(0, Math.ceil((expireAt - Date.now()) / 86400000));
+}
+function trialRemaining(){
+  if(!unlockedAt) return null;
+  const expireAt = unlockedAt.getTime() + TRIAL_DAYS * 86400000;
+  const msLeft = Math.max(0, expireAt - Date.now());
+  const totalHours = Math.floor(msLeft / 3600000);
+  return { d: Math.floor(totalHours / 24), h: totalHours % 24, msLeft };
+}
+function isUnlocked(){ return unlockedCategories.has(LOCKED_CATEGORY); }
+function isTrialActive(){ return isUnlocked() && (unlockedAt === null || trialDaysLeft() > 0); }
+function isTrialExpired(){ return isUnlocked() && unlockedAt !== null && trialDaysLeft() <= 0; }
 
 const MEMBERSHIP_CARD_HTML = `
   <div class="membership-card">
@@ -1302,16 +1593,60 @@ const MEMBERSHIP_CARD_HTML = `
   </div>
 `;
 
+const DM_HOST_URL = 'https://ifdian.net/a/rumi-ai';
+function TIER_PAYWALL_HTML(){
+  return `
+    <div class="tier-grid">
+      <div class="tier-card">
+        <div class="tier-head"><span class="tier-name">普通档 · 月会员</span><span class="tier-price">¥30/月</span></div>
+        <div class="tier-soon">测试功能未上线</div>
+        <div class="tier-desc">开通后可自由查看这部分全部内容。</div>
+        <button type="button" class="tier-btn disabled" data-tier="basic">开通会员</button>
+      </div>
+      <div class="tier-card">
+        <div class="tier-head"><span class="tier-name">高档档 · 年会员</span><span class="tier-price">¥365/年</span></div>
+        <div class="tier-soon">测试功能未上线</div>
+        <div class="tier-desc">开通后可自由查看这部分全部内容，并可入群交流。</div>
+        <button type="button" class="tier-btn disabled" data-tier="premium">开通会员</button>
+      </div>
+      <div class="tier-card tier-dm">
+        <div class="tier-head"><span class="tier-name">私信站长解锁</span></div>
+        <div class="tier-desc">私信站长，站长手动帮你解锁。</div>
+        <a class="tier-btn dm" href="${DM_HOST_URL}" target="_blank" rel="noopener">💌 请点击私信站长后请喝咖啡</a>
+      </div>
+    </div>
+    <p class="tier-note">我们一起努力，在ai的道路上创业致富，每天一块钱当做你对我未来的投资，股东们，让我们一起创造属于我们的神话</p>
+  `;
+}
+
+let trialCountdownTimer = null;
+function stopTrialCountdown(){
+  if(trialCountdownTimer){ clearInterval(trialCountdownTimer); trialCountdownTimer = null; }
+}
+function startTrialCountdown(elId, onExpire){
+  stopTrialCountdown();
+  const tick = () => {
+    const el = document.getElementById(elId);
+    const info = trialRemaining();
+    if(!el || !info) { stopTrialCountdown(); return; }
+    if(info.msLeft <= 0){ stopTrialCountdown(); if(onExpire) onExpire(); return; }
+    el.textContent = `${info.d}天${info.h}小时`;
+  };
+  tick();
+  trialCountdownTimer = setInterval(tick, 60000);
+}
+
 function renderLockModal(){
   const body = document.getElementById('lockModalBody');
   const closeBtnHtml = `<span class="close-lock" id="lockModalClose">✕</span>`;
+  stopTrialCountdown();
 
   if(!isLoggedIn()){
     body.innerHTML = `
       ${closeBtnHtml}
       <div class="login-gate-box">
         <div class="lock-icon">🔒</div>
-        <div class="badge">🎂 Jerry生日限时免费 · 仅剩 ${daysLeft()} 天</div>
+        <div class="badge">🎂 解锁即享 7 天免费</div>
         <h3>Rumi英语技术 · 会员专区</h3>
         <p>这里是完整的技术拆解内容，<b>请先登录</b>才能查看详情并解锁哦～</p>
         <button class="login-now-btn" id="lockGoLoginBtn">👤 立即登录</button>
@@ -1320,25 +1655,41 @@ function renderLockModal(){
     return;
   }
 
-  if(isUnlocked()){
+  if(isTrialActive()){
+    const info = trialRemaining();
     body.innerHTML = `
       ${closeBtnHtml}
       <div class="cake-visual">🎉🎂</div>
-      <div class="badge">已解锁</div>
+      <div class="badge">已解锁${info ? ` · 试用还剩 <span id="lockModalCountdown">${info.d}天${info.h}小时</span>` : ''}</div>
       <h3>Rumi英语技术 · 会员专区</h3>
       <p class="desc">你已经解锁过这部分内容啦，正在为你打开文章～</p>
       ${MEMBERSHIP_CARD_HTML}
     `;
+    if(info) startTrialCountdown('lockModalCountdown', () => { renderLockModal(); refreshUnlockStatus(); });
     return;
   }
 
-  const expired = isOfferExpired();
+  if(isTrialExpired()){
+    body.innerHTML = `
+      ${closeBtnHtml}
+      <div class="cake-visual">⏰</div>
+      <div class="badge">7 天免费试用已到期</div>
+      <h3>Rumi英语技术 · 会员专区</h3>
+      <p class="desc">这部分是我平时做 Rumi 英语这套内容背后的完整技术拆解，免费试用期已经结束啦，选一个方式继续解锁吧～</p>
+      ${TIER_PAYWALL_HTML()}
+      <div class="modal-btn-row">
+        <button class="cancel-btn" id="lockCancelBtn">返回博客</button>
+      </div>
+    `;
+    return;
+  }
+
   body.innerHTML = `
     ${closeBtnHtml}
     <div class="cake-visual">🎂</div>
-    <div class="badge">${expired ? '限时免费已结束' : `🎂 Jerry生日限时免费 · 仅剩 ${daysLeft()} 天`}</div>
+    <div class="badge">🎂 解锁即享 7 天免费</div>
     <h3>Rumi英语技术 · 会员专区</h3>
-    <p class="desc">这部分是我平时做 Rumi 英语这套内容背后的完整技术拆解，本来是要收费的，借生日这几天限时免费分享给大家。</p>
+    <p class="desc">这部分是我平时做 Rumi 英语这套内容背后的完整技术拆解，本来是要收费的，点击解锁可以免费试用 7 天。</p>
     <ul class="content-list">
       <li>动画视频提示词（分镜/运镜/风格锁定）</li>
       <li>角色形象图片提示词</li>
@@ -1347,8 +1698,8 @@ function renderLockModal(){
     </ul>
     ${MEMBERSHIP_CARD_HTML}
     <div class="modal-btn-row">
-      <button class="cancel-btn" id="lockCancelBtn">取消</button>
-      <button class="unlock-btn" id="unlockBtn" ${expired ? 'disabled' : ''}>${expired ? '限免已结束' : '🔓 立即解锁'}</button>
+      <button class="cancel-btn" id="lockCancelBtn">返回博客</button>
+      <button class="unlock-btn" id="unlockBtn">🔓 立即解锁（7天免费）</button>
     </div>
   `;
 }
@@ -1359,6 +1710,7 @@ function openLockModal(){
 }
 function closeLockModal(){
   document.getElementById('lockModalMask').classList.remove('open');
+  stopTrialCountdown();
 }
 function openCoffeeModal(){
   document.getElementById('coffeeModalMask').classList.add('open');
@@ -1369,6 +1721,12 @@ function closeCoffeeModal(){
 
 document.getElementById('lockModalMask').addEventListener('click', (e) => {
   if(e.target.id === 'lockModalMask' || e.target.id === 'lockModalClose') closeLockModal();
+});
+
+// 会员卡片上按钮还没接真付费时点了给个提示
+document.getElementById('lockModalBody').addEventListener('click', (e) => {
+  const tierBtn = e.target.closest('.tier-btn.disabled');
+  if(tierBtn) alert('这档会员还在测试中，暂未开放付费，请点击私信站长后请喝咖啡～');
 });
 
 document.getElementById('lockModalBody').addEventListener('click', (e) => {
@@ -1385,16 +1743,34 @@ document.getElementById('lockModalBody').addEventListener('click', (e) => {
     const btn = e.target;
     btn.disabled = true;
     btn.textContent = '解锁中…';
-    localStorage.setItem(RUMI_UNLOCK_KEY, '1');
-    fireConfetti();
-    setTimeout(() => {
+    JerrySite.unlockCategory(LOCKED_CATEGORY).then(async (res) => {
+      if(!res.ok){
+        btn.disabled = false;
+        if(res.reason === 'not_logged_in'){
+          btn.textContent = '请先登录';
+          renderLockModal();
+        } else if(res.reason === 'already_unlocked'){
+          btn.textContent = '已解锁过';
+          refreshUnlockStatus().then(renderLockModal);
+        } else {
+          btn.textContent = '解锁失败，重试';
+        }
+        return;
+      }
+      unlockedCategories.add(LOCKED_CATEGORY);
+      unlockedAt = res.unlocked_at ? new Date(res.unlocked_at) : new Date();
+      fireConfetti();
       btn.textContent = '🎉 已解锁！';
       setTimeout(() => {
         closeLockModal();
         loadPost(); // 重新加载，这次因为已解锁会正常展示正文
         openCoffeeModal();
       }, 900);
-    }, 600);
+    }).catch((err) => {
+      console.error('解锁请求失败:', err);
+      btn.disabled = false;
+      btn.textContent = '网络错误，重试';
+    });
   }
 });
 
@@ -1419,12 +1795,20 @@ function fireConfetti(){
   }
 }
 
-// 登录状态变化时：如果弹窗正开着就刷新内容；如果之前是因为未登录/未解锁被拦下的文章，登录后自动重新检测一次
-// （登录系统脚本插入在本文件靠后的位置，这里等 DOMContentLoaded 之后再挂载，确保 window.JerrySite 已就绪）
+// 登录状态变化时：先重新拉一次服务端解锁状态；如果之前是因为未登录/未解锁被拦下的文章，
+// 这时候如果已经有权限了，直接把文章加载出来，不用用户再操作一次
 document.addEventListener('DOMContentLoaded', () => {
   if(window.JerrySite){
-    JerrySite.onAuthChange(() => {
-      if(document.getElementById('lockModalMask').classList.contains('open')) renderLockModal();
+    JerrySite.onAuthChange(async () => {
+      await refreshUnlockStatus();
+      if(document.getElementById('lockModalMask').classList.contains('open')){
+        if(isTrialActive()){
+          closeLockModal();
+          loadPost();
+        } else {
+          renderLockModal();
+        }
+      }
     });
   }
 });
@@ -1441,6 +1825,7 @@ async function waitForJerrySiteReady(){
 
 (async () => {
   await waitForJerrySiteReady();
+  await refreshUnlockStatus();
   loadPost();
   initBgCarousel();
   initCheckin();
@@ -2605,7 +2990,6 @@ initWeather();
 
 
 <!-- ================= 通行证登录系统（与 index.html/blog.html 共用同一 Supabase 后端） ================= -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <!-- 引入 Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
@@ -2688,6 +3072,10 @@ const JerrySite = (function () {
   const toggleLike = (postId) => rpc('toggle_like', { p_post_id: String(postId) });
   const feedZara = (itemId, cost) => rpc('feed_zara', { p_item_id: itemId, p_cost: cost });
   const getMyStatus = () => rpc('get_my_status');
+  const unlockCategory = (category) => rpc('unlock_category', { p_category: String(category) });
+  const toggleFavorite = (postId) => rpc('toggle_favorite', { p_post_id: String(postId) });
+  const getMyLikedPosts = () => rpc('get_my_liked_posts');
+  const getMyFavoritedPosts = () => rpc('get_my_favorited_posts');
 
   async function getComments(postId) {
     const { data, error } = await client
@@ -2718,10 +3106,13 @@ const JerrySite = (function () {
     init, onAuthChange,
     signInWithGoogle, sendEmailCode, verifyEmailCode, signOut,
     getUser, isLoggedIn,
-    checkinToday, recordView, toggleLike, feedZara, getMyStatus,
+    checkinToday, recordView, toggleLike, feedZara, getMyStatus, unlockCategory, toggleFavorite,
+    getMyLikedPosts, getMyFavoritedPosts,
     getComments, postComment, deleteComment
   };
 })();
+window.JerrySite = JerrySite; // ★ 关键修复：const 声明不会自动挂到 window 上，之前所有 window.JerrySite 的判断永远是 undefined/false，
+// 导致锁定弹窗、打卡、积分、点赞收藏组件的登录检测形同虚设——不管真实是否登录，全部误判成"未登录"。这行补上之后上面这些判断才会生效。
 
 // 立即触发一次会话恢复检测，并把这个 promise 暴露出去，
 // 让页面里其他需要"准确知道登录状态"的逻辑（比如会员弹窗）可以先 await 它，
