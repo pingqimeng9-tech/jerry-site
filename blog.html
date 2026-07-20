@@ -1556,6 +1556,7 @@ function buildCategoryTabs(posts){
 
       if(a.dataset.filter === LOCKED_CATEGORY){
         await waitForJerrySiteReady(); // 先等登录系统就绪，避免脚本还没加载完就误判"未登录"
+        await refreshUnlockStatus(); // 每次点开都用服务器最新状态判断，避免"页面刚加载、后台刷新还没跑完"或"另一个标签页里刚解锁"导致误判成未解锁
         if(!isUnlocked()){
           openLockModal(); // 没有权限：弹窗检测/引导解锁，不切换分类
           return;
@@ -2042,6 +2043,7 @@ async function waitForJerrySiteReady(){
 }
 (async () => {
   await waitForJerrySiteReady();
+  await refreshUnlockStatus();
   initCheckinWidget();
   initPointsWidget();
 })();
@@ -3263,6 +3265,8 @@ const JerrySite = (function () {
     getComments, postComment, deleteComment
   };
 })();
+window.JerrySite = JerrySite; // ★ 关键修复：const 声明不会自动挂到 window 上，之前所有 window.JerrySite 的判断永远是 undefined/false，
+// 导致锁定弹窗、打卡、积分组件的登录检测形同虚设——不管真实是否登录，全部误判成"未登录"。这行补上之后上面这些判断才会生效。
 
 // 立即触发一次会话恢复检测，并把这个 promise 暴露出去，
 // 让页面里其他需要"准确知道登录状态"的逻辑（比如会员弹窗）可以先 await 它，
