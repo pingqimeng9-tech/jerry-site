@@ -177,6 +177,67 @@
   .coffee-inline-btn:hover{ background:rgba(255,201,60,.2); transform:translateY(-1px); }
   .a-meta .days-left{ background:rgba(255,201,60,.15); color:#FFC93C; border:1px solid rgba(255,201,60,.4); padding:2px 10px; border-radius:100px; }
 
+  /* ================= Notion 高光注释 ================= */
+  .notion-highlight{ cursor:pointer; border-radius:3px; padding:0 2px; color:#1a1428; transition:.15s; }
+  .notion-highlight:hover{ filter:brightness(1.08); }
+  #a-body del, #a-body s{ color:#FF8080; opacity:.85; text-decoration-color:#FF5C5C; } /* 划掉词=改错标记，用红色区分于普通删除线 */
+
+  .anno-drawer{
+    position:fixed; top:0; right:0; height:100vh; width:min(320px,88vw);
+    background:#181235; border-left:1px solid var(--glass-border); z-index:200;
+    padding:20px; box-sizing:border-box; transform:translateX(100%); transition:.25s;
+    overflow-y:auto;
+  }
+  .anno-drawer.open{ transform:translateX(0); }
+  .anno-drawer-head{ display:flex; align-items:center; justify-content:space-between; font-size:14px; font-weight:700; margin-bottom:16px; }
+  .anno-drawer-head .close-lock{ position:static; cursor:pointer; opacity:.7; }
+  .anno-drawer-quote{
+    font-size:13px; color:#e5e0f7; line-height:1.7; padding:10px 12px; border-left:3px solid #FFC93C;
+    background:rgba(255,201,60,.08); border-radius:0 8px 8px 0; margin-bottom:14px;
+  }
+  .anno-drawer-comment{ font-size:13.5px; color:#c9c6e8; line-height:1.8; }
+
+  /* 抽屉打开时，右侧栏收起来让路（不是完全隐藏，是缩窄+降低存在感），
+     跟批注抽屉不会挤在一起 */
+  #sideRight.anno-collapsed{ opacity:.25; pointer-events:none; transform:translateX(20px); transition:.25s; }
+
+  @media (max-width:760px){
+    /* 手机端屏幕太窄，抽屉从右侧栏改成底部弹出的bottom sheet，更符合手机操作习惯 */
+    .anno-drawer{
+      top:auto; bottom:0; left:0; right:0; width:100%; height:auto; max-height:70vh;
+      border-left:none; border-top:1px solid var(--glass-border); border-radius:20px 20px 0 0;
+      transform:translateY(100%);
+    }
+    .anno-drawer.open{ transform:translateY(0); }
+  }
+
+  /* ================= Notion 文件附件卡片 + html源码预览 ================= */
+  .file-attach-card{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    background:rgba(255,255,255,.05); border:1px solid var(--glass-border); border-radius:14px;
+    padding:12px 14px; margin:14px 0;
+  }
+  .file-attach-icon{ font-size:20px; flex-shrink:0; }
+  .file-attach-name{ flex:1; min-width:120px; font-size:13.5px; font-family:'JetBrains Mono',monospace; word-break:break-all; }
+  .file-attach-actions{ display:flex; gap:8px; flex-shrink:0; }
+  .file-attach-btn{
+    font-size:12px; padding:6px 12px; border-radius:100px; cursor:pointer; text-decoration:none;
+    background:rgba(255,255,255,.08); border:1px solid var(--glass-border); color:#fff; font-family:inherit;
+  }
+  .file-attach-btn.preview{ background:rgba(92,225,230,.15); border-color:rgba(92,225,230,.4); color:#5CE1E6; }
+  .file-attach-btn:hover{ filter:brightness(1.2); }
+
+  .file-preview-mask{
+    position:fixed; inset:0; z-index:500; background:rgba(0,0,0,.85);
+    display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:.2s; padding:20px;
+  }
+  .file-preview-mask.open{ opacity:1; pointer-events:auto; }
+  .file-preview-box{ width:100%; height:100%; max-width:1200px; display:flex; flex-direction:column; background:#141225; border-radius:16px; overflow:hidden; border:1px solid var(--glass-border); }
+  .file-preview-head{ display:flex; align-items:center; gap:10px; padding:12px 16px; border-bottom:1px solid var(--glass-border); font-size:13px; }
+  .file-preview-head .fp-title{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .file-preview-head button{ background:rgba(255,255,255,.08); border:1px solid var(--glass-border); color:#fff; border-radius:8px; padding:6px 10px; cursor:pointer; font-size:12px; }
+  .file-preview-box iframe{ flex:1; width:100%; border:none; background:#fff; }
+
   /* ================= 锁定分类：会员弹窗（与 blog.html 同款） ================= */
   .lock-modal-mask{
     position:fixed; inset:0; z-index:300; background:rgba(8,6,20,.7); backdrop-filter:blur(4px);
@@ -928,7 +989,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -1018,6 +1078,26 @@
 <div class="lock-modal-mask" id="lockModalMask">
   <div class="lock-modal" id="lockModalBody">
     <!-- 内容由 JS 根据登录状态动态渲染，见 renderLockModal() -->
+  </div>
+</div>
+
+<div class="anno-drawer" id="annoDrawer">
+  <div class="anno-drawer-head">
+    <span>💬 批注</span>
+    <span class="close-lock" id="annoDrawerClose">✕</span>
+  </div>
+  <div class="anno-drawer-quote" id="annoDrawerText"></div>
+  <div class="anno-drawer-comment" id="annoDrawerComment"></div>
+</div>
+
+<div class="file-preview-mask" id="filePreviewMask">
+  <div class="file-preview-box">
+    <div class="file-preview-head">
+      <span class="fp-title" id="filePreviewTitle">预览</span>
+      <button type="button" id="filePreviewFullscreen">⛶ 全屏</button>
+      <button type="button" id="filePreviewClose">✕ 关闭</button>
+    </div>
+    <iframe id="filePreviewFrame" src="about:blank" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
   </div>
 </div>
 
@@ -1149,6 +1229,9 @@ async function loadPost(){
     `;
 
     document.getElementById('a-body').innerHTML = marked.parse(post.markdown || '（正文为空）');
+    document.querySelectorAll('#a-body img').forEach(img => { img.loading = 'lazy'; img.decoding = 'async'; });
+    enhanceFileLinks();
+    applyAnnotations(post.annotations || []);
 
     buildTOC();
     bumpViewCount(id);
@@ -1283,6 +1366,139 @@ async function loadSidebarWidgets(currentPostId){
   }
 }
 
+/* ================= Notion 高光注释：圈画高亮 + 评论抽屉 ================= */
+const NOTION_COLOR_MAP = {
+  yellow_background: '#F5E0A3', red_background: '#F5A9A3', blue_background: '#A3C9F5',
+  green_background: '#A9E0BA', gray_background: '#D4D4D4', purple_background: '#D3B8F0',
+  pink_background: '#F5B8DE', orange_background: '#F5C79E', brown_background: '#D2B48C'
+};
+
+function applyAnnotations(annotations){
+  if(!Array.isArray(annotations) || annotations.length === 0) return;
+  const body = document.getElementById('a-body');
+  if(!body) return;
+
+  annotations.forEach(anno => {
+    if(!anno.text || !anno.text.trim()) return;
+    // 在正文渲染出来的DOM里找这段被高亮的原文，找到就用<mark>包起来。
+    // 用纯文本节点级别的查找+替换，不动其他HTML结构，避免破坏加粗/链接这些已有格式。
+    wrapFirstTextMatch(body, anno.text, anno);
+  });
+
+  body.querySelectorAll('.notion-highlight').forEach(mark => {
+    mark.addEventListener('click', () => openAnnoDrawer(mark.dataset.annoId, annotations));
+  });
+}
+
+function wrapFirstTextMatch(root, text, anno){
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+  let node;
+  while((node = walker.nextNode())){
+    const idx = node.nodeValue.indexOf(text);
+    if(idx === -1) continue;
+    const range = document.createRange();
+    range.setStart(node, idx);
+    range.setEnd(node, idx + text.length);
+    const mark = document.createElement('mark');
+    mark.className = 'notion-highlight';
+    mark.dataset.annoId = anno.id;
+    mark.style.background = NOTION_COLOR_MAP[anno.color] || 'rgba(255,201,60,.35)';
+    try{
+      range.surroundContents(mark);
+    }catch(e){
+      // 这段文字跨了多个已有标签（比如一半加粗一半没加粗）时 surroundContents 会报错，
+      // 这种情况直接跳过这条高亮，不硬套，避免打乱正文结构
+    }
+    return; // 只处理第一次出现，避免同一段文字在文章里重复时被误标很多处
+  }
+}
+
+function openAnnoDrawer(annoId, annotations){
+  const anno = annotations.find(a => String(a.id) === String(annoId));
+  if(!anno || !anno.comment) return;
+  document.getElementById('annoDrawerText').textContent = anno.text;
+  document.getElementById('annoDrawerComment').textContent = anno.comment.text || '（没有评论内容）';
+  document.getElementById('annoDrawer').classList.add('open');
+  document.getElementById('sideRight')?.classList.add('anno-collapsed');
+}
+function closeAnnoDrawer(){
+  document.getElementById('annoDrawer').classList.remove('open');
+  document.getElementById('sideRight')?.classList.remove('anno-collapsed');
+}
+document.getElementById('annoDrawerClose')?.addEventListener('click', closeAnnoDrawer);
+
+/* ================= Notion 文件附件增强：下载卡片 + html源码在线预览 ================= */
+const PREVIEWABLE_EXT = ['html', 'htm'];
+const FILE_EXT_ICON = {
+  pdf: '📕', zip: '🗜️', rar: '🗜️', doc: '📄', docx: '📄', ppt: '📊', pptx: '📊',
+  xls: '📈', xlsx: '📈', txt: '📃', json: '🧩', csv: '📈', html: '🌐', htm: '🌐',
+  png: '🖼️', jpg: '🖼️', jpeg: '🖼️', gif: '🖼️', mp4: '🎬', mp3: '🎵'
+};
+function enhanceFileLinks(){
+  const body = document.getElementById('a-body');
+  if(!body) return;
+  body.querySelectorAll('a[href]').forEach(a => {
+    const href = a.getAttribute('href') || '';
+    const m = href.split('?')[0].match(/\.([a-zA-Z0-9]{2,5})$/);
+    if(!m) return; // 不是"看起来像文件"的链接（比如普通网页链接），不处理
+    const ext = m[1].toLowerCase();
+    if(!(ext in FILE_EXT_ICON)) return;
+
+    const filename = decodeURIComponent(href.split('/').pop().split('?')[0]) || `文件.${ext}`;
+    const icon = FILE_EXT_ICON[ext] || '📎';
+    const card = document.createElement('div');
+    card.className = 'file-attach-card';
+
+    if(PREVIEWABLE_EXT.includes(ext)){
+      card.innerHTML = `
+        <span class="file-attach-icon">${icon}</span>
+        <span class="file-attach-name">${escapeHtml(filename)}</span>
+        <div class="file-attach-actions">
+          <button type="button" class="file-attach-btn preview">在线预览</button>
+          <button type="button" class="file-attach-btn copy">复制链接</button>
+          <a class="file-attach-btn download" href="${href}" download target="_blank" rel="noopener">下载</a>
+        </div>
+      `;
+      card.querySelector('.preview').addEventListener('click', () => openFilePreview(href, filename));
+    } else {
+      card.innerHTML = `
+        <span class="file-attach-icon">${icon}</span>
+        <span class="file-attach-name">${escapeHtml(filename)}</span>
+        <div class="file-attach-actions">
+          <button type="button" class="file-attach-btn copy">复制链接</button>
+          <a class="file-attach-btn download" href="${href}" download target="_blank" rel="noopener">下载</a>
+        </div>
+      `;
+    }
+    card.querySelector('.copy').addEventListener('click', async () => {
+      const btn = card.querySelector('.copy');
+      try{
+        await navigator.clipboard.writeText(href);
+        const orig = btn.textContent;
+        btn.textContent = '✓ 已复制';
+        setTimeout(() => { btn.textContent = orig; }, 1500);
+      }catch(e){ alert('复制失败'); }
+    });
+
+    a.replaceWith(card);
+  });
+}
+
+function openFilePreview(url, filename){
+  document.getElementById('filePreviewTitle').textContent = filename;
+  document.getElementById('filePreviewFrame').src = url;
+  document.getElementById('filePreviewMask').classList.add('open');
+}
+function closeFilePreview(){
+  document.getElementById('filePreviewMask').classList.remove('open');
+  document.getElementById('filePreviewFrame').src = 'about:blank'; // 关闭时清空，避免后台继续跑里面的脚本/占资源
+}
+document.getElementById('filePreviewClose')?.addEventListener('click', closeFilePreview);
+document.getElementById('filePreviewFullscreen')?.addEventListener('click', () => {
+  const frame = document.getElementById('filePreviewFrame');
+  if(frame.requestFullscreen) frame.requestFullscreen();
+});
+
 /* ================= 点赞 / 收藏按钮 ================= */
 async function initLikeFavoriteButtons(postId){
   const likeBtn = document.getElementById('likeInlineBtn');
@@ -1356,23 +1572,46 @@ function excerptFromMarkdown(md, len){
   return plain.length > len ? plain.slice(0, len) + '…' : plain;
 }
 
+let currentSharePost = null;
+
+// 把跨域图片先转成 data URL 再塞进 <img>，html2canvas 对"直接跨域加载的图片"经常会
+// 因为CORS污染画布而整块跳过不画（这就是之前"导出图片没有头像/没有cover"的原因）。
+// 转成 data URL 之后画布里的就是本地数据，不再有跨域限制。
+// 如果目标图片服务器压根不允许匿名跨域读取（少数情况），fetch会失败，这时退回原始URL，
+// 该图在导出时可能还是空的，但至少不会导致整个海报生成报错。
+async function toDataUrlSafe(url){
+  if(!url) return '';
+  try{
+    const res = await fetch(url, { mode: 'cors' });
+    const blob = await res.blob();
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }catch(e){
+    console.warn('图片转data URL失败，导出时这张图可能是空的:', url, e);
+    return url;
+  }
+}
+
 function wireShareButton(post, postId){
   const shareBtn = document.getElementById('shareInlineBtn');
   if(!shareBtn) return;
   shareBtn.onclick = () => openShareModal(post, postId);
 }
 
-function openShareModal(post, postId){
+async function openShareModal(post, postId){
+  currentSharePost = post;
   const user = window.JerrySite && JerrySite.getUser ? JerrySite.getUser() : null;
   const name = user
     ? (user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || '访客')
     : '访客';
-  const avatar = user?.user_metadata?.avatar_url
+  const avatarUrl = user?.user_metadata?.avatar_url
     || `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(user ? user.id : 'guest')}&backgroundColor=1f1845`;
 
-  document.getElementById('posterUserAvatar').src = avatar;
   document.getElementById('posterUserName').textContent = name;
-  document.getElementById('posterCover').src = post.cover || '';
   document.getElementById('posterCover').style.display = post.cover ? 'block' : 'none';
   document.getElementById('posterTitle').textContent = post.title || '无标题';
   document.getElementById('posterExcerpt').textContent = excerptFromMarkdown(post.markdown, 80);
@@ -1387,6 +1626,22 @@ function openShareModal(post, postId){
   }
 
   document.getElementById('shareModalMask').classList.add('open');
+
+  // 头像/封面先用原图占位展示（弹窗打开要快），转成data URL的过程放后台异步做，
+  // 转好了再替换一次src——这样"保存图片"的时候用的就是已经转好的、不会被跨域污染的版本
+  const avatarEl = document.getElementById('posterUserAvatar');
+  const coverEl = document.getElementById('posterCover');
+  avatarEl.crossOrigin = 'anonymous';
+  coverEl.crossOrigin = 'anonymous';
+  avatarEl.src = avatarUrl;
+  coverEl.src = post.cover || '';
+
+  const [avatarData, coverData] = await Promise.all([
+    toDataUrlSafe(avatarUrl),
+    post.cover ? toDataUrlSafe(post.cover) : Promise.resolve('')
+  ]);
+  if(avatarData) avatarEl.src = avatarData;
+  if(coverData) coverEl.src = coverData;
 }
 function closeShareModal(){
   document.getElementById('shareModalMask').classList.remove('open');
@@ -1403,9 +1658,9 @@ document.getElementById('shareSaveBtn')?.addEventListener('click', async () => {
   const originalText = btn.textContent;
   btn.textContent = '生成中…';
   try{
-    const canvas = await html2canvas(poster, { backgroundColor: '#141225', scale: 2, useCORS: true });
+    const canvas = await html2canvas(poster, { backgroundColor: '#141225', scale: 2, useCORS: true, allowTaint: false });
     const link = document.createElement('a');
-    link.download = `${(currentPost?.title || '分享').slice(0, 20)}.png`;
+    link.download = `${(currentSharePost?.title || '分享').slice(0, 20)}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
   }catch(err){
@@ -1834,8 +2089,16 @@ initWeather();
 </script>
 
 <!-- ================= 交互小猫：oneko，会在屏幕上追着鼠标跑的经典开源猫咪挂件 ================= -->
-<!-- 纯前端小彩蛋，不影响任何布局，手机上没有鼠标就不会出现 -->
-<script src="https://cdn.jsdelivr.net/gh/adryd/oneko@master/oneko.js" data-cat="https://cdn.jsdelivr.net/gh/adryd/oneko@master/oneko.gif" async></script>
+<!-- 手机上没有鼠标，之前是"不会出现但脚本和gif照样会下载"——现在改成触屏设备直接不加载这个脚本，省流量 -->
+<script>
+if(window.matchMedia && window.matchMedia('(pointer: fine)').matches){
+  const onekoScript = document.createElement('script');
+  onekoScript.src = 'https://cdn.jsdelivr.net/gh/adryd/oneko@master/oneko.js';
+  onekoScript.dataset.cat = 'https://cdn.jsdelivr.net/gh/adryd/oneko@master/oneko.gif';
+  onekoScript.async = true;
+  document.body.appendChild(onekoScript);
+}
+</script>
 
 <!-- ================= 🐾 桌宠交互系统（从 blog.html 1:1 搬来） ================= -->
 <!-- ================= 注入的桌宠系统 HTML 开始 ================= -->
@@ -3074,6 +3337,28 @@ const JerrySite = (function () {
   const getMyStatus = () => rpc('get_my_status');
   const unlockCategory = (category) => rpc('unlock_category', { p_category: String(category) });
   const toggleFavorite = (postId) => rpc('toggle_favorite', { p_post_id: String(postId) });
+  async function updateProfile(patch){
+    // patch 形如 { full_name, avatar_url }，只传要改的字段。
+    // 这里要同时同步两个地方：
+    //  1) auth 用户的 user_metadata（约定用 full_name 这个key）
+    //  2) public.profiles 表（评论区/收藏点赞列表头像昵称是从这张表读的，
+    //     这张表的列名是 display_name，不是 full_name，两边key不一样，得分别映射，不能直接透传同一个patch）
+    if(!currentUser) throw new Error('需要先登录');
+    const { data, error } = await client.auth.updateUser({ data: patch });
+    if(error) throw error;
+    currentUser = data.user;
+    notify();
+
+    const profilesPatch = {};
+    if('full_name' in patch) profilesPatch.display_name = patch.full_name;
+    if('avatar_url' in patch) profilesPatch.avatar_url = patch.avatar_url;
+
+    try{
+      await client.from('profiles').update(profilesPatch).eq('id', currentUser.id);
+    }catch(e){
+      console.warn('profiles 表同步失败（不影响登录资料本身已更新）:', e);
+    }
+  }
   const getMyLikedPosts = () => rpc('get_my_liked_posts');
   const getMyFavoritedPosts = () => rpc('get_my_favorited_posts');
 
@@ -3106,7 +3391,7 @@ const JerrySite = (function () {
     init, onAuthChange,
     signInWithGoogle, sendEmailCode, verifyEmailCode, signOut,
     getUser, isLoggedIn,
-    checkinToday, recordView, toggleLike, feedZara, getMyStatus, unlockCategory, toggleFavorite,
+    checkinToday, recordView, toggleLike, feedZara, getMyStatus, unlockCategory, toggleFavorite, updateProfile,
     getMyLikedPosts, getMyFavoritedPosts,
     getComments, postComment, deleteComment
   };
@@ -3198,6 +3483,63 @@ window.jerrySiteReady = JerrySite.init();
     .jerry-hint{ font-size:12px; opacity:.5; margin-top:12px; text-align:center; line-height:1.5; }
     .jerry-close{ position:absolute; top:20px; right:20px; width:28px; height:28px; border-radius:50%; background:rgba(255,255,255,.1); display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:.7; font-size:14px; transition:.2s; }
     .jerry-close:hover{ opacity:1; background:rgba(255,255,255,.2); }
+
+    /* ============ 头像下拉菜单 ============ */
+    .jerry-dropdown{
+      position:absolute; top:calc(100% + 8px); right:0; min-width:172px; z-index:60;
+      background:#1b1440; border:1px solid rgba(255,255,255,.18); border-radius:16px; padding:6px;
+      box-shadow:0 16px 32px -10px rgba(0,0,0,.5);
+      opacity:0; transform:translateY(-6px) scale(.97); pointer-events:none; transition:.18s;
+    }
+    .jerry-dropdown.open{ opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+    body.theme-light .jerry-dropdown{ background:#fff; border-color:rgba(43,36,64,.14); }
+    .jerry-dropdown-item{
+      display:flex; align-items:center; gap:9px; padding:10px 12px; border-radius:10px; font-size:13.5px;
+      cursor:pointer; transition:.15s; color:inherit;
+    }
+    .jerry-dropdown-item:hover{ background:rgba(255,255,255,.08); }
+    body.theme-light .jerry-dropdown-item:hover{ background:rgba(43,36,64,.06); }
+    .jerry-dropdown-item.danger{ color:#FF8A7A; }
+    .jerry-dropdown-sep{ height:1px; background:rgba(255,255,255,.1); margin:5px 4px; }
+    body.theme-light .jerry-dropdown-sep{ background:rgba(43,36,64,.1); }
+
+    /* ============ 个人中心弹窗 ============ */
+    .jerry-profile-modal{ width:min(420px,92vw); text-align:left; }
+    .jerry-profile-head{ display:flex; align-items:center; gap:14px; margin-bottom:22px; }
+    .jerry-profile-avatar-wrap{ position:relative; flex-shrink:0; }
+    .jerry-profile-avatar-wrap img{ width:64px;height:64px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.2); }
+    .jerry-avatar-reroll{
+      position:absolute; bottom:-2px; right:-2px; width:24px;height:24px;border-radius:50%;
+      background:linear-gradient(120deg,var(--violet,#B18CFF),var(--aqua,#5CE1E6)); border:2px solid #1f1845;
+      display:flex;align-items:center;justify-content:center; font-size:11px; cursor:pointer;
+    }
+    .jerry-profile-name-row{ display:flex; align-items:center; gap:8px; }
+    .jerry-profile-name-row input{
+      flex:1; min-width:0; padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.22);
+      background:rgba(0,0,0,.2); color:inherit; font-size:14px; font-weight:700; outline:none;
+    }
+    .jerry-profile-name-row button{
+      flex-shrink:0; padding:8px 12px; border-radius:10px; border:none; cursor:pointer; font-size:12.5px; font-weight:700;
+      background:linear-gradient(120deg,var(--coral,#FF7A5C),var(--pink,#FF8CD9)); color:#fff;
+    }
+    .jerry-profile-id-row{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--muted,#c9c6e8); margin-top:6px; font-family:'JetBrains Mono',monospace; }
+    .jerry-profile-id-row span.id-copy{ cursor:pointer; text-decoration:underline dotted; }
+    .jerry-profile-msg{ font-size:12px; min-height:16px; margin-top:6px; }
+    .jerry-profile-msg.success{ color:#5CE68A; }
+    .jerry-profile-msg.error{ color:#FF5C5C; }
+
+    .jerry-profile-tabs{ display:flex; gap:6px; margin:20px 0 14px; background:rgba(255,255,255,.06); border-radius:100px; padding:4px; }
+    body.theme-light .jerry-profile-tabs{ background:rgba(43,36,64,.06); }
+    .jerry-profile-tab{ flex:1; text-align:center; padding:8px 0; border-radius:100px; font-size:12.5px; font-weight:600; cursor:pointer; opacity:.6; transition:.2s; }
+    .jerry-profile-tab.active{ background:rgba(255,255,255,.14); opacity:1; }
+    body.theme-light .jerry-profile-tab.active{ background:#fff; }
+    .jerry-profile-list{ max-height:280px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; }
+    .jerry-profile-list a{
+      display:block; padding:10px 12px; border-radius:12px; background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.1); color:inherit; text-decoration:none; font-size:13px; transition:.15s;
+    }
+    .jerry-profile-list a:hover{ background:rgba(255,255,255,.1); }
+    .jerry-profile-empty{ text-align:center; padding:30px 10px; color:var(--muted,#c9c6e8); font-size:12.5px; line-height:1.8; }
   `;
 
   function injectStyle() {
@@ -3242,6 +3584,44 @@ window.jerrySiteReady = JerrySite.init();
     return mask;
   }
 
+  function buildProfileModal() {
+    const mask = document.createElement('div');
+    mask.className = 'jerry-modal-mask';
+    mask.innerHTML = `
+      <div class="jerry-modal jerry-profile-modal">
+        <div class="jerry-close" id="jerryProfileClose">✕</div>
+        <h3>个人中心</h3>
+        <div class="jerry-profile-head">
+          <div class="jerry-profile-avatar-wrap">
+            <img id="jerryProfileAvatar" src="" alt="头像">
+            <div class="jerry-avatar-reroll" id="jerryAvatarReroll" title="换一个头像">🎲</div>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div class="jerry-profile-name-row">
+              <input type="text" id="jerryProfileNameInput" maxlength="24" placeholder="给自己起个名字">
+              <button id="jerryProfileSaveBtn">保存</button>
+            </div>
+            <div class="jerry-profile-id-row">
+              ID：<span id="jerryProfileIdText"></span>
+              <span class="id-copy" id="jerryProfileIdCopy">复制</span>
+            </div>
+          </div>
+        </div>
+        <div class="jerry-profile-msg" id="jerryProfileMsg"></div>
+
+        <div class="jerry-profile-tabs">
+          <div class="jerry-profile-tab active" data-tab="liked">❤️ 我点赞的</div>
+          <div class="jerry-profile-tab" data-tab="favorited">⭐ 我收藏的</div>
+        </div>
+        <div class="jerry-profile-list" id="jerryProfileList">
+          <div class="jerry-profile-empty">加载中…</div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(mask);
+    return mask;
+  }
+
   function setup() {
     injectStyle();
     const slot = document.getElementById('jerry-auth-slot');
@@ -3257,6 +3637,100 @@ window.jerrySiteReady = JerrySite.init();
 
     modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
     modal.querySelector('.jerry-close').addEventListener('click', closeModal);
+
+    // ============ 个人中心弹窗 ============
+    const profileModal = buildProfileModal();
+    const closeProfileModal = () => profileModal.classList.remove('open');
+    profileModal.addEventListener('click', (e) => { if (e.target === profileModal) closeProfileModal(); });
+    profileModal.querySelector('#jerryProfileClose').addEventListener('click', closeProfileModal);
+
+    const profileMsgEl = profileModal.querySelector('#jerryProfileMsg');
+    const showProfileMsg = (text, type = 'error') => {
+      profileMsgEl.textContent = text;
+      profileMsgEl.className = `jerry-profile-msg ${type}`;
+    };
+    const randomAvatarUrl = () => {
+      const seed = Math.random().toString(36).slice(2) + Date.now();
+      return `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(seed)}&backgroundColor=1f1845`;
+    };
+
+    async function loadProfileList(kind){
+      const listEl = profileModal.querySelector('#jerryProfileList');
+      listEl.innerHTML = `<div class="jerry-profile-empty">加载中…</div>`;
+      try{
+        const rows = await (kind === 'liked' ? JerrySite.getMyLikedPosts() : JerrySite.getMyFavoritedPosts());
+        if(!rows || !rows.length){
+          listEl.innerHTML = `<div class="jerry-profile-empty">${kind === 'liked' ? '还没点赞过文章' : '还没收藏过文章'}</div>`;
+          return;
+        }
+        listEl.innerHTML = rows.map(p => `<a href="/post.html?id=${encodeURIComponent(p.id)}">${escapeHtml(p.title || '无标题')}</a>`).join('');
+      }catch(err){
+        // 后端还没有对应的RPC（get_my_liked_posts / get_my_favorited_posts），先友好提示，不要把报错糊用户脸上
+        console.warn('拉取' + kind + '列表失败（可能是后端RPC还没上线）:', err);
+        listEl.innerHTML = `<div class="jerry-profile-empty">这个列表暂时还看不了，后端还需要补一个接口～</div>`;
+      }
+    }
+
+    function openProfileModal(){
+      const user = JerrySite.getUser();
+      if(!user) return;
+      const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email.split('@')[0];
+      const avatar = user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(user.id)}&backgroundColor=1f1845`;
+      profileModal.querySelector('#jerryProfileAvatar').src = avatar;
+      profileModal.querySelector('#jerryProfileNameInput').value = name;
+      profileModal.querySelector('#jerryProfileIdText').textContent = user.id.slice(0, 8) + '…';
+      showProfileMsg('');
+      profileModal.querySelectorAll('.jerry-profile-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+      profileModal.classList.add('open');
+      loadProfileList('liked');
+    }
+    window.openJerryProfileModal = openProfileModal;
+
+    profileModal.querySelector('#jerryProfileIdCopy').addEventListener('click', () => {
+      const user = JerrySite.getUser();
+      if(!user) return;
+      navigator.clipboard.writeText(user.id)
+        .then(() => showProfileMsg('ID 已复制', 'success'))
+        .catch(() => showProfileMsg('复制失败，请手动选中复制'));
+    });
+
+    profileModal.querySelector('#jerryAvatarReroll').addEventListener('click', async () => {
+      const newUrl = randomAvatarUrl();
+      const imgEl = profileModal.querySelector('#jerryProfileAvatar');
+      const prevUrl = imgEl.src;
+      imgEl.src = newUrl;
+      try{
+        await JerrySite.updateProfile({ avatar_url: newUrl });
+        showProfileMsg('头像已更新', 'success');
+      }catch(err){
+        imgEl.src = prevUrl;
+        showProfileMsg('头像更新失败：' + err.message);
+      }
+    });
+
+    profileModal.querySelector('#jerryProfileSaveBtn').addEventListener('click', async () => {
+      const input = profileModal.querySelector('#jerryProfileNameInput');
+      const newName = input.value.trim();
+      if(!newName) { showProfileMsg('名字不能为空'); return; }
+      const btn = profileModal.querySelector('#jerryProfileSaveBtn');
+      btn.disabled = true; btn.textContent = '保存中…';
+      try{
+        await JerrySite.updateProfile({ full_name: newName });
+        showProfileMsg('名字已更新', 'success');
+      }catch(err){
+        showProfileMsg('更新失败：' + err.message);
+      }finally{
+        btn.disabled = false; btn.textContent = '保存';
+      }
+    });
+
+    profileModal.querySelectorAll('.jerry-profile-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        profileModal.querySelectorAll('.jerry-profile-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        loadProfileList(tab.dataset.tab);
+      });
+    });
 
     const emailMsg = modal.querySelector('#emailMsg');
     const showMsg = (text, type='error') => {
@@ -3338,15 +3812,33 @@ window.jerrySiteReady = JerrySite.init();
         const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email.split('@')[0];
         const avatar = user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(user.id)}&backgroundColor=1f1845`;
         slot.innerHTML = `
-          <div class="jerry-user-chip" id="jerryUserChip" title="点击退出登录">
+          <div class="jerry-user-chip" id="jerryUserChip" title="点击查看菜单">
             <img src="${avatar}" alt="Avatar">
             <span>${name}</span>
             <span class="pts" id="jerryPtsDisplay">...</span>
           </div>
+          <div class="jerry-dropdown" id="jerryDropdown">
+            <div class="jerry-dropdown-item" id="jerryOpenProfileItem">👤 个人中心</div>
+            <div class="jerry-dropdown-sep"></div>
+            <div class="jerry-dropdown-item danger" id="jerrySignOutItem">🚪 退出登录</div>
+          </div>
         `;
-        slot.querySelector('#jerryUserChip').addEventListener('click', () => {
+        const dropdownEl = slot.querySelector('#jerryDropdown');
+        const closeDropdown = () => dropdownEl.classList.remove('open');
+        slot.querySelector('#jerryUserChip').addEventListener('click', (e) => {
+          e.stopPropagation();
+          dropdownEl.classList.toggle('open');
+        });
+        slot.querySelector('#jerryOpenProfileItem').addEventListener('click', () => {
+          closeDropdown();
+          openProfileModal();
+        });
+        slot.querySelector('#jerrySignOutItem').addEventListener('click', () => {
+          closeDropdown();
           if (confirm('确定要退出当前账号吗？')) JerrySite.signOut();
         });
+        // 点菜单外面任何地方，自动收起下拉菜单
+        document.addEventListener('click', closeDropdown);
         
         JerrySite.getMyStatus().then(status => {
           const el = document.getElementById('jerryPtsDisplay');

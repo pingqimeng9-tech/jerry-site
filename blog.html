@@ -186,7 +186,6 @@
 
   /* ================= 锁定分类：分类栏上的锁链tab + 会员弹窗 ================= */
   .tabbar a.locked{ display:inline-flex; align-items:center; gap:4px; }
-  .tabbar a.locked .chain{ font-size:11px; opacity:.85; }
   .tabbar a.locked .cat-short-name{ display:none; } /* 桌面端显示完整名"Rumi英语技术"，手机端换成简称，见下方 @media (max-width:760px) */
 
   .lock-modal-mask{
@@ -434,12 +433,17 @@
 
   @media (max-width:760px){
     .shell{ z-index:auto; margin-top: 10px; } 
-    .main-controls { position:sticky; z-index:40; margin:0 -20px 18px; padding:10px 20px; background:rgba(20,16,45,.75); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); flex-wrap: nowrap; overflow-x: auto;}
-    .tabbar{ border:none; padding:0; background:transparent; width:auto; flex-wrap:nowrap; scrollbar-width:none;}
-    .tabbar::-webkit-scrollbar{display:none;}
-    .tabbar a{flex-shrink:0;}
-    .tabbar a[data-filter="all"]{ display:none; } /* 手机端去掉"全部"这一档，剩下4个分类栏刚好能在一屏内放下，不用横向滑动。
+    .main-controls { position:sticky; z-index:40; margin:0 -20px 18px; padding:10px 20px; background:rgba(20,16,45,.75); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); flex-wrap: nowrap; }
+    .tabbar{
+      border:none; padding:0; background:transparent; width:100%;
+      display:flex; gap:6px;
+    } /* 手机端去掉横向滚动，分类栏用flex等分宽度，全部露在画面内，不管有几个分类都不会溢出 */
+    .tabbar a[data-filter="all"]{ display:none; } /* 手机端去掉"全部"这一档，剩下的分类栏刚好能在一屏内放下。
       内容依然默认展示全部文章（mobileFilter初始值就是'all'），只是不再单独露出这个按钮 */
+    .tabbar a{
+      flex:1 1 0; flex-shrink:1; text-align:center; padding:9px 4px; font-size:12px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
     .tabbar a.locked .cat-full-name{ display:none; }
     .tabbar a.locked .cat-short-name{ display:inline; } /* 手机端 Rumi英语技术 → 简称"英语技术"，省地方 */
     
@@ -1578,7 +1582,7 @@ function buildCategoryTabs(posts){
   const tabbar = document.getElementById('tabbar');
   const sections = groupByCategory(posts).filter(sec => sec.category !== LOCKED_CATEGORY);
   const tabsHtml = sections.map(sec => `<a href="#" data-filter="${escapeHtml(sec.category)}">${escapeHtml(sec.category)}</a>`).join('');
-  const lockedTabHtml = `<a href="#" data-filter="${LOCKED_CATEGORY}" class="locked"><span class="chain">🔗</span><span class="cat-full-name">${LOCKED_CATEGORY}</span><span class="cat-short-name">英语技术</span><span class="chain">🔗</span></a>`;
+  const lockedTabHtml = `<a href="#" data-filter="${LOCKED_CATEGORY}" class="locked"><span class="cat-full-name">${LOCKED_CATEGORY}</span><span class="cat-short-name">英语技术</span></a>`;
   tabbar.innerHTML = `<a href="#" class="active" data-filter="all">全部</a>` + lockedTabHtml + tabsHtml;
 
   tabbar.querySelectorAll('a').forEach(a => {
