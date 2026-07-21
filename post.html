@@ -183,12 +183,14 @@
   #a-body del, #a-body s{ color:#FF8080; opacity:.85; text-decoration-color:#FF5C5C; } /* 划掉词=改错标记，用红色区分于普通删除线 */
 
   .anno-drawer{
-    position:fixed; top:0; right:0; height:100vh; width:min(320px,88vw);
-    background:#181235; border-left:1px solid var(--glass-border); z-index:200;
-    padding:20px; box-sizing:border-box; transform:translateX(100%); transition:.25s;
-    overflow-y:auto;
-  }
-  .anno-drawer.open{ transform:translateX(0); }
+    position:fixed; left:50%; bottom:0; z-index:200;
+    width:min(560px, 80vw); max-height:60vh;
+    background:#181235; border:1px solid var(--glass-border); border-bottom:none;
+    border-radius:20px 20px 0 0; box-shadow:0 -10px 40px -10px rgba(0,0,0,.5);
+    padding:20px; box-sizing:border-box; overflow-y:auto;
+    transform:translate(-50%, 100%); transition:transform .28s ease;
+  } /* 桌面端：从画面底部中间往上弹出，左右留白，不占满整行 */
+  .anno-drawer.open{ transform:translate(-50%, 0); }
   .anno-drawer-head{ display:flex; align-items:center; justify-content:space-between; font-size:14px; font-weight:700; margin-bottom:16px; }
   .anno-drawer-head .close-lock{ position:static; cursor:pointer; opacity:.7; }
   .anno-drawer-quote{
@@ -202,10 +204,10 @@
   #sideRight.anno-collapsed{ opacity:.25; pointer-events:none; transform:translateX(20px); transition:.25s; }
 
   @media (max-width:760px){
-    /* 手机端屏幕太窄，抽屉从右侧栏改成底部弹出的bottom sheet，更符合手机操作习惯 */
+    /* 手机端：改成占屏幕一半高度的全宽底部抽屉，从下往上弹出，更符合手机操作习惯 */
     .anno-drawer{
-      top:auto; bottom:0; left:0; right:0; width:100%; height:auto; max-height:70vh;
-      border-left:none; border-top:1px solid var(--glass-border); border-radius:20px 20px 0 0;
+      left:0; right:0; bottom:0; width:100%; max-height:none; height:50vh;
+      border-left:none; border-right:none; border-radius:20px 20px 0 0;
       transform:translateY(100%);
     }
     .anno-drawer.open{ transform:translateY(0); }
@@ -229,13 +231,14 @@
 
   .file-preview-mask{
     position:fixed; inset:0; z-index:500; background:rgba(0,0,0,.85);
-    display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:.2s; padding:20px;
+    display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:.2s;
+    padding:clamp(6px, 3vw, 20px);
   }
   .file-preview-mask.open{ opacity:1; pointer-events:auto; }
-  .file-preview-box{ width:100%; height:100%; max-width:1200px; display:flex; flex-direction:column; background:#141225; border-radius:16px; overflow:hidden; border:1px solid var(--glass-border); }
-  .file-preview-head{ display:flex; align-items:center; gap:10px; padding:12px 16px; border-bottom:1px solid var(--glass-border); font-size:13px; }
+  .file-preview-box{ width:100%; height:100%; max-width:1200px; display:flex; flex-direction:column; background:#141225; border-radius:clamp(10px, 2vw, 16px); overflow:hidden; border:1px solid var(--glass-border); }
+  .file-preview-head{ display:flex; align-items:center; gap:clamp(6px, 1.5vw, 10px); padding:clamp(8px, 2vw, 12px) clamp(10px, 3vw, 16px); border-bottom:1px solid var(--glass-border); font-size:clamp(11px, 2.5vw, 13px); }
   .file-preview-head .fp-title{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .file-preview-head button{ background:rgba(255,255,255,.08); border:1px solid var(--glass-border); color:#fff; border-radius:8px; padding:6px 10px; cursor:pointer; font-size:12px; }
+  .file-preview-head button{ background:rgba(255,255,255,.08); border:1px solid var(--glass-border); color:#fff; border-radius:8px; padding:clamp(4px,1vw,6px) clamp(6px,2vw,10px); cursor:pointer; font-size:clamp(10px, 2.2vw, 12px); }
   .file-preview-box iframe{ flex:1; width:100%; border:none; background:#fff; }
 
   /* ================= 锁定分类：会员弹窗（与 blog.html 同款） ================= */
