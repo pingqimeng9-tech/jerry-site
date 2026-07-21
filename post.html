@@ -177,6 +177,40 @@
   .coffee-inline-btn:hover{ background:rgba(255,201,60,.2); transform:translateY(-1px); }
   .a-meta .days-left{ background:rgba(255,201,60,.15); color:#FFC93C; border:1px solid rgba(255,201,60,.4); padding:2px 10px; border-radius:100px; }
 
+  /* ================= Notion 高光注释 ================= */
+  .notion-highlight{ cursor:pointer; border-radius:3px; padding:0 2px; color:#1a1428; transition:.15s; }
+  .notion-highlight:hover{ filter:brightness(1.08); }
+  #a-body del, #a-body s{ color:#FF8080; opacity:.85; text-decoration-color:#FF5C5C; } /* 划掉词=改错标记，用红色区分于普通删除线 */
+
+  .anno-drawer{
+    position:fixed; top:0; right:0; height:100vh; width:min(320px,88vw);
+    background:#181235; border-left:1px solid var(--glass-border); z-index:200;
+    padding:20px; box-sizing:border-box; transform:translateX(100%); transition:.25s;
+    overflow-y:auto;
+  }
+  .anno-drawer.open{ transform:translateX(0); }
+  .anno-drawer-head{ display:flex; align-items:center; justify-content:space-between; font-size:14px; font-weight:700; margin-bottom:16px; }
+  .anno-drawer-head .close-lock{ position:static; cursor:pointer; opacity:.7; }
+  .anno-drawer-quote{
+    font-size:13px; color:#e5e0f7; line-height:1.7; padding:10px 12px; border-left:3px solid #FFC93C;
+    background:rgba(255,201,60,.08); border-radius:0 8px 8px 0; margin-bottom:14px;
+  }
+  .anno-drawer-comment{ font-size:13.5px; color:#c9c6e8; line-height:1.8; }
+
+  /* 抽屉打开时，右侧栏收起来让路（不是完全隐藏，是缩窄+降低存在感），
+     跟批注抽屉不会挤在一起 */
+  #sideRight.anno-collapsed{ opacity:.25; pointer-events:none; transform:translateX(20px); transition:.25s; }
+
+  @media (max-width:760px){
+    /* 手机端屏幕太窄，抽屉从右侧栏改成底部弹出的bottom sheet，更符合手机操作习惯 */
+    .anno-drawer{
+      top:auto; bottom:0; left:0; right:0; width:100%; height:auto; max-height:70vh;
+      border-left:none; border-top:1px solid var(--glass-border); border-radius:20px 20px 0 0;
+      transform:translateY(100%);
+    }
+    .anno-drawer.open{ transform:translateY(0); }
+  }
+
   /* ================= Notion 文件附件卡片 + html源码预览 ================= */
   .file-attach-card{
     display:flex; align-items:center; gap:10px; flex-wrap:wrap;
@@ -1047,6 +1081,15 @@
   </div>
 </div>
 
+<div class="anno-drawer" id="annoDrawer">
+  <div class="anno-drawer-head">
+    <span>💬 批注</span>
+    <span class="close-lock" id="annoDrawerClose">✕</span>
+  </div>
+  <div class="anno-drawer-quote" id="annoDrawerText"></div>
+  <div class="anno-drawer-comment" id="annoDrawerComment"></div>
+</div>
+
 <div class="file-preview-mask" id="filePreviewMask">
   <div class="file-preview-box">
     <div class="file-preview-head">
@@ -1188,6 +1231,7 @@ async function loadPost(){
     document.getElementById('a-body').innerHTML = marked.parse(post.markdown || '（正文为空）');
     document.querySelectorAll('#a-body img').forEach(img => { img.loading = 'lazy'; img.decoding = 'async'; });
     enhanceFileLinks();
+    applyAnnotations(post.annotations || []);
 
     buildTOC();
     bumpViewCount(id);
@@ -1321,6 +1365,67 @@ async function loadSidebarWidgets(currentPostId){
     document.getElementById('recentPostsList').innerHTML = `<span style="color:var(--muted);font-size:12px;">暂无文章</span>`;
   }
 }
+
+/* ================= Notion 高光注释：圈画高亮 + 评论抽屉 ================= */
+const NOTION_COLOR_MAP = {
+  yellow_background: '#F5E0A3', red_background: '#F5A9A3', blue_background: '#A3C9F5',
+  green_background: '#A9E0BA', gray_background: '#D4D4D4', purple_background: '#D3B8F0',
+  pink_background: '#F5B8DE', orange_background: '#F5C79E', brown_background: '#D2B48C'
+};
+
+function applyAnnotations(annotations){
+  if(!Array.isArray(annotations) || annotations.length === 0) return;
+  const body = document.getElementById('a-body');
+  if(!body) return;
+
+  annotations.forEach(anno => {
+    if(!anno.text || !anno.text.trim()) return;
+    // 在正文渲染出来的DOM里找这段被高亮的原文，找到就用<mark>包起来。
+    // 用纯文本节点级别的查找+替换，不动其他HTML结构，避免破坏加粗/链接这些已有格式。
+    wrapFirstTextMatch(body, anno.text, anno);
+  });
+
+  body.querySelectorAll('.notion-highlight').forEach(mark => {
+    mark.addEventListener('click', () => openAnnoDrawer(mark.dataset.annoId, annotations));
+  });
+}
+
+function wrapFirstTextMatch(root, text, anno){
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+  let node;
+  while((node = walker.nextNode())){
+    const idx = node.nodeValue.indexOf(text);
+    if(idx === -1) continue;
+    const range = document.createRange();
+    range.setStart(node, idx);
+    range.setEnd(node, idx + text.length);
+    const mark = document.createElement('mark');
+    mark.className = 'notion-highlight';
+    mark.dataset.annoId = anno.id;
+    mark.style.background = NOTION_COLOR_MAP[anno.color] || 'rgba(255,201,60,.35)';
+    try{
+      range.surroundContents(mark);
+    }catch(e){
+      // 这段文字跨了多个已有标签（比如一半加粗一半没加粗）时 surroundContents 会报错，
+      // 这种情况直接跳过这条高亮，不硬套，避免打乱正文结构
+    }
+    return; // 只处理第一次出现，避免同一段文字在文章里重复时被误标很多处
+  }
+}
+
+function openAnnoDrawer(annoId, annotations){
+  const anno = annotations.find(a => String(a.id) === String(annoId));
+  if(!anno || !anno.comment) return;
+  document.getElementById('annoDrawerText').textContent = anno.text;
+  document.getElementById('annoDrawerComment').textContent = anno.comment.text || '（没有评论内容）';
+  document.getElementById('annoDrawer').classList.add('open');
+  document.getElementById('sideRight')?.classList.add('anno-collapsed');
+}
+function closeAnnoDrawer(){
+  document.getElementById('annoDrawer').classList.remove('open');
+  document.getElementById('sideRight')?.classList.remove('anno-collapsed');
+}
+document.getElementById('annoDrawerClose')?.addEventListener('click', closeAnnoDrawer);
 
 /* ================= Notion 文件附件增强：下载卡片 + html源码在线预览 ================= */
 const PREVIEWABLE_EXT = ['html', 'htm'];
