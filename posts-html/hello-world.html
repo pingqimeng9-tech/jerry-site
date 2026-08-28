@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>测试 本地推git文本剪辑器 · Jerry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/blog.css"/>
+</head>
+<body>
+
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+<div class="blob blob3"></div>
+
+<nav>
+  <a href="../index.html" class="logo">JERRY.DEV</a>
+  <div class="links">
+    <a href="../index.html">首页</a>
+    <a href="../blog.html">博客</a>
+    <a href="../rumi.html">Rumi英语</a>
+  </div>
+</nav>
+
+<div class="wrap">
+<article class="post-detail reveal show">
+  <div class="post-meta">
+    <span class="post-tag">随笔</span>
+    <span class="post-date mono">2026-08-27</span>
+  </div>
+  <h1 class="post-detail-title serif">测试 本地推git文本剪辑器</h1>
+  <img class="post-cover" src="images/posts/1787910185816.jpg" alt="测试 本地推git文本剪辑器">
+  <div class="post-content glass-card">
+    <h2>第一阶段：AI 协同（生成网站代码）</h2>
+<p>在这一步，你的角色是“经理”，AI 是你的“前端助理”。</p>
+<p>!1000006092.jpg</p>
+<ol>
+<li><strong>准备 AI 工具</strong>：推荐使用 ChatGPT、Claude 或 Gemini。</li>
+<li><strong>输入核心指令（Prompt）</strong>：<ul>
+<li><strong>明确类型</strong>：个人主页、作品展示页或导航站。</li>
+<li><strong>列出内容</strong>：你的名字、个人简介、头像占位、联系方式、常用链接按钮。</li>
+<li><strong>指定风格</strong>：例如“极简科技感”、“深色模式”或“干净的名片风格”。</li>
+<li><strong>关键要求</strong>：<strong>“请务必做好移动端适配”</strong>。</li>
+</ul>
+</li>
+<li><strong>迭代优化</strong>：如果第一版不满意，直接提修改意见。例如：“请把顶部改为博主简介样式，下方增加文章列表模块”。</li>
+<li><strong>保存文件</strong>：将 AI 生成的代码保存为 <strong><code>index.html</code></strong>（这是系统识别主页的唯一默认名称）。</li>
+</ol>
+<h3>第二阶段：本地润色与素材准备</h3>
+<ol>
+<li><strong>准备图片素材</strong>：<ul>
+<li>准备一张头像（命名为 <code>avatar.jpg</code>）和一张背景图（命名为 <code>banner.jpg</code>）。</li>
+<li>将 HTML 文件和图片放在同一个文件夹中。</li>
+</ul>
+</li>
+<li><strong>实时预览与修改</strong>：<ul>
+<li><strong>推荐工具</strong>：安装 <strong>VS Code</strong> 软件，并搜索安装 <strong>“Live Preview”</strong> 插件。</li>
+<li><strong>操作</strong>：右键点击 HTML 文件选择 <code>Show Preview</code>，你可以一边修改代码中的文字内容（如把“Tony&#39;s Blog”改为你自己的名字），一边实时看到网页的变化。</li>
+</ul>
+</li>
+</ol>
+<h3>第三阶段：GitHub 仓库托管</h3>
+<p>GitHub 负责存放你的代码并记录每一个修改版本。</p>
+<ol>
+<li><strong>创建仓库</strong>：<ul>
+<li>登录 GitHub，点击右上角 <code>+</code> -&gt; <code>New Repository</code>。</li>
+<li><strong>Repository Name</strong>：随便起名（如 <code>my-website</code>），勾选 <code>Add a README file</code>。</li>
+</ul>
+</li>
+<li><strong>上传代码</strong>：<ul>
+<li>进入仓库页面，点击 <code>Add file</code> -&gt; <code>Upload files</code>。</li>
+<li>将本地的 <code>index.html</code> 和所有图片素材拖入，点击 <code>Commit changes</code> 提交。</li>
+</ul>
+</li>
+<li><strong>初步预览</strong>：在 <code>Settings</code> -&gt; <code>Pages</code> 中，将 <code>Branch</code> 设为 <code>Main</code> 并保存。几分钟后刷新，若看到 &quot;Your site is live&quot;，说明代码已成功托管。</li>
+</ol>
+<h3>第四阶段：Cloudflare Pages 部署（正式上线）</h3>
+<p>这一步能让你的网站在全球范围内访问更稳定、更快。</p>
+<ol>
+<li><strong>连接账号</strong>：登录 Cloudflare，点击左侧 <code>Workers 和 Pages</code> -&gt; <code>创建应用程序</code> -&gt; <code>Pages</code>。</li>
+<li><strong>关联 GitHub</strong>：点击 <code>连接到 Git</code>，授权你的 GitHub 账号，选择刚才创建的仓库。</li>
+<li><strong>一键部署</strong>：基本保持默认设置，直接点击 <strong><code>保存并部署</code></strong>。</li>
+<li><strong>获取域名</strong>：<ul>
+<li>部署成功后，Cloudflare 会分配一个免费的二级域名（如 <code>xxx.pages.dev</code>），此时你的网站已经可以全球访问了。</li>
+<li><strong>（进阶）绑定域名</strong>：如果你有自己的域名，在 <code>设置自定义域</code> 中输入并激活即可。DNS 生效通常只需几分钟（最长 48 小时）。</li>
+</ul>
+</li>
+</ol>
+<h3>实战避坑小贴士</h3>
+<ul>
+<li><strong>主页命名</strong>：首页文件一定要叫 <code>index.html</code>，否则访问时会报错。</li>
+<li><strong>内容为王</strong>：框架搭好后，网站的价值在于持续更新的内容。你可以继续让 AI 帮你写文章（如 VPS 评测），并生成单独的详情页进行链接。</li>
+<li><strong>适用边界</strong>：这套流程最适合做<strong>轻量级展示站</strong>。如果需要复杂的会员系统或大型数据库交互，则需要更进阶的方案。</li>
+</ul>
+<p>现在，你可以先打开 AI 对话框，发出你的第一个建站指令了！</p>
+
+  </div>
+  <a class="btn line back-link" href="../blog.html">← 返回博客列表</a>
+</article>
+
+</div>
+
+<footer>© 2026 Jerry · built with intent, not templates</footer>
+
+</body>
+</html>
