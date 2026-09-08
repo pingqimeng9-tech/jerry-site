@@ -1,39 +1,37 @@
 {
-    "posts":  [
-                  {
-                      "id":  "hi_mtsol3i3",
-                      "views":  2,
-                      "createdAt":  "2026-09-08 02:04:05",
-                      "title":  "hi",
-                      "category":  "未分类",
-                      "excerpt":  "mfjeifjeoieif",
-                      "cover":  "/images/posts/mtsoknqu_Screenshot_2026-02-02_221628.png",
-                      "tags":  [
-
-                               ],
-                      "mood":  "",
-                      "markdown":  "![](/images/posts/mtsojkvp_Screenshot_2026-09-07_162101.png)Today!\nI decide to make a new plan for the next two months\n**I\u0027ll limit my device use and focus on EN**\n![ChatGPT Image Aug 24, 2026, 07_12_57 PM.png](attachment:ef033935-5662-4bd9-a723-a3323c71d93b:ChatGPT_Image_Aug_24_2026_07_12_57_PM.png)**Two goals recently need to spend time on :**\nOne is TAFE Skill-trade overseas\nThe other is finishing A-levels and getting IELTS 6.0 ~7.0 to apply for an overseas undergraduate university\nBro we haven\u0027t decided between two paths yet but we know we need to build a solid English base first\nso passing IELTS is our key question Miao~\nstart KET and PET as basic, people like to call it mini IELTS tests\nI can finish KET in two months, and PET will take 3~4 months maybe\nIn this period, I\u0027ll either prepare A-level subjects or work toward a TAFE trade, like a Certificate III in Elec\n~~I\u0027m not sure witch subject should I choose ,It\u0027s depend on your future abroad college and your  job~~\n~~I wanna work abroad is Australia~~\n~~The main reason is that my friend Tang is studying at Monash University~~\n~~One of Australia’s Group‑of‑Eight universities, which ranks 36th in the QS world rankings.~~\nMy choice:\nTAFE➡️Electricians 电工 木工 护理 旅游 教资\n补充：\n**TAFE skilled‑trade pathway** 👉TAFE 技工出海 / 技工移民路径（海外博主通用说法）\nCertificate III 澳洲三级技工证书（电工木工核心证书）\npermanent residency = PR 永居、绿卡\nTRA Trades Recognition Australia：技工职业评估机构（移民必过）\nIELTS 考试:\nA类学术:用于申读海外大学\nG类 培训：移民  TAFE技校 学徒 工签\n再考雅思前要打基础Ket Pet 俗称小雅思，KET我的能力1/2个 月能快速过一遍 ,PET再打打，考大学就6.0~7.0 考电工技工就5.5~6.0\nKET learning timeline:\ntake one unit per day\nwatching learning lesson \u0026 take note on teaching book/separate notebook\nread the teaching book/notebook\ndo the corresponding unit exercise(workbook)\nmark the wrong question \u0026 find the wrong reason（写上错误是的原因，比如某个语法学习薄弱） review the related part in the textbook\nand add the correct rule to the wrong question in my note book\n1.redo all weekly question once\n2.every day review unit dialogues\n3.every day 20 Ket core word add 20 daily practical words matching the unit theme each day\n4.every grammar practise",
-                      "status":  "draft",
-                      "date":  "2026-09-08",
-                      "updatedAt":  "2026-09-08 02:04:05"
-                  },
-                  {
-                      "id":  "hello-world",
-                      "title":  "你好，Jerry CMS",
-                      "date":  "2026-09-07",
-                      "category":  "随笔",
-                      "excerpt":  "这是 Jerry CMS 本地管理的示例文章。你可以点击右下角进入控制台，新建一篇并发布，它会立刻出现在博客列表里。",
-                      "cover":  null,
-                      "views":  0,
-                      "tags":  [
-                                   "示例",
-                                   "CMS"
-                               ],
-                      "mood":  "",
-                      "status":  "published",
-                      "markdown":  "这是一篇由「Jerry CMS」本地生成的文章。\n\n## 它解决了什么\n\n原来博客内容托管在 Notion，本地无法直接管理。现在内容存到本地 `data/posts.json`，**双击启动即可管理**。\n\n## 怎么管理\n\n1. 进入控制台\n2. 点「新建文章」\n3. 写正文 → 存草稿 / 正式发布\n\n\u003e 支持富文本工具栏、封面图、分类、标签、摘要。\n\n发布后回到 `blog.html` 就能看到这篇。",
-                      "createdAt":  "2026-09-07 12:00:00",
-                      "updatedAt":  "2026-09-07 12:00:00"
-                  }
-              ]
+  "posts": [
+    {
+      "id": "hi_mtsol3i3",
+      "views": 2,
+      "createdAt": "2026-09-08 02:04:05",
+      "title": "hi",
+      "category": "未分类",
+      "excerpt": "mfjeifjeoieif",
+      "cover": "/images/posts/mtsoknqu_Screenshot_2026-02-02_221628.png",
+      "tags": [],
+      "mood": "",
+      "markdown": "![](/images/posts/mtsojkvp_Screenshot_2026-09-07_162101.png)Today!\nI decide to make a new plan for the next two months\n**I'll limit my device use and focus on EN**\n![ChatGPT Image Aug 24, 2026, 07_12_57 PM.png](attachment:ef033935-5662-4bd9-a723-a3323c71d93b:ChatGPT_Image_Aug_24_2026_07_12_57_PM.png)**Two goals recently need to spend time on :**\nOne is TAFE Skill-trade overseas\nThe other is finishing A-levels and getting IELTS 6.0 ~7.0 to apply for an overseas undergraduate university\nBro we haven't decided between two paths yet but we know we need to build a solid English base first\nso passing IELTS is our key question Miao~\nstart KET and PET as basic, people like to call it mini IELTS tests\nI can finish KET in two months, and PET will take 3~4 months maybe\nIn this period, I'll either prepare A-level subjects or work toward a TAFE trade, like a Certificate III in Elec\n~~I'm not sure witch subject should I choose ,It's depend on your future abroad college and your  job~~\n~~I wanna work abroad is Australia~~\n~~The main reason is that my friend Tang is studying at Monash University~~\n~~One of Australia’s Group‑of‑Eight universities, which ranks 36th in the QS world rankings.~~\nMy choice:\nTAFE➡️Electricians 电工 木工 护理 旅游 教资\n补充：\n**TAFE skilled‑trade pathway** 👉TAFE 技工出海 / 技工移民路径（海外博主通用说法）\nCertificate III 澳洲三级技工证书（电工木工核心证书）\npermanent residency = PR 永居、绿卡\nTRA Trades Recognition Australia：技工职业评估机构（移民必过）\nIELTS 考试:\nA类学术:用于申读海外大学\nG类 培训：移民  TAFE技校 学徒 工签\n再考雅思前要打基础Ket Pet 俗称小雅思，KET我的能力1/2个 月能快速过一遍 ,PET再打打，考大学就6.0~7.0 考电工技工就5.5~6.0\nKET learning timeline:\ntake one unit per day\nwatching learning lesson & take note on teaching book/separate notebook\nread the teaching book/notebook\ndo the corresponding unit exercise(workbook)\nmark the wrong question & find the wrong reason（写上错误是的原因，比如某个语法学习薄弱） review the related part in the textbook\nand add the correct rule to the wrong question in my note book\n1.redo all weekly question once\n2.every day review unit dialogues\n3.every day 20 Ket core word add 20 daily practical words matching the unit theme each day\n4.every grammar practise",
+      "status": "published",
+      "date": "2026-09-08",
+      "updatedAt": "2026-09-08 03:58:44"
+    },
+    {
+      "id": "hello-world",
+      "title": "你好，Jerry CMS",
+      "date": "2026-09-07",
+      "category": "随笔",
+      "excerpt": "这是 Jerry CMS 本地管理的示例文章。你可以点击右下角进入控制台，新建一篇并发布，它会立刻出现在博客列表里。",
+      "cover": null,
+      "views": 0,
+      "tags": [
+        "示例",
+        "CMS"
+      ],
+      "mood": "",
+      "status": "published",
+      "markdown": "这是一篇由「Jerry CMS」本地生成的文章。\n\n## 它解决了什么\n\n原来博客内容托管在 Notion，本地无法直接管理。现在内容存到本地 `data/posts.json`，**双击启动即可管理**。\n\n## 怎么管理\n\n1. 进入控制台\n2. 点「新建文章」\n3. 写正文 → 存草稿 / 正式发布\n\n> 支持富文本工具栏、封面图、分类、标签、摘要。\n\n发布后回到 `blog.html` 就能看到这篇。",
+      "createdAt": "2026-09-07 12:00:00",
+      "updatedAt": "2026-09-07 12:00:00"
+    }
+  ]
 }
