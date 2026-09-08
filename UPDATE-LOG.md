@@ -110,3 +110,25 @@
 
 1. 真实推送只差仓库地址：设置页填入（建议 SSH）→ 保存 → 检测 → 「首次接管远端」→ 完成。
 2. adopt 会把远端旧文件覆盖为本地新版（含删除远端有而本地没有的文件），执行前有确认弹窗。
+---
+
+## 2026-09-08 · 第五轮：完整版 Git 安装 + 正式推送上线
+
+### 改动范围
+
+| 模块 | 内容 |
+|---|---|
+| Git 修复 | winget 将 D:\Git 原地升级 2.52→2.55.0.3 完整版（补回缺失的 remote-https 组件），零 PATH 改动 |
+| Git 配置清理 | 移除全局 http.sslverify=false 与两条失效 insteadOf 重写（SSH 强转 HTTPS、github.com 转已死的 cnpmjs 镜像）——它们是此前推送失败的根源 |
+| 正式推送 | 28d0299..59c3b30 HEAD -> main，22 文件（新版页面+admin+CMS+数据）；GCM 凭据已存储，后续设置页推送直接可用 |
+| 上线 | Vercel 自动构建完成：callmiruko.cc/admin/bridge.js 已可访问（3231 bytes）；线上 blog.html 仍走 /api/posts（Notion） |
+
+### 验证结果
+
+- 远端 main=59c3b30=本地 HEAD；远端树含 admin/、blog.html 含 bridge、api/ 原样保留。
+- 线上回归：blog.html 200 仍调 /api/posts；api/posts 200 ok=True 文章数 60（Notion 数据正常）；CMS 入口在线上按设计隐藏。
+
+### 遗留事项
+
+1. 设置页「🚀 一键推送」已可用（完整 git + GCM 凭据已存）。
+2. 线上 admin/*.html 可直接访问但无接口、入口隐藏；介意可去 Vercel 加路由屏蔽 /admin。
