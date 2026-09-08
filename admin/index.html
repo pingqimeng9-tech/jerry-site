@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>创作草稿箱 · Jerry CMS</title>
+<link rel="stylesheet" href="./admin.css">
+<style>
+  .draft-head{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+  .draft-head h1{font-size:30px;font-weight:700;display:flex;align-items:center;gap:12px}
+  .draft-head .count{width:34px;height:34px;border-radius:50%;background:rgba(177,140,255,.2);border:1px solid rgba(177,140,255,.5);color:var(--violet);font-family:var(--mono);font-size:15px;display:flex;align-items:center;justify-content:center}
+  .draft-sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+  .search-pill{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--glass);border:1px solid var(--glass-border);border-radius:999px;padding:10px 18px;min-width:260px}
+  .search-pill input{background:none;border:none;outline:none;color:var(--ink);font-size:13px;width:100%}
+  .search-pill input::placeholder{color:var(--muted)}
+  .draft-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px;align-items:center}
+  .btn.newpost{background:linear-gradient(120deg,var(--violet),var(--aqua));color:#fff;box-shadow:0 10px 26px rgba(177,140,255,.3)}
+  .draft-list{display:flex;flex-direction:column;gap:14px}
+  .draft-card{padding:18px 22px}
+  .draft-card .row1{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .draft-card .cat{font-family:var(--mono);font-size:10px;color:var(--pink);border:1px solid rgba(255,140,217,.4);background:rgba(255,140,217,.08);padding:2px 10px;border-radius:999px}
+  .draft-card .date{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .draft-card .del{margin-left:auto;width:30px;height:30px;border-radius:50%;border:none;background:rgba(255,255,255,.06);color:var(--muted);font-size:14px;transition:.15s}
+  .draft-card .del:hover{background:var(--danger);color:#fff}
+  .draft-card .t{font-size:17px;font-weight:700;margin-bottom:6px}
+  .draft-card .ex{font-size:13px;color:var(--muted);margin-bottom:12px;font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .draft-card .acts{display:flex;gap:10px;align-items:center}
+  .draft-card .acts .btn{padding:8px 16px;font-size:12px}
+  .draft-card .acts .spacer{flex:1}
+  @media(max-width:640px){.search-pill{min-width:100%;margin-left:0}.draft-head h1{font-size:22px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="logo">Jerry <b>CMS</b> <span class="dim mono" style="font-size:12px;font-weight:400">/ 本地管理控制台</span></div>
+    <div class="links">
+      <a class="btn ghost" href="../blog.html" target="_blank">↗ 查看博客</a>
+      <a class="btn ghost" href="settings.html">⚙ 发布设置</a>
+    </div>
+  </div>
+
+  <div class="draft-head">
+    <h1>📝 创作草稿箱 <span class="count" id="countBadge">0</span></h1>
+    <div class="search-pill">🔍<input id="search" placeholder="检索草稿..." oninput="render()"></div>
+  </div>
+  <p class="draft-sub">✨ 灵感的避风港，所有未发布的心血都在这里。暂存草稿、一键发布，页面与帖子一起推上 Git。</p>
+
+  <div class="draft-actions">
+    <a class="btn newpost" href="editor.html?id=new">✍️ 新建文章</a>
+    <div style="flex:1"></div>
+    <select id="filter" class="tb-select" style="padding:9px 14px;font-size:13px">
+      <option value="all">全部</option>
+      <option value="published">已发布</option>
+      <option value="draft">草稿</option>
+    </select>
+  </div>
+
+  <div class="draft-list" id="list"></div>
+  <div class="empty" id="empty" style="display:none">还没有草稿，点上面「✍️ 新建文章」开始创作。</div>
+</div>
+<button class="fab" title="新建文章" onclick="location.href='editor.html?id=new'">＋</button>
+<div class="pic-toast" id="pic-toast"></div>
+
+<script>
+const state = { posts: [], filter: 'all', q: '' };
+
+async function load() {
+  const res = await fetch('/api/admin/posts', { method: 'POST' });
+  const data = await res.json();
+  state.posts = data.posts || [];
+  render();
+}
+
+function render() {
+  const q = state.q.trim().toLowerCase();
+  let posts = state.posts.filter(p => state.filter === 'all' || p.status === state.filter);
+  if (q) posts = posts.filter(p => ((p.title||'') + (p.excerpt||'') + (p.category||'')).toLowerCase().includes(q));
+  document.getElementById('countBadge').textContent = state.posts.length;
+  const list = document.getElementById('list');
+  const empty = document.getElementById('empty');
+  if (!posts.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  list.innerHTML = posts.map(card).join('');
+}
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function card(p){
+  const st = p.status === 'published'
+    ? '<span class="badge pub">● 已发布</span>'
+    : '<span class="badge draft">● 草稿</span>';
+  return `<div class="glass draft-card">
+    <div class="row1">${st}<span class="cat">${esc(p.category||'未分类')}</span><span class="date">${esc(p.date||'')}</span><button class="del" title="删除" onclick="del('${esc(p.id)}')">✕</button></div>
+    <div class="t">${esc(p.title || '无标题')}</div>
+    <div class="ex">${esc(p.excerpt || (p.markdown||'').slice(0,90))}</div>
+    <div class="acts">
+      <a class="btn ghost" href="editor.html?id=${encodeURIComponent(p.id)}">✏️ 编辑</a>
+      <a class="btn ghost" href="../post.html?id=${encodeURIComponent(p.id)}" target="_blank">👁 预览</a>
+      <button class="btn ${p.status==='published'?'danger':'primary'}" onclick="toggleStatus('${esc(p.id)}','${p.status==='published'?'draft':'published'}')">${p.status==='published'?'转为草稿':'🚀 发布'}</button>
+      <span class="spacer"></span>
+      <span class="mono dim" style="font-size:11px">浏览 ${p.views||0}</span>
+    </div>
+  </div>`;
+}
+
+async function toggleStatus(id, status){
+  const p = state.posts.find(x => x.id === id);
+  const res = await fetch('/api/post/save', { method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ id, title:p.title, category:p.category, excerpt:p.excerpt, cover:p.cover, date:p.date, tags:p.tags, mood:p.mood, markdown:p.markdown, status }) });
+  const d = await res.json();
+  toast(d.ok ? (status==='published'?'🚀 已发布！回博客页即可看到':'已转为草稿') : '保存失败');
+  load();
+}
+
+async function del(id){
+  if (!confirm('确定删除这篇草稿？此操作不可恢复。')) return;
+  const res = await fetch('/api/post/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({id}) });
+  toast((await res.json()).ok ? '已删除' : '删除失败');
+  load();
+}
+
+function toast(msg){
+  const el = document.getElementById('pic-toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(()=>el.classList.remove('show'), 2000);
+}
+
+document.getElementById('filter').addEventListener('change', e => { state.filter = e.target.value; render(); });
+document.getElementById('search').addEventListener('input', e => { state.q = e.target.value; render(); });
+load();
+</script>
+</body>
+</html>

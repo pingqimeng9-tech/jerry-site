@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jerry CMS · 发布设置</title>
+<link rel="stylesheet" href="./admin.css">
+</head>
+<body>
+<div class="wrap" style="max-width:860px">
+  <div class="topbar">
+    <div class="logo">Jerry <b>CMS</b> <span class="dim mono" style="font-size:12px;font-weight:400">/ 发布设置</span></div>
+    <div class="links">
+      <a class="btn ghost" href="./index.html">← 控制台</a>
+      <a class="btn ghost" href="../blog.html" target="_blank">↗ 查看博客</a>
+    </div>
+  </div>
+
+  <div class="glass" style="padding:24px 26px;margin-bottom:18px">
+    <span class="kicker">Deploy · Git</span>
+    <h2 style="font-size:18px;font-weight:900;margin:6px 0 16px">一键推送到 Git 仓库</h2>
+    <p class="dim" style="font-size:13px;margin-bottom:16px">配置一次仓库地址，之后每次写完文章或改完页面点「一键推送」即可：<code>git add -A → commit → push</code>，<b>帖子与页面代码一起上去</b>。若你的站部署在 Vercel/Netlify 等平台并绑定了这个仓库，推送后会自动触发重新构建上线。</p>
+
+    <div class="field" style="margin-bottom:14px">
+      <label><i></i>仓库地址 Repository URL</label>
+      <input id="repoUrl" placeholder="例如：git@github.com:yourname/yourrepo.git 或 https://github.com/yourname/yourrepo.git">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+      <div class="field">
+        <label><i></i>分支 Branch</label>
+        <input id="branch" placeholder="main">
+      </div>
+      <div class="field">
+        <label><i></i>提交信息 Commit Message</label>
+        <input id="commitMsg" placeholder="Update pages & posts via Jerry CMS">
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn primary" onclick="saveCfg(true)">💾 保存配置</button>
+      <button class="btn ghost" onclick="doCheck()">🔍 检测环境</button>
+      <button class="btn ghost" onclick="doInit()">初始化仓库</button>
+      <button class="btn primary" id="btnPush" onclick="doPush()">🚀 一键推送</button>
+    </div>
+
+    <div id="statusChips" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px"></div>
+    <div id="pendingList" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px"></div>
+  </div>
+
+  <div class="glass" style="padding:20px 24px">
+    <span class="kicker">Console</span>
+    <pre id="log" class="mono" style="margin-top:10px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:14px;padding:14px 16px;font-size:12px;white-space:pre-wrap;word-break:break-all;color:#c9cddd;min-height:120px">（操作日志将显示在这里）</pre>
+    <p class="dim" style="font-size:11px;margin-top:10px">提示：SSH 地址（git@github.com:...）使用你本机已配置的 SSH Key；HTTPS 地址首次推送可能需要输入凭据或已由凭据管理器接管。</p>
+  </div>
+</div>
+<div class="pic-toast" id="pic-toast"></div>
+
+<script>
+function toast(msg){ const el=document.getElementById('pic-toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2200); }
+function log(t){ document.getElementById('log').textContent += (t+'\n'); const el=document.getElementById('log'); el.scrollTop=el.scrollHeight; }
+function clearLog(){ document.getElementById('log').textContent=''; }
+
+async function loadCfg(){
+  const d = await (await fetch('/api/deploy/config')).json();
+  if(d.ok){ document.getElementById('repoUrl').value=d.config.repoUrl||''; document.getElementById('branch').value=d.config.branch||'main'; document.getElementById('commitMsg').value=d.config.commitMsg||''; }
+}
+async function saveCfg(alsoToast){
+  const body={ repoUrl:document.getElementById('repoUrl').value, branch:document.getElementById('branch').value, commitMsg:document.getElementById('commitMsg').value };
+  const d = await (await fetch('/api/deploy/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();
+  if(alsoToast) toast(d.ok?'配置已保存 ✔':'保存失败'); 
+  return d.ok;
+}
+function readForm(){ return { repoUrl:document.getElementById('repoUrl').value, branch:document.getElementById('branch').value, commitMsg:document.getElementById('commitMsg').value }; }
+function chips(arr){ document.getElementById('statusChips').innerHTML = arr.map(x=>`<span class="badge ${x.cls}">● ${x.t}</span>`).join(''); }
+async function doCheck(){
+  clearLog(); log('> 检测环境...');
+  const d = await (await fetch('/api/deploy/check',{method:'POST'})).json();
+  if(!d.ok){ log('检测失败'); return; }
+  log('Git 仓库: '+(d.git?'✓ 已初始化':'✗ 未初始化（点「初始化仓库」）'));
+  log('远程 origin: '+(d.hasRemote?('✓ '+d.remoteUrl):'✗ 未配置'));
+  log('当前分支: '+(d.currentBranch||'-'));
+  log('未提交变更: '+d.pendingChanges+' 个文件');
+  if(d.pendingFiles && d.pendingFiles.length){ log('待推送清单:'); d.pendingFiles.forEach(function(x){ log('  ['+x.x+'] '+x.f); }); }
+  chips([
+    {t:d.git?'Git 已就绪':'未初始化', cls:d.git?'pub':'draft'},
+    {t:d.hasRemote?'远程已配置':'远程未配置', cls:d.hasRemote?'pub':'draft'},
+    {t:'待推送 '+d.pendingChanges+' 项', cls:d.pendingChanges>0?'draft':'pub'}
+  ]);
+  var box=document.getElementById('pendingList');
+  box.innerHTML = (d.pendingFiles||[]).map(function(x){ return '<span class="chip mono">'+x.x.trim()+' '+x.f+'</span>'; }).join('') || '<span class="dim mono" style="font-size:11px">没有待推送的变更，本地与远程一致</span>';
+  if(d.repoUrl && !document.getElementById('repoUrl').value) document.getElementById('repoUrl').value=d.remoteUrl;
+}
+async function doInit(){
+  if(!await saveCfg(false)){ toast('请先填写仓库地址'); return; }
+  clearLog(); log('> 初始化仓库...');
+  const d = await (await fetch('/api/deploy/init',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(readForm())})).json();
+  (d.log||[]).forEach(l=>log(l));
+  if(d.ok){ log('✓ 初始化完成'); toast('仓库已初始化 ✔'); doCheck(); }
+  else { log('✗ '+(d.error||'失败')); toast(d.error||'初始化失败'); }
+}
+async function doPush(){
+  if(!await saveCfg(false)){ toast('保存失败'); return; }
+  const btn=document.getElementById('btnPush'); btn.disabled=true; btn.textContent='⏳ 推送中...';
+  clearLog(); log('> 一键推送：add → commit → push ...');
+  try{
+    const d = await (await fetch('/api/deploy/publish',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(readForm())})).json();
+    (d.log||[]).forEach(l=>log(l));
+    if(d.ok){ log(d.upToDate?'✓ 远程已是最新的':'✓ 推送成功！远端将自动触发构建'); toast(d.upToDate?'已是最新':'推送成功 🚀'); }
+    else { log('✗ '+(d.error||'失败')); toast('推送失败，详见日志'); }
+  }catch(e){ log('✗ 异常: '+e.message); toast('推送异常'); }
+  btn.disabled=false; btn.textContent='🚀 一键推送';
+  doCheck();
+}
+loadCfg();
+</script>
+</body>
+</html>

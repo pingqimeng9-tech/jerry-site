@@ -1,0 +1,7 @@
+
+# Jerry CMS 本地备份
+.cms-backup-*/
+node_modules/
+.vercel/
+Thumbs.db
+.DS_Store
