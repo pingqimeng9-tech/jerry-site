@@ -14,6 +14,16 @@
   if (window.__jerryCmsBridge) return;
   window.__jerryCmsBridge = true;
 
+  // 文章页媒体样式（视频/嵌入图在正文里的展示），无论 CMS 是否在线都注入（无害）
+  try {
+    var st = document.createElement('style');
+    st.textContent = '#a-body video,#a-body figure.video-embed video{width:100%;max-width:100%;display:block;border-radius:12px;margin:1.2rem auto;background:#000;box-shadow:0 18px 44px rgba(0,0,0,.35)}'
+      + '#a-body figure.video-embed{margin:1.4rem auto}'
+      + '#a-body img{max-width:100%;border-radius:12px}'
+      + '#a-body .site-preview{position:relative;margin:1.4rem auto;border-radius:14px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.06);overflow:hidden;backdrop-filter:blur(10px)}';
+    document.head.appendChild(st);
+  } catch (e) {}
+
   fetch('/api/admin/posts', { method: 'POST' })
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (d) { if (d && d.ok) inject(); })

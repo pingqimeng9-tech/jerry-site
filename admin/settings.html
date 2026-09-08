@@ -31,6 +31,10 @@
         <input id="branch" placeholder="main">
       </div>
       <div class="field">
+        <label><i></i>站点地址 Site URL</label>
+        <input id="siteUrl" placeholder="https://callmiruko.cc">
+      </div>
+      <div class="field">
         <label><i></i>提交信息 Commit Message</label>
         <input id="commitMsg" placeholder="Update pages & posts via Jerry CMS">
       </div>
@@ -40,6 +44,7 @@
       <button class="btn primary" onclick="saveCfg(true)">💾 保存配置</button>
       <button class="btn ghost" onclick="doCheck()">🔍 检测环境</button>
       <button class="btn ghost" onclick="doInit()">初始化仓库</button>
+      <button class="btn danger" onclick="doAdopt()">🔌 首次接管远端（以本地为准）</button>
       <button class="btn primary" id="btnPush" onclick="doPush()">🚀 一键推送</button>
     </div>
 
@@ -62,7 +67,7 @@ function clearLog(){ document.getElementById('log').textContent=''; }
 
 async function loadCfg(){
   const d = await (await fetch('/api/deploy/config')).json();
-  if(d.ok){ document.getElementById('repoUrl').value=d.config.repoUrl||''; document.getElementById('branch').value=d.config.branch||'main'; document.getElementById('commitMsg').value=d.config.commitMsg||''; }
+  if(d.ok){ document.getElementById('repoUrl').value=d.config.repoUrl||''; document.getElementById('branch').value=d.config.branch||'main'; document.getElementById('commitMsg').value=d.config.commitMsg||''; document.getElementById('siteUrl').value=d.config.siteUrl||''; }
 }
 async function saveCfg(alsoToast){
   const body={ repoUrl:document.getElementById('repoUrl').value, branch:document.getElementById('branch').value, commitMsg:document.getElementById('commitMsg').value };
@@ -70,7 +75,7 @@ async function saveCfg(alsoToast){
   if(alsoToast) toast(d.ok?'配置已保存 ✔':'保存失败'); 
   return d.ok;
 }
-function readForm(){ return { repoUrl:document.getElementById('repoUrl').value, branch:document.getElementById('branch').value, commitMsg:document.getElementById('commitMsg').value }; }
+function readForm(){ return { repoUrl:document.getElementById('repoUrl').value, branch:document.getElementById('branch').value, commitMsg:document.getElementById('commitMsg').value, siteUrl:document.getElementById('siteUrl').value }; }
 function chips(arr){ document.getElementById('statusChips').innerHTML = arr.map(x=>`<span class="badge ${x.cls}">● ${x.t}</span>`).join(''); }
 async function doCheck(){
   clearLog(); log('> 检测环境...');
@@ -97,6 +102,19 @@ async function doInit(){
   (d.log||[]).forEach(l=>log(l));
   if(d.ok){ log('✓ 初始化完成'); toast('仓库已初始化 ✔'); doCheck(); }
   else { log('✗ '+(d.error||'失败')); toast(d.error||'初始化失败'); }
+}
+async function doAdopt(){
+  if(!confirm('⚠️ 将用本地当前版本接管远端仓库：\n· 保留远端提交历史\n· 远端旧文件将被本地新版覆盖/删除\n· 适用于“远端还是旧版 Notion 站，要推上去新版”\n\n确认执行？')) return;
+  if(!await saveCfg(false)){ toast('保存失败'); return; }
+  const btn=event.target; btn.disabled=true;
+  clearLog(); log('> 首次接管：fetch → reset --mixed → commit → push ...');
+  try{
+    const d=await (await fetch('/api/deploy/adopt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(readForm())})).json();
+    (d.log||[]).forEach(l=>log(l));
+    if(d.ok){ log('✓ 接管完成，远端已是本地新版！'); toast('接管成功 🎉'); doCheck(); }
+    else { log('✗ '+(d.error||'失败')); toast('接管失败，详见日志'); }
+  }catch(e){ log('✗ 异常: '+e.message); toast('异常'); }
+  btn.disabled=false; doCheck();
 }
 async function doPush(){
   if(!await saveCfg(false)){ toast('保存失败'); return; }
