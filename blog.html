@@ -6,7 +6,7 @@
 <title>博客 · Jerry</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 
 <style>
   :root{
@@ -3330,7 +3330,7 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
 
 <!-- ================= 通行证登录系统（与 index.html 共用同一 Supabase 后端） ================= -->
 <!-- 引入 Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
 <!-- 合并：user-system.js -->
 <script>

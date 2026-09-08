@@ -6,8 +6,8 @@
 <title>文章 · Jerry</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<script src="/assets/lib/marked.min.js"></script>
 
 <style>
   :root{
@@ -990,8 +990,8 @@
   }
 </style>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="/assets/lib/html2canvas.min.js"></script>
+<script src="/assets/lib/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -3257,7 +3257,7 @@ if(window.matchMedia && window.matchMedia('(pointer: fine)').matches){
 
 <!-- ================= 通行证登录系统（与 index.html/blog.html 共用同一 Supabase 后端） ================= -->
 <!-- 引入 Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
 <!-- 合并：user-system.js -->
 <script>
