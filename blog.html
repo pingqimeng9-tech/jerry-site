@@ -1110,6 +1110,21 @@
 </div>
 
 <div class="shell">
+<div id="weatherWidgetBody" style="display:none"></div>
+<div id="announceList" style="display:none"></div>
+<div id="checkinWidgetBody" style="display:none"></div>
+<div id="pointsWidgetBody" style="display:none"></div>
+<div id="checkinBtn" style="display:none"></div>
+<div id="demo-checkin-btn" style="display:none"></div><!-- Hidden sidebar elements (kept for JS compatibility, visually removed) -->
+<div id="sidebar" style="display:none"></div>
+<div id="cat-jump" style="display:none"></div>
+<div id="recent-list" style="display:none"></div>
+<div id="archive-list" style="display:none"></div>
+<div id="statsRow" style="display:none"><div id="statPosts"></div><div id="statViews"></div></div>
+<div id="sidebar-search-results" style="display:none"></div>
+<div id="sidebar-search-input" style="display:none"></div>
+<div id="sidebarClose" style="display:none"></div>
+<div id="sidebarBackdrop" style="display:none"></div>
   
 
   <main class="main">
@@ -1329,6 +1344,7 @@ function setupMobileChrome(){
   const backdrop = document.getElementById('sidebarBackdrop');
   const fab = document.getElementById('mobileFab');
   const closeBtn = document.getElementById('sidebarClose');
+  if(!sidebar || !fab) return;
 
   function openSidebar(){ sidebar.classList.add('open'); backdrop.classList.add('open'); }
   function closeSidebar(){ sidebar.classList.remove('open'); backdrop.classList.remove('open'); }
@@ -1377,7 +1393,7 @@ async function loadPosts(){
 }
 
 function buildStats(posts){
-  const postsEl = document.getElementById('statPosts');
+  const postsEl = document.getElementById('statPosts'); if(!postsEl) return;
   const viewsEl = document.getElementById('statViews');
   if(!postsEl || !viewsEl) return;
   postsEl.textContent = posts.length;
@@ -1878,7 +1894,7 @@ function buildCategoryJump(posts){
 }
 
 function buildRecentList(posts){
-  const el = document.getElementById('recent-list');
+  const el = document.getElementById('recent-list'); if(!el) return;
   const recent = [...posts]
     .filter(p => p.date)
     .sort((a,b) => new Date(b.date) - new Date(a.date))
@@ -1889,7 +1905,7 @@ function buildRecentList(posts){
 }
 
 function buildArchive(posts){
-  const el = document.getElementById('archive-list');
+  const el = document.getElementById('archive-list'); if(!el) return;
   const groups = {};
   posts.forEach(p => {
     if(!p.date) return;
@@ -2051,6 +2067,7 @@ async function initPointsWidget(){
 
 async function initWeatherWidget(){
   const body = document.getElementById('weatherWidgetBody');
+  if(!body) return;
   if(!navigator.geolocation){
     body.innerHTML = `<div class="login-hint">浏览器不支持定位</div>`;
     return;
@@ -2096,7 +2113,7 @@ function initAnnounceWidget(){
     { date:'2026-07-16', text:'新增 Rumi英语技术 分类，生日限时免费解锁' },
     { date:'2026-07-15', text:'Zara的3D小房间上线，支持移动/坐下/躺下/番茄钟' }
   ];
-  document.getElementById('announceList').innerHTML = ANNOUNCEMENTS.map(a => `
+  var _aEl=document.getElementById('announceList');if(_aEl)_aEl.innerHTML = ANNOUNCEMENTS.map(a => `
     <div class="announce-item"><span class="announce-date mono">${a.date}</span>${escapeHtml(a.text)}</div>
   `).join('');
 }
