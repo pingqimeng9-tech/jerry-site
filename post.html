@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <script src="/assets/lib/marked.min.js"></script>
+<script src="/assets/site-embed.js" defer></script>
 <link rel="stylesheet" href="/assets/lib/hljs-atom-one-dark.min.css">
 <script src="/assets/lib/highlight.min.js"></script>
 <link rel="stylesheet" href="/assets/lib/katex/katex.min.css">
@@ -82,29 +83,7 @@
   }
   .profile-card .p-social a:hover{ background:linear-gradient(120deg,var(--violet),var(--aqua)); color:#1a0f2b; transform:translateY(-2px); }
 
-  .checkin-card .checkin-streak{ font-size:24px; font-weight:700; color:var(--coral); font-family:'JetBrains Mono',monospace; }
-  .checkin-card .checkin-sub{ font-size:11px; color:var(--muted); margin-top:2px; }
-  .checkin-card .checkin-week{ display:flex; gap:5px; margin:12px 0; }
-  .checkin-card .checkin-dot{ flex:1; aspect-ratio:1; border-radius:7px; background:rgba(255,255,255,.06); border:1px solid var(--glass-border); font-size:9.5px; color:var(--muted); display:flex; align-items:center; justify-content:center; }
-  .checkin-card .checkin-dot.done{ background:linear-gradient(135deg,var(--coral),var(--pink)); border-color:transparent; color:#1a0f2b; font-weight:700; }
-  .checkin-card button{
-    width:100%; padding:9px; border:none; border-radius:100px; cursor:pointer;
-    background:linear-gradient(120deg,var(--coral),var(--pink)); color:#1a0f2b; font-weight:700; font-size:13px; transition:.2s;
-  }
-  .checkin-card button:hover{ transform:translateY(-2px); }
-  .checkin-card button:disabled{ opacity:.5; cursor:default; transform:none; }
-
-  .tagcloud-card .tag-item{
-    display:inline-block; padding:4px 10px; margin:0 6px 6px 0; border-radius:100px; font-size:11.5px;
-    background:rgba(255,255,255,.06); border:1px solid var(--glass-border); color:var(--muted); transition:.2s;
-  }
-  .tagcloud-card .tag-item:hover{ color:#fff; background:var(--glass-strong); }
-
-  .recentposts-card a{ display:block; font-size:12.5px; color:var(--muted); line-height:1.6; padding:6px 0; border-bottom:1px dashed var(--glass-border); transition:.2s; }
-  .recentposts-card a:last-child{ border-bottom:none; }
-  .recentposts-card a:hover{ color:var(--aqua); padding-left:4px; }
-
-  .weather-card .weather-temp{ font-size:22px; font-weight:700; }
+.weather-card .weather-temp{ font-size:22px; font-weight:700; }
   .weather-card .weather-sub{ font-size:12px; color:var(--muted); margin-top:2px; }
 
   .music-card iframe{ border-radius:10px; display:block; }
@@ -349,6 +328,10 @@
   .a-body h1{font-size:24px;} .a-body h2{font-size:20px;} .a-body h3{font-size:17px;}
   .a-body p{margin-bottom:14px;}
   .a-body img{max-width:100%;border-radius:12px;margin:10px 0;}
+  .a-body video,.a-body figure.video-embed video{width:100%;max-width:100%;display:block;border-radius:12px;margin:1.2rem auto;background:#000;box-shadow:0 18px 44px rgba(0,0,0,.35);}
+  .a-body figure.video-embed{margin:1.4rem auto;}
+  .a-body iframe{max-width:100%;}
+  .a-body .site-preview{margin:1.6rem auto;}
   .a-body code{background:rgba(0,0,0,.35);padding:2px 6px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;}
   .a-body pre{background:rgba(0,0,0,.4);padding:16px;border-radius:12px;overflow-x:auto;border:1px solid var(--glass-border);}
   .a-body pre code{background:none;padding:0;}
@@ -1052,13 +1035,6 @@
       </div>
     </div>
 
-    <div class="side-card checkin-card">
-      <div class="card-label">每日打卡</div>
-      <div class="checkin-streak" id="checkinStreak">0 天</div>
-      <div class="checkin-sub" id="checkinSub">连续打卡记录</div>
-      <div class="checkin-week" id="checkinWeek"></div>
-      <button id="checkinBtn">今日打卡</button>
-    </div>
 
     <div class="side-card tagcloud-card" id="tagCloudCard">
       <div class="card-label">标签云</div>
@@ -1249,6 +1225,13 @@ async function loadPost(){
     `;
 
     document.getElementById('a-body').innerHTML = marked.parse(bodyMd || '（正文为空）');
+    /* 编辑器里设定的媒体宽度（data-w）在这里生效：视频/图片按设定宽度渲染，不再强制全宽 */
+    document.querySelectorAll('#a-body video[data-w], #a-body img[data-w]').forEach(function (m) {
+      m.style.width = m.getAttribute('data-w');
+      m.style.height = 'auto';
+      m.style.display = 'block';
+      m.style.margin = '1.2rem auto';
+    });
     document.querySelectorAll('#a-body img').forEach(img => { img.loading = 'lazy'; img.decoding = 'async'; });
     enhanceFileLinks();
     applyAnnotations(post.annotations || []);
@@ -1851,60 +1834,6 @@ function buildRecentPosts(posts, currentPostId){
     || `<span style="color:var(--muted);font-size:12px;">暂无其他文章</span>`;
 }
 
-/* ================= 每日打卡（纯前端 localStorage 实现） ================= */
-/* 注意：因为整站没有后端/数据库，这个打卡记录只存在访问者自己的浏览器里（localStorage），
-   换设备、换浏览器、清缓存都会丢失，不会同步到别人或云端。以后如果接后端，把这几个函数换成真实接口即可。 */
-const CHECKIN_KEY = 'jerry-blog-checkin-dates';
-
-function todayStr(){
-  return new Date().toISOString().slice(0,10);
-}
-function getCheckinDates(){
-  try { return JSON.parse(localStorage.getItem(CHECKIN_KEY) || '[]'); }
-  catch(e){ return []; }
-}
-function initCheckin(){
-  const btn = document.getElementById('checkinBtn');
-  renderCheckin();
-  btn.addEventListener('click', () => {
-    const dates = getCheckinDates();
-    const today = todayStr();
-    if(!dates.includes(today)){
-      dates.push(today);
-      localStorage.setItem(CHECKIN_KEY, JSON.stringify(dates));
-    }
-    renderCheckin();
-  });
-}
-function renderCheckin(){
-  const dates = new Set(getCheckinDates());
-  const today = todayStr();
-  const btn = document.getElementById('checkinBtn');
-  btn.disabled = dates.has(today);
-  btn.textContent = dates.has(today) ? '今天已打卡 ✓' : '今日打卡';
-
-  // 计算连续天数：从今天往前数，只要连续存在就+1
-  let streak = 0;
-  let cursor = new Date();
-  while(dates.has(cursor.toISOString().slice(0,10))){
-    streak++;
-    cursor.setDate(cursor.getDate() - 1);
-  }
-  document.getElementById('checkinStreak').textContent = streak + ' 天';
-
-  // 最近7天小方块
-  const weekEl = document.getElementById('checkinWeek');
-  const cells = [];
-  for(let i = 6; i >= 0; i--){
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const ds = d.toISOString().slice(0,10);
-    const label = ['日','一','二','三','四','五','六'][d.getDay()];
-    cells.push(`<div class="checkin-dot${dates.has(ds) ? ' done' : ''}">${label}</div>`);
-  }
-  weekEl.innerHTML = cells.join('');
-}
-
 /* 天气小组件已移除（open-meteo 在部分网络下挂起） */
 
 /* ============ 会员锁定分类：状态检测弹窗（与 blog.html 同一套逻辑，真实账号级权限） ============ */
@@ -2198,7 +2127,6 @@ async function waitForJerrySiteReady(){
 (async () => {
   loadPost();            // 文章立即可见：不再等待登录/会员检测
   initBgCarousel();
-  initCheckin();
   // 登录/会员状态后台恢复；超时按未登录处理，绝不阻塞文章
   try {
     await Promise.race([waitForJerrySiteReady(), new Promise(r => setTimeout(r, 3000))]);

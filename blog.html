@@ -154,15 +154,6 @@
   .widget-title{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--aqua); font-weight:700; margin-bottom:10px; letter-spacing:.03em; }
 
   /* 打卡 */
-  .checkin-row{ display:flex; align-items:center; justify-content:space-between; }
-  .checkin-streak{ font-size:22px; font-weight:800; }
-  .checkin-streak span{ font-size:11px; color:var(--muted); font-weight:400; margin-left:4px; }
-  .checkin-btn{
-    padding:7px 14px; border-radius:100px; border:none; cursor:pointer; font-size:12px; font-weight:700;
-    background:linear-gradient(120deg,var(--coral),var(--pink)); color:#1a0f2b;
-  }
-  .checkin-btn.done{ background:rgba(255,255,255,.1); color:var(--muted); cursor:default; }
-  .checkin-btn:disabled{ opacity:.6; }
 
   /* 积分/桌宠 */
   .points-row{ display:flex; align-items:center; gap:10px; }
@@ -171,12 +162,6 @@
   .widget-link:hover{ text-decoration:underline; }
   .login-hint{ font-size:11.5px; color:var(--muted); line-height:1.6; }
 
-  /* 天气 */
-  .weather-row{ display:flex; align-items:center; gap:12px; }
-  .weather-icon{ font-size:30px; }
-  .weather-temp{ font-size:20px; font-weight:800; }
-  .weather-desc{ font-size:11px; color:var(--muted); margin-top:2px; }
-  .weather-loc{ font-size:10.5px; color:var(--muted); margin-top:6px; }
 
   /* 公告栏 */
   .announce-list{ display:flex; flex-direction:column; gap:10px; }
@@ -1191,17 +1176,11 @@
   </main>
 
   <aside class="widgets">
-    <div class="widget-card">
-      <div class="widget-title">📅 每日打卡</div>
-      <div id="checkinWidgetBody"><div class="login-hint">登录后可以打卡攒积分～</div></div>
     </div>
     <div class="widget-card">
       <div class="widget-title">⚡ 桌宠积分</div>
       <div id="pointsWidgetBody"><div class="login-hint">积分可以在Zara小房间换喂养道具</div></div>
     </div>
-    <div class="widget-card">
-      <div class="widget-title">🌤️ 今日天气</div>
-      <div id="weatherWidgetBody"><div class="login-hint">正在获取位置…</div></div>
     </div>
     <div class="widget-card">
       <div class="widget-title">📣 更新日志</div>
@@ -1897,7 +1876,6 @@ document.addEventListener('DOMContentLoaded', () => {
     JerrySite.onAuthChange(async () => {
       await refreshUnlockStatus();
       if(document.getElementById('lockModalMask').classList.contains('open')) renderLockModal();
-      initCheckinWidget();
       initPointsWidget();
     });
   }
@@ -2075,33 +2053,10 @@ loadPosts();
 setupSearch();
 
 /* ============================================================
-   右侧栏：打卡 / 桌宠积分 / 天气 / 公告
-   打卡和积分依赖 window.JerrySite（登录系统），如果这个页面还没接入 user-system.js，
+   右侧栏：桌宠积分 / 公告
+   积分依赖 window.JerrySite（登录系统），如果这个页面还没接入 user-system.js，
    会自动降级成"登录后可用"的提示文案，不会报错
    ============================================================ */
-async function initCheckinWidget(){
-  const body = document.getElementById('checkinWidgetBody');
-  if(!window.JerrySite || !JerrySite.isLoggedIn()){
-    body.innerHTML = `<div class="login-hint">登录后可以打卡攒积分～</div>`;
-    return;
-  }
-  try{
-    const status = await JerrySite.getMyStatus();
-    body.innerHTML = `
-      <div class="checkin-row">
-        <div class="checkin-streak">${status.streak || 0}<span>天连续</span></div>
-        <button class="checkin-btn ${status.checked_in_today ? 'done' : ''}" id="checkinBtn" ${status.checked_in_today ? 'disabled' : ''}>
-          ${status.checked_in_today ? '✓ 已打卡' : '打卡'}
-        </button>
-      </div>
-    `;
-    document.getElementById('checkinBtn')?.addEventListener('click', async () => {
-      const res = await JerrySite.checkinToday();
-      if(res.ok) { initCheckinWidget(); initPointsWidget(); }
-    });
-  }catch(e){ body.innerHTML = `<div class="login-hint">打卡数据加载失败</div>`; }
-}
-
 async function initPointsWidget(){
   const body = document.getElementById('pointsWidgetBody');
   if(!window.JerrySite || !JerrySite.isLoggedIn()){
@@ -2115,46 +2070,6 @@ async function initPointsWidget(){
       <a class="widget-link" href="/zara-room.html">去喂养Zara →</a>
     `;
   }catch(e){ body.innerHTML = `<div class="login-hint">积分加载失败</div>`; }
-}
-
-async function initWeatherWidget(){
-  const body = document.getElementById('weatherWidgetBody');
-  if(!navigator.geolocation){
-    body.innerHTML = `<div class="login-hint">浏览器不支持定位</div>`;
-    return;
-  }
-  navigator.geolocation.getCurrentPosition(async (pos) => {
-    try{
-      const { latitude, longitude } = pos.coords;
-      // Open-Meteo：免费、不需要API key，直接前端调用即可
-      const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code`);
-      const data = await res.json();
-      const temp = Math.round(data.current.temperature_2m);
-      const { icon, desc } = weatherCodeToIcon(data.current.weather_code);
-      body.innerHTML = `
-        <div class="weather-row">
-          <div class="weather-icon">${icon}</div>
-          <div>
-            <div class="weather-temp">${temp}°C</div>
-            <div class="weather-desc">${desc}</div>
-          </div>
-        </div>
-        <div class="weather-loc">📍 你的当前位置</div>
-      `;
-    }catch(e){ body.innerHTML = `<div class="login-hint">天气加载失败</div>`; }
-  }, () => {
-    body.innerHTML = `<div class="login-hint">需要定位权限才能显示天气</div>`;
-  }, { timeout: 8000 });
-}
-function weatherCodeToIcon(code){
-  // WMO weather code 简化映射
-  if(code === 0) return { icon:'☀️', desc:'晴朗' };
-  if([1,2,3].includes(code)) return { icon:'⛅', desc:'多云' };
-  if([45,48].includes(code)) return { icon:'🌫️', desc:'有雾' };
-  if([51,53,55,61,63,65,80,81,82].includes(code)) return { icon:'🌧️', desc:'有雨' };
-  if([71,73,75,77,85,86].includes(code)) return { icon:'🌨️', desc:'有雪' };
-  if([95,96,99].includes(code)) return { icon:'⛈️', desc:'雷雨' };
-  return { icon:'🌤️', desc:'' };
 }
 
 function initAnnounceWidget(){
@@ -2180,10 +2095,8 @@ async function waitForJerrySiteReady(){
 (async () => {
   await waitForJerrySiteReady();
   await refreshUnlockStatus();
-  initCheckinWidget();
   initPointsWidget();
 })();
-initWeatherWidget();
 initAnnounceWidget();
 setupSidebarSearch();
 
