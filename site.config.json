@@ -1,0 +1,87 @@
+{
+  "profile": {
+    "siteName": "JERRY.DEV",
+    "navAfter": "",
+    "authorName": "Jerry",
+    "bio": "",
+    "avatarUrl": "",
+    "defaultPostCover": "",
+    "social": {
+      "github": "",
+      "gitee": "",
+      "email": "",
+      "qq": "",
+      "wechat": "",
+      "bilibili": ""
+    },
+    "navigation": [
+      {
+        "label": "说说",
+        "href": "/moments.html"
+      },
+      {
+        "label": "时间线",
+        "href": "/timeline.html"
+      },
+      {
+        "label": "友链",
+        "href": "/friends.html"
+      },
+      {
+        "label": "项目",
+        "href": "/projects.html"
+      },
+      {
+        "label": "照片墙",
+        "href": "/photowall.html"
+      }
+    ]
+  },
+  "background": {
+    "useGradient": true,
+    "bgImages": [],
+    "effect": "none"
+  },
+  "danmaku": {
+    "enabled": false,
+    "texts": [],
+    "speed": 12,
+    "opacity": 0.5
+  },
+  "aiCat": {
+    "enabled": true,
+    "name": "小猫",
+    "greeting": "喵？找我什么事~",
+    "provider": "gemini",
+    "model": "gemini-2.0-flash",
+    "systemPrompt": "你是博主Jerry的猫娘助理，回答亲切可爱，偶尔带\"喵\"。不知道的问题就撒娇卖萌。"
+  },
+  "comment": {
+    "provider": "local",
+    "gitalk": {
+      "clientID": "",
+      "clientSecret": "",
+      "repo": "",
+      "owner": ""
+    }
+  },
+  "picBed": {
+    "type": "local",
+    "apiBase": "https://7bu.top"
+  },
+  "music": {
+    "enabled": false,
+    "playerTitle": "BGM",
+    "songIds": [],
+    "defaultVolume": 0.5
+  },
+  "footer": {
+    "text": "© JERRY.DEV · 用热爱发电",
+    "links": [],
+    "beian": ""
+  },
+  "gallery": {
+    "intro": "用镜头记录生活的碎片",
+    "columns": 3
+  }
+}

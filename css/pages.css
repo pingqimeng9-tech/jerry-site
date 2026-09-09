@@ -1,0 +1,117 @@
+/* ============================================================
+   Jerry 站点扩展页共享样式（说说/时间线/友链/项目/照片墙）
+   设计 tokens 与 blog.css 完全同源，仅新增组件
+   ============================================================ */
+:root{
+  --glass:rgba(255,255,255,.10);
+  --glass-strong:rgba(255,255,255,.16);
+  --glass-border:rgba(255,255,255,.28);
+  --ink:#ffffff;
+  --muted:#c9c6e8;
+  --coral:#FF7A5C;
+  --aqua:#5CE1E6;
+  --violet:#B18CFF;
+  --pink:#FF8CD9;
+}
+.page-head{margin-bottom:30px}
+.page-title{font-family:'Noto Serif SC',serif;font-size:clamp(26px,4vw,38px);margin:0 0 6px}
+.page-sub{color:var(--muted);font-size:14px;margin:0}
+.page-back{display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:13px;margin-bottom:22px;transition:.2s}
+.page-back:hover{color:var(--aqua)}
+
+/* ---------- 说说 ---------- */
+.moment-card{background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(18px);border-radius:18px;padding:22px 24px;margin-bottom:20px;transition:.25s}
+.moment-card:hover{border-color:rgba(177,140,255,.5)}
+.moment-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.moment-mood{font-size:20px}
+.moment-time{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);margin-left:auto}
+.moment-text{font-size:15px;line-height:1.95;color:#e8e6fb;white-space:pre-wrap;word-break:break-word}
+.moment-media{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:12px}
+.moment-media img,.moment-media video{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;cursor:zoom-in;background:rgba(0,0,0,.25)}
+.moment-media video{aspect-ratio:16/9;cursor:pointer}
+.moment-foot{display:flex;gap:18px;margin-top:14px}
+.moment-act{background:none;border:none;color:var(--muted);font-size:12.5px;cursor:pointer;padding:4px 8px;border-radius:8px;font-family:inherit;transition:.2s}
+.moment-act:hover{background:var(--glass-strong);color:var(--aqua)}
+.moment-act.liked{color:var(--coral)}
+.moment-comments{margin-top:14px;border-top:1px solid rgba(255,255,255,.12);padding-top:14px;display:none}
+.moment-comments.open{display:block}
+.cmt-item{display:flex;gap:10px;padding:8px 0;font-size:13.5px}
+.cmt-item .who{font-weight:700;color:var(--aqua);flex:none}
+.cmt-item .when{color:var(--muted);font-size:11px;margin-left:auto;flex:none;font-family:'JetBrains Mono',monospace}
+.cmt-item .txt{color:#e8e6fb;line-height:1.7;word-break:break-word}
+.cmt-form{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.cmt-form input{flex:0 0 130px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:9px 12px;color:#fff;font-size:13px;outline:none;font-family:inherit}
+.cmt-form input:focus{border-color:var(--aqua)}
+.cmt-form input.cmt-text{flex:1 1 200px}
+.cmt-form button{background:linear-gradient(120deg,var(--coral),var(--pink));border:none;border-radius:10px;color:#fff;padding:0 18px;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px}
+
+/* ---------- 时间线 ---------- */
+.timeline{position:relative;padding-left:26px}
+.timeline::before{content:'';position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:linear-gradient(180deg,var(--violet),var(--aqua),transparent)}
+.tl-year{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--aqua);margin:26px 0 14px;position:relative}
+.tl-year:first-child{margin-top:0}
+.tl-item{position:relative;margin-bottom:14px}
+.tl-item::before{content:'';position:absolute;left:-25px;top:8px;width:10px;height:10px;border-radius:50%;background:var(--violet);box-shadow:0 0 10px rgba(177,140,255,.8)}
+.tl-item.type-moment::before{background:var(--pink);box-shadow:0 0 10px rgba(255,140,217,.8)}
+.tl-card{background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(14px);border-radius:14px;padding:14px 18px;transition:.2s}
+.tl-card:hover{border-color:var(--aqua);transform:translateX(4px)}
+.tl-card a{text-decoration:none}
+.tl-title{font-weight:700;font-size:15px;color:#fff}
+.tl-title:hover{color:var(--aqua)}
+.tl-desc{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.7;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tl-meta{display:flex;gap:10px;align-items:center;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:8px}
+.tl-tag{border:1px solid var(--glass-border);border-radius:100px;padding:1px 9px;color:var(--aqua)}
+.tl-tag.pink{color:var(--pink)}
+
+/* ---------- 友链 ---------- */
+.friend-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+.friend-card{display:flex;gap:14px;align-items:center;background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(16px);border-radius:16px;padding:18px;text-decoration:none;transition:.25s}
+.friend-card:hover{transform:translateY(-4px);border-color:var(--aqua);box-shadow:0 16px 40px -18px rgba(92,225,230,.4)}
+.friend-avatar{width:52px;height:52px;border-radius:50%;object-fit:cover;background:var(--glass-strong);flex:none;display:flex;align-items:center;justify-content:center;font-size:24px}
+.friend-name{font-weight:700;font-size:15px;color:#fff}
+.friend-desc{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:3px}
+.apply-card{margin-top:26px;background:var(--glass);border:1px dashed var(--glass-border);border-radius:16px;padding:20px 24px;font-size:13.5px;color:var(--muted);line-height:2}
+.apply-card b{color:var(--aqua)}
+
+/* ---------- 项目 ---------- */
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+.proj-card{background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(16px);border-radius:18px;overflow:hidden;text-decoration:none;transition:.3s;display:flex;flex-direction:column}
+.proj-card:hover{transform:translateY(-5px);border-color:var(--violet);box-shadow:0 20px 45px -20px rgba(177,140,255,.45)}
+.proj-cover{width:100%;height:150px;object-fit:cover;background:linear-gradient(135deg,rgba(177,140,255,.25),rgba(92,225,230,.25));display:flex;align-items:center;justify-content:center;font-size:40px}
+.proj-body{padding:18px 20px;display:flex;flex-direction:column;gap:8px;flex:1}
+.proj-title{font-size:16.5px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px}
+.proj-desc{font-size:13.5px;color:var(--muted);line-height:1.75;flex:1}
+.proj-tags{display:flex;gap:6px;flex-wrap:wrap}
+.proj-tags span{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--aqua);border:1px solid var(--glass-border);padding:2px 9px;border-radius:100px}
+.proj-link{font-size:12px;color:var(--pink)}
+
+/* ---------- 照片墙 ---------- */
+.album-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+.album-card{position:relative;border-radius:18px;overflow:hidden;cursor:pointer;aspect-ratio:4/3;border:1px solid var(--glass-border);background:var(--glass);transition:.3s}
+.album-card:hover{transform:translateY(-4px);border-color:var(--aqua)}
+.album-card img{width:100%;height:100%;object-fit:cover;transition:.4s}
+.album-card:hover img{transform:scale(1.06)}
+.album-info{position:absolute;inset:auto 0 0 0;padding:26px 16px 12px;background:linear-gradient(transparent,rgba(10,8,26,.9))}
+.album-name{font-weight:700;font-size:15px;color:#fff}
+.album-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+.masonry{columns:3;column-gap:12px}
+@media(max-width:720px){.masonry{columns:2}}
+.masonry .ph{break-inside:avoid;margin-bottom:12px;border-radius:12px;overflow:hidden;cursor:zoom-in;border:1px solid var(--glass-border)}
+.masonry .ph img{width:100%;display:block;transition:.3s}
+.masonry .ph:hover img{transform:scale(1.03)}
+/* 灯箱 */
+.lightbox{position:fixed;inset:0;z-index:2147483000;background:rgba(5,4,16,.92);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center}
+.lightbox.open{display:flex}
+.lightbox img,.lightbox video{max-width:92vw;max-height:88vh;border-radius:10px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.lightbox .lb-x{position:absolute;top:18px;right:24px;font-size:30px;color:#fff;cursor:pointer;opacity:.8}
+.lightbox .lb-nav{position:absolute;top:50%;transform:translateY(-50%);font-size:40px;color:#fff;cursor:pointer;opacity:.6;padding:20px;user-select:none}
+.lightbox .lb-nav:hover{opacity:1}
+.lightbox .lb-prev{left:8px}
+.lightbox .lb-next{right:8px}
+.lightbox .lb-count{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px}
+
+/* ---------- 通用空态 / 表单页 ---------- */
+.empty-tip{color:var(--muted);text-align:center;padding:60px 0}
+@media(max-width:640px){
+  .cmt-form input{flex:1 1 100%}
+}

@@ -1,0 +1,133 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>说说 · JERRY.DEV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/blog.css">
+<link rel="stylesheet" href="/css/pages.css">
+<style>
+  .moment-list{max-width:760px;margin:0 auto}
+</style>
+</head>
+<body>
+<div class="blob blob1"></div><div class="blob blob2"></div><div class="blob blob3"></div>
+
+<nav>
+  <a class="logo" href="/">JERRY.DEV</a>
+  <div class="links">
+    <a href="/#reflect">反思</a>
+    <a href="/blog.html">博客</a>
+    <a href="/rumi.html">Rumi英语</a>
+    <a href="/moments.html" class="active">说说</a>
+  </div>
+  <div id="jerry-auth-slot" style="margin: 0 10px;"></div>
+  <div class="btn-border-wrap"><a href="/#contact" class="cta">联系我</a></div>
+</nav>
+
+<main class="wrap">
+  <a class="page-back" href="/">← 返回首页</a>
+  <div class="page-head">
+    <h1 class="page-title">说说</h1>
+    <p class="page-sub">碎碎念、生活碎片与突然的想法</p>
+  </div>
+  <div class="moment-list" id="moment-list">
+    <div class="empty-tip">加载中…</div>
+  </div>
+</main>
+
+<div class="lightbox" id="lightbox">
+  <span class="lb-x" onclick="this.parentNode.classList.remove('open')">✕</span>
+  <span class="lb-nav lb-prev" onclick="lbStep(-1)">‹</span>
+  <img id="lb-img" alt="">
+  <span class="lb-nav lb-next" onclick="lbStep(1)">›</span>
+  <div class="lb-count" id="lb-count"></div>
+</div>
+
+<script src="/assets/site-kit.js"></script>
+<script src="/assets/comments.js"></script>
+
+<script>
+var MOODS = { '开心':'😄','快乐':'😄','兴奋':'🤩','平静':'😌','无语':'😐','难过':'😢','生气':'😠','疲惫':'😴','思考':'🤔','摸鱼':'🐟','庆祝':'🎉','默认':'✨' };
+var list = document.getElementById('moment-list');
+var likedSet = new Set(JSON.parse(localStorage.getItem('jerry_moment_likes') || '[]'));
+
+fetch('/api/moments').then(r=>r.json()).then(d=>{
+  var items = (d.items||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(!items.length){ list.innerHTML = '<div class="empty-tip">博主还没发过说说～（本地启动 CMS 后，在 内容管理 里发布第一条）</div>'; return; }
+  list.innerHTML = items.map(renderCard).join('');
+  wireCards(items);
+}).catch(()=>{ list.innerHTML = '<div class="empty-tip">加载失败：这个页面需要本地 CMS 服务（双击 start-jerry-cms.bat 启动）</div>'; });
+
+function esc(s){ var d=document.createElement('div'); d.textContent=s==null?'':String(s); return d.innerHTML; }
+
+function renderCard(m){
+  var mood = MOODS[m.mood || '默认'] || '✨';
+  var media = '';
+  var imgs = (m.images||[]).filter(Boolean);
+  if(imgs.length) media += imgs.map(function(u){ return '<img src="'+esc(u)+'" loading="lazy" onclick="openLb(\''+esc(u)+'\')" alt="">'; }).join('');
+  if(m.video) media += '<video src="'+esc(m.video)+'" controls preload="metadata"></video>';
+  var liked = likedSet.has(m.id);
+  return '<article class="moment-card" data-id="'+esc(m.id)+'">' +
+    '<div class="moment-head"><span class="moment-mood">'+mood+'</span>' +
+    '<span class="moment-time">'+esc((m.date||'').slice(0,16))+'</span></div>' +
+    '<div class="moment-text">'+esc(m.text||'')+'</div>' +
+    (media ? '<div class="moment-media">'+media+'</div>' : '') +
+    '<div class="moment-foot">' +
+    '<button class="moment-act'+(liked?' liked':'')+'" data-act="like">❤ <span>'+(m.likes||0)+'</span></button>' +
+    '<button class="moment-act" data-act="cmt">💬 评论</button>' +
+    '</div>' +
+    '<div class="moment-comments"><div class="jc-list"></div></div>' +
+    '</article>';
+}
+
+function wireCards(items){
+  list.querySelectorAll('.moment-card').forEach(function(card){
+    var m = items.find(x=>x.id===card.dataset.id);
+    if(!m) return;
+    var likeBtn = card.querySelector('[data-act="like"]');
+    likeBtn.addEventListener('click', function(){
+      if(likedSet.has(m.id)) return;
+      likedSet.add(m.id);
+      localStorage.setItem('jerry_moment_likes', JSON.stringify([...likedSet]));
+      m.likes = (m.likes||0)+1;
+      likeBtn.classList.add('liked');
+      likeBtn.querySelector('span').textContent = m.likes;
+    });
+    var cmtBtn = card.querySelector('[data-act="cmt"]');
+    var box = card.querySelector('.moment-comments');
+    cmtBtn.addEventListener('click', function(){
+      box.classList.toggle('open');
+      if(box.classList.contains('open') && !box.dataset.loaded){
+        box.dataset.loaded = '1';
+        JerryComments.mount(box.querySelector('.jc-list'), 'moment:' + m.id);
+      }
+    });
+  });
+}
+
+/* 图片灯箱（多图可左右切换） */
+var lbList = [], lbIdx = 0;
+function openLb(src){
+  lbList = [...document.querySelectorAll('.moment-media img')].map(i=>i.src);
+  lbIdx = Math.max(0, lbList.indexOf(src));
+  showLb();
+  document.getElementById('lightbox').classList.add('open');
+}
+function showLb(){
+  document.getElementById('lb-img').src = lbList[lbIdx] || '';
+  document.getElementById('lb-count').textContent = lbList.length ? (lbIdx+1)+' / '+lbList.length : '';
+}
+function lbStep(d){ if(!lbList.length) return; lbIdx=(lbIdx+d+lbList.length)%lbList.length; showLb(); }
+document.addEventListener('keydown', function(e){
+  var lb = document.getElementById('lightbox');
+  if(!lb.classList.contains('open')) return;
+  if(e.key==='Escape') lb.classList.remove('open');
+  if(e.key==='ArrowLeft') lbStep(-1);
+  if(e.key==='ArrowRight') lbStep(1);
+});
+</script>
+</body>
+</html>

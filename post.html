@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh">
 <head>
 <meta charset="UTF-8"/>
@@ -8,6 +8,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <script src="/assets/lib/marked.min.js"></script>
+<link rel="stylesheet" href="/assets/lib/hljs-atom-one-dark.min.css">
+<script src="/assets/lib/highlight.min.js"></script>
+<link rel="stylesheet" href="/assets/lib/katex/katex.min.css">
+<script defer src="/assets/lib/katex/katex.min.js"></script>
+<script defer src="/assets/lib/katex/auto-render.min.js"></script>
 
 <style>
   :root{
@@ -363,6 +368,24 @@
   .toc a.h3{padding-left:14px;font-size:11.5px;opacity:.8;}
   .toc a.active{color:var(--coral);font-weight:700;}
   .toc-empty{color:var(--muted);font-size:12px;opacity:.7;}
+  /* ===== 正文增强：代码块 / 表格 / 公式 / 标签 ===== */
+  .a-body table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:14px;overflow:hidden;border-radius:10px;border:1px solid rgba(255,255,255,.18)}
+  .a-body th{background:rgba(92,225,230,.12);color:#fff;font-weight:700;padding:9px 14px;border:1px solid rgba(255,255,255,.14);text-align:left}
+  .a-body td{padding:8px 14px;border:1px solid rgba(255,255,255,.12);color:#e8e6fb}
+  .a-body tr:nth-child(even) td{background:rgba(255,255,255,.04)}
+  .a-body pre{background:#0d1117!important;border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:16px 18px;overflow-x:auto;position:relative}
+  .a-body pre code{background:transparent!important;padding:0;display:block;font-size:13.5px;line-height:1.7}
+  .a-body code{font-family:'JetBrains Mono',monospace;background:rgba(177,140,255,.16);color:#dcd6ff;padding:2px 7px;border-radius:6px;font-size:.9em}
+  .a-body pre code{color:#e6edf3}
+  .a-body blockquote{border-left:3px solid var(--aqua);background:rgba(92,225,230,.06);margin:1rem 0;padding:.6rem 1.1rem;border-radius:0 12px 12px 0;color:var(--muted)}
+  .a-body .katex-display{overflow-x:auto;overflow-y:hidden;padding:4px 0}
+  .a-meta .post-tags-row{display:flex;gap:6px;flex-wrap:wrap}
+  .a-meta .post-tags-row span{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--pink);border:1px solid rgba(255,140,217,.4);padding:2px 9px;border-radius:100px}
+  /* ===== 文末评论区 ===== */
+  .cmt-sec{margin-top:2.2rem;border-top:1px solid rgba(255,255,255,.14);padding-top:1.4rem}
+  .cmt-sec .cmt-title{font-family:'Noto Serif SC',serif;font-size:18px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .cmt-sec .jc-form input{background:rgba(0,0,0,.3)}
+  #gitalk-container .gt-container .gt-header-textarea{background:rgba(0,0,0,.3);color:#fff}
 
   .state-box{text-align:center;padding:60px 20px;color:var(--muted);}
   .state-box.error{color:#FF9E8A;}
@@ -1198,6 +1221,15 @@ async function loadPost(){
 
     // cover 不再当整页背景，改成放在文章内容顶部、标题上方的一张横幅图；
     // 页面背景交给下面的 initBgCarousel() 做多图轮播虚化
+    // frontmatter：markdown 开头的 --- 元数据块，解析后补齐文章字段（字段以编辑器侧栏为准，frontmatter 只补缺）
+    const fm = parseFrontmatter(post.markdown || '');
+    const bodyMd = fm.body;
+    for (const [k, v] of Object.entries(fm.data)) {
+      if (k === 'tags') { post.tags = [...new Set([...(post.tags || []), ...String(v).split(/[,，、\s]+/).filter(Boolean)])]; continue; }
+      if (post[k] == null || post[k] === '') post[k] = v;
+    }
+    const tagsRow = (post.tags && post.tags.length)
+      ? `<span class="post-tags-row">${post.tags.map(t => `<span>#${escapeHtml(t)}</span>`).join('')}</span>` : '';
     container.innerHTML = `
       <div class="breadcrumb mono">首页 / 博客 ${post.category ? '/ ' + escapeHtml(post.category) : ''}</div>
       ${post.cover ? `<img class="cover-banner" src="${post.cover}" alt="${escapeHtml(post.title || '封面图')}"/>` : ''}
@@ -1205,18 +1237,26 @@ async function loadPost(){
       <div class="a-meta">
         ${post.date ? `<span>📅 ${post.date}</span>` : ''}
         ${post.category ? `<span class="tag">${escapeHtml(post.category)}</span>` : ''}
+        ${tagsRow}
         <span>👁 <span id="viewCount">${post.views || 0}</span> 次浏览</span>
         ${locked ? `<span class="days-left">🎂 会员内容试用${trialDaysLeft() !== null ? `还剩 ${trialDaysLeft()} 天` : '中'}</span>` : ''}
       </div>
       <div class="a-body" id="a-body"></div>
+      <div class="cmt-sec" id="cmt-sec">
+        <div class="cmt-title">💬 评论</div>
+        <div id="cmt-box"><div class="toc-empty">评论加载中…</div></div>
+      </div>
     `;
 
-    document.getElementById('a-body').innerHTML = marked.parse(post.markdown || '（正文为空）');
+    document.getElementById('a-body').innerHTML = marked.parse(bodyMd || '（正文为空）');
     document.querySelectorAll('#a-body img').forEach(img => { img.loading = 'lazy'; img.decoding = 'async'; });
     enhanceFileLinks();
     applyAnnotations(post.annotations || []);
+    enhanceCodeBlocks();
+    renderMath();
 
     buildTOC();
+    mountPostComments(id);
     // 会员锁分类：异步校验（不阻塞文章显示；未解锁才替换为锁定卡）
     if (locked) {
       (async () => {
@@ -1300,6 +1340,116 @@ function buildTOC(){
   }, { rootMargin: '-90px 0px -70% 0px' });
 
   headings.forEach(h => observer.observe(h));
+}
+
+// ===== frontmatter：解析 markdown 开头的 --- 元数据块（title/date/category/tags/cover/excerpt/mood 等）=====
+function parseFrontmatter(md){
+  const m = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(md);
+  if (!m) return { data: {}, body: md };
+  const data = {};
+  let key = null;
+  m[1].split(/\r?\n/).forEach(line => {
+    if (/^\s*-\s+/.test(line) && key) {                       // 列表项：- xxx
+      (Array.isArray(data[key]) ? data[key] : (data[key] = [])).push(line.replace(/^\s*-\s+/, '').trim().replace(/^["']|["']$/g, ''));
+      return;
+    }
+    const kv = /^(\w[\w-]*)\s*:\s*(.*)$/.exec(line);
+    if (!kv) return;
+    key = kv[1];
+    let v = kv[2].trim();
+    if (/^\[.*\]$/.test(v)) {                                  // 行内数组：[a, b]
+      data[key] = v.slice(1, -1).split(/[,，]/).map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
+      key = null;
+    } else if (v === '') {
+      data[key] = [];                                          // 换行数组，等下面的 - 项
+    } else {
+      data[key] = v.replace(/^["']|["']$/g, '');
+      key = null;
+    }
+  });
+  return { data, body: md.slice(m[0].length) };
+}
+
+// ===== 代码高亮：对所有 pre>code 做 hljs 渲染 + 语言标签 =====
+function enhanceCodeBlocks(){
+  if (typeof hljs === 'undefined') return;
+  document.querySelectorAll('#a-body pre code').forEach((block, i) => {
+    if (block.dataset.hlDone) return;
+    block.dataset.hlDone = '1';
+    try { hljs.highlightElement(block); } catch (e) {}
+    const pre = block.parentElement;
+    const lang = (block.className.match(/language-([\w-]+)/) || [])[1];
+    if (lang && !pre.querySelector('.code-lang')) {
+      const tag = document.createElement('span');
+      tag.className = 'code-lang mono';
+      tag.textContent = lang;
+      tag.style.cssText = 'position:absolute;top:8px;right:14px;font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.1em;text-transform:uppercase;pointer-events:none';
+      pre.appendChild(tag);
+    }
+  });
+}
+
+// ===== KaTeX 公式渲染（$...$ / $$...$$ / \(..\) / \[..\\]）=====
+function renderMath(){
+  const el = document.getElementById('a-body');
+  if (!el) return;
+  if (typeof renderMathInElement !== 'function') {          // katex 是 defer 加载，未就绪就等 load 后重试
+    if (!renderMath._pending) {
+      renderMath._pending = true;
+      window.addEventListener('load', () => { renderMath._pending = false; renderMath(); });
+    }
+    return;
+  }
+  renderMathInElement(el, {
+    delimiters: [
+      { left: '$$', right: '$$', display: true },
+      { left: '\\[', right: '\\]', display: true },
+      { left: '$', right: '$', display: false },
+      { left: '\\(', right: '\\)', display: false }
+    ],
+    throwOnError: false
+  });
+}
+
+// ===== 文末评论区：Gitalk（配置了就走 GitHub Issues）或本地评论 =====
+async function mountPostComments(postId){
+  const box = document.getElementById('cmt-box');
+  if (!box) return;
+  let cfg = null;
+  try { const r = await fetch('/site.config.json', { cache: 'no-store' }); if (r.ok) cfg = await r.json(); } catch (e) {}
+  const gitalk = cfg && cfg.comment && cfg.comment.provider === 'gitalk' && cfg.comment.gitalk || null;
+  if (gitalk && gitalk.clientID && gitalk.repo && gitalk.owner) {
+    if (!document.getElementById('gitalk-css')) {
+      const css = document.createElement('link'); css.id = 'gitalk-css'; css.rel = 'stylesheet';
+      css.href = 'https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css';
+      document.head.appendChild(css);
+      const js = document.createElement('script'); js.src = 'https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js';
+      js.onload = () => initGitalk(gitalk, postId);
+      js.onerror = () => fallbackLocal();
+      document.head.appendChild(js);
+    } else initGitalk(gitalk, postId);
+    return;
+  }
+  fallbackLocal();
+
+  function fallbackLocal(){
+    if (typeof JerryComments === 'undefined') {
+      const s = document.createElement('script'); s.src = '/assets/comments.js';
+      s.onload = () => JerryComments.mount(box, 'post:' + postId);
+      document.head.appendChild(s);
+    } else JerryComments.mount(box, 'post:' + postId);
+  }
+  function initGitalk(g, postId){
+    try {
+      box.innerHTML = '<div id="gitalk-container"></div>';
+      new Gitalk({
+        clientID: g.clientID, clientSecret: g.clientSecret || '',
+        repo: g.repo, owner: g.owner,
+        id: postId, title: '文章评论: ' + postId,
+        language: 'zh-CN'
+      }).render('gitalk-container');
+    } catch (e) { fallbackLocal(); }
+  }
 }
 
 function escapeHtml(str){
@@ -3845,6 +3995,7 @@ window.jerrySiteReady = JerrySite.init();
 })();
 </script>
 
-  <script src="/admin/bridge.js"></script>
+  <script src="/assets/site-kit.js"></script>
+  
   </body>
 </html>

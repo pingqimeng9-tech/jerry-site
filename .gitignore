@@ -1,7 +1,28 @@
-
+﻿
 # Jerry CMS 本地备份
 .cms-backup-*/
+
+# 依赖 & 部署
 node_modules/
 .vercel/
+
+# OS 杂项
 Thumbs.db
 .DS_Store
+
+# ============================
+# Jerry CMS 管理器文件（仅本地）
+# 这些文件不推到 GitHub/Vercel，线上完全不可访问
+# ============================
+admin/
+server.js
+start-jerry-cms.bat
+launcher.py
+__pycache__/
+
+# 本地数据目录（含 apiKey/token 等敏感信息）
+# 线上使用根目录 site.config.json（只读公开子集）
+data/
+
+# CMS 临时
+style-compare.html

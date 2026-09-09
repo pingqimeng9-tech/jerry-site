@@ -1,0 +1,125 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>照片墙 · JERRY.DEV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/blog.css">
+<link rel="stylesheet" href="/css/pages.css">
+</head>
+<body>
+<div class="blob blob1"></div><div class="blob blob2"></div><div class="blob blob3"></div>
+
+<nav>
+  <a class="logo" href="/">JERRY.DEV</a>
+  <div class="links">
+    <a href="/#reflect">反思</a>
+    <a href="/blog.html">博客</a>
+    <a href="/rumi.html">Rumi英语</a>
+    <a href="/photowall.html" class="active">照片墙</a>
+  </div>
+  <div id="jerry-auth-slot" style="margin: 0 10px;"></div>
+  <div class="btn-border-wrap"><a href="/#contact" class="cta">联系我</a></div>
+</nav>
+
+<main class="wrap">
+  <a class="page-back" href="/" id="back-link" style="display:none">← 返回相册列表</a>
+  <div class="page-head">
+    <h1 class="page-title" id="page-title">照片墙</h1>
+    <p class="page-sub" id="page-sub">用镜头记录生活的碎片</p>
+  </div>
+  <div id="view"><div class="empty-tip">加载中…</div></div>
+</main>
+
+<div class="lightbox" id="lightbox">
+  <span class="lb-x" onclick="this.parentNode.classList.remove('open')">✕</span>
+  <span class="lb-nav lb-prev" onclick="lbStep(-1)">‹</span>
+  <img id="lb-img" alt="">
+  <span class="lb-nav lb-next" onclick="lbStep(1)">›</span>
+  <div class="lb-count" id="lb-count"></div>
+</div>
+
+<script src="/assets/site-kit.js"></script>
+
+<script>
+var view = document.getElementById('view');
+var albums = [];
+var inAlbum = null;
+var photos = [];
+
+fetch('/api/albums').then(r=>r.json()).then(d=>{
+  albums = (d.items||[]);
+  renderAlbums();
+}).catch(function(){ view.innerHTML = '<div class="empty-tip">加载失败：需要本地 CMS 服务</div>'; });
+
+function esc(s){ var d=document.createElement('div'); d.textContent=s==null?'':String(s); return d.innerHTML; }
+
+function renderAlbums(){
+  inAlbum = null;
+  document.getElementById('back-link').style.display = 'none';
+  document.getElementById('page-title').textContent = '照片墙';
+  history.replaceState(null, '', location.pathname);
+  if(!albums.length){ view.innerHTML = '<div class="empty-tip">还没有相册～（本地启动 CMS 后，在 内容管理 里创建并上传照片）</div>'; return; }
+  view.innerHTML = '<div class="album-grid">' + albums.map(function(a){
+    var cover = (a.photos && a.photos[0]) || a.cover || '';
+    return '<div class="album-card" data-id="'+esc(a.id)+'">' +
+      (cover ? '<img src="'+esc(cover)+'" loading="lazy" alt="'+esc(a.title)+'">' : '') +
+      '<div class="album-info"><div class="album-name">'+esc(a.title||'未命名相册')+'</div>' +
+      '<div class="album-count">'+((a.photos||[]).length)+' 张 · '+esc((a.date||'').slice(0,10))+'</div></div></div>';
+  }).join('') + '</div>';
+  view.querySelectorAll('.album-card').forEach(function(card){
+    card.addEventListener('click', function(){
+      var a = albums.find(x=>x.id===card.dataset.id);
+      if(a) renderAlbum(a);
+    });
+  });
+}
+
+function renderAlbum(a){
+  inAlbum = a;
+  document.getElementById('back-link').style.display = 'inline-flex';
+  document.getElementById('page-title').textContent = a.title || '相册';
+  history.replaceState(null, '', location.pathname + '?album=' + encodeURIComponent(a.id));
+  photos = (a.photos||[]).filter(Boolean);
+  if(!photos.length){ view.innerHTML = '<div class="empty-tip">这个相册还是空的</div>'; return; }
+  view.innerHTML = '<div class="masonry">' + photos.map(function(u,i){
+    return '<div class="ph" data-i="'+i+'"><img src="'+esc(u)+'" loading="lazy" alt=""></div>';
+  }).join('') + '</div>';
+  view.querySelectorAll('.ph').forEach(function(ph){
+    ph.addEventListener('click', function(){ openLb(parseInt(ph.dataset.i,10)); });
+  });
+}
+
+document.getElementById('back-link').addEventListener('click', function(e){ e.preventDefault(); renderAlbums(); });
+// 带 ?album=xxx 直达
+var want = new URLSearchParams(location.search).get('album');
+if(want) {
+  var t = setInterval(function(){
+    if(albums.length){
+      clearInterval(t);
+      var a = albums.find(x=>x.id===want);
+      if(a) renderAlbum(a);
+    }
+  }, 300);
+  setTimeout(function(){ clearInterval(t); }, 5000);
+}
+
+var lbIdx = 0;
+function openLb(i){ lbIdx = i; showLb(); document.getElementById('lightbox').classList.add('open'); }
+function showLb(){
+  document.getElementById('lb-img').src = photos[lbIdx] || '';
+  document.getElementById('lb-count').textContent = photos.length ? (lbIdx+1)+' / '+photos.length : '';
+}
+function lbStep(d){ if(!photos.length) return; lbIdx=(lbIdx+d+photos.length)%photos.length; showLb(); }
+document.addEventListener('keydown', function(e){
+  var lb = document.getElementById('lightbox');
+  if(!lb.classList.contains('open')) return;
+  if(e.key==='Escape') lb.classList.remove('open');
+  if(e.key==='ArrowLeft') lbStep(-1);
+  if(e.key==='ArrowRight') lbStep(1);
+});
+</script>
+</body>
+</html>

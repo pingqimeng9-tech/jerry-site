@@ -1,0 +1,64 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>友链 · JERRY.DEV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/blog.css">
+<link rel="stylesheet" href="/css/pages.css">
+</head>
+<body>
+<div class="blob blob1"></div><div class="blob blob2"></div><div class="blob blob3"></div>
+
+<nav>
+  <a class="logo" href="/">JERRY.DEV</a>
+  <div class="links">
+    <a href="/#reflect">反思</a>
+    <a href="/blog.html">博客</a>
+    <a href="/rumi.html">Rumi英语</a>
+    <a href="/friends.html" class="active">友链</a>
+  </div>
+  <div id="jerry-auth-slot" style="margin: 0 10px;"></div>
+  <div class="btn-border-wrap"><a href="/#contact" class="cta">联系我</a></div>
+</nav>
+
+<main class="wrap">
+  <a class="page-back" href="/">← 返回首页</a>
+  <div class="page-head">
+    <h1 class="page-title">朋友们</h1>
+    <p class="page-sub">互相串门的邻居们</p>
+  </div>
+  <div class="friend-grid" id="friend-grid">
+    <div class="empty-tip">加载中…</div>
+  </div>
+  <div class="apply-card">
+    <b>🔗 申请友链：</b>在本页评论区留下你的信息即可，格式如下——<br>
+    <span class="mono">站点名称 | 站点地址 | 头像图片地址 | 一句话介绍</span><br>
+    本站信息：<span class="mono" id="my-info">JERRY.DEV | https://callmiruko.cc</span>
+  </div>
+</main>
+
+<script src="/assets/site-kit.js"></script>
+<script src="/assets/comments.js"></script>
+
+<script>
+var grid = document.getElementById('friend-grid');
+fetch('/api/friends').then(r=>r.json()).then(d=>{
+  var items = (d.items||[]).filter(f=>f.url);
+  if(!items.length){ grid.innerHTML = '<div class="empty-tip">还没有友链～（本地启动 CMS 后，在 内容管理 里添加）</div>'; return; }
+  grid.innerHTML = items.map(function(f){
+    var av = f.avatar
+      ? '<img class="friend-avatar" src="'+esc(f.avatar)+'" alt="'+esc(f.name)+'" onerror="this.replaceWith(document.createTextNode(\'🌐\'))">'
+      : '<div class="friend-avatar">🌐</div>';
+    return '<a class="friend-card" href="'+esc(f.url)+'" target="_blank" rel="noopener noreferrer">' + av +
+      '<div><div class="friend-name">'+esc(f.name||'未命名')+'</div>' +
+      '<div class="friend-desc">'+esc(f.desc||'')+'</div></div></a>';
+  }).join('');
+}).catch(function(){ grid.innerHTML = '<div class="empty-tip">加载失败：需要本地 CMS 服务</div>'; });
+
+function esc(s){ var d=document.createElement('div'); d.textContent=s==null?'':String(s); return d.innerHTML; }
+</script>
+</body>
+</html>

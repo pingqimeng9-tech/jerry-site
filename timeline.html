@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>时间线 · JERRY.DEV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/blog.css">
+<link rel="stylesheet" href="/css/pages.css">
+</head>
+<body>
+<div class="blob blob1"></div><div class="blob blob2"></div><div class="blob blob3"></div>
+
+<nav>
+  <a class="logo" href="/">JERRY.DEV</a>
+  <div class="links">
+    <a href="/#reflect">反思</a>
+    <a href="/blog.html">博客</a>
+    <a href="/rumi.html">Rumi英语</a>
+    <a href="/moments.html">说说</a>
+    <a href="/timeline.html" class="active">时间线</a>
+  </div>
+  <div id="jerry-auth-slot" style="margin: 0 10px;"></div>
+  <div class="btn-border-wrap"><a href="/#contact" class="cta">联系我</a></div>
+</nav>
+
+<main class="wrap">
+  <a class="page-back" href="/">← 返回首页</a>
+  <div class="page-head">
+    <h1 class="page-title">时间线</h1>
+    <p class="page-sub">文章与说说，按时间串起来的足迹</p>
+  </div>
+  <div class="timeline" id="timeline">
+    <div class="empty-tip">加载中…</div>
+  </div>
+</main>
+
+<script src="/assets/site-kit.js"></script>
+
+<script>
+var box = document.getElementById('timeline');
+Promise.all([
+  fetch('/api/posts').then(r=>r.json()).catch(()=>({posts:[]})),
+  fetch('/api/moments').then(r=>r.json()).catch(()=>({items:[]}))
+]).then(function(rs){
+  var posts = (rs[0].posts||[]).map(function(p){
+    return { type:'post', date:(p.date||''), title:p.title, desc:p.excerpt||'', tag:p.category||'', href:'/post.html?id='+encodeURIComponent(p.id), views:p.views };
+  });
+  var moments = (rs[1].items||[]).map(function(m){
+    return { type:'moment', date:(m.date||''), title:(m.text||'').slice(0,60), desc:(m.text||'').slice(0,120), tag:'说说', href:'/moments.html' };
+  });
+  var all = posts.concat(moments).filter(x=>x.date).sort((a,b)=>b.date.localeCompare(a.date));
+  if(!all.length){ box.innerHTML = '<div class="empty-tip">还没有任何内容</div>'; return; }
+  var html = '', year = '';
+  all.forEach(function(x){
+    var y = x.date.slice(0,4);
+    if(y !== year){ year = y; html += '<div class="tl-year">'+y+'</div>'; }
+    html += '<div class="tl-item type-'+x.type+'"><div class="tl-card">' +
+      (x.type==='post'
+        ? '<a href="'+x.href+'"><div class="tl-title">'+esc(x.title)+'</div></a>'
+        : '<a href="'+x.href+'"><div class="tl-title">💭 '+esc(x.title)+'</div></a>') +
+      (x.desc ? '<div class="tl-desc">'+esc(x.desc)+'</div>' : '') +
+      '<div class="tl-meta"><span class="tl-tag'+(x.type==='moment'?' pink':'')+'">'+esc(x.tag)+'</span>' +
+      '<span>'+esc(x.date.slice(0,10))+'</span>' +
+      (x.views!=null ? '<span>👁 '+x.views+'</span>' : '') +
+      '</div></div></div>';
+  });
+  box.innerHTML = html;
+}).catch(function(){ box.innerHTML = '<div class="empty-tip">加载失败：需要本地 CMS 服务</div>'; });
+
+function esc(s){ var d=document.createElement('div'); d.textContent=s==null?'':String(s); return d.innerHTML; }
+</script>
+</body>
+</html>

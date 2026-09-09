@@ -1,0 +1,62 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>项目 · JERRY.DEV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/blog.css">
+<link rel="stylesheet" href="/css/pages.css">
+</head>
+<body>
+<div class="blob blob1"></div><div class="blob blob2"></div><div class="blob blob3"></div>
+
+<nav>
+  <a class="logo" href="/">JERRY.DEV</a>
+  <div class="links">
+    <a href="/#reflect">反思</a>
+    <a href="/blog.html">博客</a>
+    <a href="/rumi.html">Rumi英语</a>
+    <a href="/projects.html" class="active">项目</a>
+  </div>
+  <div id="jerry-auth-slot" style="margin: 0 10px;"></div>
+  <div class="btn-border-wrap"><a href="/#contact" class="cta">联系我</a></div>
+</nav>
+
+<main class="wrap">
+  <a class="page-back" href="/">← 返回首页</a>
+  <div class="page-head">
+    <h1 class="page-title">项目展示</h1>
+    <p class="page-sub">做过并愿意展示的东西</p>
+  </div>
+  <div class="proj-grid" id="proj-grid">
+    <div class="empty-tip">加载中…</div>
+  </div>
+</main>
+
+<script src="/assets/site-kit.js"></script>
+
+<script>
+var grid = document.getElementById('proj-grid');
+fetch('/api/projects').then(r=>r.json()).then(d=>{
+  var items = (d.items||[]);
+  if(!items.length){ grid.innerHTML = '<div class="empty-tip">还没有项目～（本地启动 CMS 后，在 内容管理 里添加）</div>'; return; }
+  grid.innerHTML = items.map(function(p){
+    var cover = p.cover
+      ? '<img class="proj-cover" src="'+esc(p.cover)+'" alt="'+esc(p.title)+'" onerror="this.replaceWith(document.createTextNode(\'🚀\'))">'
+      : '<div class="proj-cover">🚀</div>';
+    var href = p.url || 'javascript:void(0)';
+    return '<a class="proj-card" href="'+esc(href)+'" target="_blank" rel="noopener noreferrer">' + cover +
+      '<div class="proj-body"><div class="proj-title">'+esc(p.title||'未命名')+'</div>' +
+      '<div class="proj-desc">'+esc(p.desc||'')+'</div>' +
+      ((p.tags||[]).length ? '<div class="proj-tags">'+p.tags.map(t=>'<span>'+esc(t)+'</span>').join('')+'</div>' : '') +
+      (p.url ? '<div class="proj-link">↗ 访问项目</div>' : '') +
+      '</div></a>';
+  }).join('');
+}).catch(function(){ grid.innerHTML = '<div class="empty-tip">加载失败：需要本地 CMS 服务</div>'; });
+
+function esc(s){ var d=document.createElement('div'); d.textContent=s==null?'':String(s); return d.innerHTML; }
+</script>
+</body>
+</html>
