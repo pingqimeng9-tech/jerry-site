@@ -127,7 +127,7 @@ async function handleApi(req, res, pathname) {
     post.status = body.status === 'draft' ? 'draft' : 'published';
     if (body.date) post.date = body.date; else if (!post.date) post.date = nowStr().split(' ')[0];
     post.updatedAt = nowStr();
-    post.syncedAt = ''; // clear sync stamp on any edit
+    post.syncedAt = '';
     if (body.thumb) post.thumb = body.thumb.trim();
     store.posts.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     writeStore(store);
@@ -277,10 +277,9 @@ async function handleApi(req, res, pathname) {
       }
       return send(res, 200, { ok: false, error: '推送失败：' + r.out, log });
     }
-    // Mark all published posts as synced
     const syncStore = readStore();
     const syncTime = nowStr();
-    syncStore.posts.forEach(p => { if (p.status === 'published') p.syncedAt = syncTime; });
+    syncStore.posts.forEach(function(p){ if(p.status==='published') p.syncedAt=syncTime; });
     writeStore(syncStore);
     return send(res, 200, { ok: true, upToDate: /Everything up-to-date/i.test(r.out), log });
   }
