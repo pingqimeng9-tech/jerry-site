@@ -1,0 +1,2802 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>无损图片裁切器</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/ort.min.js"></script>
+<style>
+  :root{
+    --ink:#1c1a17;
+    --paper:#f6f2ea;
+    --paper2:#efe9dd;
+    --line:#d8d0bf;
+    --accent:#7c6a52;
+    --accent-ink:#fffdf8;
+    --danger:#a24a3d;
+    --mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;}
+  .wrap{max-width:1120px;margin:0 auto;padding:28px 20px 60px;}
+
+  .masthead{display:flex;align-items:baseline;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:22px;flex-wrap:wrap;gap:8px;}
+  .masthead h1{font-size:22px;font-weight:700;letter-spacing:0.01em;margin:0;}
+  .masthead .sub{font-size:12.5px;color:#6b6152;font-family:var(--mono);}
+
+  .dropzone{border:1.5px dashed var(--line);border-radius:2px;background:var(--paper2);padding:34px 20px;text-align:center;cursor:pointer;transition:border-color .15s, background .15s;}
+  .dropzone:hover, .dropzone.drag{border-color:var(--accent);background:#e9e1cf;}
+  .dropzone .big{font-size:15px;font-weight:600;margin-bottom:4px;}
+  .dropzone .small{font-size:12px;color:#7a7060;}
+  input[type=file]{display:none;}
+
+  .filmstrip{display:flex;gap:10px;overflow-x:auto;padding:16px 2px 4px;margin-bottom:6px;}
+  .thumb{flex:0 0 auto;width:72px;height:72px;border:2px solid transparent;border-radius:2px;overflow:hidden;position:relative;cursor:pointer;background:#000;}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;opacity:.92;}
+  .thumb.active{border-color:var(--ink);}
+  .thumb .badge{position:absolute;bottom:2px;right:2px;background:rgba(28,26,23,.82);color:#fff;font-size:10px;font-family:var(--mono);padding:1px 4px;border-radius:2px;}
+  .thumb .rm{position:absolute;top:2px;right:2px;width:16px;height:16px;background:rgba(28,26,23,.75);color:#fff;border-radius:50%;font-size:11px;line-height:16px;text-align:center;display:none;}
+  .thumb:hover .rm{display:block;}
+
+  .stage-row{display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:start;}
+  @media (max-width:840px){.stage-row{grid-template-columns:1fr;}}
+
+  .toolbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+  .tbtn{border:1px solid var(--line);background:#fff;color:var(--ink);font-size:12.5px;padding:7px 12px;border-radius:2px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;}
+  .tbtn:hover{border-color:var(--accent);}
+  .tbtn.on{background:var(--ink);color:var(--accent-ink);border-color:var(--ink);}
+  .tbtn:disabled{opacity:.4;cursor:not-allowed;}
+
+  .stage{position:relative;background:
+      linear-gradient(45deg,#e4ddcd 25%,transparent 25%),
+      linear-gradient(-45deg,#e4ddcd 25%,transparent 25%),
+      linear-gradient(45deg,transparent 75%,#e4ddcd 75%),
+      linear-gradient(-45deg,transparent 75%,#e4ddcd 75%);
+    background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0;
+    border:1px solid var(--line);border-radius:2px;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;min-height:340px;max-height:70vh;
+  }
+  .stage canvas{display:block;cursor:crosshair;touch-action:none;flex:0 0 auto;}
+  .stage.panning canvas{cursor:grabbing;}
+  .stage .empty{color:#8b8271;font-size:13px;font-family:var(--mono);}
+
+  .zoombar{display:flex;align-items:center;gap:4px;}
+  .zoombar button{border:1px solid var(--line);background:#fff;width:24px;height:24px;border-radius:2px;cursor:pointer;font-size:13px;line-height:1;color:var(--ink);}
+  .zoombar button:hover{border-color:var(--accent);}
+  .zoombar .zlabel{font-family:var(--mono);font-size:11.5px;color:#6b6152;width:42px;text-align:center;}
+
+  /* stepper: same visual language as .zoombar, used for row/col counts and fine rotation nudge */
+  .stepper{display:flex;align-items:stretch;border:1px solid var(--line);border-radius:2px;overflow:hidden;background:#fff;}
+  .stepper button{border:none;background:#fff;width:22px;height:22px;cursor:pointer;font-size:13px;line-height:1;color:var(--ink);padding:0;font-family:inherit;}
+  .stepper button:hover{background:var(--paper2);color:var(--accent);}
+  .stepper button:active{background:var(--line);}
+  .stepper input{width:32px;text-align:center;border:none;border-left:1px solid var(--line);border-right:1px solid var(--line);font-family:var(--mono);font-size:12px;height:22px;background:#fff;color:var(--ink);padding:0;-moz-appearance:textfield;}
+  .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+
+  /* rotation control: readout + small nudge buttons, precise dragging happens on the canvas handle */
+  .rotctrl{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:2px;overflow:hidden;background:#fff;}
+  .rotctrl button{border:none;background:#fff;width:22px;height:22px;cursor:pointer;font-size:12px;line-height:1;color:var(--ink);padding:0;font-family:inherit;}
+  .rotctrl button:hover{background:var(--paper2);color:var(--accent);}
+  .rotctrl button:active{background:var(--line);}
+  .rotctrl .rotval{font-family:var(--mono);font-size:11.5px;color:#6b6152;width:44px;text-align:center;border-left:1px solid var(--line);border-right:1px solid var(--line);height:22px;line-height:22px;}
+
+  /* demoted low-frequency actions: small text links instead of paired ghost buttons */
+  .link-actions{display:flex;gap:14px;margin-top:2px;}
+  .linklike{font-size:11.5px;color:#8b8271;font-family:var(--mono);cursor:pointer;text-decoration:none;border-bottom:1px dotted #b6ab95;}
+  .linklike:hover{color:var(--accent);border-bottom-color:var(--accent);}
+
+  .hint{font-size:11.5px;color:#7a7060;margin-top:8px;font-family:var(--mono);line-height:1.5;}
+
+  .side{display:flex;flex-direction:column;gap:10px;}
+  .panel{border:1px solid var(--line);background:#fff;border-radius:2px;padding:11px 12px;}
+  .panel h3{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#8b8271;margin:0 0 9px;font-weight:600;}
+  .row{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;margin-bottom:6px;}
+  .row:last-child{margin-bottom:0;}
+  select, input[type=text]{font-family:inherit;font-size:12.5px;border:1px solid var(--line);border-radius:2px;padding:4px 6px;background:#fff;color:var(--ink);}
+
+  /* horizontal pairing for compact controls, so related settings sit side by
+     side instead of each eating a full row's height */
+  .rowN{display:flex;gap:8px;margin-bottom:8px;}
+  .rowN:last-child{margin-bottom:0;}
+  .minifield{flex:1;min-width:0;}
+  .minifield label{display:block;font-size:10.5px;color:#6b6152;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .minifield input[type=number]{width:100%;box-sizing:border-box;}
+  .minifield .stepper, .minifield .rotctrl{width:100%;}
+  .minifield .stepper input, .minifield .rotctrl .rotval{flex:1;}
+
+  /* pin the crop queue near the top of the viewport once the sidebar scrolls
+     past it, so it doesn't disappear while you're deep in export/matting */
+  .sticky-panel{position:sticky;top:12px;z-index:5;box-shadow:0 2px 0 var(--paper);}
+
+  .cropqueue{display:flex;flex-direction:column;gap:6px;max-height:210px;overflow-y:auto;}
+  .cq-item{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:2px;padding:5px;background:var(--paper2);}
+  .cq-item img{width:34px;height:34px;object-fit:cover;border-radius:1px;background:#000;flex:0 0 auto;}
+  .cq-item .meta{flex:1;min-width:0;font-size:11px;font-family:var(--mono);color:#5c5344;}
+  .cq-item .meta b{display:block;font-family:inherit;color:var(--ink);font-size:12px;font-weight:600;}
+  .cq-item .actions{display:flex;gap:4px;flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end;max-width:130px;}
+  .cq-item .actions.wide{max-width:none;}
+  .iconbtn.matte-on{background:var(--ok, #4c7a52);color:#fff;border-color:var(--ok,#4c7a52);}
+  .iconbtn{border:1px solid var(--line);background:#fff;width:24px;height:24px;border-radius:2px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;color:#5c5344;}
+  .iconbtn:hover{border-color:var(--accent);color:var(--ink);}
+  .iconbtn.ai-btn{width:auto;padding:0 8px;gap:4px;font-size:11px;font-weight:600;border-color:var(--accent);color:var(--accent);}
+  .iconbtn.ai-btn:hover{background:var(--accent);color:var(--accent-ink);}
+  .iconbtn.ai-btn:disabled{opacity:.55;cursor:wait;}
+  .empty-q{font-size:12px;color:#9a9182;font-family:var(--mono);padding:10px 0;text-align:center;}
+
+  .primary{background:var(--ink);color:var(--accent-ink);border:1px solid var(--ink);border-radius:2px;font-size:13px;font-weight:600;padding:10px 12px;cursor:pointer;width:100%;font-family:inherit;}
+  .primary:hover{background:#312c25;}
+  .primary:disabled{opacity:.35;cursor:not-allowed;}
+  .ghost{background:#fff;border:1px solid var(--line);color:var(--ink);border-radius:2px;font-size:12.5px;padding:8px 12px;cursor:pointer;width:100%;font-family:inherit;}
+  .ghost:hover{border-color:var(--accent);}
+
+  .confirmbar{display:flex;gap:8px;margin-top:10px;}
+  .confirmbar button{flex:1;}
+
+  ::-webkit-scrollbar{height:6px;width:6px;}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px;}
+
+  /* preview/edit modal for a single queue item */
+  .modal-overlay{position:fixed;inset:0;background:rgba(28,26,23,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:24px;}
+  .modal-overlay.show{display:flex;}
+  .modal-box{background:var(--paper);border:1px solid var(--line);border-radius:2px;max-width:640px;width:100%;max-height:88vh;overflow:auto;padding:20px;position:relative;}
+  .modal-box h3{margin:0 0 12px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#8b8271;font-weight:600;}
+  .modal-close{position:absolute;top:12px;right:14px;cursor:pointer;font-size:18px;color:#8b8271;background:none;border:none;line-height:1;padding:2px 4px;}
+  .modal-close:hover{color:var(--ink);}
+  .modal-preview{background:
+      linear-gradient(45deg,#e4ddcd 25%,transparent 25%),
+      linear-gradient(-45deg,#e4ddcd 25%,transparent 25%),
+      linear-gradient(45deg,transparent 75%,#e4ddcd 75%),
+      linear-gradient(-45deg,transparent 75%,#e4ddcd 75%);
+    background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0;
+    border:1px solid var(--line);border-radius:2px;display:flex;align-items:center;justify-content:center;
+    min-height:220px;max-height:50vh;overflow:auto;margin-bottom:14px;
+  }
+  .modal-preview img{max-width:100%;max-height:48vh;display:block;}
+  .modal-actions{display:flex;flex-wrap:wrap;gap:8px;}
+  .modal-actions button{flex:1 1 auto;min-width:150px;width:auto;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <h1>无损图片裁切器</h1>
+    <div class="sub">quad · pen · text-clone &nbsp;/&nbsp; batch export</div>
+  </div>
+
+  <div id="dropzone" class="dropzone">
+    <div class="big">拖入图片，或点击选择文件</div>
+    <div class="small">支持多张图片 · PNG / JPG / WEBP · 裁切输出保持原图分辨率不压缩</div>
+    <input type="file" id="fileInput" accept="image/*" multiple>
+  </div>
+
+  <div id="filmstrip" class="filmstrip" style="display:none;"></div>
+
+  <div id="workarea" style="display:none;">
+    <div class="stage-row">
+      <div>
+        <div class="toolbar">
+          <button class="tbtn" data-mode="quad" id="modeQuad">◇ 四边形裁切</button>
+          <button class="tbtn" data-mode="pen" id="modePen">✎ 钢笔裁切</button>
+          <button class="tbtn" data-mode="text" id="modeText">🅣 文字克隆</button>
+          <button class="tbtn" data-mode="grid" id="modeGrid">▦ 网格分割</button>
+          <span style="flex:1"></span>
+          <button class="tbtn" id="undoBtn" disabled title="撤销 (Ctrl+Z)">↶ 撤销</button>
+          <button class="tbtn" id="redoBtn" disabled title="重做 (Ctrl+Shift+Z)">↷ 重做</button>
+          <button class="tbtn" id="undoPoint" disabled>撤销点</button>
+          <button class="tbtn" id="clearSel" disabled>清除选区</button>
+          <div class="zoombar">
+            <button id="zoomOut" title="缩小">－</button>
+            <span class="zlabel" id="zoomLabel">100%</span>
+            <button id="zoomIn" title="放大">＋</button>
+            <button id="zoomReset" title="重置">⟲</button>
+          </div>
+        </div>
+        <div class="stage" id="stage">
+          <div class="empty">选择上方缩略图开始裁切</div>
+        </div>
+        <div id="confirmbar" class="confirmbar" style="display:none;">
+          <button class="ghost" id="cancelSelBtn">取消</button>
+          <button class="primary" id="addCropBtn">＋ 加入裁切队列</button>
+        </div>
+        <div class="hint" id="hintText">四边形裁切：拖拽画出选区，四个角可任意拖动。</div>
+      </div>
+
+      <div class="side">
+        <div class="panel" id="quadOptsPanel">
+          <h3>四边形选项</h3>
+          <label class="row" style="cursor:pointer;">
+            <span>连续多选（拖完自动加入队列）</span>
+            <input type="checkbox" id="quadMultiSelect" checked>
+          </label>
+          <div class="hint" style="margin-top:2px;">四个角可任意拖动，不限制为矩形或正方形，可连续拖出多个选区。</div>
+        </div>
+
+        <div class="panel" id="gridOptsPanel" style="display:none;">
+          <h3>网格分割选项</h3>
+          <div class="rowN">
+            <div class="minifield">
+              <label>行数（横向切几刀+1）</label>
+              <div class="stepper">
+                <button type="button" data-step-target="gridRows" data-step-dir="-1">－</button>
+                <input type="number" id="gridRows" min="1" max="12" value="2" readonly>
+                <button type="button" data-step-target="gridRows" data-step-dir="1">＋</button>
+              </div>
+            </div>
+            <div class="minifield">
+              <label>列数（纵向切几刀+1）</label>
+              <div class="stepper">
+                <button type="button" data-step-target="gridCols" data-step-dir="-1">－</button>
+                <input type="number" id="gridCols" min="1" max="12" value="2" readonly>
+                <button type="button" data-step-target="gridCols" data-step-dir="1">＋</button>
+              </div>
+            </div>
+          </div>
+          <div class="row"><span>整体旋转</span>
+            <div class="rotctrl">
+              <button type="button" id="gridRotMinus" title="-0.5°">－</button>
+              <span class="rotval" id="gridRotationVal">0°</span>
+              <button type="button" id="gridRotPlus" title="+0.5°">＋</button>
+            </div>
+            <input type="hidden" id="gridRotation" value="0">
+          </div>
+          <div class="link-actions">
+            <span class="linklike" id="gridResetBtn" role="button" tabindex="0">重置网格</span>
+          </div>
+          <div style="height:10px;"></div>
+          <button class="primary" id="gridSplitBtn">▦ 分割为方格，加入队列</button>
+          <div class="hint" style="margin-top:8px;">拖拽网格线调整间距；拖角上的方块调整整体范围；拖顶部红点旋转整个网格（用于拍斜的截图，拖拽时会显示角度）。</div>
+        </div>
+
+        <div class="panel" id="autoSplitPanel">
+          <h3>分割全部元素</h3>
+          <div style="font-size:11.5px;color:#7a7060;line-height:1.5;margin-bottom:9px;">
+            按透明像素的连通区域自动识别当前图片里的每一个独立元素并分别裁出，适合已经抠好透明背景、多个素材平铺在一起的图（类似精灵表）。元素之间只要有透明像素隔开就会被拆成不同的裁切，靠得再近也不会互相误判。
+          </div>
+          <div class="rowN">
+            <div class="minifield">
+              <label>Alpha 阈值</label>
+              <input type="number" id="autoSplitAlpha" value="10" min="1" max="250">
+            </div>
+            <div class="minifield">
+              <label>合并间隙(px)</label>
+              <input type="number" id="autoSplitGap" value="3" min="0" max="40">
+            </div>
+            <div class="minifield">
+              <label>最小尺寸(px)</label>
+              <input type="number" id="autoSplitMinSize" value="4" min="1" max="200">
+            </div>
+          </div>
+          <button class="primary" id="autoSplitBtn">▨ 分割全部元素，加入队列</button>
+          <div class="hint" id="autoSplitStatus" style="margin-top:8px;">合并间隙用来把同一个元素里因为抗锯齿/描边断开的小缝隙重新连起来；如果两个明显不同的元素被误合并成一个，调小这个值即可。</div>
+        </div>
+
+        <div class="panel" id="textEditPanel" style="display:none;">
+          <h3>文字属性</h3>
+          <div class="row"><span>内容</span></div>
+          <textarea id="txContent" rows="2" style="width:100%;font-family:inherit;font-size:12.5px;border:1px solid var(--line);border-radius:2px;padding:6px;resize:vertical;box-sizing:border-box;"></textarea>
+          <div class="row" style="margin-top:8px;"><span>字体</span>
+            <select id="txFont">
+              <option value="'Microsoft YaHei','PingFang SC',sans-serif">默认无衬线</option>
+              <option value="'SimSun',serif">宋体 / 衬线</option>
+              <option value="'SimHei',sans-serif">黑体</option>
+              <option value="'KaiTi',cursive">楷体</option>
+              <option value="Georgia,serif">Georgia</option>
+              <option value="Arial,sans-serif">Arial</option>
+              <option value="'Times New Roman',serif">Times New Roman</option>
+              <option value="'Courier New',monospace">Courier New</option>
+              <option value="Impact,sans-serif">Impact</option>
+            </select>
+          </div>
+          <div class="rowN">
+            <div class="minifield">
+              <label>字号 (px)</label>
+              <input type="number" id="txSize" value="32" min="4" max="800">
+            </div>
+            <div class="minifield">
+              <label>字间距 (px)</label>
+              <input type="number" id="txLetterSpacing" value="0">
+            </div>
+            <div class="minifield">
+              <label>旋转角度</label>
+              <div class="rotctrl">
+                <button type="button" id="txRotMinus" title="-1°">－</button>
+                <span class="rotval" id="txRotVal">0°</span>
+                <button type="button" id="txRotPlus" title="+1°">＋</button>
+              </div>
+            </div>
+          </div>
+          <div class="row"><span>颜色</span>
+            <span style="display:flex;gap:6px;align-items:center;">
+              <input type="color" id="txColor" value="#1c1a17" style="width:34px;height:24px;padding:0;border:1px solid var(--line);cursor:pointer;">
+              <button class="ghost" id="txEyedrop" style="width:auto;padding:5px 8px;">🎨 取色</button>
+            </span>
+          </div>
+          <div class="row"><span>样式 / 对齐</span>
+            <span style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;">
+              <button type="button" class="tbtn" id="txBold" style="padding:5px 10px;">B</button>
+              <button type="button" class="tbtn" id="txItalic" style="padding:5px 10px;font-style:italic;">I</button>
+              <button type="button" class="tbtn" data-align="left" style="padding:5px 8px;">左</button>
+              <button type="button" class="tbtn" data-align="center" style="padding:5px 8px;">中</button>
+              <button type="button" class="tbtn" data-align="right" style="padding:5px 8px;">右</button>
+            </span>
+          </div>
+          <div style="height:8px;"></div>
+          <div class="confirmbar" style="margin-top:0;">
+            <button class="ghost" id="txCancelBtn">取消</button>
+            <button class="primary" id="txSaveBtn">＋ 添加文字层</button>
+          </div>
+          <div class="hint" style="margin-top:8px;">拖动方框四角改变范围，拖顶部红点旋转角度；颜色可用取色器从原图上精确吸取，力求与原文字 100% 一致。</div>
+        </div>
+
+        <div class="panel sticky-panel" id="cropQueuePanel">
+          <h3>本图裁切队列</h3>
+          <div class="cropqueue" id="cropQueue"><div class="empty-q">尚未添加裁切</div></div>
+        </div>
+
+        <div class="panel">
+          <h3>文字图层（本图）</h3>
+          <div class="cropqueue" id="textLayerList"><div class="empty-q">尚未添加文字</div></div>
+          <div style="height:8px;"></div>
+          <button class="primary" id="exportTextBtn">🅣 导出全部文字（单张透明 PNG）</button>
+          <div class="hint" style="margin-top:6px;">所有文字层会合并渲染进同一张透明背景 PNG，尺寸与原图一致，位置/角度/颜色/字体与你设置的完全对应，可直接当图层叠加使用。</div>
+        </div>
+
+        <div class="panel">
+          <h3>抠图</h3>
+          <div style="font-size:11.5px;color:#7a7060;line-height:1.5;margin-bottom:9px;">
+            AI 模式（本地 u2netp 模型）对真实照片背景效果好，是主力方式；颜色容差是纯本地算法，仅对纯色/近似纯色背景兜底用。
+          </div>
+          <div class="row" id="aiModelRow" style="align-items:flex-start;">
+            <span id="aiModelStatus" style="font-size:11.5px;color:#7a7060;line-height:1.4;">AI 模型尚未加载（首次点击"AI 抠图"时自动下载，约 4.5MB，仅需一次）</span>
+          </div>
+          <button class="ghost" id="aiPreloadBtn" style="margin-top:6px;">预加载 AI 模型</button>
+          <button class="primary" id="aiWholeImageBtn" style="margin-top:8px;">✂ 对整张原图 AI 抠图（跳过裁切，直接加入队列）</button>
+          <div style="height:12px;border-bottom:1px solid var(--line);"></div>
+          <div style="font-size:11px;color:#9a9182;font-family:var(--mono);margin:10px 0 6px;">快速模式（纯色背景，纯本地颜色去背景，无需下载模型）</div>
+          <div class="row">
+            <span>容差</span>
+            <input type="range" id="matteTolerance" min="5" max="90" step="1" value="30" style="flex:1;margin:0 8px;">
+            <span id="matteToleranceVal" style="font-family:var(--mono);width:26px;text-align:right;">30</span>
+          </div>
+          <div class="row">
+            <span>羽化边缘</span>
+            <input type="range" id="matteFeather" min="0" max="6" step="1" value="1" style="flex:1;margin:0 8px;">
+            <span id="matteFeatherVal" style="font-family:var(--mono);width:26px;text-align:right;">1</span>
+          </div>
+          <div style="font-size:11px;color:#9a9182;font-family:var(--mono);margin-top:6px;">
+            队列每项：✂AI 抠图（跑本地 AI 模型，直接烧录成正式内容）· ◐ 快速模式预览开关（仅导出时生效）· ✓◐ 按快速模式抠图并替换。
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>导出</h3>
+          <div class="row"><span>格式</span>
+            <select id="exportFormat">
+              <option value="image/png">PNG（无损）</option>
+              <option value="image/webp">WEBP（无损）</option>
+            </select>
+          </div>
+          <div style="height:8px;"></div>
+          <button class="primary" id="downloadAllBtn">下载全部（ZIP 打包）</button>
+          <div style="height:6px;"></div>
+          <label class="row" style="cursor:pointer;">
+            <span style="font-size:11.5px;">ZIP 内附带 manifest.json</span>
+            <input type="checkbox" id="includeManifest" checked>
+          </label>
+          <div style="height:8px;"></div>
+          <button class="ghost" id="contactSheetBtn">导出联系表（预览大图）</button>
+        </div>
+
+        <div class="panel">
+          <h3>去背景（外部工具）</h3>
+          <div style="font-size:11.5px;color:#7a7060;line-height:1.5;margin-bottom:9px;">
+            背景复杂的照片，本地抠图效果不够用时可以去这些网站处理：
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <a class="ghost" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box;" href="https://www.remove.bg/" target="_blank" rel="noopener">remove.bg ↗</a>
+            <a class="ghost" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box;" href="https://www.adobe.com/products/firefly/features/remove-background.html" target="_blank" rel="noopener">Adobe Firefly 去背景 ↗</a>
+          </div>
+          <div style="font-size:11px;color:#9a9182;font-family:var(--mono);margin-top:8px;">
+            打开某张裁切的「预览/编辑」，里面也有一键复制到剪贴板去这些网站处理的入口。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="modal-overlay" id="cropPreviewModal">
+  <div class="modal-box">
+    <button class="modal-close" id="cropPreviewClose" title="关闭">×</button>
+    <h3 id="cropPreviewTitle">预览 / 编辑</h3>
+    <div class="modal-preview" id="cropPreviewStage"></div>
+    <div class="modal-actions">
+      <button class="tbtn" id="cpEditPosBtn">✎ 编辑位置</button>
+      <button class="tbtn" id="cpAiBtn">✂ AI 抠图</button>
+      <button class="tbtn" id="cpQuickMatteBtn">◐ 快速模式抠图（纯色背景）</button>
+      <button class="tbtn" id="cpExternalBtn">↗ 去背景外部网站（复制到剪贴板）</button>
+      <button class="tbtn" id="cpDownloadBtn">↓ 下载这张</button>
+      <button class="ghost" id="cpDeleteBtn" style="color:var(--danger);border-color:var(--danger);">× 删除这张</button>
+    </div>
+    <div class="hint" id="cropPreviewInfo" style="margin-top:10px;"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- state ----------
+  // images: [{id, name, img(HTMLImageElement), naturalW, naturalH, crops:[{id,type,points|rect,thumbDataURL}]}]
+  const images = [];
+  let activeImageId = null;
+  let mode = 'quad'; // quad | pen | text | grid
+  let currentSel = null; // working selection before confirm: {type, rect|points}
+  let dragState = null;
+  let quadMultiSelect = true; // when true, finishing a quad drag auto-adds it to the queue so several can be drawn in one continuous session
+
+  const canvasWrapMax = 720; // display max width
+  let displayScale = 1; // canvas display px -> natural px factor (natural = display / displayScale)
+  let zoomLevel = 1; // extra CSS zoom on top of displayScale, does not affect internal pixel resolution
+  let editingCropIndex = null; // when editing an existing queue item, index into entry.crops; else null
+
+  // text-clone state: currentTextSel holds the box (position/size/rotation) being
+  // drawn or edited; its content/style live in the #textEditPanel form fields
+  // until "添加文字层" commits them into entry.textLayers.
+  let currentTextSel = null; // {x,y,w,h,rotationDeg}
+  let editingTextIndex = null; // index into entry.textLayers when editing an existing layer
+  let txBold = false, txItalic = false, txAlign = 'left';
+
+  // grid-split state: kept separate from currentSel since it can coexist across
+  // mode switches and produces many crops at once rather than one pending selection.
+  // gridSel.rect/rows/cols/vLines/hLines are all defined in the grid's own
+  // "local" (unrotated) coordinate frame; gridSel.rotation (radians) spins that
+  // whole frame around the rect's own center when drawing/exporting, so a tilted
+  // photo can still get a straight grid laid over it.
+  let gridSel = null;
+  const gridDefaults = { rows:2, cols:2, rotationDeg:0 }; // remembered across images/mode switches
+
+  const el = (id) => document.getElementById(id);
+  const dropzone = el('dropzone');
+  const fileInput = el('fileInput');
+  const filmstrip = el('filmstrip');
+  const workarea = el('workarea');
+  const stage = el('stage');
+  const cropQueueEl = el('cropQueue');
+  const confirmbar = el('confirmbar');
+  const hintText = el('hintText');
+  const quadOptsPanel = el('quadOptsPanel');
+  const gridOptsPanel = el('gridOptsPanel');
+
+  let canvas = null, ctx = null;
+
+  // ---------- undo/redo history ----------
+  // Snapshots the crop lists of every image (not the source images themselves,
+  // which never change) so Ctrl+Z/Ctrl+Shift+Z can restore crop add/remove/move/
+  // resize/matte-bake actions. bakedImg (an HTMLImageElement) is immutable once
+  // created, so it's fine to share the same reference across snapshots instead
+  // of re-encoding it every time.
+  const undoStack = [];
+  const redoStack = [];
+  const HISTORY_LIMIT = 60;
+
+  function snapshotCrops(){
+    return images.map(entry=>({
+      id: entry.id,
+      crops: entry.crops.map(c=>{
+        const copy = { ...c };
+        if(c.rect) copy.rect = {...c.rect};
+        if(c.points) copy.points = c.points.map(p=>({...p}));
+        // bakedImg reference is shared intentionally (see comment above)
+        return copy;
+      })
+    }));
+  }
+
+  function pushHistory(){
+    undoStack.push(snapshotCrops());
+    if(undoStack.length > HISTORY_LIMIT) undoStack.shift();
+    redoStack.length = 0; // any new action invalidates the redo branch
+    updateHistoryButtons();
+  }
+
+  function restoreSnapshot(snap){
+    snap.forEach(s=>{
+      const entry = images.find(e=>e.id===s.id);
+      if(entry) entry.crops = s.crops;
+    });
+    editingCropIndex = null;
+    currentSel = null;
+    confirmbar.style.display = 'none';
+    renderFilmstrip();
+    renderQueue();
+    redraw();
+  }
+
+  function undo(){
+    if(!undoStack.length) return;
+    redoStack.push(snapshotCrops());
+    const snap = undoStack.pop();
+    restoreSnapshot(snap);
+    updateHistoryButtons();
+  }
+
+  function redo(){
+    if(!redoStack.length) return;
+    undoStack.push(snapshotCrops());
+    const snap = redoStack.pop();
+    restoreSnapshot(snap);
+    updateHistoryButtons();
+  }
+
+  function updateHistoryButtons(){
+    const u = el('undoBtn'), r = el('redoBtn');
+    if(u) u.disabled = !undoStack.length;
+    if(r) r.disabled = !redoStack.length;
+  }
+
+  window.addEventListener('keydown', (e)=>{
+    const mod = e.ctrlKey || e.metaKey;
+    if(!mod) return;
+    const k = e.key.toLowerCase();
+    if(k==='z' && e.shiftKey){ e.preventDefault(); redo(); }
+    else if(k==='z'){ e.preventDefault(); undo(); }
+    else if(k==='y'){ e.preventDefault(); redo(); }
+  });
+
+  // ---------- utils ----------
+  function uid(){ return Math.random().toString(36).slice(2,10); }
+
+  function fileToImage(file){
+    return new Promise((resolve,reject)=>{
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = ()=> resolve(img);
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function addFiles(fileList){
+    const files = Array.from(fileList).filter(f=>f.type.startsWith('image/'));
+    if(!files.length) return;
+    Promise.all(files.map(async f=>{
+      const img = await fileToImage(f);
+      return { id: uid(), name: f.name.replace(/\.[^.]+$/,'') || 'image', img, naturalW: img.naturalWidth, naturalH: img.naturalHeight, crops: [], textLayers: [] };
+    })).then(entries=>{
+      entries.forEach(en=> images.push(en));
+      if(!activeImageId && entries.length) activeImageId = entries[0].id;
+      renderFilmstrip();
+      workarea.style.display = 'block';
+      filmstrip.style.display = 'flex';
+      renderStage();
+    });
+  }
+
+  dropzone.addEventListener('click', ()=> fileInput.click());
+  dropzone.addEventListener('dragover', e=>{ e.preventDefault(); dropzone.classList.add('drag'); });
+  dropzone.addEventListener('dragleave', ()=> dropzone.classList.remove('drag'));
+  dropzone.addEventListener('drop', e=>{
+    e.preventDefault(); dropzone.classList.remove('drag');
+    addFiles(e.dataTransfer.files);
+  });
+  fileInput.addEventListener('change', e=> addFiles(e.target.files));
+
+  function renderFilmstrip(){
+    filmstrip.innerHTML = '';
+    images.forEach(entry=>{
+      const t = document.createElement('div');
+      t.className = 'thumb' + (entry.id===activeImageId ? ' active':'');
+      const im = document.createElement('img');
+      im.src = entry.img.src;
+      t.appendChild(im);
+      if(entry.crops.length){
+        const b = document.createElement('div');
+        b.className = 'badge';
+        b.textContent = entry.crops.length;
+        t.appendChild(b);
+      }
+      const rm = document.createElement('div');
+      rm.className = 'rm';
+      rm.textContent = '×';
+      rm.addEventListener('click', ev=>{
+        ev.stopPropagation();
+        const idx = images.findIndex(i=>i.id===entry.id);
+        images.splice(idx,1);
+        if(activeImageId===entry.id){
+          activeImageId = images.length ? images[Math.max(0,idx-1)].id : null;
+        }
+        currentSel = null;
+        renderFilmstrip();
+        renderStage();
+        if(!images.length){ workarea.style.display='none'; filmstrip.style.display='none'; }
+      });
+      t.appendChild(rm);
+      t.addEventListener('click', ()=>{
+        activeImageId = entry.id;
+        currentSel = null;
+        renderFilmstrip();
+        renderStage();
+      });
+      filmstrip.appendChild(t);
+    });
+  }
+
+  function getActive(){ return images.find(i=>i.id===activeImageId); }
+
+  // ---------- stage / canvas ----------
+  function renderStage(){
+    const entry = getActive();
+    confirmbar.style.display = 'none';
+    currentSel = null;
+    currentTextSel = null;
+    editingTextIndex = null;
+    hideTextEditForm();
+    gridSel = null;
+    exitEditMode();
+    updateUndoClear();
+    if(!entry){
+      stage.innerHTML = '<div class="empty">选择上方缩略图开始裁切</div>';
+      canvas = null; ctx = null;
+      renderQueue();
+      renderTextLayerList();
+      return;
+    }
+    stage.innerHTML = '';
+    const w = entry.naturalW, h = entry.naturalH;
+    const scale = Math.min(canvasWrapMax / w, canvasWrapMax / h, 1);
+    displayScale = scale;
+    canvas = document.createElement('canvas');
+    canvas.width = Math.round(w*scale);
+    canvas.height = Math.round(h*scale);
+    zoomLevel = 1; panX = 0; panY = 0;
+    applyZoom();
+    ctx = canvas.getContext('2d');
+    stage.appendChild(canvas);
+    rebuildBaseCache();
+    if(mode==='grid'){
+      gridSel = makeDefaultGrid(entry);
+      el('gridRows').value = gridSel.rows;
+      el('gridCols').value = gridSel.cols;
+      syncGridRotationInput();
+    }
+    drawBase();
+    attachCanvasEvents();
+    renderQueue();
+    renderTextLayerList();
+    updateModeUI();
+  }
+
+  // Pan is a screen-pixel offset applied on top of zoomLevel's scale — together they
+  // give Blender-style navigation: wheel zooms toward the cursor, middle-mouse-drag
+  // pans freely. Both live purely in a CSS transform on the canvas; the underlying
+  // bitmap (canvas.width/height) never changes, so getCanvasPos()'s existing
+  // getBoundingClientRect()-based math keeps working unmodified.
+  let panX = 0, panY = 0;
+  function applyZoom(){
+    if(!canvas) return;
+    canvas.style.transformOrigin = '0 0';
+    canvas.style.transform = 'translate('+panX+'px,'+panY+'px) scale('+zoomLevel+')';
+    el('zoomLabel').textContent = Math.round(zoomLevel*100)+'%';
+  }
+  // Zooms to newZoom while keeping the image point under (clientX,clientY) fixed on
+  // screen — the same math a wheel-zoom-to-cursor or "zoom around this button's
+  // anchor point" needs, just with a different anchor.
+  function zoomAt(newZoom, clientX, clientY){
+    if(!canvas) return;
+    newZoom = Math.max(0.2, Math.min(4, newZoom));
+    const rect = canvas.getBoundingClientRect();
+    const cx = clientX - rect.left, cy = clientY - rect.top;
+    const ratio = newZoom / zoomLevel;
+    panX -= cx*(ratio-1);
+    panY -= cy*(ratio-1);
+    zoomLevel = newZoom;
+    applyZoom();
+  }
+  function setZoom(z){
+    // used by the +/- buttons: zoom around the current viewport's center rather
+    // than a cursor position, since there's no meaningful cursor anchor for a
+    // button click.
+    if(!canvas) return;
+    const rect = stage.getBoundingClientRect();
+    zoomAt(z, rect.left+rect.width/2, rect.top+rect.height/2);
+  }
+  function resetZoomPan(){
+    zoomLevel = 1; panX = 0; panY = 0;
+    applyZoom();
+  }
+  el('zoomIn').addEventListener('click', ()=> setZoom(zoomLevel*1.25));
+  el('zoomOut').addEventListener('click', ()=> setZoom(zoomLevel/1.25));
+  el('zoomReset').addEventListener('click', resetZoomPan);
+  stage.addEventListener('wheel', (e)=>{
+    if(!canvas) return;
+    e.preventDefault();
+    zoomAt(zoomLevel * (e.deltaY<0 ? 1.1 : 1/1.1), e.clientX, e.clientY);
+  }, {passive:false});
+
+  // Middle-mouse-button drag to pan (Blender-style), independent of whatever
+  // crop tool is active — it never sets dragState, so it can't be confused with
+  // square/pen/grid dragging, which all require the primary (left) button.
+  let isPanning = false, panDragStart = null;
+  function onPanDown(e){
+    if(e.button !== 1) return;
+    e.preventDefault();
+    isPanning = true;
+    panDragStart = { x:e.clientX, y:e.clientY, panX, panY };
+    stage.classList.add('panning');
+    document.addEventListener('mousemove', onPanMove);
+    document.addEventListener('mouseup', onPanUpDoc);
+  }
+  function onPanMove(e){
+    if(!isPanning) return;
+    panX = panDragStart.panX + (e.clientX - panDragStart.x);
+    panY = panDragStart.panY + (e.clientY - panDragStart.y);
+    applyZoom();
+  }
+  function onPanUpDoc(){
+    isPanning = false;
+    stage.classList.remove('panning');
+    document.removeEventListener('mousemove', onPanMove);
+    document.removeEventListener('mouseup', onPanUpDoc);
+  }
+
+  // Offscreen cache of the active image, pre-scaled once to the on-screen canvas's
+  // pixel size. Rebuilt only when the stage is (re)created (new image selected).
+  // Rotation/crop dragging then only ever blits this small cached bitmap instead of
+  // re-sampling the full original-resolution <img> on every mousemove frame.
+  let baseCache = null;
+  function rebuildBaseCache(){
+    if(!canvas) { baseCache = null; return; }
+    const entry = getActive();
+    if(!entry){ baseCache = null; return; }
+    baseCache = document.createElement('canvas');
+    baseCache.width = canvas.width;
+    baseCache.height = canvas.height;
+    baseCache.getContext('2d').drawImage(entry.img, 0, 0, canvas.width, canvas.height);
+  }
+
+  function drawBase(){
+    const entry = getActive();
+    if(!entry || !ctx) return;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(baseCache) ctx.drawImage(baseCache, 0, 0);
+    else ctx.drawImage(entry.img, 0,0, canvas.width, canvas.height); // fallback before cache exists
+    drawExistingCrops();
+    drawTextLayersOverlay();
+    drawCurrentSelection();
+    drawGridSelOverlay();
+  }
+
+  function drawExistingCrops(){
+    const entry = getActive();
+    if(!entry) return;
+    ctx.save();
+    ctx.lineWidth = 1.5;
+    entry.crops.forEach((c,idx)=>{
+      ctx.strokeStyle = 'rgba(124,106,82,0.85)';
+      ctx.setLineDash([3,3]);
+      if(c.type==='pen' || c.type==='quad'){
+        const bb = boundsOf(c.points);
+        const dbb = toDisplayRect(bb);
+        if(c.bakedImg) ctx.drawImage(c.bakedImg, dbb.x, dbb.y, dbb.w, dbb.h);
+        ctx.beginPath();
+        c.points.forEach((p,i)=>{
+          const dp = toDisplayPt(p);
+          if(i===0) ctx.moveTo(dp.x,dp.y); else ctx.lineTo(dp.x,dp.y);
+        });
+        ctx.closePath();
+        ctx.stroke();
+      } else if(c.type==='gridcell'){
+        const pivot = { x:c.pivotX, y:c.pivotY };
+        const rot = c.rotation||0;
+        if(c.bakedImg){
+          // draw the baked (axis-aligned in its own local frame) image back at its
+          // rotated position: translate to the rotated top-left corner, rotate,
+          // then scale so bakedImg's own pixels line up with display px.
+          const topLeftImg = rotatePt({x:c.rect.x, y:c.rect.y}, pivot, rot);
+          const A = toDisplayPt(topLeftImg);
+          ctx.save();
+          ctx.translate(A.x, A.y);
+          ctx.rotate(rot);
+          ctx.scale(displayScale, displayScale);
+          ctx.drawImage(c.bakedImg, 0, 0, c.rect.w, c.rect.h);
+          ctx.restore();
+        }
+        const corners = [
+          {x:c.rect.x, y:c.rect.y}, {x:c.rect.x+c.rect.w, y:c.rect.y},
+          {x:c.rect.x+c.rect.w, y:c.rect.y+c.rect.h}, {x:c.rect.x, y:c.rect.y+c.rect.h}
+        ].map(p=> toDisplayPt(rotatePt(p, pivot, rot)));
+        ctx.beginPath();
+        corners.forEach((p,i)=>{ if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y); });
+        ctx.closePath();
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+    });
+    ctx.restore();
+  }
+
+  // ---------- grid split: live overlay while adjusting rows/cols/rotation/lines ----------
+  function drawGridSelOverlay(){
+    if(mode!=='grid' || !gridSel || !ctx) return;
+    const g = gridSel;
+    const pivot = gridPivot(g);
+    const toDisp = (p)=> toDisplayPt(rotatePt(p, pivot, g.rotation));
+    ctx.save();
+    // outer rect
+    const corners = [
+      {x:g.rect.x,y:g.rect.y}, {x:g.rect.x+g.rect.w,y:g.rect.y},
+      {x:g.rect.x+g.rect.w,y:g.rect.y+g.rect.h}, {x:g.rect.x,y:g.rect.y+g.rect.h}
+    ].map(toDisp);
+    ctx.strokeStyle = '#1c1a17';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    corners.forEach((p,i)=>{ if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y); });
+    ctx.closePath();
+    ctx.stroke();
+    // internal lines
+    ctx.strokeStyle = 'rgba(58,110,165,0.9)';
+    g.vLines.forEach(v=>{
+      const x = g.rect.x + v*g.rect.w;
+      const p1 = toDisp({x, y:g.rect.y}), p2 = toDisp({x, y:g.rect.y+g.rect.h});
+      ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y); ctx.stroke();
+    });
+    g.hLines.forEach(v=>{
+      const y = g.rect.y + v*g.rect.h;
+      const p1 = toDisp({x:g.rect.x, y}), p2 = toDisp({x:g.rect.x+g.rect.w, y});
+      ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y); ctx.stroke();
+    });
+    // corner resize handles
+    ctx.fillStyle = '#1c1a17';
+    corners.forEach(p=> ctx.fillRect(p.x-4, p.y-4, 8, 8));
+    // rotation handle
+    const handleDisp = toDisp(gridRotHandleLocal(g));
+    const topCenterDisp = toDisp({x:g.rect.x+g.rect.w/2, y:g.rect.y});
+    ctx.strokeStyle = '#7c6a52';
+    ctx.beginPath(); ctx.moveTo(topCenterDisp.x,topCenterDisp.y); ctx.lineTo(handleDisp.x,handleDisp.y); ctx.stroke();
+    ctx.fillStyle = '#a24a3d';
+    ctx.beginPath(); ctx.arc(handleDisp.x, handleDisp.y, 6, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function toDisplayRect(r){ return {x:r.x*displayScale, y:r.y*displayScale, w:r.w*displayScale, h:r.h*displayScale}; }
+  function toDisplayPt(p){ return {x:p.x*displayScale, y:p.y*displayScale}; }
+  function toNaturalPt(dx,dy){ return {x: dx/displayScale, y: dy/displayScale}; }
+
+  // rotate point p by theta (radians) around pivot
+  function rotatePt(p, pivot, theta){
+    const dx=p.x-pivot.x, dy=p.y-pivot.y;
+    const cos=Math.cos(theta), sin=Math.sin(theta);
+    return { x: pivot.x + dx*cos - dy*sin, y: pivot.y + dx*sin + dy*cos };
+  }
+  function ptDist(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
+
+  // ---------- grid split geometry ----------
+  // gridSel.rect/rotation define a rectangle that may be spun around its own
+  // center; rows/cols + vLines/hLines (fractions 0..1, sorted) subdivide that
+  // rectangle *before* rotation is applied, so dragging a line always moves it
+  // along the grid's own (possibly tilted) axes rather than the canvas axes.
+  function gridPivot(g){ return { x: g.rect.x + g.rect.w/2, y: g.rect.y + g.rect.h/2 }; }
+  function gridRotHandleLocal(g){
+    const dist = Math.max(18, Math.min(g.rect.w, g.rect.h)*0.18);
+    return { x: g.rect.x + g.rect.w/2, y: g.rect.y - dist };
+  }
+  function makeDefaultGrid(entry){
+    const rows = gridDefaults.rows, cols = gridDefaults.cols;
+    return {
+      rect: { x:0, y:0, w:entry.naturalW, h:entry.naturalH },
+      rotation: gridDefaults.rotationDeg * Math.PI/180,
+      rows, cols,
+      vLines: evenLines(cols),
+      hLines: evenLines(rows)
+    };
+  }
+  function evenLines(count){
+    const out = [];
+    for(let i=1;i<count;i++) out.push(i/count);
+    return out;
+  }
+  // local (unrotated) rect for grid cell [r,c]
+  function gridCellLocalRect(g, r, c){
+    const xs = [0, ...g.vLines, 1];
+    const ys = [0, ...g.hLines, 1];
+    const x0 = g.rect.x + xs[c]*g.rect.w, x1 = g.rect.x + xs[c+1]*g.rect.w;
+    const y0 = g.rect.y + ys[r]*g.rect.h, y1 = g.rect.y + ys[r+1]*g.rect.h;
+    return { x:x0, y:y0, w:Math.max(1,x1-x0), h:Math.max(1,y1-y0) };
+  }
+
+  function drawCurrentSelection(){
+    if(!currentSel || !ctx) return;
+    ctx.save();
+    if(currentSel.type==='gridcell'){
+      const r = currentSel.rect;
+      if(r){
+        const dr = toDisplayRect(r);
+        ctx.fillStyle = 'rgba(124,106,82,0.14)';
+        ctx.fillRect(dr.x, dr.y, dr.w, dr.h);
+        ctx.strokeStyle = '#1c1a17';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(dr.x, dr.y, dr.w, dr.h);
+        // corner handles
+        const handles = [[dr.x,dr.y],[dr.x+dr.w,dr.y],[dr.x,dr.y+dr.h],[dr.x+dr.w,dr.y+dr.h]];
+        ctx.fillStyle = '#1c1a17';
+        handles.forEach(([hx,hy])=>{ ctx.fillRect(hx-4,hy-4,8,8); });
+      }
+    } else if(currentSel.type==='quad'){
+      const pts = currentSel.points;
+      if(pts && pts.length===4){
+        ctx.fillStyle = 'rgba(124,106,82,0.14)';
+        ctx.beginPath();
+        pts.forEach((p,i)=>{
+          const dp = toDisplayPt(p);
+          if(i===0) ctx.moveTo(dp.x,dp.y); else ctx.lineTo(dp.x,dp.y);
+        });
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#1c1a17';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        // 4 freely-draggable corner handles — no square/rectangle constraint
+        ctx.fillStyle = '#1c1a17';
+        pts.forEach(p=>{
+          const dp = toDisplayPt(p);
+          ctx.fillRect(dp.x-4, dp.y-4, 8, 8);
+        });
+      }
+    } else if(currentSel.type==='pen'){
+      const pts = currentSel.points;
+      if(pts.length){
+        ctx.strokeStyle = '#1c1a17';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        pts.forEach((p,i)=>{
+          const dp = toDisplayPt(p);
+          if(i===0) ctx.moveTo(dp.x,dp.y); else ctx.lineTo(dp.x,dp.y);
+        });
+        if(currentSel.closed) ctx.closePath();
+        ctx.stroke();
+        if(currentSel.closed){
+          ctx.fillStyle = 'rgba(124,106,82,0.14)';
+          ctx.fill();
+        }
+        pts.forEach((p,i)=>{
+          const dp = toDisplayPt(p);
+          ctx.fillStyle = i===0 ? '#a24a3d' : '#1c1a17';
+          ctx.beginPath();
+          ctx.arc(dp.x,dp.y,4,0,Math.PI*2);
+          ctx.fill();
+        });
+      }
+    }
+    ctx.restore();
+  }
+
+  // ---------- text-clone: overlay rendering ----------
+  function textPivot(t){ return { x:t.x+t.w/2, y:t.y+t.h/2 }; }
+  function textRotHandleLocal(t){
+    const dist = Math.max(16, Math.min(t.w,t.h)*0.25 + 14);
+    return { x:t.x+t.w/2, y:t.y - dist };
+  }
+
+  // Renders one text layer's content (not its editing box) onto targetCtx.
+  // scale=displayScale for the live on-screen preview, scale=1 for full-resolution
+  // export — same function, same math, so what you see while editing is exactly
+  // what gets exported.
+  function drawOneTextLayer(targetCtx, t, scale){
+    if(!t || !t.text) return;
+    const pivot = { x:(t.x+t.w/2)*scale, y:(t.y+t.h/2)*scale };
+    const rot = (t.rotationDeg||0) * Math.PI/180;
+    targetCtx.save();
+    targetCtx.translate(pivot.x, pivot.y);
+    targetCtx.rotate(rot);
+    const fontSize = Math.max(1,(t.fontSize||32)*scale);
+    const weight = t.bold ? 'bold ' : '';
+    const style = t.italic ? 'italic ' : '';
+    targetCtx.font = style+weight+fontSize+'px '+(t.fontFamily||'sans-serif');
+    targetCtx.fillStyle = t.color || '#1c1a17';
+    targetCtx.textAlign = t.align || 'left';
+    targetCtx.textBaseline = 'middle';
+    try{ targetCtx.letterSpacing = ((t.letterSpacing||0)*scale)+'px'; }catch(e){}
+    const lines = String(t.text).split('\n');
+    const lineHeight = fontSize*1.25;
+    const totalH = lineHeight*lines.length;
+    let startY = -totalH/2 + lineHeight/2;
+    let anchorX;
+    if(t.align==='center') anchorX = 0;
+    else if(t.align==='right') anchorX = (t.w*scale)/2;
+    else anchorX = -(t.w*scale)/2;
+    lines.forEach((line,i)=>{
+      targetCtx.fillText(line, anchorX, startY + i*lineHeight);
+    });
+    targetCtx.restore();
+  }
+
+  function drawTextLayersOverlay(){
+    const entry = getActive();
+    if(!entry || !ctx) return;
+    (entry.textLayers||[]).forEach((t,idx)=>{
+      if(idx===editingTextIndex) return; // the one being edited is drawn from currentTextSel + live form values instead
+      drawOneTextLayer(ctx, t, displayScale);
+    });
+    if(mode==='text' && currentTextSel){
+      const t = currentTextSel;
+      const pivot = textPivot(t);
+      const rot = (t.rotationDeg||0)*Math.PI/180;
+      const corners = [
+        {x:t.x,y:t.y}, {x:t.x+t.w,y:t.y}, {x:t.x+t.w,y:t.y+t.h}, {x:t.x,y:t.y+t.h}
+      ].map(p=> toDisplayPt(rotatePt(p, pivot, rot)));
+      ctx.save();
+      ctx.strokeStyle = '#3a6ea5';
+      ctx.setLineDash([4,3]);
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      corners.forEach((p,i)=>{ if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y); });
+      ctx.closePath();
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#1c1a17';
+      corners.forEach(p=> ctx.fillRect(p.x-4,p.y-4,8,8));
+      if(t.w>2 && t.h>2){
+        const handleDisp = toDisplayPt(rotatePt(textRotHandleLocal(t), pivot, rot));
+        const topCenterDisp = toDisplayPt(rotatePt({x:t.x+t.w/2,y:t.y}, pivot, rot));
+        ctx.strokeStyle = '#7c6a52';
+        ctx.beginPath(); ctx.moveTo(topCenterDisp.x,topCenterDisp.y); ctx.lineTo(handleDisp.x,handleDisp.y); ctx.stroke();
+        ctx.fillStyle = '#a24a3d';
+        ctx.beginPath(); ctx.arc(handleDisp.x,handleDisp.y,6,0,Math.PI*2); ctx.fill();
+      }
+      ctx.restore();
+      // live preview of the text using the form's current values
+      if(el('textEditPanel') && el('textEditPanel').style.display!=='none'){
+        const preview = readTextFormValues();
+        preview.x=t.x; preview.y=t.y; preview.w=t.w; preview.h=t.h; preview.rotationDeg=t.rotationDeg;
+        drawOneTextLayer(ctx, preview, displayScale);
+      }
+    }
+  }
+
+  function redraw(){ drawBase(); }
+
+  // ---------- pointer helpers ----------
+  function getCanvasPos(e){
+    const rect = canvas.getBoundingClientRect();
+    const cx = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    const cy = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+    // account for CSS scaling vs internal pixel size
+    const sx = canvas.width / rect.width;
+    const sy = canvas.height / rect.height;
+    return { x: cx*sx, y: cy*sy };
+  }
+
+  function pointInPolygon(pt, pts){
+    let inside = false;
+    for(let i=0,j=pts.length-1;i<pts.length;j=i++){
+      const xi=pts[i].x, yi=pts[i].y, xj=pts[j].x, yj=pts[j].y;
+      const intersect = ((yi>pt.y)!==(yj>pt.y)) && (pt.x < (xj-xi)*(pt.y-yi)/(yj-yi)+xi);
+      if(intersect) inside = !inside;
+    }
+    return inside;
+  }
+
+  function hitTestHandle(dx,dy,rect){
+    const dr = toDisplayRect(rect);
+    const pts = {
+      tl:[dr.x,dr.y], tr:[dr.x+dr.w,dr.y], bl:[dr.x,dr.y+dr.h], br:[dr.x+dr.w,dr.y+dr.h]
+    };
+    for(const k in pts){
+      const [hx,hy] = pts[k];
+      if(Math.abs(dx-hx)<9 && Math.abs(dy-hy)<9) return k;
+    }
+    if(dx>dr.x && dx<dr.x+dr.w && dy>dr.y && dy<dr.y+dr.h) return 'move';
+    return null;
+  }
+
+  let canvasListeners = [];
+  function attachCanvasEvents(){
+    canvasListeners.forEach(({type,fn})=> canvas.removeEventListener(type,fn));
+    canvasListeners = [];
+    function on(type,fn){ canvas.addEventListener(type,fn,{passive:false}); canvasListeners.push({type,fn}); }
+
+    on('mousedown', onDown); on('touchstart', onDown);
+    on('mousemove', onMove); on('touchmove', onMove);
+    on('mouseup', onUp); on('touchend', onUp);
+    on('dblclick', onDblClick);
+  }
+
+  function onDown(e){
+    e.preventDefault();
+    const pos = getCanvasPos(e);
+    const entry = getActive();
+    if(!entry) return;
+
+    if(mode==='quad'){
+      if(currentSel && currentSel.type==='gridcell' && currentSel.rect){
+        // editing an existing (unrotated) grid slice: reuse the plain rect
+        // drag/resize interaction, with no aspect-ratio constraint.
+        const handle = hitTestHandle(pos.x,pos.y,currentSel.rect);
+        if(handle){
+          dragState = { kind:'rect-'+handle, startPos:pos, startRect:{...currentSel.rect} };
+        }
+        return;
+      }
+      if(currentSel && currentSel.type==='quad' && currentSel.points){
+        const np = toNaturalPt(pos.x,pos.y);
+        let vertexIdx = -1;
+        currentSel.points.forEach((p,i)=>{
+          const dp = toDisplayPt(p);
+          if(Math.abs(pos.x-dp.x)<9 && Math.abs(pos.y-dp.y)<9) vertexIdx = i;
+        });
+        if(vertexIdx>=0){
+          dragState = { kind:'quad-vertex', vertexIdx };
+          return;
+        }
+        if(pointInPolygon(np, currentSel.points)){
+          dragState = { kind:'quad-move', startNatural:np, startPoints: currentSel.points.map(p=>({...p})) };
+          return;
+        }
+        if(editingCropIndex!==null) return; // mid-edit: don't let a stray click start a new shape
+        currentSel = null; // clicked empty space: fall through and start a fresh quad
+      }
+      const np = toNaturalPt(pos.x,pos.y);
+      currentSel = { type:'quad', points:[{...np},{...np},{...np},{...np}] };
+      dragState = { kind:'quad-new', startNatural:np };
+      confirmbar.style.display='none';
+    } else if(mode==='text'){
+      if(currentTextSel){
+        const hit = textHitTest(pos, currentTextSel);
+        if(hit) dragState = hit;
+        return; // must save/cancel the current box before starting another
+      }
+      const np = toNaturalPt(pos.x,pos.y);
+      currentTextSel = { x:np.x, y:np.y, w:0, h:0, rotationDeg:0 };
+      dragState = { kind:'text-new', startNatural:np };
+    } else if(mode==='pen'){
+      if(!currentSel) currentSel = { type:'pen', points:[], closed:false };
+      if(currentSel.closed){
+        // closed shape: allow dragging a single vertex, or moving the whole shape
+        const np = toNaturalPt(pos.x,pos.y);
+        let vertexIdx = -1;
+        currentSel.points.forEach((p,i)=>{
+          const dp = toDisplayPt(p);
+          if(Math.abs(pos.x-dp.x)<9 && Math.abs(pos.y-dp.y)<9) vertexIdx = i;
+        });
+        if(vertexIdx>=0){
+          dragState = { kind:'pen-vertex', vertexIdx };
+          return;
+        }
+        if(pointInPolygon(np, currentSel.points)){
+          dragState = { kind:'pen-move', startNatural:np, startPoints: currentSel.points.map(p=>({...p})) };
+          return;
+        }
+        return;
+      }
+      const np = toNaturalPt(pos.x,pos.y);
+      // if clicking near first point and >=3 points, close path
+      if(currentSel.points.length>=3){
+        const first = toDisplayPt(currentSel.points[0]);
+        if(Math.abs(pos.x-first.x)<10 && Math.abs(pos.y-first.y)<10){
+          currentSel.closed = true;
+          redraw();
+          showConfirmIfReady();
+          updateUndoClear();
+          return;
+        }
+      }
+      currentSel.points.push(np);
+      redraw();
+      updateUndoClear();
+      showConfirmIfReady();
+    } else if(mode==='grid' && gridSel){
+      const hit = gridHitTest(pos);
+      if(hit) dragState = hit;
+    }
+  }
+
+  // hit-tests a text box's rotate handle / corners / interior; mirrors gridHitTest below
+  function textHitTest(pos, t){
+    const pivot = textPivot(t);
+    const rot = (t.rotationDeg||0)*Math.PI/180;
+    const pImg = toNaturalPt(pos.x,pos.y);
+    const handleDisp = toDisplayPt(rotatePt(textRotHandleLocal(t), pivot, rot));
+    if(ptDist(pos, handleDisp) < 10) return { kind:'text-rotate', startAngle: Math.atan2(pImg.y-pivot.y, pImg.x-pivot.x), startRotation: rot };
+    const corners = { tl:{x:t.x,y:t.y}, tr:{x:t.x+t.w,y:t.y}, bl:{x:t.x,y:t.y+t.h}, br:{x:t.x+t.w,y:t.y+t.h} };
+    for(const k in corners){
+      const disp = toDisplayPt(rotatePt(corners[k], pivot, rot));
+      if(ptDist(pos, disp) < 10) return { kind:'text-resize-'+k, startRect:{x:t.x,y:t.y,w:t.w,h:t.h} };
+    }
+    const pLocal = rotatePt(pImg, pivot, -rot);
+    if(pLocal.x>t.x && pLocal.x<t.x+t.w && pLocal.y>t.y && pLocal.y<t.y+t.h){
+      return { kind:'text-move', startLocal:pLocal, startRect:{x:t.x,y:t.y,w:t.w,h:t.h} };
+    }
+    return null;
+  }
+
+  // hit-tests grid handles/lines/interior; pointer position is in canvas display px
+  function gridHitTest(pos){
+    const g = gridSel;
+    const pivot = gridPivot(g);
+    const pImg = toNaturalPt(pos.x,pos.y);
+
+    const handleDisp = toDisplayPt(rotatePt(gridRotHandleLocal(g), pivot, g.rotation));
+    if(ptDist(pos, handleDisp) < 10) return { kind:'grid-rotate', startAngle: Math.atan2(pImg.y-pivot.y, pImg.x-pivot.x), startRotation: g.rotation };
+
+    const corners = {
+      tl:{x:g.rect.x,y:g.rect.y}, tr:{x:g.rect.x+g.rect.w,y:g.rect.y},
+      bl:{x:g.rect.x,y:g.rect.y+g.rect.h}, br:{x:g.rect.x+g.rect.w,y:g.rect.y+g.rect.h}
+    };
+    for(const k in corners){
+      const disp = toDisplayPt(rotatePt(corners[k], pivot, g.rotation));
+      if(ptDist(pos, disp) < 10) return { kind:'grid-resize-'+k, startRect:{...g.rect} };
+    }
+
+    const pLocal = rotatePt(pImg, pivot, -g.rotation);
+    const tol = Math.max(4, 6/displayScale);
+    for(let i=0;i<g.vLines.length;i++){
+      const lx = g.rect.x + g.vLines[i]*g.rect.w;
+      if(Math.abs(pLocal.x-lx)<tol && pLocal.y>g.rect.y-tol && pLocal.y<g.rect.y+g.rect.h+tol) return { kind:'grid-vline', idx:i };
+    }
+    for(let i=0;i<g.hLines.length;i++){
+      const ly = g.rect.y + g.hLines[i]*g.rect.h;
+      if(Math.abs(pLocal.y-ly)<tol && pLocal.x>g.rect.x-tol && pLocal.x<g.rect.x+g.rect.w+tol) return { kind:'grid-hline', idx:i };
+    }
+    if(pLocal.x>g.rect.x && pLocal.x<g.rect.x+g.rect.w && pLocal.y>g.rect.y && pLocal.y<g.rect.y+g.rect.h){
+      return { kind:'grid-move', startLocal:pLocal, startRect:{...g.rect} };
+    }
+    return null;
+  }
+
+  // Raw pointer events can fire far more often than the display refreshes (especially
+  // mouse). We only need to recompute geometry + repaint once per animation frame, so
+  // the actual work happens in processMove(), and onMove() just remembers the latest
+  // event and schedules a single rAF callback per frame — extra events in between are
+  // coalesced for free.
+  let pendingMoveEvent = null;
+  let moveRafId = null;
+  function onMove(e){
+    if(!dragState) return;
+    e.preventDefault();
+    pendingMoveEvent = e;
+    if(moveRafId==null){
+      moveRafId = requestAnimationFrame(()=>{
+        moveRafId = null;
+        if(pendingMoveEvent) processMove(pendingMoveEvent);
+      });
+    }
+  }
+  function processMove(e){
+    if(!dragState) return;
+    const pos = getCanvasPos(e);
+    const entry = getActive();
+    const maxW = entry.naturalW, maxH = entry.naturalH;
+
+    if(dragState.kind==='quad-new'){
+      // free rectangle while dragging out a brand-new quad — width and height
+      // are fully independent, no 1:1/square constraint at all.
+      const np = toNaturalPt(pos.x,pos.y);
+      const s = dragState.startNatural;
+      let x0 = Math.max(0, Math.min(s.x, np.x));
+      let y0 = Math.max(0, Math.min(s.y, np.y));
+      let x1 = Math.min(maxW, Math.max(s.x, np.x));
+      let y1 = Math.min(maxH, Math.max(s.y, np.y));
+      currentSel.points = [ {x:x0,y:y0}, {x:x1,y:y0}, {x:x1,y:y1}, {x:x0,y:y1} ];
+      redraw();
+    } else if(dragState.kind==='quad-vertex'){
+      // each corner drags completely independently — this is what makes the
+      // result a genuine (possibly non-rectangular) quadrilateral.
+      const np = toNaturalPt(pos.x,pos.y);
+      currentSel.points[dragState.vertexIdx] = { x: Math.max(0,Math.min(np.x,maxW)), y: Math.max(0,Math.min(np.y,maxH)) };
+      redraw();
+    } else if(dragState.kind==='quad-move'){
+      const np = toNaturalPt(pos.x,pos.y);
+      const dxN = np.x - dragState.startNatural.x;
+      const dyN = np.y - dragState.startNatural.y;
+      const bb = boundsOf(dragState.startPoints);
+      let clampDx = Math.max(-bb.x, Math.min(dxN, maxW-(bb.x+bb.w)));
+      let clampDy = Math.max(-bb.y, Math.min(dyN, maxH-(bb.y+bb.h)));
+      currentSel.points = dragState.startPoints.map(p=>({ x:p.x+clampDx, y:p.y+clampDy }));
+      redraw();
+    } else if(dragState.kind && dragState.kind.startsWith('rect-')){
+      // free (non-square) rectangle drag/resize, used only for editing an
+      // existing unrotated gridcell crop's position/size.
+      const handle = dragState.kind.replace('rect-','');
+      const np = toNaturalPt(pos.x,pos.y);
+      const r0 = dragState.startRect;
+      if(handle==='move'){
+        const dxN = np.x - toNaturalPt(dragState.startPos.x,dragState.startPos.y).x;
+        const dyN = np.y - toNaturalPt(dragState.startPos.x,dragState.startPos.y).y;
+        let x = r0.x+dxN, y = r0.y+dyN;
+        x = Math.max(0, Math.min(x, maxW-r0.w));
+        y = Math.max(0, Math.min(y, maxH-r0.h));
+        currentSel.rect = {x,y,w:r0.w,h:r0.h};
+      } else {
+        let x=r0.x, y=r0.y, w=r0.w, h=r0.h;
+        const minSize = 4;
+        if(handle.includes('l')){ const right=r0.x+r0.w; x=Math.min(np.x, right-minSize); w=right-x; }
+        if(handle.includes('r')){ w=Math.max(minSize, np.x-r0.x); }
+        if(handle.includes('t')){ const bottom=r0.y+r0.h; y=Math.min(np.y, bottom-minSize); h=bottom-y; }
+        if(handle.includes('b')){ h=Math.max(minSize, np.y-r0.y); }
+        x = Math.max(0,x); y = Math.max(0,y);
+        w = Math.min(w, maxW-x); h = Math.min(h, maxH-y);
+        currentSel.rect = {x,y,w,h};
+      }
+      redraw();
+    } else if(dragState.kind==='text-new'){
+      const np = toNaturalPt(pos.x,pos.y);
+      const s = dragState.startNatural;
+      let x = Math.max(0, Math.min(s.x, np.x));
+      let y = Math.max(0, Math.min(s.y, np.y));
+      let w = Math.min(maxW, Math.max(s.x, np.x)) - x;
+      let h = Math.min(maxH, Math.max(s.y, np.y)) - y;
+      currentTextSel = { ...currentTextSel, x, y, w, h };
+      redraw();
+    } else if(dragState.kind==='text-rotate'){
+      const pivot = textPivot(currentTextSel);
+      const pImg = toNaturalPt(pos.x,pos.y);
+      const angle = Math.atan2(pImg.y-pivot.y, pImg.x-pivot.x);
+      currentTextSel.rotationDeg = (dragState.startRotation + (angle - dragState.startAngle)) * 180/Math.PI;
+      syncTxRotationUI();
+      redraw();
+    } else if(dragState.kind && dragState.kind.startsWith('text-resize-')){
+      const handle = dragState.kind.replace('text-resize-','');
+      const r0 = dragState.startRect;
+      const pivot = textPivot(r0);
+      const rot = (currentTextSel.rotationDeg||0)*Math.PI/180;
+      const pImg = toNaturalPt(pos.x,pos.y);
+      const pLocal = rotatePt(pImg, pivot, -rot);
+      let x=r0.x, y=r0.y, w=r0.w, h=r0.h;
+      const minSize = 4;
+      if(handle.includes('l')){ const right=r0.x+r0.w; x=Math.min(pLocal.x, right-minSize); w=right-x; }
+      if(handle.includes('r')){ w=Math.max(minSize, pLocal.x-r0.x); }
+      if(handle.includes('t')){ const bottom=r0.y+r0.h; y=Math.min(pLocal.y, bottom-minSize); h=bottom-y; }
+      if(handle.includes('b')){ h=Math.max(minSize, pLocal.y-r0.y); }
+      currentTextSel.x=x; currentTextSel.y=y; currentTextSel.w=w; currentTextSel.h=h;
+      redraw();
+    } else if(dragState.kind==='text-move'){
+      const r0 = dragState.startRect;
+      const pivot = textPivot(r0);
+      const rot = (currentTextSel.rotationDeg||0)*Math.PI/180;
+      const pImg = toNaturalPt(pos.x,pos.y);
+      const pLocal = rotatePt(pImg, pivot, -rot);
+      const dx = pLocal.x - dragState.startLocal.x, dy = pLocal.y - dragState.startLocal.y;
+      currentTextSel.x = r0.x+dx;
+      currentTextSel.y = r0.y+dy;
+      redraw();
+    } else if(dragState.kind==='pen-vertex'){
+      const np = toNaturalPt(pos.x,pos.y);
+      currentSel.points[dragState.vertexIdx] = { x: Math.max(0,Math.min(np.x,maxW)), y: Math.max(0,Math.min(np.y,maxH)) };
+      redraw();
+    } else if(dragState.kind==='pen-move'){
+      const np = toNaturalPt(pos.x,pos.y);
+      const dxN = np.x - dragState.startNatural.x;
+      const dyN = np.y - dragState.startNatural.y;
+      const bb = boundsOf(dragState.startPoints);
+      let clampDx = Math.max(-bb.x, Math.min(dxN, maxW-(bb.x+bb.w)));
+      let clampDy = Math.max(-bb.y, Math.min(dyN, maxH-(bb.y+bb.h)));
+      currentSel.points = dragState.startPoints.map(p=>({ x:p.x+clampDx, y:p.y+clampDy }));
+      redraw();
+    } else if(dragState.kind && dragState.kind.startsWith('grid-') && gridSel){
+      const g = gridSel;
+      const pivot = gridPivot(g);
+      const pImg = toNaturalPt(pos.x,pos.y);
+      if(dragState.kind==='grid-rotate'){
+        const angle = Math.atan2(pImg.y-pivot.y, pImg.x-pivot.x);
+        g.rotation = dragState.startRotation + (angle - dragState.startAngle);
+        syncGridRotationInput();
+      } else if(dragState.kind.startsWith('grid-resize-')){
+        const handle = dragState.kind.replace('grid-resize-','');
+        const pLocal = rotatePt(pImg, pivot, -g.rotation);
+        const r0 = dragState.startRect;
+        let x=r0.x, y=r0.y, w=r0.w, h=r0.h;
+        const minSize = 10;
+        if(handle.includes('l')){ const right=r0.x+r0.w; x=Math.min(pLocal.x, right-minSize); w=right-x; }
+        if(handle.includes('r')){ w=Math.max(minSize, pLocal.x-r0.x); }
+        if(handle.includes('t')){ const bottom=r0.y+r0.h; y=Math.min(pLocal.y, bottom-minSize); h=bottom-y; }
+        if(handle.includes('b')){ h=Math.max(minSize, pLocal.y-r0.y); }
+        g.rect = {x,y,w,h};
+      } else if(dragState.kind==='grid-vline'){
+        const pLocal = rotatePt(pImg, pivot, -g.rotation);
+        const idx = dragState.idx;
+        const minGap = 0.02;
+        const lo = idx===0 ? 0 : g.vLines[idx-1]+minGap;
+        const hi = idx===g.vLines.length-1 ? 1 : g.vLines[idx+1]-minGap;
+        g.vLines[idx] = Math.max(lo, Math.min(hi, (pLocal.x-g.rect.x)/g.rect.w));
+      } else if(dragState.kind==='grid-hline'){
+        const pLocal = rotatePt(pImg, pivot, -g.rotation);
+        const idx = dragState.idx;
+        const minGap = 0.02;
+        const lo = idx===0 ? 0 : g.hLines[idx-1]+minGap;
+        const hi = idx===g.hLines.length-1 ? 1 : g.hLines[idx+1]-minGap;
+        g.hLines[idx] = Math.max(lo, Math.min(hi, (pLocal.y-g.rect.y)/g.rect.h));
+      } else if(dragState.kind==='grid-move'){
+        const pLocal = rotatePt(pImg, pivot, -g.rotation);
+        const dx = pLocal.x - dragState.startLocal.x, dy = pLocal.y - dragState.startLocal.y;
+        g.rect = { x:dragState.startRect.x+dx, y:dragState.startRect.y+dy, w:dragState.startRect.w, h:dragState.startRect.h };
+      }
+      redraw();
+    }
+  }
+
+  function onUp(){
+    if(moveRafId!=null){ cancelAnimationFrame(moveRafId); moveRafId = null; }
+    pendingMoveEvent = null;
+    if(!dragState) return;
+    const wasQuadNew = dragState.kind==='quad-new';
+    const wasTextNew = dragState.kind==='text-new';
+    dragState = null;
+
+    if(currentSel && currentSel.type==='quad' && currentSel.points){
+      const bb = boundsOf(currentSel.points);
+      if(bb.w>3 && bb.h>3){
+        if(wasQuadNew && quadMultiSelect && editingCropIndex===null){
+          commitQuadToQueue(); // auto-add so several quads can be drawn back-to-back
+        } else {
+          showConfirmIfReady();
+        }
+      } else if(wasQuadNew){
+        currentSel = null; // degenerate drag (a click, essentially) — discard
+        redraw();
+      }
+    }
+    if(wasTextNew && currentTextSel){
+      if(currentTextSel.w>3 && currentTextSel.h>3){
+        openTextEditForm(null);
+      } else {
+        currentTextSel = null;
+        redraw();
+      }
+    }
+  }
+
+  // Auto-add path for "连续多选": pushes the just-drawn quad straight into the
+  // queue and resets currentSel so the next drag starts a brand-new selection.
+  function commitQuadToQueue(){
+    const entry = getActive();
+    if(!entry || !currentSel || currentSel.type!=='quad') return;
+    pushHistory();
+    const cropObj = { id: uid(), type:'quad', points: currentSel.points.map(p=>({...p})) };
+    cropObj.thumbDataURL = makeThumb(entry, cropObj);
+    entry.crops.push(cropObj);
+    currentSel = null;
+    confirmbar.style.display = 'none';
+    renderFilmstrip();
+    renderQueue();
+    redraw();
+  }
+
+  // ---------- text-clone: form <-> currentTextSel/entry.textLayers wiring ----------
+  // Reads the side-panel's style fields (content/font/size/color/bold/italic/
+  // align/letter-spacing) into a plain layer-style object. Position/size/rotation
+  // live on currentTextSel instead, since those come from dragging on the canvas.
+  function readTextFormValues(){
+    return {
+      text: el('txContent').value,
+      fontFamily: el('txFont').value,
+      fontSize: parseFloat(el('txSize').value) || 32,
+      color: el('txColor').value,
+      bold: txBold,
+      italic: txItalic,
+      align: txAlign,
+      letterSpacing: parseFloat(el('txLetterSpacing').value) || 0
+    };
+  }
+
+  function setAlignButtons(){
+    document.querySelectorAll('[data-align]').forEach(b=>{
+      b.classList.toggle('on', b.getAttribute('data-align')===txAlign);
+    });
+  }
+
+  function syncTxRotationUI(){
+    const deg = (currentTextSel && currentTextSel.rotationDeg) || 0;
+    el('txRotVal').textContent = (Math.round(deg*10)/10) + '°';
+  }
+
+  // Shows the text-property panel, either blank (new layer) or pre-filled from
+  // an existing layer being edited. Position/size/rotation are assumed to
+  // already be set on currentTextSel by the caller.
+  function openTextEditForm(layer){
+    if(layer){
+      el('txContent').value = layer.text || '';
+      el('txFont').value = layer.fontFamily || "'Microsoft YaHei','PingFang SC',sans-serif";
+      el('txSize').value = layer.fontSize || 32;
+      el('txColor').value = layer.color || '#1c1a17';
+      txBold = !!layer.bold; txItalic = !!layer.italic; txAlign = layer.align || 'left';
+      el('txLetterSpacing').value = layer.letterSpacing || 0;
+    } else {
+      el('txContent').value = '';
+      el('txFont').value = "'Microsoft YaHei','PingFang SC',sans-serif";
+      el('txSize').value = 32;
+      el('txColor').value = '#1c1a17';
+      txBold = false; txItalic = false; txAlign = 'left';
+      el('txLetterSpacing').value = 0;
+    }
+    el('txBold').classList.toggle('on', txBold);
+    el('txItalic').classList.toggle('on', txItalic);
+    setAlignButtons();
+    syncTxRotationUI();
+    el('textEditPanel').style.display = 'block';
+    confirmbar.style.display = 'none';
+    redraw();
+  }
+
+  function hideTextEditForm(){
+    const panel = el('textEditPanel');
+    if(panel) panel.style.display = 'none';
+    currentTextSel = null;
+    editingTextIndex = null;
+    redraw();
+  }
+
+  function startEditText(idx){
+    const entry = getActive();
+    if(!entry) return;
+    const t = entry.textLayers[idx];
+    if(!t) return;
+    exitEditMode();
+    mode = 'text';
+    editingTextIndex = idx;
+    currentSel = null;
+    currentTextSel = { x:t.x, y:t.y, w:t.w, h:t.h, rotationDeg:t.rotationDeg||0 };
+    updateModeUI();
+    openTextEditForm(t);
+  }
+
+  function renderTextLayerList(){
+    const entry = getActive();
+    const listEl = el('textLayerList');
+    listEl.innerHTML = '';
+    if(!entry || !entry.textLayers || !entry.textLayers.length){
+      listEl.innerHTML = '<div class="empty-q">尚未添加文字</div>';
+      return;
+    }
+    entry.textLayers.forEach((t, idx)=>{
+      const row = document.createElement('div');
+      row.className = 'cq-item';
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.style.flex = '1';
+      const preview = (String(t.text||'').split('\n')[0].slice(0,16)) || '(空文字)';
+      meta.innerHTML = '<b>文字 #'+(idx+1)+'</b>'+preview;
+      row.appendChild(meta);
+      const actions = document.createElement('div');
+      actions.className = 'actions wide';
+      const editBtn = document.createElement('button');
+      editBtn.className = 'iconbtn'; editBtn.title = '编辑'; editBtn.textContent = '✎';
+      editBtn.addEventListener('click', ()=> startEditText(idx));
+      const delBtn = document.createElement('button');
+      delBtn.className = 'iconbtn'; delBtn.title = '删除'; delBtn.textContent = '×';
+      delBtn.addEventListener('click', ()=>{
+        entry.textLayers.splice(idx,1);
+        if(editingTextIndex===idx) hideTextEditForm();
+        renderTextLayerList();
+        redraw();
+      });
+      actions.appendChild(editBtn); actions.appendChild(delBtn);
+      row.appendChild(actions);
+      listEl.appendChild(row);
+    });
+  }
+
+  el('txSaveBtn').addEventListener('click', ()=>{
+    const entry = getActive();
+    if(!entry || !currentTextSel) return;
+    const vals = readTextFormValues();
+    if(!vals.text || !vals.text.trim()){ alert('请先输入文字内容。'); return; }
+    const layer = { ...currentTextSel, ...vals };
+    if(editingTextIndex!==null && entry.textLayers[editingTextIndex]){
+      entry.textLayers[editingTextIndex] = layer;
+    } else {
+      entry.textLayers.push(layer);
+    }
+    hideTextEditForm();
+    renderTextLayerList();
+    redraw();
+  });
+
+  el('txCancelBtn').addEventListener('click', ()=>{
+    hideTextEditForm();
+  });
+
+  el('txBold').addEventListener('click', ()=>{
+    txBold = !txBold;
+    el('txBold').classList.toggle('on', txBold);
+    redraw();
+  });
+  el('txItalic').addEventListener('click', ()=>{
+    txItalic = !txItalic;
+    el('txItalic').classList.toggle('on', txItalic);
+    redraw();
+  });
+  document.querySelectorAll('[data-align]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      txAlign = b.getAttribute('data-align');
+      setAlignButtons();
+      redraw();
+    });
+  });
+  el('txRotMinus').addEventListener('click', ()=>{
+    if(!currentTextSel) return;
+    currentTextSel.rotationDeg = (currentTextSel.rotationDeg||0) - 1;
+    syncTxRotationUI();
+    redraw();
+  });
+  el('txRotPlus').addEventListener('click', ()=>{
+    if(!currentTextSel) return;
+    currentTextSel.rotationDeg = (currentTextSel.rotationDeg||0) + 1;
+    syncTxRotationUI();
+    redraw();
+  });
+  el('txEyedrop').addEventListener('click', async ()=>{
+    if(!window.EyeDropper){
+      alert('当前浏览器不支持取色器（EyeDropper API），请用 Chrome / Edge 最新版本，或直接手动输入颜色值。');
+      return;
+    }
+    try{
+      const res = await new EyeDropper().open();
+      el('txColor').value = res.sRGBHex;
+      redraw();
+    }catch(e){ /* 用户取消取色，忽略 */ }
+  });
+  el('exportTextBtn').addEventListener('click', ()=>{
+    const entry = getActive();
+    if(!entry) return;
+    if(!entry.textLayers || !entry.textLayers.length){ alert('还没有添加任何文字层。'); return; }
+    const out = document.createElement('canvas');
+    out.width = entry.naturalW; out.height = entry.naturalH;
+    const octx = out.getContext('2d');
+    entry.textLayers.forEach(t=> drawOneTextLayer(octx, t, 1));
+    out.toBlob(blob=>{
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = entry.name + '_text-layers.png';
+      a.click();
+      setTimeout(()=> URL.revokeObjectURL(a.href), 4000);
+    }, 'image/png', 1);
+  });
+
+  function onDblClick(){
+    if(mode==='pen' && currentSel && currentSel.points && currentSel.points.length>=3 && !currentSel.closed){
+      currentSel.closed = true;
+      redraw();
+      showConfirmIfReady();
+    }
+  }
+
+  function showConfirmIfReady(){
+    let ready = false;
+    if(currentSel){
+      if(currentSel.type==='quad' && currentSel.points){
+        const bb = boundsOf(currentSel.points);
+        if(bb.w>3 && bb.h>3) ready = true;
+      }
+      if(currentSel.type==='pen' && currentSel.closed) ready = true;
+      if(currentSel.type==='gridcell') ready = true;
+    }
+    confirmbar.style.display = ready ? 'flex' : 'none';
+  }
+
+  // ---------- mode switching ----------
+  function updateModeUI(){
+    ['quad','pen','text','grid'].forEach(m=>{
+      el('mode'+cap(m)).classList.toggle('on', mode===m);
+    });
+    quadOptsPanel.style.display = mode==='quad' ? 'block' : 'none';
+    gridOptsPanel.style.display = mode==='grid' ? 'block' : 'none';
+    if(mode==='quad') hintText.textContent = '四边形裁切：拖拽画出选区，四个角可任意拖动（不限制为矩形/正方形），拖选区内部整体移动。'+(quadMultiSelect ? ' 已开启连续多选：每完成一个会自动加入队列，可直接拖出下一个。' : '');
+    if(mode==='pen') hintText.textContent = '钢笔裁切：依次点击放置锚点，围出任意形状；双击或点回起点闭合路径，完成后加入队列。';
+    if(mode==='text') hintText.textContent = '文字克隆：拖出一个文本框范围，再在右侧填写文字内容、字体、颜色、角度等属性，添加后可在"文字图层"列表继续调整，最后一次性导出成一张图。';
+    if(mode==='grid') hintText.textContent = '网格分割：拖蓝色分割线调整间距，拖四角调整范围，拖顶部红点旋转整个网格（拍斜的截图也能对齐），设好后点右侧「分割为方格」。';
+    updateUndoClear();
+  }
+  function cap(s){ return s[0].toUpperCase()+s.slice(1); }
+
+  ['quad','pen','text'].forEach(m=>{
+    el('mode'+cap(m)).addEventListener('click', ()=>{
+      exitEditMode();
+      mode = m;
+      currentTextSel = null;
+      editingTextIndex = null;
+      hideTextEditForm();
+      currentSel = null;
+      confirmbar.style.display = 'none';
+      updateModeUI();
+      redraw();
+    });
+  });
+
+  // ---------- grid split mode ----------
+  el('modeGrid').addEventListener('click', ()=>{
+    exitEditMode();
+    mode = 'grid';
+    currentSel = null;
+    currentTextSel = null;
+    editingTextIndex = null;
+    hideTextEditForm();
+    confirmbar.style.display = 'none';
+    const entry = getActive();
+    if(entry && !gridSel) gridSel = makeDefaultGrid(entry);
+    if(gridSel){
+      el('gridRows').value = gridSel.rows;
+      el('gridCols').value = gridSel.cols;
+      syncGridRotationInput();
+    }
+    updateModeUI();
+    redraw();
+  });
+
+  function syncGridRotationInput(){
+    if(!gridSel) return;
+    const deg = gridSel.rotation * 180/Math.PI;
+    el('gridRotation').value = Math.max(-60, Math.min(60, deg)).toFixed(1);
+    el('gridRotationVal').textContent = Math.round(deg*10)/10 + '°';
+  }
+
+  function applyGridRows(rows){
+    if(!gridSel) return;
+    rows = Math.max(1, Math.min(12, rows||1));
+    el('gridRows').value = rows;
+    gridSel.rows = rows; gridSel.hLines = evenLines(rows);
+    gridDefaults.rows = rows;
+    redraw();
+  }
+  function applyGridCols(cols){
+    if(!gridSel) return;
+    cols = Math.max(1, Math.min(12, cols||1));
+    el('gridCols').value = cols;
+    gridSel.cols = cols; gridSel.vLines = evenLines(cols);
+    gridDefaults.cols = cols;
+    redraw();
+  }
+  // +/- steppers for rows/cols, matching the zoom bar's visual language instead of native number inputs
+  document.querySelectorAll('[data-step-target]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const target = btn.getAttribute('data-step-target');
+      const dir = parseInt(btn.getAttribute('data-step-dir'),10);
+      const current = parseInt(el(target).value,10) || 1;
+      if(target==='gridRows') applyGridRows(current+dir);
+      else if(target==='gridCols') applyGridCols(current+dir);
+    });
+  });
+  function applyGridRotationDeg(deg){
+    if(!gridSel) return;
+    deg = Math.max(-60, Math.min(60, deg));
+    gridSel.rotation = deg*Math.PI/180;
+    gridDefaults.rotationDeg = deg;
+    el('gridRotation').value = deg;
+    el('gridRotationVal').textContent = (Math.round(deg*10)/10) + '°';
+    redraw();
+  }
+  // fine nudge buttons; precise rotation is normally done by dragging the red handle on canvas
+  el('gridRotMinus').addEventListener('click', ()=>{
+    if(!gridSel) return;
+    applyGridRotationDeg((gridSel.rotation*180/Math.PI) - 0.5);
+  });
+  el('gridRotPlus').addEventListener('click', ()=>{
+    if(!gridSel) return;
+    applyGridRotationDeg((gridSel.rotation*180/Math.PI) + 0.5);
+  });
+  el('gridResetBtn').addEventListener('click', ()=>{
+    const entry = getActive();
+    if(!entry) return;
+    gridSel = makeDefaultGrid(entry);
+    el('gridRows').value = gridSel.rows;
+    el('gridCols').value = gridSel.cols;
+    syncGridRotationInput();
+    redraw();
+  });
+  el('gridSplitBtn').addEventListener('click', splitGridIntoQueue);
+  // keyboard activation for the demoted text-link action (it's a span, not a real button)
+  el('gridResetBtn').addEventListener('keydown', e=>{
+    if(e.key==='Enter' || e.key===' '){ e.preventDefault(); el('gridResetBtn').click(); }
+  });
+
+  el('quadMultiSelect').addEventListener('change', e=>{
+    quadMultiSelect = e.target.checked;
+    updateModeUI();
+  });
+
+  function splitGridIntoQueue(){
+    const entry = getActive();
+    const g = gridSel;
+    if(!entry || !g) return;
+    pushHistory();
+    const pivot = gridPivot(g);
+    for(let r=0;r<g.rows;r++){
+      for(let c=0;c<g.cols;c++){
+        const rect = gridCellLocalRect(g, r, c);
+        const cropObj = { id: uid(), type:'gridcell', rect, rotation: g.rotation, pivotX: pivot.x, pivotY: pivot.y };
+        cropObj.thumbDataURL = makeThumb(entry, cropObj);
+        entry.crops.push(cropObj);
+      }
+    }
+    renderFilmstrip();
+    renderQueue();
+    redraw();
+  }
+
+  // ---------- auto-split all elements (alpha-channel connected components) ----------
+  // Core idea: an element is a group of pixels that are opaque (alpha above a
+  // threshold) and touch each other. Two sprites sitting close together are
+  // NOT the same element as long as there's at least one row/column of
+  // (near-)transparent pixels between them — proximity alone never merges
+  // them, only actual pixel-level connectivity does. This is what makes it
+  // safe even when items are packed tightly, unlike a naive "cluster by
+  // distance" approach.
+  //
+  // "合并间隙" (merge gap) does one extra thing on top of that: it dilates
+  // the mask by a few px first, purely to bridge small internal gaps within
+  // a *single* sprite (anti-aliased seams, thin gaps in linework) so it isn't
+  // wrongly split into pieces. The final bounding boxes are still measured
+  // against the ORIGINAL (non-dilated) pixels, so boxes stay tight.
+
+  // Binary dilation of a 0/1 mask by radius r, separable into two 1D passes
+  // (horizontal then vertical), each done in O(len) per line via a running
+  // prefix sum rather than checking every neighbor per pixel.
+  function dilateMask(mask, w, h, r){
+    if(r<=0) return mask;
+    const tmp = new Uint8Array(w*h);
+    const rowPrefix = new Int32Array(w+1);
+    for(let y=0; y<h; y++){
+      const rowOff = y*w;
+      rowPrefix[0] = 0;
+      for(let x=0; x<w; x++) rowPrefix[x+1] = rowPrefix[x] + mask[rowOff+x];
+      for(let x=0; x<w; x++){
+        const lo = Math.max(0, x-r), hi = Math.min(w-1, x+r);
+        tmp[rowOff+x] = (rowPrefix[hi+1]-rowPrefix[lo]) > 0 ? 1 : 0;
+      }
+    }
+    const out = new Uint8Array(w*h);
+    const colPrefix = new Int32Array(h+1);
+    for(let x=0; x<w; x++){
+      colPrefix[0] = 0;
+      for(let y=0; y<h; y++) colPrefix[y+1] = colPrefix[y] + tmp[y*w+x];
+      for(let y=0; y<h; y++){
+        const lo = Math.max(0, y-r), hi = Math.min(h-1, y+r);
+        out[y*w+x] = (colPrefix[hi+1]-colPrefix[lo]) > 0 ? 1 : 0;
+      }
+    }
+    return out;
+  }
+
+  // 4-connectivity flood fill labeling over a 0/1 mask using an explicit
+  // stack (avoids recursion depth issues on large images). Returns an
+  // Int32Array of labels (-1 = background) plus the number of labels found.
+  function labelConnectedComponents(mask, w, h){
+    const n = w*h;
+    const labels = new Int32Array(n).fill(-1);
+    const stack = new Int32Array(n);
+    let labelCount = 0;
+    for(let start=0; start<n; start++){
+      if(mask[start]!==1 || labels[start]!==-1) continue;
+      let sp = 0;
+      stack[sp++] = start;
+      labels[start] = labelCount;
+      while(sp>0){
+        const idx = stack[--sp];
+        const x = idx % w, y = (idx - x) / w;
+        if(x>0){          const j = idx-1; if(mask[j]===1 && labels[j]===-1){ labels[j]=labelCount; stack[sp++]=j; } }
+        if(x<w-1){        const j = idx+1; if(mask[j]===1 && labels[j]===-1){ labels[j]=labelCount; stack[sp++]=j; } }
+        if(y>0){          const j = idx-w; if(mask[j]===1 && labels[j]===-1){ labels[j]=labelCount; stack[sp++]=j; } }
+        if(y<h-1){        const j = idx+w; if(mask[j]===1 && labels[j]===-1){ labels[j]=labelCount; stack[sp++]=j; } }
+      }
+      labelCount++;
+    }
+    return { labels, labelCount };
+  }
+
+  function autoSplitAllElements(){
+    const entry = getActive();
+    const statusEl = el('autoSplitStatus');
+    if(!entry){ alert('请先在上方选择一张图片。'); return; }
+
+    const w = entry.naturalW, h = entry.naturalH;
+    if(w*h > 24_000_000){
+      alert('这张图片像素太多（超过约 2400 万像素），暂不支持自动分割，请先缩小图片。');
+      return;
+    }
+
+    const off = document.createElement('canvas');
+    off.width = w; off.height = h;
+    const octx = off.getContext('2d', { willReadFrequently: true });
+    octx.drawImage(entry.img, 0, 0, w, h);
+    let imgData;
+    try{ imgData = octx.getImageData(0, 0, w, h); }
+    catch(e){ alert('无法读取这张图片的像素数据（可能受跨域限制）。'); return; }
+    const data = imgData.data;
+
+    const alphaThresh = Math.max(0, Math.min(255, parseInt(el('autoSplitAlpha').value, 10) || 0));
+    const gap = Math.max(0, Math.min(40, parseInt(el('autoSplitGap').value, 10) || 0));
+    const minSize = Math.max(1, Math.min(2000, parseInt(el('autoSplitMinSize').value, 10) || 1));
+
+    const btn = el('autoSplitBtn');
+    const origText = btn.textContent;
+    btn.disabled = true; btn.textContent = '分析中…';
+
+    // yield a tick so the button label actually updates before the (synchronous,
+    // potentially heavy) pixel work runs
+    setTimeout(()=>{
+      try{
+        const n = w*h;
+        const mask = new Uint8Array(n);
+        let fgCount = 0;
+        for(let i=0;i<n;i++){
+          if(data[i*4+3] > alphaThresh){ mask[i]=1; fgCount++; }
+        }
+        if(fgCount === 0){
+          alert('没有检测到任何不透明像素——请确认这张图的背景已经抠成透明，再使用这个功能。');
+          return;
+        }
+        if(fgCount > n*0.985){
+          const proceed = confirm('这张图几乎完全不透明，看起来背景可能还没有抠除，继续的话很可能只会得到一整张图作为唯一元素。是否仍要继续？');
+          if(!proceed) return;
+        }
+
+        const dilated = dilateMask(mask, w, h, gap);
+        const { labels } = labelConnectedComponents(dilated, w, h);
+
+        // Bounding boxes are accumulated only from the ORIGINAL mask pixels
+        // (not the dilated ones) so the crop hugs the real artwork; dilation
+        // only decided which pixels belong to the same element.
+        const boxes = new Map();
+        for(let y=0; y<h; y++){
+          const rowOff = y*w;
+          for(let x=0; x<w; x++){
+            const idx = rowOff+x;
+            if(mask[idx]!==1) continue;
+            const lb = labels[idx];
+            let b = boxes.get(lb);
+            if(!b){ b = {minX:x,minY:y,maxX:x,maxY:y}; boxes.set(lb,b); }
+            else{
+              if(x<b.minX)b.minX=x; if(x>b.maxX)b.maxX=x;
+              if(y<b.minY)b.minY=y; if(y>b.maxY)b.maxY=y;
+            }
+          }
+        }
+
+        const pad = 1; // tiny padding so we don't clip the outermost antialiased pixel
+        let results = [];
+        boxes.forEach(b=>{
+          const bw = b.maxX-b.minX+1, bh = b.maxY-b.minY+1;
+          if(bw < minSize || bh < minSize) return;
+          const x = Math.max(0, b.minX-pad);
+          const y = Math.max(0, b.minY-pad);
+          const rw = Math.min(w, b.maxX+1+pad) - x;
+          const rh = Math.min(h, b.maxY+1+pad) - y;
+          results.push({x,y,w:rw,h:rh});
+        });
+
+        if(!results.length){
+          alert('没有找到符合条件的元素。可以调低"最小尺寸过滤"，或调高"合并间隙"再试一次。');
+          return;
+        }
+
+        // reading order: top-to-bottom, left-to-right, banding rows loosely by y
+        // so items on the same visual row stay adjacent in the queue
+        const rowBand = Math.max(4, Math.min(...results.map(r=>r.h)) * 0.6);
+        results.sort((a,b)=> (Math.round(a.y/rowBand) - Math.round(b.y/rowBand)) || (a.x-b.x));
+
+        pushHistory();
+        results.forEach(r=>{
+          const rect = {x:r.x, y:r.y, w:r.w, h:r.h};
+          const cropObj = { id: uid(), type:'gridcell', rect, rotation:0, pivotX: rect.x+rect.w/2, pivotY: rect.y+rect.h/2 };
+          cropObj.thumbDataURL = makeThumb(entry, cropObj);
+          entry.crops.push(cropObj);
+        });
+        renderFilmstrip();
+        renderQueue();
+        redraw();
+        if(statusEl) statusEl.textContent = `已识别出 ${results.length} 个元素，全部加入本图裁切队列。`;
+      } finally {
+        btn.disabled = false; btn.textContent = origText;
+      }
+    }, 10);
+  }
+
+  el('autoSplitBtn').addEventListener('click', autoSplitAllElements);
+
+  el('undoPoint').addEventListener('click', ()=>{
+    if(mode==='pen' && currentSel && currentSel.points && currentSel.points.length){
+      if(currentSel.closed){ currentSel.closed = false; }
+      else currentSel.points.pop();
+      redraw();
+      updateUndoClear();
+      confirmbar.style.display = 'none';
+    }
+  });
+  el('clearSel').addEventListener('click', ()=>{
+    currentSel = null;
+    currentTextSel = null;
+    editingTextIndex = null;
+    hideTextEditForm();
+    confirmbar.style.display = 'none';
+    updateUndoClear();
+    redraw();
+  });
+  function updateUndoClear(){
+    const hasPenPts = mode==='pen' && currentSel && currentSel.points && currentSel.points.length>0;
+    el('undoPoint').disabled = !hasPenPts;
+    el('clearSel').disabled = !currentSel && !currentTextSel;
+  }
+
+  el('cancelSelBtn').addEventListener('click', ()=>{
+    exitEditMode();
+    currentSel = null;
+    confirmbar.style.display = 'none';
+    updateUndoClear();
+    redraw();
+  });
+
+  // ---------- edit existing queue crop ----------
+  function startEditCrop(idx){
+    const entry = getActive();
+    if(!entry) return;
+    const c = entry.crops[idx];
+    if(!c) return;
+    editingCropIndex = idx;
+    if(c.type==='pen'){
+      mode = 'pen';
+      currentSel = { type:'pen', points: c.points.map(p=>({...p})), closed:true };
+    } else if(c.type==='quad'){
+      mode = 'quad';
+      currentSel = { type:'quad', points: c.points.map(p=>({...p})) };
+    } else if(c.type==='gridcell'){
+      // reuse the quad-mode's plain rect drag/resize interaction for an
+      // (unrotated) grid slice, but keep the original type so it's saved
+      // back correctly.
+      mode = 'quad';
+      currentSel = { type:'gridcell', rect: {...c.rect}, rotation: c.rotation||0, pivotX: c.pivotX, pivotY: c.pivotY };
+    }
+    updateModeUI();
+    redraw();
+    showConfirmIfReady();
+    hintText.textContent = '编辑模式：拖动选区调整位置/大小，完成后点击"保存修改"。';
+    el('addCropBtn').textContent = '✓ 保存修改';
+  }
+
+  function exitEditMode(){
+    editingCropIndex = null;
+    el('addCropBtn').textContent = '＋ 加入裁切队列';
+  }
+
+  // ---------- add crop to queue ----------
+  el('addCropBtn').addEventListener('click', ()=>{
+    const entry = getActive();
+    if(!entry || !currentSel) return;
+    let cropObj = null;
+    if(currentSel.type==='quad' && currentSel.points){
+      cropObj = { id: uid(), type:'quad', points: currentSel.points.map(p=>({...p})) };
+    } else if(currentSel.type==='pen' && currentSel.closed){
+      cropObj = { id: uid(), type:'pen', points: currentSel.points.map(p=>({...p})) };
+    } else if(currentSel.type==='gridcell'){
+      cropObj = { id: uid(), type:'gridcell', rect: {...currentSel.rect}, rotation: currentSel.rotation||0, pivotX: currentSel.pivotX, pivotY: currentSel.pivotY };
+    }
+    if(!cropObj) return;
+    cropObj.thumbDataURL = makeThumb(entry, cropObj);
+    pushHistory();
+    if(editingCropIndex!==null && entry.crops[editingCropIndex]){
+      cropObj.id = entry.crops[editingCropIndex].id;
+      entry.crops[editingCropIndex] = cropObj;
+    } else {
+      entry.crops.push(cropObj);
+    }
+    exitEditMode();
+    currentSel = null;
+    confirmbar.style.display = 'none';
+    updateUndoClear();
+    renderFilmstrip();
+    renderQueue();
+    redraw();
+  });
+
+  function makeThumb(entry, cropObj){
+    const off = document.createElement('canvas');
+    const size = 80;
+    off.width = size; off.height = size;
+    const octx = off.getContext('2d');
+    if(cropObj.bakedImg){
+      octx.drawImage(cropObj.bakedImg, 0, 0, cropObj.bakedW, cropObj.bakedH, 0,0,size,size);
+      return off.toDataURL('image/png');
+    }
+    if(cropObj.type==='square'){
+      const r = cropObj.rect;
+      octx.drawImage(entry.img, r.x, r.y, r.w, r.h, 0,0,size,size);
+    } else if(cropObj.type==='gridcell'){
+      const r = cropObj.rect, rot = cropObj.rotation||0, pivot = {x:cropObj.pivotX, y:cropObj.pivotY};
+      octx.save();
+      octx.scale(size/r.w, size/r.h);
+      octx.translate(pivot.x - r.x, pivot.y - r.y);
+      octx.rotate(-rot);
+      octx.translate(-pivot.x, -pivot.y);
+      octx.drawImage(entry.img, 0, 0);
+      octx.restore();
+    } else if(cropObj.type==='pen' || cropObj.type==='quad'){
+      const bb = boundsOf(cropObj.points);
+      octx.save();
+      octx.beginPath();
+      cropObj.points.forEach((p,i)=>{
+        const lx = (p.x-bb.x)/bb.w*size, ly=(p.y-bb.y)/bb.h*size;
+        if(i===0) octx.moveTo(lx,ly); else octx.lineTo(lx,ly);
+      });
+      octx.closePath();
+      octx.clip();
+      octx.drawImage(entry.img, bb.x,bb.y,bb.w,bb.h, 0,0,size,size);
+      octx.restore();
+    }
+    if(cropObj.matte) applyMatte(off, octx);
+    return off.toDataURL('image/png');
+  }
+
+  function boundsOf(points){
+    let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+    points.forEach(p=>{ if(p.x<minX)minX=p.x; if(p.x>maxX)maxX=p.x; if(p.y<minY)minY=p.y; if(p.y>maxY)maxY=p.y; });
+    return {x:minX,y:minY,w:Math.max(1,maxX-minX),h:Math.max(1,maxY-minY)};
+  }
+
+  // ---------- basic local background removal (color-distance matting) ----------
+  // Not AI — samples the crop's own border pixels as the background reference,
+  // then makes near-matching pixels transparent, with optional edge feathering.
+  // Works best on flat/near-flat backgrounds; complex photographic backgrounds
+  // won't segment well (that's what the external AI tools are for).
+  function applyMatte(canvasEl, ctxEl){
+    const w = canvasEl.width, h = canvasEl.height;
+    if(w<2 || h<2) return;
+    let imgData;
+    try{ imgData = ctxEl.getImageData(0,0,w,h); }catch(e){ return; }
+    const data = imgData.data;
+    const tolerance = matteTolerance; // 5-90
+    const feather = matteFeather; // 0-6 px
+
+    // sample background reference colors from the border ring
+    const samples = [];
+    function pushSample(x,y){ const i=(y*w+x)*4; samples.push([data[i],data[i+1],data[i+2]]); }
+    const step = Math.max(1, Math.floor(Math.min(w,h)/40));
+    for(let x=0;x<w;x+=step){ pushSample(x,0); pushSample(x,h-1); }
+    for(let y=0;y<h;y+=step){ pushSample(0,y); pushSample(w-1,y); }
+    if(!samples.length) return;
+
+    function minDistToSamples(r,g,b){
+      let best = Infinity;
+      for(let i=0;i<samples.length;i++){
+        const s = samples[i];
+        const d = Math.abs(r-s[0])+Math.abs(g-s[1])+Math.abs(b-s[2]);
+        if(d<best) best = d;
+        if(best===0) break;
+      }
+      return best;
+    }
+
+    const thresh = tolerance * 3; // scale slider (0-90) to a sum-of-abs-diff threshold
+    const softband = Math.max(1, thresh*0.4); // feather band width in color-distance units
+    const alpha = new Float32Array(w*h);
+    for(let y=0;y<h;y++){
+      for(let x=0;x<w;x++){
+        const idx = y*w+x;
+        const i = idx*4;
+        const d = minDistToSamples(data[i],data[i+1],data[i+2]);
+        let a;
+        if(d <= thresh - softband) a = 0;
+        else if(d >= thresh + softband) a = 1;
+        else a = (d - (thresh - softband)) / (softband*2);
+        alpha[idx] = a;
+      }
+    }
+
+    // optional spatial feather (simple box blur on the alpha channel)
+    let finalAlpha = alpha;
+    if(feather > 0){
+      const blurred = new Float32Array(w*h);
+      const r = feather;
+      for(let y=0;y<h;y++){
+        for(let x=0;x<w;x++){
+          let sum=0,count=0;
+          for(let dy=-r; dy<=r; dy++){
+            const ny=y+dy; if(ny<0||ny>=h) continue;
+            for(let dx=-r; dx<=r; dx++){
+              const nx=x+dx; if(nx<0||nx>=w) continue;
+              sum += alpha[ny*w+nx]; count++;
+            }
+          }
+          blurred[y*w+x] = count ? sum/count : alpha[y*w+x];
+        }
+      }
+      finalAlpha = blurred;
+    }
+
+    for(let idx=0; idx<w*h; idx++){
+      const i = idx*4;
+      const existingA = data[i+3]/255;
+      data[i+3] = Math.round(finalAlpha[idx]*existingA*255);
+    }
+    ctxEl.putImageData(imgData, 0, 0);
+  }
+
+  let matteTolerance = 30;
+  let matteFeather = 1;
+  el('matteTolerance').addEventListener('input', e=>{
+    matteTolerance = parseInt(e.target.value,10);
+    el('matteToleranceVal').textContent = matteTolerance;
+    refreshMattedThumbs();
+  });
+  el('matteFeather').addEventListener('input', e=>{
+    matteFeather = parseInt(e.target.value,10);
+    el('matteFeatherVal').textContent = matteFeather;
+    refreshMattedThumbs();
+  });
+  function refreshMattedThumbs(){
+    const entry = getActive();
+    if(!entry) return;
+    let changed = false;
+    entry.crops.forEach(c=>{
+      if(c.matte){ c.thumbDataURL = makeThumb(entry, c); changed = true; }
+    });
+    if(changed) renderQueue();
+  }
+
+  // "抠图并替换" — bakes the current matte result into the crop permanently.
+  // After this, the crop carries its own standalone image (bakedImg) instead of
+  // always re-reading the region from the original source image, so the
+  // background-removed version becomes the crop's actual content everywhere
+  // (thumbnail, canvas preview, and every export path).
+  function bakeMatteIntoCrop(entry, c){
+    pushHistory();
+    const canvasOut = cropToCanvasRaw(entry, c); // unmatted pixels at full crop res
+    const octx = canvasOut.getContext('2d');
+    applyMatte(canvasOut, octx);
+    const bakedImg = new Image();
+    bakedImg.onload = ()=>{
+      c.bakedImg = bakedImg;
+      c.bakedW = canvasOut.width;
+      c.bakedH = canvasOut.height;
+      c.matte = false; // matte is now baked in, no need to reapply on export
+      c.thumbDataURL = makeThumb(entry, c);
+      renderQueue();
+      renderFilmstrip();
+      redraw();
+    };
+    bakedImg.src = canvasOut.toDataURL('image/png');
+  }
+
+  // ---------- AI matting (u2netp via onnxruntime-web, 100% client-side inference) ----------
+  // Model: u2netp, Apache-2.0 weights, mirrored for direct browser fetch (verbatim
+  // copy of the release asset the rembg project ships). Point AI_MODEL_URL at your
+  // own hosting if you'd rather not depend on this mirror in production.
+  const AI_MODEL_URL = 'https://huggingface.co/edgetools/u2netp/resolve/main/u2netp.onnx';
+  const AI_INPUT_SIZE = 320;
+  const AI_MEAN = [0.485, 0.456, 0.406];
+  const AI_STD  = [0.229, 0.224, 0.225];
+  if(window.ort){
+    // onnxruntime-web fetches its own .wasm binaries separately from ort.min.js —
+    // point it at the same CDN build so the version always matches.
+    ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/';
+  }
+  let aiSessionPromise = null;
+  let aiBusy = false;
+  function setAiStatus(text){ const s = el('aiModelStatus'); if(s) s.textContent = text; }
+  function getAiSession(){
+    if(!window.ort){
+      setAiStatus('AI 模型脚本未能加载（可能是网络访问不到 CDN），AI 抠图暂不可用，可以先用下方快速模式。');
+      return Promise.reject(new Error('onnxruntime-web 未加载'));
+    }
+    if(!aiSessionPromise){
+      setAiStatus('正在下载 AI 模型（约 4.5MB），首次使用需要等一下…');
+      aiSessionPromise = ort.InferenceSession.create(AI_MODEL_URL, { executionProviders:['wasm'] })
+        .then(session=>{
+          setAiStatus('AI 模型已就绪（u2netp，本地推理，图片不会上传）。');
+          return session;
+        })
+        .catch(err=>{
+          setAiStatus('AI 模型加载失败：'+err.message+'（多半是网络问题）。可以点"预加载 AI 模型"重试，或先用下方快速模式。');
+          aiSessionPromise = null; // allow retry on next call instead of caching the failure forever
+          throw err;
+        });
+    }
+    return aiSessionPromise;
+  }
+  el('aiPreloadBtn').addEventListener('click', ()=>{ getAiSession().catch(()=>{}); });
+  // Runs AI matting on the whole active source image directly, without requiring
+  // the user to draw a crop first — adds a full-image "crop" to the queue and
+  // immediately bakes the AI matte into it.
+  el('aiWholeImageBtn').addEventListener('click', async ()=>{
+    const entry = getActive();
+    if(!entry){ alert('请先在上方选择一张图片。'); return; }
+    pushHistory();
+    const wholeCrop = { id: uid(), type:'square', rect:{x:0,y:0,w:entry.naturalW,h:entry.naturalH}, matte:false };
+    wholeCrop.thumbDataURL = makeThumb(entry, wholeCrop);
+    entry.crops.push(wholeCrop);
+    renderFilmstrip();
+    renderQueue();
+    redraw();
+    await bakeAIMatteIntoCrop(entry, wholeCrop, el('aiWholeImageBtn'));
+  });
+
+  // Runs u2netp on a source canvas, returns an RGBA ImageData-shaped Uint8ClampedArray
+  // where every 4th byte (the "R" slot, same as the other 3) is the 0-255 saliency
+  // mask value for that pixel, already upsampled to srcCanvas's own resolution.
+  async function runAiMask(session, srcCanvas){
+    const N = AI_INPUT_SIZE;
+    const small = document.createElement('canvas');
+    small.width = N; small.height = N;
+    // The model is trained on a squashed (non-aspect-preserving) resize to 320x320 —
+    // matching that exactly matters more than it sounds like it should.
+    small.getContext('2d').drawImage(srcCanvas, 0, 0, N, N);
+    const { data } = small.getContext('2d').getImageData(0, 0, N, N);
+
+    const plane = N * N;
+    const tensorData = new Float32Array(3 * plane);
+    for(let p = 0; p < plane; p++){
+      const r = data[p*4] / 255, g = data[p*4+1] / 255, b = data[p*4+2] / 255;
+      tensorData[p]           = (r - AI_MEAN[0]) / AI_STD[0];
+      tensorData[plane + p]   = (g - AI_MEAN[1]) / AI_STD[1];
+      tensorData[plane*2 + p] = (b - AI_MEAN[2]) / AI_STD[2];
+    }
+    const inputName = session.inputNames[0];
+    const outputName = session.outputNames[0];
+    const results = await session.run({ [inputName]: new ort.Tensor('float32', tensorData, [1,3,N,N]) });
+    const out = results[outputName].data; // float32[1,1,N,N] saliency map, not yet 0..1
+
+    let min = Infinity, max = -Infinity;
+    for(let i=0;i<out.length;i++){ if(out[i]<min) min=out[i]; if(out[i]>max) max=out[i]; }
+    const range = (max - min) || 1;
+
+    // Paint the mask into a small grayscale canvas, then let the browser's own
+    // (bilinear) image scaling upsize it to full crop resolution — far simpler than
+    // hand-rolling interpolation, and plenty good enough for a soft alpha edge.
+    const maskSmall = document.createElement('canvas');
+    maskSmall.width = N; maskSmall.height = N;
+    const mctx = maskSmall.getContext('2d');
+    const maskImg = mctx.createImageData(N, N);
+    for(let i=0;i<plane;i++){
+      const v = Math.round(((out[i]-min)/range) * 255);
+      maskImg.data[i*4] = v; maskImg.data[i*4+1] = v; maskImg.data[i*4+2] = v; maskImg.data[i*4+3] = 255;
+    }
+    mctx.putImageData(maskImg, 0, 0);
+
+    const full = document.createElement('canvas');
+    full.width = srcCanvas.width; full.height = srcCanvas.height;
+    const fctx = full.getContext('2d');
+    fctx.imageSmoothingEnabled = true;
+    fctx.drawImage(maskSmall, 0, 0, full.width, full.height);
+    return fctx.getImageData(0, 0, full.width, full.height).data;
+  }
+
+  // "AI 抠图" — same bake-and-replace contract as bakeMatteIntoCrop, but the alpha
+  // channel comes from the neural network's mask instead of the color-distance
+  // heuristic, so it also works on real photo backgrounds.
+  async function bakeAIMatteIntoCrop(entry, c, btnEl){
+    if(aiBusy) return;
+    aiBusy = true;
+    const origLabel = btnEl.textContent;
+    btnEl.disabled = true; btnEl.textContent = '识别中…';
+    try{
+      const session = await getAiSession();
+      const canvasOut = cropToCanvasRaw(entry, c); // clean pixels, matte not yet applied
+      const maskData = await runAiMask(session, canvasOut);
+      const octx = canvasOut.getContext('2d');
+      const imgData = octx.getImageData(0, 0, canvasOut.width, canvasOut.height);
+      const data = imgData.data;
+      for(let i=0;i<data.length;i+=4){
+        const maskAlpha = maskData[i] / 255; // 0..1 "this pixel is part of the subject"
+        const existingA = data[i+3] / 255;
+        data[i+3] = Math.round(maskAlpha * existingA * 255);
+      }
+      octx.putImageData(imgData, 0, 0);
+
+      pushHistory();
+      const bakedImg = new Image();
+      bakedImg.onload = ()=>{
+        c.bakedImg = bakedImg;
+        c.bakedW = canvasOut.width;
+        c.bakedH = canvasOut.height;
+        c.matte = false;
+        c.thumbDataURL = makeThumb(entry, c);
+        renderQueue();
+        renderFilmstrip();
+        redraw();
+      };
+      bakedImg.src = canvasOut.toDataURL('image/png');
+    } catch(err){
+      alert('AI 抠图失败：'+err.message+'\n可以先试试下方的快速模式（纯色背景）。');
+    } finally {
+      aiBusy = false;
+      btnEl.disabled = false; btnEl.textContent = origLabel;
+    }
+  }
+
+  // ---------- crop preview / edit modal ----------
+  // Everything that used to be a separate small icon per queue row (reposition,
+  // quick-mode matte, external-tool shortcut) now lives behind one "预览/编辑"
+  // entry point so the row itself stays to four unambiguous actions.
+  let previewCropIndex = null;
+  function refreshCropPreviewImage(){
+    const entry = getActive();
+    if(!entry || previewCropIndex==null) return;
+    const c = entry.crops[previewCropIndex];
+    if(!c){ closeCropPreview(); return; }
+    const canvasOut = cropToCanvas(entry, c); // respects c.matte (quick mode) if it's on
+    const stageEl = el('cropPreviewStage');
+    stageEl.innerHTML = '';
+    const im = document.createElement('img');
+    im.src = canvasOut.toDataURL('image/png');
+    stageEl.appendChild(im);
+    const dims = (c.type==='pen' || c.type==='quad') ? boundsOf(c.points) : c.rect;
+    el('cropPreviewInfo').textContent = Math.round(dims.w)+'×'+Math.round(dims.h)+' px'
+      + (c.bakedImg ? ' · 已烧录抠图结果，背景永久透明' : '');
+  }
+  function openCropPreview(idx){
+    const entry = getActive();
+    if(!entry || !entry.crops[idx]) return;
+    previewCropIndex = idx;
+    const c = entry.crops[idx];
+    const typeLabel = c.type==='square' ? '正方形' : c.type==='quad' ? '四边形' : c.type==='pen' ? '钢笔' : c.type==='gridcell' ? '网格' : '自动';
+    el('cropPreviewTitle').textContent = '预览 / 编辑 — '+typeLabel+' #'+(idx+1);
+    refreshCropPreviewImage();
+    el('cropPreviewModal').classList.add('show');
+  }
+  function closeCropPreview(){
+    el('cropPreviewModal').classList.remove('show');
+    previewCropIndex = null;
+  }
+  el('cropPreviewClose').addEventListener('click', closeCropPreview);
+  el('cropPreviewModal').addEventListener('click', e=>{ if(e.target.id==='cropPreviewModal') closeCropPreview(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape' && previewCropIndex!=null) closeCropPreview(); });
+
+  el('cpEditPosBtn').addEventListener('click', ()=>{
+    const entry = getActive();
+    if(!entry || previewCropIndex==null) return;
+    const c = entry.crops[previewCropIndex];
+    if(c.type==='gridcell' && c.rotation){
+      alert('有旋转角度的网格切片暂不支持拖拽微调位置，删除后重新分割即可。');
+      return;
+    }
+    const idx = previewCropIndex;
+    closeCropPreview();
+    startEditCrop(idx);
+  });
+  el('cpAiBtn').addEventListener('click', (e)=>{
+    const entry = getActive();
+    if(!entry || previewCropIndex==null) return;
+    bakeAIMatteIntoCrop(entry, entry.crops[previewCropIndex], e.currentTarget);
+  });
+  el('cpQuickMatteBtn').addEventListener('click', ()=>{
+    const entry = getActive();
+    if(!entry || previewCropIndex==null) return;
+    bakeMatteIntoCrop(entry, entry.crops[previewCropIndex]);
+  });
+  el('cpExternalBtn').addEventListener('click', ()=>{
+    const entry = getActive();
+    if(!entry || previewCropIndex==null) return;
+    sendToBgRemoval(entry, entry.crops[previewCropIndex]);
+  });
+  el('cpDownloadBtn').addEventListener('click', ()=>{
+    const entry = getActive();
+    if(!entry || previewCropIndex==null) return;
+    downloadSingleCrop(entry, entry.crops[previewCropIndex]);
+  });
+  el('cpDeleteBtn').addEventListener('click', ()=>{
+    const entry = getActive();
+    if(!entry || previewCropIndex==null) return;
+    const idx = previewCropIndex;
+    pushHistory();
+    entry.crops.splice(idx,1);
+    if(editingCropIndex===idx){ editingCropIndex=null; currentSel=null; confirmbar.style.display='none'; }
+    closeCropPreview();
+    renderFilmstrip();
+    renderQueue();
+    redraw();
+  });
+
+  // ---------- queue rendering ----------
+  function renderQueue(){
+    const entry = getActive();
+    cropQueueEl.innerHTML = '';
+    if(!entry || !entry.crops.length){
+      cropQueueEl.innerHTML = '<div class="empty-q">尚未添加裁切</div>';
+      return;
+    }
+    entry.crops.forEach((c, idx)=>{
+      const row = document.createElement('div');
+      row.className = 'cq-item';
+      const img = document.createElement('img');
+      img.src = c.thumbDataURL;
+      img.style.cursor = 'zoom-in';
+      img.title = '点击预览 / 编辑';
+      img.addEventListener('click', ()=> openCropPreview(idx));
+      row.appendChild(img);
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      const dims = (c.type==='pen' || c.type==='quad') ? boundsOf(c.points) : c.rect;
+      const typeLabel = c.type==='square' ? '正方形' : c.type==='quad' ? '四边形' : c.type==='pen' ? '钢笔' : c.type==='gridcell' ? '网格' : '自动';
+      meta.innerHTML = '<b>'+typeLabel+' #'+(idx+1)+'</b>'+Math.round(dims.w)+'×'+Math.round(dims.h)+' px';
+      row.appendChild(meta);
+      const actions = document.createElement('div');
+      actions.className = 'actions';
+
+      // Kept deliberately small: preview/edit (bundles repositioning, quick-mode
+      // matte, and the external-tool shortcut behind one entry point), AI matting,
+      // download, delete. Everything else lives inside the preview modal instead
+      // of competing for space in this row.
+      const pv = document.createElement('button');
+      pv.className = 'iconbtn'; pv.title='预览 / 编辑'; pv.textContent = '🔍';
+      pv.addEventListener('click', ()=> openCropPreview(idx));
+
+      const aiBtn = document.createElement('button');
+      aiBtn.className = 'iconbtn ai-btn'; aiBtn.title='AI 抠图：本地跑 u2netp 模型自动抠出透明背景并替换成正式内容';
+      aiBtn.textContent = '✂ AI 抠图';
+      aiBtn.addEventListener('click', ()=> bakeAIMatteIntoCrop(entry, c, aiBtn));
+
+      const dl = document.createElement('button');
+      dl.className = 'iconbtn'; dl.title='下载'; dl.textContent = '↓';
+      dl.addEventListener('click', ()=> downloadSingleCrop(entry, c));
+
+      const del = document.createElement('button');
+      del.className = 'iconbtn'; del.title='删除'; del.textContent = '×';
+      del.addEventListener('click', ()=>{
+        pushHistory();
+        entry.crops.splice(idx,1);
+        if(editingCropIndex===idx){ editingCropIndex=null; currentSel=null; confirmbar.style.display='none'; }
+        renderFilmstrip();
+        renderQueue();
+        redraw();
+      });
+
+      actions.appendChild(pv); actions.appendChild(aiBtn); actions.appendChild(dl); actions.appendChild(del);
+      row.appendChild(actions);
+      cropQueueEl.appendChild(row);
+    });
+    if(previewCropIndex!=null) refreshCropPreviewImage();
+  }
+
+  // ---------- export ----------
+  // Renders a crop's pixels at full resolution WITHOUT applying matte — used as
+  // the base for baking (bakeMatteIntoCrop) so we always matte from clean source
+  // pixels rather than double-applying on top of an already-baked result.
+  function cropToCanvasRaw(entry, c){
+    if(c.bakedImg){
+      const out = document.createElement('canvas');
+      out.width = c.bakedW; out.height = c.bakedH;
+      out.getContext('2d').drawImage(c.bakedImg, 0, 0);
+      return out;
+    }
+    if(c.type==='square'){
+      const r = c.rect;
+      const out = document.createElement('canvas');
+      out.width = Math.round(r.w); out.height = Math.round(r.h);
+      out.getContext('2d').drawImage(entry.img, r.x, r.y, r.w, r.h, 0,0, out.width, out.height);
+      return out;
+    } else if(c.type==='gridcell'){
+      // extracts a (possibly rotated) grid cell's true pixels by rotating the
+      // whole source image by -rotation around the grid's pivot, which makes
+      // this cell's local rect land axis-aligned, then reading that region out.
+      const r = c.rect, rot = c.rotation||0, pivot = {x:c.pivotX, y:c.pivotY};
+      const out = document.createElement('canvas');
+      out.width = Math.max(1,Math.round(r.w)); out.height = Math.max(1,Math.round(r.h));
+      const octx = out.getContext('2d');
+      octx.save();
+      octx.translate(pivot.x - r.x, pivot.y - r.y);
+      octx.rotate(-rot);
+      octx.translate(-pivot.x, -pivot.y);
+      octx.drawImage(entry.img, 0, 0);
+      octx.restore();
+      return out;
+    } else {
+      const bb = boundsOf(c.points);
+      const out = document.createElement('canvas');
+      out.width = Math.round(bb.w); out.height = Math.round(bb.h);
+      const octx = out.getContext('2d');
+      octx.save();
+      octx.beginPath();
+      c.points.forEach((p,i)=>{
+        const lx = p.x-bb.x, ly = p.y-bb.y;
+        if(i===0) octx.moveTo(lx,ly); else octx.lineTo(lx,ly);
+      });
+      octx.closePath();
+      octx.clip();
+      octx.drawImage(entry.img, bb.x, bb.y, bb.w, bb.h, 0,0, bb.w, bb.h);
+      octx.restore();
+      return out;
+    }
+  }
+
+  function cropToCanvas(entry, c){
+    const out = cropToCanvasRaw(entry, c);
+    if(c.matte && !c.bakedImg){
+      applyMatte(out, out.getContext('2d'));
+    }
+    return out;
+  }
+
+  function downloadSingleCrop(entry, c){
+    const fmt = el('exportFormat').value;
+    const ext = fmt==='image/png' ? 'png' : 'webp';
+    const canvasOut = cropToCanvas(entry, c);
+    canvasOut.toBlob(blob=>{
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = entry.name + '_crop.' + ext;
+      a.click();
+      setTimeout(()=> URL.revokeObjectURL(a.href), 4000);
+    }, fmt, 1);
+  }
+
+  function sendToBgRemoval(entry, c){
+    const choice = prompt('用哪个网站去背景？输入 1 = remove.bg，输入 2 = Adobe Firefly（默认 1）', '1');
+    if(choice === null) return; // cancelled
+    const useFirefly = choice.trim() === '2';
+    const url = useFirefly
+      ? 'https://www.adobe.com/products/firefly/features/remove-background.html'
+      : 'https://www.remove.bg/';
+    const canvasOut = cropToCanvas(entry, c);
+    canvasOut.toBlob(async blob=>{
+      let copied = false;
+      try{
+        if(navigator.clipboard && window.ClipboardItem){
+          await navigator.clipboard.write([ new ClipboardItem({ [blob.type]: blob }) ]);
+          copied = true;
+        }
+      }catch(e){ copied = false; }
+      if(!copied){
+        // fallback: trigger a download so the user can manually upload it
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = entry.name + '_crop.png';
+        a.click();
+        setTimeout(()=> URL.revokeObjectURL(a.href), 4000);
+        alert('浏览器不支持自动复制到剪贴板，已改为下载这张裁切图，请在打开的网站里手动上传它。');
+      } else {
+        alert('已复制这张裁切图到剪贴板。打开的网站里用 Ctrl+V / Cmd+V 粘贴上传即可。');
+      }
+      window.open(url, '_blank', 'noopener');
+    }, 'image/png', 1);
+  }
+
+  function buildManifest(){
+    // game-engine-friendly manifest: one entry per crop, grouped by source image
+    const manifest = {
+      generatedAt: new Date().toISOString(),
+      unit: 'px',
+      sources: images.filter(e=>e.crops.length).map(entry=>({
+        sourceImage: entry.name,
+        sourceWidth: entry.naturalW,
+        sourceHeight: entry.naturalH,
+        sprites: entry.crops.map((c,i)=>{
+          const dims = (c.type==='pen' || c.type==='quad') ? boundsOf(c.points) : c.rect;
+          return {
+            name: entry.name + '_' + (i+1),
+            type: c.type,
+            x: Math.round(dims.x),
+            y: Math.round(dims.y),
+            width: Math.round(dims.w),
+            height: Math.round(dims.h),
+            matteApplied: !!c.matte
+          };
+        })
+      }))
+    };
+    return manifest;
+  }
+
+  el('downloadAllBtn').addEventListener('click', async ()=>{
+    const totalCrops = images.reduce((s,e)=> s+e.crops.length, 0);
+    if(!totalCrops){ alert('还没有任何裁切结果，请先添加裁切并加入队列。'); return; }
+    const fmt = el('exportFormat').value;
+    const ext = fmt==='image/png' ? 'png' : 'webp';
+    const btn = el('downloadAllBtn');
+    const origText = btn.textContent;
+    btn.textContent = '打包中…';
+    btn.disabled = true;
+    try{
+      const zip = new JSZip();
+      for(const entry of images){
+        if(!entry.crops.length) continue;
+        for(let i=0;i<entry.crops.length;i++){
+          const c = entry.crops[i];
+          const canvasOut = cropToCanvas(entry, c);
+          const blob = await new Promise(res=> canvasOut.toBlob(res, fmt, 1));
+          const fname = entry.name + '_' + (i+1) + '.' + ext;
+          zip.file(fname, blob);
+        }
+      }
+      if(el('includeManifest').checked){
+        zip.file('manifest.json', JSON.stringify(buildManifest(), null, 2));
+      }
+      const content = await zip.generateAsync({type:'blob'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(content);
+      a.download = 'crops.zip';
+      a.click();
+      setTimeout(()=> URL.revokeObjectURL(a.href), 4000);
+    } finally {
+      btn.textContent = origText;
+      btn.disabled = false;
+    }
+  });
+
+  // ---------- contact sheet export ----------
+  el('contactSheetBtn').addEventListener('click', async ()=>{
+    const allCrops = [];
+    images.forEach(entry=>{
+      entry.crops.forEach((c,i)=> allCrops.push({ entry, c, label: entry.name+'_'+(i+1) }));
+    });
+    if(!allCrops.length){ alert('还没有任何裁切结果，请先添加裁切并加入队列。'); return; }
+
+    const btn = el('contactSheetBtn');
+    const origText = btn.textContent;
+    btn.textContent = '生成中…';
+    btn.disabled = true;
+    try{
+      // render each crop to its own canvas first so we know actual output sizes
+      const rendered = allCrops.map(item=>({ ...item, canvas: cropToCanvas(item.entry, item.c) }));
+
+      const cellPad = 14;
+      const labelH = 16;
+      const maxCellDim = 220; // cap each thumbnail's largest side inside the sheet
+      const cols = Math.max(1, Math.ceil(Math.sqrt(rendered.length * 1.4)));
+      const rows = Math.ceil(rendered.length / cols);
+
+      // compute a uniform cell size based on the largest scaled crop
+      let cellW = 0, cellH = 0;
+      const scaledSizes = rendered.map(r=>{
+        const s = Math.min(1, maxCellDim / Math.max(r.canvas.width, r.canvas.height));
+        const w = Math.round(r.canvas.width*s), h = Math.round(r.canvas.height*s);
+        cellW = Math.max(cellW, w);
+        cellH = Math.max(cellH, h);
+        return {w,h};
+      });
+
+      const sheetW = cols * (cellW + cellPad) + cellPad;
+      const sheetH = rows * (cellH + labelH + cellPad) + cellPad;
+
+      const sheet = document.createElement('canvas');
+      sheet.width = sheetW; sheet.height = sheetH;
+      const sctx = sheet.getContext('2d');
+      // checkerboard background so transparency is visible
+      const tile = 10;
+      for(let y=0; y<sheetH; y+=tile){
+        for(let x=0; x<sheetW; x+=tile){
+          sctx.fillStyle = ((x/tile + y/tile) % 2 === 0) ? '#f2efe8' : '#e4ddcd';
+          sctx.fillRect(x,y,tile,tile);
+        }
+      }
+
+      rendered.forEach((r, idx)=>{
+        const col = idx % cols, row = Math.floor(idx/cols);
+        const cellX = cellPad + col*(cellW+cellPad);
+        const cellY = cellPad + row*(cellH+labelH+cellPad);
+        const {w,h} = scaledSizes[idx];
+        const dx = cellX + (cellW-w)/2;
+        const dy = cellY + (cellH-h)/2;
+        sctx.drawImage(r.canvas, dx, dy, w, h);
+        sctx.strokeStyle = 'rgba(28,26,23,0.25)';
+        sctx.lineWidth = 1;
+        sctx.strokeRect(cellX+0.5, cellY+0.5, cellW-1, cellH-1);
+        sctx.fillStyle = '#1c1a17';
+        sctx.font = '10px SFMono-Regular, Consolas, monospace';
+        sctx.textAlign = 'center';
+        sctx.fillText(r.label, cellX+cellW/2, cellY+cellH+labelH-3, cellW);
+      });
+
+      const blob = await new Promise(res=> sheet.toBlob(res, 'image/png', 1));
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'contact-sheet.png';
+      a.click();
+      setTimeout(()=> URL.revokeObjectURL(a.href), 4000);
+    } finally {
+      btn.textContent = origText;
+      btn.disabled = false;
+    }
+  });
+
+  el('undoBtn').addEventListener('click', undo);
+  el('redoBtn').addEventListener('click', redo);
+
+  updateModeUI();
+})();
+</script>
+</body>
+</html>
