@@ -20,9 +20,11 @@ start-jerry-cms.bat
 launcher.py
 __pycache__/
 
-# 本地数据目录（含 apiKey/token 等敏感信息）
-# 线上使用根目录 site.config.json（只读公开子集）
-data/
+# ⚠ data/posts.json 等内容文件必须推到 GitHub —— 线上 /api/* serverless 函数直接读仓库里的这些文件
+# 只隔离含密钥/部署信息的本地文件：
+data/site_config.json
+data/deploy_config.json
+data/staging_queue.json
 
 # CMS 临时
 style-compare.html
