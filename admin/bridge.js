@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    Jerry CMS · 本地编辑模式桥接模块 v3（单文件模块化）
    ------------------------------------------------------------
    探测本地 CMS 服务；在线时：
@@ -84,7 +84,50 @@
     }
   }
 
-  function loadEmbed() {
+  
+    // 4) 博客页增强：＋新帖子按钮 + 每卡片✎编辑键（仅本地）
+    if (/blog\.html$/i.test(location.pathname)) {
+      // ＋ 新帖子按钮
+      var heroWrap = document.querySelector('.hero-search-wrap');
+      if (heroWrap) {
+        var nb = document.createElement('a');
+        nb.href = '/admin/editor.html?id=new';
+        nb.textContent = '＋ 新帖子';
+        nb.style.cssText = 'display:inline-flex;align-items:center;gap:6px;margin-left:12px;padding:8px 18px;border-radius:999px;background:linear-gradient(120deg,#B18CFF,#5CE1E6);color:#fff;font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 8px 20px rgba(177,140,255,.3);transition:transform .15s';
+        nb.onmouseenter = function(){ nb.style.transform='scale(1.05)'; };
+        nb.onmouseleave = function(){ nb.style.transform='scale(1)'; };
+        heroWrap.appendChild(nb);
+      }
+      // 每卡片右上角✎编辑键
+      function addEditButtons() {
+        document.querySelectorAll('a.post-card').forEach(function(card) {
+          if (card.querySelector('.card-edit-btn')) return;
+          var href = card.getAttribute('href') || '';
+          var m = href.match(/[?&]id=([^&]+)/);
+          if (!m) return;
+          var btn = document.createElement('a');
+          btn.className = 'card-edit-btn';
+          btn.href = '/admin/editor.html?id=' + m[1];
+          btn.textContent = '✎';
+          btn.title = '编辑此文章';
+          btn.style.cssText = 'position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.15);backdrop-filter:blur(8px);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;text-decoration:none;z-index:5;transition:background .15s';
+          btn.onclick = function(e){ e.stopPropagation(); e.preventDefault(); location.href = btn.href; };
+          btn.onmouseenter = function(){ btn.style.background='rgba(255,255,255,.3)'; };
+          btn.onmouseleave = function(){ btn.style.background='rgba(255,255,255,.15)'; };
+          card.style.position = 'relative';
+          card.appendChild(btn);
+        });
+      }
+      addEditButtons();
+      // Re-add after render
+      var origRender = window.renderPosts || window.render;
+      if (origRender) {
+        var _origRender = origRender;
+        window[origRender.name || 'render'] = function() { _origRender.apply(this, arguments); setTimeout(addEditButtons, 50); };
+      }
+      new MutationObserver(function() { setTimeout(addEditButtons, 100); }).observe(document.body, { childList: true, subtree: true });
+    }
+function loadEmbed() {
     if (window.__jerryEmbed) { window.__jerryEmbed.refresh(); return; }
     var s = document.createElement('script');
     s.src = '/admin/embed.js';

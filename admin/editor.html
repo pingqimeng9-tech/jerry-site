@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -42,7 +42,7 @@
           <div class="field">
             <label class="l-tag"><i></i>封面 Cover</label>
             <div class="cover-preview" id="coverPreview" onclick="openPic('cover')"><div class="hint">点击上传 / 粘贴封面图 URL</div></div>
-            <input id="cover" placeholder="或手动粘贴图片 URL..." oninput="syncCover()" style="margin-top:8px">
+            <input id="cover" placeholder="或手动粘贴图片 URL..." oninput="syncCover()" style="margin-top:8px"><input id="thumb" type="hidden">
           </div>
           <div class="field">
             <label class="l-tag"><i></i>标签 Tags</label>
@@ -446,8 +446,8 @@ async function save(status, silent){
     if(!title){ toast('⚠️ 请填写标题'); document.getElementById('title').focus(); return; }
     doc.title=title;
     doc.category=document.getElementById('category').value.trim()||'未分类';
-    doc.cover=document.getElementById('cover').value.trim();
-    doc.excerpt=document.getElementById('excerpt').value.trim();
+    doc.cover=document.getElementById('cover').value.trim(); doc.thumb=(document.getElementById('thumb')||{}).value||'';
+    doc.excerpt=document.getElementById('excerpt').value.trim(); if(!doc.excerpt){ var _md=(doc.markdown||'').replace(/^#{1,6}\s+/gm,'').replace(/\*\*|__|\*|_|~~|{1,3}|\[([^\]]*)\]\([^)]*\)/g,'').replace(/!\[.*?\]\(.*?\)/g,'').trim(); doc.excerpt=_md.slice(0,100); document.getElementById('excerpt').value=doc.excerpt; }
     doc.date=document.getElementById('date').value;
     doc.markdown=htmlToMd(body);
     if(!doc.markdown){ toast('⚠️ 正文为空，无法保存'); return; }
@@ -597,9 +597,40 @@ function picReset(){ document.getElementById('picDone').style.display='none'; st
 function showPicDone(url){ document.getElementById('picUrlBox').style.display='none'; document.getElementById('picUploadBox').style.display='none'; document.getElementById('picDone').style.display=''; document.getElementById('picPreviewImg').src=url; }
 function picUse(){
   if(!st.lastUrl) return;
-  if(st.imgTarget==='cover'){ document.getElementById('cover').value=st.lastUrl; syncCover(); closePic(); }
+  if(st.imgTarget==='cover'){
+    document.getElementById('cover').value=st.lastUrl; syncCover();
+    // Auto-generate thumbnail for cover image
+    generateThumb(st.lastUrl, function(thumbUrl){
+      if(thumbUrl){ document.getElementById('thumb').value=thumbUrl; }
+    });
+    closePic();
+  }
   else { body.focus(); document.execCommand('insertImage', false, st.lastUrl); refreshToolbar(); }
   markDirty(); closePic(); toast('已插入');
+}
+
+// Generate a 400px-wide thumbnail from an image URL, upload it, and return the path
+function generateThumb(src, cb){
+  var img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = function(){
+    var maxW = 400, w = img.naturalWidth, h = img.naturalHeight;
+    if(w <= maxW){ cb(null); return; } // already small enough
+    var scale = maxW / w, tw = maxW, th = Math.round(h * scale);
+    var cvs = document.createElement('canvas'); cvs.width=tw; cvs.height=th;
+    cvs.getContext('2d').drawImage(img, 0, 0, tw, th);
+    cvs.toBlob(function(blob){
+      if(!blob){ cb(null); return; }
+      var fd = new FormData();
+      var fname = 'thumb_' + src.split('/').pop().replace(/\.[^.]+$/, '') + '.jpg';
+      fd.append('file', blob, fname);
+      fetch('/api/upload', {method:'POST', body:fd}).then(function(r){ return r.json(); }).then(function(d){
+        cb(d.ok ? d.url : null);
+      }).catch(function(){ cb(null); });
+    }, 'image/jpeg', 0.82);
+  };
+  img.onerror = function(){ cb(null); };
+  img.src = src;
 }
 function toast(msg){
   const el=document.getElementById('pic-toast');

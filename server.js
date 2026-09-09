@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 // Jerry CMS 本地服务（零依赖，纯 Node http）
 // 启动：node server.js   或   双击 start-jerry-cms.bat
 // 职责：托管整站 + 文章接口 + 媒体/网站包上传 + Git 一键推送
@@ -51,7 +51,7 @@ function slugify(s) {
 }
 function publicPost(p) {
   return { id: p.id, title: p.title, date: p.date, category: p.category,
-           excerpt: p.excerpt || p.summary || '', views: p.views || 0, cover: p.cover || null };
+           excerpt: p.excerpt || p.summary || '', views: p.views || 0, cover: p.cover || null, thumb: p.thumb || null };
 }
 function readBody(req, limit) {
   limit = limit || 8e6;
@@ -127,6 +127,8 @@ async function handleApi(req, res, pathname) {
     post.status = body.status === 'draft' ? 'draft' : 'published';
     if (body.date) post.date = body.date; else if (!post.date) post.date = nowStr().split(' ')[0];
     post.updatedAt = nowStr();
+    post.syncedAt = ''; // clear sync stamp on any edit
+    if (body.thumb) post.thumb = body.thumb.trim();
     store.posts.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     writeStore(store);
     return send(res, 200, { ok: true, id: post.id, status: post.status });
@@ -275,6 +277,11 @@ async function handleApi(req, res, pathname) {
       }
       return send(res, 200, { ok: false, error: '推送失败：' + r.out, log });
     }
+    // Mark all published posts as synced
+    const syncStore = readStore();
+    const syncTime = nowStr();
+    syncStore.posts.forEach(p => { if (p.status === 'published') p.syncedAt = syncTime; });
+    writeStore(syncStore);
     return send(res, 200, { ok: true, upToDate: /Everything up-to-date/i.test(r.out), log });
   }
   if (pathname === '/api/deploy/adopt' && req.method === 'POST') {

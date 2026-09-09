@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>创作草稿箱 · Jerry CMS</title>
+<title>待上线 · Jerry CMS</title>
 <link rel="stylesheet" href="./admin.css">
 <style>
   .draft-head{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:6px}
@@ -50,9 +50,9 @@
     <a class="btn newpost" href="editor.html?id=new">✍️ 新建文章</a>
     <div style="flex:1"></div>
     <select id="filter" class="tb-select" style="padding:9px 14px;font-size:13px">
-      <option value="all">全部</option>
-      <option value="published">已发布</option>
-      <option value="draft">草稿</option>
+      <option value="pending">全部待上线</option>
+      <option value="draft">仅草稿</option>
+      <option value="edited">已编辑待推送</option>
     </select>
   </div>
 
@@ -63,7 +63,7 @@
 <div class="pic-toast" id="pic-toast"></div>
 
 <script>
-const state = { posts: [], filter: 'all', q: '' };
+const state = { posts: [], filter: 'pending', q: '' };
 
 async function load() {
   const res = await fetch('/api/admin/posts', { method: 'POST' });
@@ -72,11 +72,14 @@ async function load() {
   render();
 }
 
+function isPending(p){ return p.status==='draft' || !p.syncedAt || (p.updatedAt && p.updatedAt > p.syncedAt); }
 function render() {
   const q = state.q.trim().toLowerCase();
-  let posts = state.posts.filter(p => state.filter === 'all' || p.status === state.filter);
+  let posts = state.posts.filter(isPending);
+  if (state.filter==='draft') posts = posts.filter(p => p.status==='draft');
+  else if (state.filter==='edited') posts = posts.filter(p => p.status==='published');
   if (q) posts = posts.filter(p => ((p.title||'') + (p.excerpt||'') + (p.category||'')).toLowerCase().includes(q));
-  document.getElementById('countBadge').textContent = state.posts.length;
+  document.getElementById('countBadge').textContent = state.posts.filter(isPending).length;
   const list = document.getElementById('list');
   const empty = document.getElementById('empty');
   if (!posts.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
@@ -87,7 +90,7 @@ function render() {
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function card(p){
   const st = p.status === 'published'
-    ? '<span class="badge pub">● 已发布</span>'
+    ? '<span class="badge pub">● 待推送</span>'
     : '<span class="badge draft">● 草稿</span>';
   return `<div class="glass draft-card">
     <div class="row1">${st}<span class="cat">${esc(p.category||'未分类')}</span><span class="date">${esc(p.date||'')}</span><button class="del" title="删除" onclick="del('${esc(p.id)}')">✕</button></div>
