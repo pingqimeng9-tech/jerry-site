@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh">
 <head>
 <meta charset="UTF-8"/>
@@ -1110,7 +1110,7 @@
 </div>
 
 <div class="shell">
-  <aside class="sidebar" id="sidebar" style="display:none!important">
+  <aside class="sidebar" id="sidebar">
     <div class="sidebar-close" id="sidebarClose">✕</div>
 
     <div class="sidebar-search">
@@ -1190,7 +1190,7 @@
     </div>
   </main>
 
-  <aside class="widgets" style="display:none!important">
+  <aside class="widgets">
     <div class="widget-card">
       <div class="widget-title">📅 每日打卡</div>
       <div id="checkinWidgetBody"><div class="login-hint">登录后可以打卡攒积分～</div></div>
@@ -1210,7 +1210,7 @@
   </aside>
 </div>
 
-
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
 <div class="lock-modal-mask" id="lockModalMask">
   <div class="lock-modal" id="lockModalBody">
@@ -1501,18 +1501,17 @@ function postCardHtml(post, alreadyEscaped){
   // 图片和文字都放进DOM里，具体显示哪个由CSS按当前视图模式（图库/列表）决定，
   // 这样列表视图不会因为"只塞了一张图进去"而变成没有文字的空卡片
   const coverImg = post.cover
-    ? `<img class="post-cover-img" src="${post.thumb || post.cover}" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">`
+    ? `<img class="post-cover-img" src="${post.cover}" alt="" loading="lazy" onerror="this.style.display='none'">`
     : '';
 
   return `
     <a class="post-card" href="/post.html?id=${post.id}">
       <div class="post-preview${post.cover ? ' has-cover' : ''}">
         ${coverImg}
-
+        <div class="post-preview-text">${excerpt}</div>
       </div>
       <div class="post-bottom">
         <div class="post-title" title="${title}">${title}</div>
-        <div class="post-excerpt">${excerpt}</div>
         <div class="post-meta">
           ${post.date ? `<span>📅 ${post.date}</span>` : ''}
           ${post.category ? `<span>🏷️ ${escapeHtml(post.category)}</span>` : ''}

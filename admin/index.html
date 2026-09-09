@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -51,9 +51,8 @@
     <div style="flex:1"></div>
     <select id="filter" class="tb-select" style="padding:9px 14px;font-size:13px">
       <option value="all">全部</option>
-      <option value="pending">待上线</option>
-      <option value="draft">草稿</option>
       <option value="published">已发布</option>
+      <option value="draft">草稿</option>
     </select>
   </div>
 
@@ -73,10 +72,9 @@ async function load() {
   render();
 }
 
-function isPending(p){ return p.status==='draft' || !p.syncedAt || (p.updatedAt && p.updatedAt > p.syncedAt); }
 function render() {
   const q = state.q.trim().toLowerCase();
-  let posts = state.posts; if(state.filter==='pending') posts=posts.filter(isPending); else if(state.filter!=='all') posts=posts.filter(p=>p.status===state.filter);
+  let posts = state.posts.filter(p => state.filter === 'all' || p.status === state.filter);
   if (q) posts = posts.filter(p => ((p.title||'') + (p.excerpt||'') + (p.category||'')).toLowerCase().includes(q));
   document.getElementById('countBadge').textContent = state.posts.length;
   const list = document.getElementById('list');
