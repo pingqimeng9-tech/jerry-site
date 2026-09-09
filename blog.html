@@ -659,17 +659,17 @@
     background:linear-gradient(135deg,var(--coral),var(--pink)); color:#fff;
     font-size:12px; font-family:inherit;
   }
-  #demo-checkin-btn{
-    display:inline-flex; align-items:center; gap:4px; margin-top:8px; margin-left:6px;
-    padding:6px 10px; border-radius:999px; cursor:pointer;
-    background:var(--glass); border:1px solid var(--glass-border); color:#c9c6e8;
-    font-size:11px; font-family:inherit;
-  }
   /* 状态栏里的背包/亚空间小按钮，共用一套样式 */
   .sp-mini-btn{
     margin-top:8px; margin-left:6px; padding:6px 12px; border-radius:999px; cursor:pointer;
     border:1px solid var(--glass-border); background:var(--glass); color:#c9c6e8;
     font-size:12px; font-family:inherit;
+  }
+  #demo-checkin-btn{
+    display:inline-flex; align-items:center; gap:4px; margin-top:8px; margin-left:6px;
+    padding:6px 10px; border-radius:999px; cursor:pointer;
+    background:var(--glass); border:1px solid var(--glass-border); color:#c9c6e8;
+    font-size:11px; font-family:inherit;
   }
 
   /* ================= 商店弹窗（不做背景虚化，只留一层淡淡的遮罩） ================= */
@@ -1176,11 +1176,9 @@
   </main>
 
   <aside class="widgets">
-    </div>
     <div class="widget-card">
       <div class="widget-title">⚡ 桌宠积分</div>
       <div id="pointsWidgetBody"><div class="login-hint">积分可以在Zara小房间换喂养道具</div></div>
-    </div>
     </div>
     <div class="widget-card">
       <div class="widget-title">📣 更新日志</div>
