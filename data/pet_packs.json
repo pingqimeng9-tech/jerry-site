@@ -1,0 +1,74 @@
+{
+  "format": "jerry-pet-pack/v1",
+  "settings": {
+    "aiChat": false,
+    "_comment_aiChat": "true 且本地 CMS 设置里填了 AI Key 时，桌宠聊天走大模型；false 时只用 replies 词库和内置兜底回复"
+  },
+  "packs": [
+    {
+      "id": "official-demo",
+      "name": "官方示例包（可改可删）",
+      "enabled": true,
+      "actions": [
+        {
+          "id": "idle-snack",
+          "name": "待机·偷吃",
+          "frames": ["/images/pet/eat1.png", "/images/pet/eat2.png", "/images/pet/eat3.png"],
+          "frameInterval": 350,
+          "loop": true,
+          "loops": 2,
+          "bubble": { "text": "偷偷吃一口…别告诉主人", "duration": 2400 },
+          "trigger": { "kind": "idle", "chance": 0.1, "minGap": 25000, "weight": 2 }
+        },
+        {
+          "id": "idle-nap",
+          "name": "待机·打盹",
+          "frames": ["/images/pet/normal-close_eye.png"],
+          "duration": 3200,
+          "bubble": { "text": "Zzz…眯一会儿", "duration": 3000 },
+          "trigger": { "kind": "idle", "chance": 0.08, "minGap": 40000, "weight": 1 }
+        },
+        {
+          "id": "click-hi",
+          "name": "点击·打招呼",
+          "frames": ["/images/pet/touchhead1.png", "/images/pet/touchhead3.png"],
+          "frameInterval": 180,
+          "holdLast": true,
+          "duration": 1200,
+          "bubble": { "text": "嗨呀~找我玩吗？", "duration": 1600 },
+          "trigger": { "kind": "click" }
+        },
+        {
+          "id": "head-shy",
+          "name": "摸头·害羞",
+          "frames": ["/images/pet/touchhead2.png"],
+          "duration": 1500,
+          "bubble": { "text": "呜哇…头不能乱摸啦", "duration": 1800 },
+          "trigger": { "kind": "headClick" }
+        },
+        {
+          "id": "long-sleep",
+          "name": "久未操作·睡着",
+          "frames": ["/images/pet/normal-close_eye.png"],
+          "duration": 5000,
+          "bubble": { "text": "Zzzzz…主人不见了？", "duration": 4200 },
+          "trigger": { "kind": "longIdle", "after": 60000 }
+        }
+      ],
+      "events": [
+        {
+          "id": "read-to-end",
+          "on": "scrollDepth",
+          "depth": 0.95,
+          "bubble": { "text": "居然看到了这里！给你点个赞👍", "duration": 3200 },
+          "action": "click-hi"
+        }
+      ],
+      "replies": [
+        { "match": ["你好", "hi", "hello", "在吗"], "text": "嗨~我是 Jerry 的桌宠，今天也要开心哦！", "action": "click-hi" },
+        { "match": ["再见", "拜拜", "byebye", "走了"], "text": "下次再来玩呀，我会在这里等你的~" },
+        { "match": ["我爱你", "喜欢你"], "text": "呜…碳基生物的情话最让人害羞了！" }
+      ]
+    }
+  ]
+}

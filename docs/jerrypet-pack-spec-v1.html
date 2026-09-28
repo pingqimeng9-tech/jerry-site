@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>JerryPet 桌宠动作包格式规范 v1</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Microsoft YaHei", "Noto Sans SC", sans-serif; color: #1f2330; line-height: 1.75; font-size: 12.5px; margin: 0; }
+  h1 { font-size: 26px; margin: 0 0 4px; color: #5b3df5; }
+  .sub { color: #6b7180; font-size: 12px; margin-bottom: 22px; }
+  h2 { font-size: 17px; margin: 26px 0 10px; padding-left: 10px; border-left: 4px solid #5CE1E6; color: #2a2350; page-break-after: avoid; }
+  h3 { font-size: 14px; margin: 16px 0 6px; color: #b147d9; page-break-after: avoid; }
+  p { margin: 6px 0; }
+  ul, ol { margin: 6px 0; padding-left: 22px; }
+  li { margin: 3px 0; }
+  code { background: #f0eefb; color: #6d28d9; padding: 1px 6px; border-radius: 5px; font-family: Consolas, "JetBrains Mono", monospace; font-size: 11.5px; }
+  pre { background: #1e1b34; color: #e6e3ff; padding: 14px 16px; border-radius: 10px; overflow-x: auto; font-family: Consolas, "JetBrains Mono", monospace; font-size: 10.8px; line-height: 1.6; white-space: pre; page-break-inside: avoid; }
+  pre .k { color: #8be9fd; } pre .s { color: #a6e3a1; } pre .c { color: #7c78a8; } pre .n { color: #ffb86c; }
+  table { border-collapse: collapse; width: 100%; margin: 8px 0 12px; font-size: 11.5px; page-break-inside: avoid; }
+  th, td { border: 1px solid #d9d6ee; padding: 6px 9px; text-align: left; vertical-align: top; }
+  th { background: #f0eefb; font-weight: 700; }
+  .tag { display: inline-block; background: #e8fbf9; color: #0e7490; border: 1px solid #9be7df; border-radius: 6px; padding: 0 7px; font-size: 10.5px; font-weight: 700; }
+  .req { color: #e11d63; font-weight: 700; }
+  .note { background: #fff8e6; border: 1px solid #f5df9a; border-radius: 10px; padding: 10px 14px; margin: 10px 0; font-size: 11.8px; }
+  .tip { background: #eefbf3; border: 1px solid #a7e8c4; border-radius: 10px; padding: 10px 14px; margin: 10px 0; font-size: 11.8px; }
+  .cover { background: linear-gradient(135deg,#5b3df5,#b18cff 55%,#5CE1E6); color:#fff; border-radius: 16px; padding: 26px 28px; margin-bottom: 20px; }
+  .cover h1 { color:#fff; } .cover .sub { color: rgba(255,255,255,.85); }
+  .cover .meta { font-size: 11.5px; opacity: .92; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>JerryPet 桌宠动作包格式规范 v1</h1>
+  <div class="sub">JERRY.DEV 虚拟桌宠 · 待机动作 / 帧动画 / 带字图片气泡 / 触发事件 / 词库回复</div>
+  <div class="meta">格式标识：<b>jerry-pet-pack/v1</b>　|　配置文件：<b>data/pet_packs.json</b>　|　维护入口：后台 → ⚙ 发布设置 → 🐾 桌宠</div>
+</div>
+
+<p><b>给 AI 执行者的话：</b>你只允许输出符合本规范的 JSON（必要时附素材命名清单），不要输出其他代码。所有字段名、枚举值必须与本文档逐字一致；拿不准的字段一律省略，由引擎使用默认值。</p>
+
+<h2>1. 它是怎么工作的</h2>
+<ul>
+  <li>桌宠出现在<b>博客列表页</b>和<b>文章页</b>，引擎文件为 <code>assets/pet.js</code>，启动时拉取 <code>/data/pet_packs.json</code>。</li>
+  <li>动作包就是一份 JSON：若干 <b>动作 actions</b>（帧动画 + 气泡 + 触发条件）、<b>事件 events</b>（在特定时机执行动作/气泡/代码）、<b>词库 replies</b>（聊天关键词回复）。</li>
+  <li>素材（透明 PNG 帧图、带字气泡图）上传到 <code>images/pet/</code>，在 JSON 里用 <code>/images/pet/文件名.png</code> 绝对路径引用。</li>
+  <li>后台「🐾 桌宠」页粘贴 JSON → 保存即生效（刷新页面可见）；点「🚀 同步 Blog」后随仓库上线。</li>
+</ul>
+
+<h2>2. 顶层结构</h2>
+<pre>{
+  <span class="s">"format"</span>: <span class="s">"jerry-pet-pack/v1"</span>,   <span class="c">// 必填，固定值</span>
+  <span class="s">"settings"</span>: { <span class="s">"aiChat"</span>: false },       <span class="c">// 可选。true=聊天走大模型（需后台配 AI Key）</span>
+  <span class="s">"packs"</span>: [                          <span class="c">// 必填，动作包数组，可放多个包</span>
+    {
+      <span class="s">"id"</span>: <span class="s">"pack-demo"</span>,              <span class="c">// 必填，包唯一 id（英文/数字/横线）</span>
+      <span class="s">"name"</span>: <span class="s">"示例动作包"</span>,
+      <span class="s">"enabled"</span>: true,                 <span class="c">// 可选，false 则整包停用</span>
+      <span class="s">"actions"</span>: [ ... ],             <span class="c">// 动作，见第 3 节</span>
+      <span class="s">"events"</span>:  [ ... ],             <span class="c">// 事件，见第 5 节</span>
+      <span class="s">"replies"</span>: [ ... ]              <span class="c">// 聊天词库，见第 6 节</span>
+    }
+  ]
+}</pre>
+
+<h2>3. 动作 action 字段</h2>
+<table>
+  <tr><th>字段</th><th>类型</th><th>必填</th><th>说明</th></tr>
+  <tr><td><code>id</code></td><td>字符串</td><td class="req">必填</td><td>动作唯一 id，全局不能重复，如 <code>idle-sleep</code>。events/replies 用它引用动作。</td></tr>
+  <tr><td><code>name</code></td><td>字符串</td><td>可选</td><td>人类可读名称，仅后台查看用。</td></tr>
+  <tr><td><code>frames</code></td><td>字符串数组</td><td class="req">必填</td><td>帧图路径，按顺序播放，如 <code>["/images/pet/sleep1.png","/images/pet/sleep2.png"]</code>。1 张=静态姿势；2 张以上=逐帧动画。</td></tr>
+  <tr><td><code>frameInterval</code></td><td>数字(毫秒)</td><td>可选</td><td>每帧停留时长，默认 300。吃饭/说话类 200–400，缓慢呼吸类 600–1000。</td></tr>
+  <tr><td><code>loop</code></td><td>布尔</td><td>可选</td><td>是否多轮循环。默认 false（帧播一遍）。</td></tr>
+  <tr><td><code>loops</code></td><td>数字</td><td>可选</td><td><code>loop:true</code> 时的循环轮数，默认 2。</td></tr>
+  <tr><td><code>holdLast</code></td><td>布尔</td><td>可选</td><td>播完后停在最后一帧（默认恢复待机姿势）。</td></tr>
+  <tr><td><code>duration</code></td><td>数字(毫秒)</td><td>可选</td><td>仅单帧动作有效：姿势保持时长，默认 1600。</td></tr>
+  <tr><td><code>bubble</code></td><td>对象</td><td>可选</td><td>动作同时弹出的气泡，见第 4 节。</td></tr>
+  <tr><td><code>trigger</code></td><td>对象</td><td>自动触发时必填</td><td>触发条件，见下。被 events/replies 手动调用的动作可省略。</td></tr>
+</table>
+
+<h3>3.1 trigger.kind 触发类型</h3>
+<table>
+  <tr><th>kind</th><th>含义</th><th>支持参数</th></tr>
+  <tr><td><code>idle</code></td><td><span class="tag">待机随机</span> 角色空闲时由引擎按概率/权重随机播放</td><td><code>chance</code> 每次待机抽中概率 0–1（默认 0.1）；<code>weight</code> 权重（默认 1，越大越常出现）；<code>minGap</code> 距上次动作至少间隔毫秒；<code>after</code> 页面打开后多少毫秒才允许；<code>timeRange</code> 时间段</td></tr>
+  <tr><td><code>click</code></td><td><span class="tag">点击身体</span> 单击角色身体（拖拽不会误触发）</td><td>—</td></tr>
+  <tr><td><code>headClick</code></td><td><span class="tag">摸头</span> 点击头部感应区</td><td>—</td></tr>
+  <tr><td><code>load</code></td><td><span class="tag">入场</span> 页面加载后播放一次（欢迎动作）</td><td><code>delay</code> 延迟毫秒，默认 1200</td></tr>
+  <tr><td><code>longIdle</code></td><td><span class="tag">无人理会</span> 用户多久没动鼠标/键盘后播放一次</td><td><code>after</code> 毫秒，默认 60000（1 分钟）</td></tr>
+</table>
+<div class="note"><b>timeRange 写法：</b><code>[23, 7]</code> 表示 23:00–次日 7:00（支持跨午夜）；<code>[9, 18]</code> 表示白天。省略 = 全天。</div>
+<div class="tip"><b>待机动作密度建议：</b>每个 idle 动作给 <code>minGap</code> ≥ 20 秒、<code>chance</code> 0.05–0.15，避免角色一直动。引擎每 4–7 秒抽一次。</div>
+
+<h2>4. 气泡 bubble（文字 / 带字图片）</h2>
+<h3>4.1 打字机文字气泡</h3>
+<pre><span class="s">"bubble"</span>: { <span class="s">"text"</span>: <span class="s">"Zzz…睡着了"</span>, <span class="s">"typed"</span>: true, <span class="s">"duration"</span>: 2600 }</pre>
+<ul>
+  <li><code>text</code> 气泡文字（建议 ≤ 24 个字，太长气泡会很高）；</li>
+  <li><code>typed</code> 默认 true（逐字打出），设 false 直接整句显示；</li>
+  <li><code>duration</code> 停留毫秒，默认 2600。</li>
+</ul>
+<h3>4.2 带字图片气泡（图片上自己带文字）</h3>
+<pre><span class="s">"bubble"</span>: { <span class="s">"image"</span>: <span class="s">"/images/pet/bubbles/hello.png"</span>, <span class="s">"duration"</span>: 3200 }</pre>
+<ul>
+  <li>把做好的带字图片上传到 <code>images/pet/</code>（建议放 <code>bubbles/</code> 子目录），建议尺寸宽 360–420px、透明或白底 PNG；</li>
+  <li>图片最大显示宽 210px，文字别贴边。</li>
+</ul>
+
+<h2>5. 事件 events</h2>
+<p>动作的 <code>trigger</code> 覆盖不了的复杂时机用事件。事件在指定时机触发，可播放动作、弹气泡、或执行一小段代码。</p>
+<table>
+  <tr><th>字段</th><th>说明</th></tr>
+  <tr><td><code>id</code> <span class="req">必填</span></td><td>事件唯一 id。</td></tr>
+  <tr><td><code>on</code> <span class="req">必填</span></td><td><code>load</code> 入场 · <code>click</code> 点身体 · <code>headClick</code> 摸头 · <code>scrollDepth</code> 阅读深度 · <code>timeRange</code> 时间段 · <code>userSend</code> 用户发消息。</td></tr>
+  <tr><td><code>action</code></td><td>要播放的动作 id。</td></tr>
+  <tr><td><code>bubble</code></td><td>要弹出的气泡（同第 4 节）。</td></tr>
+  <tr><td><code>depth</code></td><td>仅 <code>scrollDepth</code>：0–1，如 0.95 = 看到文章 95%。</td></tr>
+  <tr><td><code>timeRange</code></td><td>仅 <code>timeRange</code>：时间段，每小时最多触发一次。</td></tr>
+  <tr><td><code>match</code></td><td>仅 <code>userSend</code>：关键词数组，命中才触发（与 replies 二选一即可）。</td></tr>
+  <tr><td><code>code</code></td><td>可选 JS 代码字符串，见第 7 节 API。</td></tr>
+</table>
+<pre><span class="c">// 例：读者把文章看到 95% 时，角色鼓掌+气泡</span>
+{
+  <span class="s">"id"</span>: <span class="s">"read-to-end"</span>,
+  <span class="s">"on"</span>: <span class="s">"scrollDepth"</span>,
+  <span class="s">"depth"</span>: 0.95,
+  <span class="s">"action"</span>: <span class="s">"cheer"</span>,
+  <span class="s">"bubble"</span>: { <span class="s">"text"</span>: <span class="s">"居然看完了！给你点赞👍"</span> }
+}</pre>
+
+<h2>6. 聊天词库 replies</h2>
+<pre>{
+  <span class="s">"match"</span>: [<span class="s">"再见"</span>, <span class="s">"拜拜"</span>, <span class="s">"byebye"</span>],   <span class="c">// 命中任一关键词（不区分大小写、包含即可）</span>
+  <span class="s">"text"</span>:  <span class="s">"下次再来玩呀~"</span>,   <span class="c">// 必填，回复文字（打字机）</span>
+  <span class="s">"action"</span>: <span class="s">"wave-bye"</span>,       <span class="c">// 可选，同时播放动作</span>
+  <span class="s">"bubble"</span>: { ... }                  <span class="c">// 可选，一般给 text 即可，二选一</span>
+}</pre>
+<p>回复优先级：<b>词库 replies → 大模型（settings.aiChat=true 且本地配了 Key）→ 内置兜底闲聊</b>。线上静态站没有本地服务，AI 与写接口不可用，会自动降级到词库。</p>
+
+<h2>7. 事件代码可用 API（events[].code）</h2>
+<p>代码运行在受限作用域，只注入 <code>pet</code>（JerryPet）和 <code>ctx</code>（事件上下文），不要访问 DOM 以外的敏感能力。</p>
+<table>
+  <tr><th>调用</th><th>作用</th></tr>
+  <tr><td><code>pet.play('动作id')</code></td><td>播放指定动作（返回 Promise）</td></tr>
+  <tr><td><code>pet.bubble('文字')</code></td><td>弹文字气泡</td></tr>
+  <tr><td><code>pet.bubble({image:'/images/pet/x.png', duration:3000})</code></td><td>弹带字图片气泡</td></tr>
+  <tr><td><code>pet.setImg('/images/pet/x.png')</code></td><td>直接切换角色图片（慎用，不会自动恢复）</td></tr>
+  <tr><td><code>pet.react('/images/pet/x.png', 1500)</code></td><td>临时反应姿势，毫秒后自动恢复待机</td></tr>
+  <tr><td><code>pet.fire('事件名', {参数})</code></td><td>手动广播事件</td></tr>
+  <tr><td><code>ctx</code></td><td>事件上下文：scrollDepth 时 <code>ctx.depth</code>；userSend 时 <code>ctx.text</code> / <code>ctx.reply</code></td></tr>
+</table>
+<pre><span class="c">// 例：深夜时段弹图片气泡</span>
+{ <span class="s">"id"</span>:<span class="s">"late-night"</span>, <span class="s">"on"</span>:<span class="s">"timeRange"</span>, <span class="s">"timeRange"</span>:[23,6],
+  <span class="s">"code"</span>: <span class="s">"pet.bubble({image:'/images/pet/bubbles/late.png', duration:4000});"</span> }</pre>
+
+<h2>8. 完整示例：一个「睡觉 + 早安」补充包</h2>
+<pre>{
+  <span class="s">"format"</span>: <span class="s">"jerry-pet-pack/v1"</span>,
+  <span class="s">"settings"</span>: { <span class="s">"aiChat"</span>: false },
+  <span class="s">"packs"</span>: [{
+    <span class="s">"id"</span>: <span class="s">"sleep-pack"</span>,
+    <span class="s">"name"</span>: <span class="s">"睡觉与早安"</span>,
+    <span class="s">"enabled"</span>: true,
+    <span class="s">"actions"</span>: [
+      {
+        <span class="s">"id"</span>: <span class="s">"sleep"</span>,
+        <span class="s">"name"</span>: <span class="s">"深夜睡觉"</span>,
+        <span class="s">"frames"</span>: [<span class="s">"/images/pet/sleep1.png"</span>, <span class="s">"/images/pet/sleep2.png"</span>, <span class="s">"/images/pet/sleep3.png"</span>],
+        <span class="s">"frameInterval"</span>: 700,
+        <span class="s">"loop"</span>: true,
+        <span class="s">"loops"</span>: 3,
+        <span class="s">"bubble"</span>: { <span class="s">"text"</span>: <span class="s">"Zzz…深夜了，早点睡哦"</span>, <span class="s">"duration"</span>: 3200 },
+        <span class="s">"trigger"</span>: { <span class="s">"kind"</span>: <span class="s">"idle"</span>, <span class="s">"chance"</span>: 0.2, <span class="s">"minGap"</span>: 60000, <span class="s">"timeRange"</span>: [23, 6] }
+      },
+      {
+        <span class="s">"id"</span>: <span class="s">"morning"</span>,
+        <span class="s">"name"</span>: <span class="s">"早安入场"</span>,
+        <span class="s">"frames"</span>: [<span class="s">"/images/pet/morning1.png"</span>, <span class="s">"/images/pet/morning2.png"</span>],
+        <span class="s">"frameInterval"</span>: 250,
+        <span class="s">"bubble"</span>: { <span class="s">"image"</span>: <span class="s">"/images/pet/bubbles/good-morning.png"</span>, <span class="s">"duration"</span>: 3500 },
+        <span class="s">"trigger"</span>: { <span class="s">"kind"</span>: <span class="s">"load"</span>, <span class="s">"delay"</span>: 1500, <span class="s">"timeRange"</span>: [6, 11] }
+      }
+    ],
+    <span class="s">"replies"</span>: [
+      { <span class="s">"match"</span>: [<span class="s">"晚安"</span>, <span class="s">"睡觉"</span>], <span class="s">"text"</span>: <span class="s">"晚安好梦，明天见~"</span>, <span class="s">"action"</span>: <span class="s">"sleep"</span> }
+    ]
+  }]
+}</pre>
+<div class="note"><code>trigger</code> 里的 <code>timeRange</code> 目前仅 <code>idle</code> 与 <code>load</code> 动作生效；其他触发类型要按时段出现，请改用 <code>events</code> 的 <code>timeRange</code>。</div>
+
+<h2>9. 素材规范</h2>
+<ul>
+  <li><b>格式</b>：透明背景 PNG（WebP 也可）；不要 JPG（白底方块）。</li>
+  <li><b>尺寸</b>：角色帧建议高 300–400px，同一动作所有帧<b>画布宽高必须完全一致</b>、角色脚底对齐同一基线，否则播放会跳动。</li>
+  <li><b>帧数/帧率</b>：循环待机动作 2–6 帧即可；帧越多文件越大。帧间隔参考：慢呼吸 700–1000ms、普通动作 300–400ms、活泼动作 150–220ms。</li>
+  <li><b>命名</b>：动作名+序号，如 <code>sleep1.png / sleep2.png</code>，全小写英文/数字/横线；气泡图放 <code>bubbles/</code> 子目录。</li>
+  <li><b>上传</b>：后台「🐾 桌宠」→「上传动作帧图 / 上传带字气泡图」，上传后点「📋 复制路径」粘进 JSON。</li>
+</ul>
+
+<h2>10. 校验与排错</h2>
+<ul>
+  <li>后台保存时会自动校验：<code>format</code>、<code>packs</code> 数组、每个动作的 <code>id</code> 与 <code>frames</code> 类型；语法错误会直接报在页面上。</li>
+  <li>浏览器 F12 控制台：<code>[JerryPet] event code error</code> = 某条 code 写错（不影响其他动作）；<code>/data/pet_packs.json 404</code> = 文件还没保存过。</li>
+  <li>动作不出现：检查 <code>enabled</code> 是否 true、<code>minGap</code> 是否太长、<code>chance</code> 是否太小、帧路径是否 404（F12 → Network 看图片状态）。</li>
+  <li>新增/修改后：刷新博客或文章页生效；要让线上访客看到，需点「🚀 同步 Blog」发布。</li>
+</ul>
+
+</body>
+</html>

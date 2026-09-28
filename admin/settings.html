@@ -301,6 +301,39 @@
         </div>
       </section>
 
+      <!-- 桌宠虚拟人 -->
+      <section class="sec" data-sec="pet">
+        <div class="glass">
+          <span class="kicker">Pet · Virtual Character</span>
+          <h2>🐾 桌宠虚拟人 <span class="hint">待机动作 / 带字图片气泡 / 触发事件 / AI 聊天</span></h2>
+          <p class="dim" style="font-size:12.5px;line-height:1.8;margin-bottom:14px">
+            桌宠出现在「博客列表页」和「文章页」。动作包是一段 JSON：把帧图上传后，按 <b>jerry-pet-pack/v1</b> 格式写进下方编辑框保存即可生效（随发布上线）。
+            让别的 AI 生成动作时，把《JerryPet 动作包格式规范》文档发给它，要求严格照格式输出。
+          </p>
+          <div class="with-switch" style="margin-bottom:14px">
+            <label class="switch"><input type="checkbox" id="petAiChat"><i></i></label>
+            桌宠聊天接入大语言模型（需先在「🐱 AI 猫」页填好 Key；关闭则只用动作包里的 replies 词库）
+          </div>
+
+          <label class="dim mono" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase">① 上传素材（帧图 / 带字气泡图，存 images/pet/）</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 6px">
+            <button class="mini-btn" type="button" onclick="petPick('frame')">＋ 上传动作帧图</button>
+            <button class="mini-btn" type="button" onclick="petPick('bubble')">＋ 上传带字气泡图</button>
+            <span id="petUpStat" class="dim mono" style="font-size:11px;align-self:center"></span>
+          </div>
+          <div id="petUpList" style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px"></div>
+
+          <label class="dim mono" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase">② 动作包 JSON（格式：jerry-pet-pack/v1）</label>
+          <textarea id="petJson" spellcheck="false" style="width:100%;height:430px;margin-top:8px;background:rgba(0,0,0,.32);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-family:'JetBrains Mono',Consolas,monospace;font-size:12px;line-height:1.65;color:#d9e6ff;outline:none;white-space:pre;overflow:auto"></textarea>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+            <button class="btn primary" onclick="petSave()">💾 保存并立即生效</button>
+            <button class="btn ghost" onclick="petLoad()">🔄 重新载入</button>
+            <button class="btn ghost" onclick="petExample()">↩ 恢复官方示例包</button>
+            <span id="petSaveStat" class="dim mono" style="font-size:11.5px;align-self:center"></span>
+          </div>
+        </div>
+      </section>
+
       <!-- 已发布文章历史 -->
       <section class="sec" data-sec="published">
         <div class="glass">
@@ -385,13 +418,14 @@ function refreshPreviews(){
 }
 
 /* ================= 分区 Tab ================= */
-const SECTIONS=[['profile','👤 个人资料'],['background','🖼 背景'],['aiCat','🐱 AI 猫'],['comment','💬 评论'],['danmaku','🎯 弹幕'],['picBed','🏞 图床'],['music','🎵 音乐'],['footer','🦶 页脚'],['gallery','📷 画廊'],['published','📚 已发布文章'],['deploy','🚀 同步 Blog']];
+const SECTIONS=[['profile','👤 个人资料'],['background','🖼 背景'],['aiCat','🐱 AI 猫'],['comment','💬 评论'],['danmaku','🎯 弹幕'],['picBed','🏞 图床'],['music','🎵 音乐'],['footer','🦶 页脚'],['gallery','📷 画廊'],['pet','🐾 桌宠'],['published','📚 已发布文章'],['deploy','🚀 同步 Blog']];
 $('#tabs').innerHTML = SECTIONS.map(([k,l],i)=>`<button class="set-tab${i===0?' active':''}" data-k="${k}">${l}</button>`).join('');
 function showSec(k){
   $$('.set-tab').forEach(b=>b.classList.toggle('active',b.dataset.k===k));
   $$('.sec').forEach(s=>s.classList.toggle('active',s.dataset.sec===k));
   if(k==='deploy') doCheck();
   if(k==='published') loadPublished();
+  if(k==='pet') petLoad();
 }
 $$('.set-tab').forEach(b=>b.addEventListener('click',()=>showSec(b.dataset.k)));
 
@@ -536,6 +570,80 @@ async function probePicBed(){
   toast(d.ok?('📡 连通！'+(d.msg||'')+(d.data&&d.data.name?(' · '+d.data.name):'')):('❌ '+(d.error||d.msg||'探测失败')));
 }
 
+/* ================= 🐾 桌宠动作包 ================= */
+const PET_EXAMPLE={
+  format:'jerry-pet-pack/v1',
+  settings:{aiChat:false},
+  packs:[{
+    id:'official-demo', name:'官方示例包（可改可删）', enabled:true,
+    actions:[
+      {id:'idle-snack', name:'待机·偷吃', frames:['/images/pet/eat1.png','/images/pet/eat2.png','/images/pet/eat3.png'], frameInterval:350, loop:true, loops:2, bubble:{text:'偷偷吃一口…别告诉主人',duration:2400}, trigger:{kind:'idle',chance:0.1,minGap:25000,weight:2}},
+      {id:'idle-nap', name:'待机·打盹', frames:['/images/pet/normal-close_eye.png'], duration:3200, bubble:{text:'Zzz…眯一会儿',duration:3000}, trigger:{kind:'idle',chance:0.08,minGap:40000,weight:1}},
+      {id:'click-hi', name:'点击·打招呼', frames:['/images/pet/touchhead1.png','/images/pet/touchhead3.png'], frameInterval:180, holdLast:true, duration:1200, bubble:{text:'嗨呀~找我玩吗？',duration:1600}, trigger:{kind:'click'}},
+      {id:'head-shy', name:'摸头·害羞', frames:['/images/pet/touchhead2.png'], duration:1500, bubble:{text:'呜哇…头不能乱摸啦',duration:1800}, trigger:{kind:'headClick'}},
+      {id:'long-sleep', name:'久未操作·睡着', frames:['/images/pet/normal-close_eye.png'], duration:5000, bubble:{text:'Zzzzz…主人不见了？',duration:4200}, trigger:{kind:'longIdle',after:60000}}
+    ],
+    events:[
+      {id:'read-to-end', on:'scrollDepth', depth:0.95, bubble:{text:'居然看到了这里！给你点个赞👍',duration:3200}, action:'click-hi'}
+    ],
+    replies:[
+      {match:['你好','hi','hello','在吗'], text:'嗨~我是 Jerry 的桌宠，今天也要开心哦！', action:'click-hi'},
+      {match:['再见','拜拜','byebye','走了'], text:'下次再来玩呀，我会在这里等你的~'},
+      {match:['我爱你','喜欢你'], text:'呜…碳基生物的情话最让人害羞了！'}
+    ]
+  }]
+};
+async function petLoad(){
+  const d=await api('/api/pet/packs');
+  const cfg=(d&&d.config)||PET_EXAMPLE;
+  $('#petJson').value=JSON.stringify(cfg,null,2);
+  $('#petAiChat').checked=!!(cfg.settings&&cfg.settings.aiChat);
+  $('#petSaveStat').textContent='已载入当前配置';
+}
+function petCurrentJson(){
+  let cfg;
+  try{ cfg=JSON.parse($('#petJson').value); }
+  catch(e){ throw new Error('JSON 语法错误：'+e.message); }
+  if(cfg.format!=='jerry-pet-pack/v1') throw new Error('format 必须是 "jerry-pet-pack/v1"');
+  if(!Array.isArray(cfg.packs)) throw new Error('packs 必须是数组');
+  cfg.settings=cfg.settings||{}; cfg.settings.aiChat=$('#petAiChat').checked;
+  return cfg;
+}
+async function petSave(){
+  let cfg;
+  try{ cfg=petCurrentJson(); }catch(e){ $('#petSaveStat').textContent='❌ '+e.message; toast('❌ '+e.message); return; }
+  const d=await api('/api/pet/packs',cfg);
+  if(d.ok){ $('#petSaveStat').textContent='✅ 已保存，刷新博客/文章页即生效（上线请点同步 Blog）'; toast('🐾 动作包已保存'); $('#petJson').value=JSON.stringify(cfg,null,2); }
+  else { $('#petSaveStat').textContent='❌ '+d.error; toast('保存失败：'+d.error); }
+}
+function petExample(){
+  if(!confirm('用官方示例包覆盖编辑框内容？（不会自动保存，确认后请点保存）')) return;
+  $('#petJson').value=JSON.stringify(PET_EXAMPLE,null,2);
+  toast('已填入示例，点「保存并立即生效」');
+}
+function petPick(kind){
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='image/*'; inp.multiple=true;
+  inp.onchange=async()=>{
+    const files=[...inp.files]; if(!files.length) return;
+    $('#petUpStat').textContent='⏳ 上传 '+files.length+' 张…';
+    for(const f of files){
+      const b64=await new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(f); });
+      const d=await api('/api/upload',{base64:b64, filename:f.name, dir:'images/pet'});
+      if(d.ok){
+        const row=document.createElement('div');
+        row.style.cssText='display:flex;gap:8px;align-items:center;font-size:11.5px';
+        row.innerHTML='<span class="mono" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(d.url)+'</span><button class="mini-btn" type="button">📋 复制路径</button>';
+        row.querySelector('button').onclick=()=>{ navigator.clipboard.writeText(d.url); toast('已复制：'+d.url); };
+        $('#petUpList').prepend(row);
+      }
+    }
+    $('#petUpStat').textContent='✅ 上传完成，路径已复制按钮在右侧（帧图填 frames，气泡图填 bubble.image）';
+    toast('素材上传完成');
+  };
+  inp.click();
+}
+
 /* ================= 已发布文章历史 ================= */
 let PUB=[];
 function pubPending(p){ return !p.syncedAt || (p.updatedAt && p.syncedAt && p.updatedAt > p.syncedAt); }
@@ -637,8 +745,11 @@ async function doPush(){
   doCheck();
 }
 loadCfg();
-// 支持 settings.html#published 直接定位到已发布文章历史
-if(location.hash === '#published') showSec('published');
+// 支持 settings.html#pet / #published 等 hash 直接定位到对应分区
+(function(){
+  const h = (location.hash||'').replace('#','');
+  if(h && SECTIONS.some(([k])=>k===h)) showSec(h);
+})();
 </script>
 </body>
 </html>

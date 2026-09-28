@@ -277,6 +277,29 @@ async function handleApi(req, res, pathname) {
   if (req.method === 'POST' && pathname === '/api/admin/posts') {
     return send(res, 200, { ok: true, posts: readStore().posts.map(p => ({ ...p, syncedAt: p.syncedAt || '', thumb: p.thumb || '' })) });
   }
+
+  // 桌宠动作包：读取 / 保存（data/pet_packs.json，随仓库上线，不含密钥）
+  const PET_PACKS = path.join(DATA_DIR, 'pet_packs.json');
+  if (req.method === 'GET' && pathname === '/api/pet/packs') {
+    try { return send(res, 200, { ok: true, config: JSON.parse(fs.readFileSync(PET_PACKS, 'utf8')) }); }
+    catch (e) { return send(res, 200, { ok: true, config: { format: 'jerry-pet-pack/v1', settings: { aiChat: false }, packs: [] } }); }
+  }
+  if (req.method === 'POST' && pathname === '/api/pet/packs') {
+    const body = await readBody(req).catch(() => ({}));
+    if (!body || typeof body !== 'object') return send(res, 400, { ok: false, error: '配置格式错误' });
+    if (body.format !== 'jerry-pet-pack/v1') return send(res, 400, { ok: false, error: 'format 必须为 jerry-pet-pack/v1' });
+    if (!Array.isArray(body.packs)) return send(res, 400, { ok: false, error: 'packs 必须是数组' });
+    // 轻量校验：每个 action 至少有 id 和 frames
+    for (const p of body.packs) {
+      for (const a of (p.actions || [])) {
+        if (!a.id) return send(res, 400, { ok: false, error: '存在缺少 id 的动作' });
+        if (a.frames != null && !Array.isArray(a.frames)) return send(res, 400, { ok: false, error: '动作 ' + a.id + ' 的 frames 必须是数组' });
+      }
+    }
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(PET_PACKS, JSON.stringify(body, null, 2), 'utf8');
+    return send(res, 200, { ok: true });
+  }
   // 浏览量 +1
   if (req.method === 'POST' && pathname === '/api/view') {
     const body = await readBody(req).catch(() => ({}));
@@ -332,7 +355,7 @@ async function handleApi(req, res, pathname) {
     const b64 = m ? m[2] : body.base64;
     const isVideo = /\.(mp4|webm|mov|m4v|mkv|avi)$/i.test(safeName);
     // dir 参数：允许上传到 images/posts、images/albums、images/bg（白名单，防路径穿越）
-    const allowedDirs = { 'images/posts': UPLOAD_DIR, 'images/albums': path.join(ROOT, 'images', 'albums'), 'images/bg': path.join(ROOT, 'images', 'bg') };
+    const allowedDirs = { 'images/posts': UPLOAD_DIR, 'images/albums': path.join(ROOT, 'images', 'albums'), 'images/bg': path.join(ROOT, 'images', 'bg'), 'images/pet': path.join(ROOT, 'images', 'pet') };
     let dir = isVideo ? path.join(ROOT, 'videos', 'posts') : (allowedDirs[body.dir] || UPLOAD_DIR);
     const relDir = isVideo ? 'videos/posts' : (allowedDirs[body.dir] ? body.dir : 'images/posts');
     const name = Date.now().toString(36) + '_' + safeName;
