@@ -82,7 +82,7 @@
     <h1>📝 创作草稿箱 <span class="count" id="countBadge">0</span></h1>
     <div class="search-pill">🔍<input id="search" placeholder="检索草稿..." oninput="render()"></div>
   </div>
-  <p class="draft-sub">✨ 草稿和编辑后未推送的文章。推送成功后自动移出，已上线文章去博客页点 ✎ 编辑。</p>
+  <p class="draft-sub">✍️ 这里只放<b>草稿</b>和<b>改完还没推送上线</b>的文章；成功发布上线后自动移出。已发布的历史文章统一收在「⚙ 发布设置 → 📚 已发布文章」里，不在这里堆着。</p>
 
   <!-- Notion 同步面板 -->
   <div class="glass nt" id="ntPanel">
@@ -114,12 +114,13 @@
 
   <div class="draft-actions">
     <a class="btn newpost" href="editor.html?id=new">✍️ 新建文章</a>
+    <a class="btn ghost" href="settings.html#published">📚 已发布文章历史（<span id="pubCount">0</span>）</a>
     <div style="flex:1"></div>
     <select id="filter" class="tb-select" style="padding:9px 14px;font-size:13px">
-      <option value="all">全部</option>
-      <option value="pending">待上线</option>
-      <option value="draft">草稿</option>
-      <option value="published">已发布</option>
+      <option value="pending">待处理（草稿 + 未推送）</option>
+      <option value="draft">仅草稿</option>
+      <option value="unsynced">仅改完未推送</option>
+      <option value="all">全部文章（含已发布）</option>
     </select>
   </div>
 
@@ -130,7 +131,7 @@
 <div class="pic-toast" id="pic-toast"></div>
 
 <script>
-const state = { posts: [], filter: 'all', q: '' };
+const state = { posts: [], filter: 'pending', q: '' };
 
 async function load() {
   const res = await fetch('/api/admin/posts', { method: 'POST' });
@@ -147,12 +148,25 @@ function statusLabel(p){
 }
 function render() {
   const q = state.q.trim().toLowerCase();
-  let posts = state.posts; if(state.filter==='pending') posts=posts.filter(isPending); else if(state.filter!=='all') posts=posts.filter(p=>p.status===state.filter);
+  let posts = state.posts;
+  if(state.filter==='pending') posts=posts.filter(isPending);
+  else if(state.filter==='draft') posts=posts.filter(p=>p.status==='draft');
+  else if(state.filter==='unsynced') posts=posts.filter(p=>p.status==='published'&&isPending(p));
   if (q) posts = posts.filter(p => ((p.title||'') + (p.excerpt||'') + (p.category||'')).toLowerCase().includes(q));
-  document.getElementById('countBadge').textContent = state.posts.length;
+  const pendingCount = state.posts.filter(isPending).length;
+  const pubCount = state.posts.filter(p=>p.status==='published'&&!isPending(p)).length;
+  document.getElementById('countBadge').textContent = pendingCount;
+  const pc = document.getElementById('pubCount'); if(pc) pc.textContent = pubCount;
   const list = document.getElementById('list');
   const empty = document.getElementById('empty');
-  if (!posts.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  if (!posts.length) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    empty.textContent = state.filter==='pending'
+      ? '🎉 草稿箱清空了：没有草稿、也没有未推送的修改。已发布的文章在「📚 已发布文章历史」里。'
+      : '这个筛选下没有文章。';
+    return;
+  }
   empty.style.display = 'none';
   list.innerHTML = posts.map(card).join('');
 }

@@ -301,6 +301,22 @@
         </div>
       </section>
 
+      <!-- 已发布文章历史 -->
+      <section class="sec" data-sec="published">
+        <div class="glass">
+          <span class="kicker">Published</span>
+          <h2>📚 已发布文章 <span class="hint">所有推上线过的文章历史，草稿箱不再显示它们</span></h2>
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+            <div class="search-pill" style="margin-left:0;min-width:280px;display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:999px;padding:9px 16px;flex:1;max-width:420px">
+              🔍<input id="pubSearch" placeholder="搜索已发布文章标题/摘要/分类…" style="background:none;border:none;outline:none;color:var(--ink);font-size:13px;width:100%">
+            </div>
+            <span class="dim mono" id="pubStat" style="font-size:12px"></span>
+          </div>
+          <div id="pubList" style="display:flex;flex-direction:column;gap:10px"></div>
+          <div id="pubEmpty" class="dim" style="display:none;font-size:13px;padding:14px 4px">还没有已发布的文章。</div>
+        </div>
+      </section>
+
       <!-- GitHub 部署（= 同步 Blog） -->
       <section class="sec" data-sec="deploy">
         <div class="glass">
@@ -369,12 +385,13 @@ function refreshPreviews(){
 }
 
 /* ================= 分区 Tab ================= */
-const SECTIONS=[['profile','👤 个人资料'],['background','🖼 背景'],['aiCat','🐱 AI 猫'],['comment','💬 评论'],['danmaku','🎯 弹幕'],['picBed','🏞 图床'],['music','🎵 音乐'],['footer','🦶 页脚'],['gallery','📷 画廊'],['deploy','🚀 同步 Blog']];
+const SECTIONS=[['profile','👤 个人资料'],['background','🖼 背景'],['aiCat','🐱 AI 猫'],['comment','💬 评论'],['danmaku','🎯 弹幕'],['picBed','🏞 图床'],['music','🎵 音乐'],['footer','🦶 页脚'],['gallery','📷 画廊'],['published','📚 已发布文章'],['deploy','🚀 同步 Blog']];
 $('#tabs').innerHTML = SECTIONS.map(([k,l],i)=>`<button class="set-tab${i===0?' active':''}" data-k="${k}">${l}</button>`).join('');
 function showSec(k){
   $$('.set-tab').forEach(b=>b.classList.toggle('active',b.dataset.k===k));
   $$('.sec').forEach(s=>s.classList.toggle('active',s.dataset.sec===k));
   if(k==='deploy') doCheck();
+  if(k==='published') loadPublished();
 }
 $$('.set-tab').forEach(b=>b.addEventListener('click',()=>showSec(b.dataset.k)));
 
@@ -519,6 +536,51 @@ async function probePicBed(){
   toast(d.ok?('📡 连通！'+(d.msg||'')+(d.data&&d.data.name?(' · '+d.data.name):'')):('❌ '+(d.error||d.msg||'探测失败')));
 }
 
+/* ================= 已发布文章历史 ================= */
+let PUB=[];
+function pubPending(p){ return !p.syncedAt || (p.updatedAt && p.syncedAt && p.updatedAt > p.syncedAt); }
+async function loadPublished(){
+  const d=await api('/api/admin/posts',{});
+  PUB=(d.posts||[]).filter(p=>p.status==='published').sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  drawPublished();
+}
+function drawPublished(){
+  const q=($('#pubSearch').value||'').trim().toLowerCase();
+  let list=PUB;
+  if(q) list=list.filter(p=>((p.title||'')+(p.excerpt||'')+(p.category||'')).toLowerCase().includes(q));
+  const unsynced=PUB.filter(pubPending).length;
+  $('#pubStat').textContent='共 '+PUB.length+' 篇已发布'+(unsynced?(' · 其中 '+unsynced+' 篇有修改待推送'):'（全部已上线）');
+  $('#pubEmpty').style.display=list.length?'none':'block';
+  $('#pubList').innerHTML=list.map(p=>{
+    const pending=pubPending(p);
+    return `<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.04);flex-wrap:wrap">
+      <div style="min-width:0;flex:1">
+        <div style="font-size:14px;font-weight:700;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.title||'无标题')}</div>
+        <div class="mono" style="font-size:11px;color:var(--muted)">${esc(p.category||'未分类')} · ${esc(p.date||'')} · 浏览 ${p.views||0}
+          · ${pending?'<span style="color:var(--warn)">● 有修改待推送</span>':'<span style="color:var(--aqua)">● 已上线</span>'}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <a class="mini-btn" href="editor.html?id=${encodeURIComponent(p.id)}">✏️ 编辑</a>
+        <a class="mini-btn" href="../post.html?id=${encodeURIComponent(p.id)}" target="_blank">👁 预览</a>
+        <button class="mini-btn" onclick="pubToDraft('${esc(p.id)}')">↩ 转草稿</button>
+        <button class="mini-btn" style="color:var(--coral);border-color:rgba(255,122,92,.35)" onclick="pubDel('${esc(p.id)}')">删除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function pubToDraft(id){
+  const p=PUB.find(x=>x.id===id); if(!p) return;
+  const d=await api('/api/post/save',{id,title:p.title,category:p.category,excerpt:p.excerpt,cover:p.cover,date:p.date,tags:p.tags,mood:p.mood,markdown:p.markdown,status:'draft'});
+  if(d.ok){ toast('已转回草稿，去草稿箱查看'); loadPublished(); } else toast('操作失败');
+}
+async function pubDel(id){
+  const p=PUB.find(x=>x.id===id); if(!p) return;
+  if(!confirm('确定删除已发布文章「'+(p.title||'无标题')+'」？\n删除后线上版本会在下次推送时同步移除，此操作不可恢复。')) return;
+  const d=await api('/api/post/delete',{id});
+  if(d.ok){ toast('已删除（推送后线上同步移除）'); loadPublished(); } else toast('删除失败');
+}
+$('#pubSearch').addEventListener('input',drawPublished);
+
 /* ================= 部署（= 同步 Blog） ================= */
 function readForm(){ return { repoUrl:$('#repoUrl').value, branch:$('#branch').value, commitMsg:$('#commitMsg').value, siteUrl:$('#siteUrl').value }; }
 async function loadDeploy(){
@@ -575,6 +637,8 @@ async function doPush(){
   doCheck();
 }
 loadCfg();
+// 支持 settings.html#published 直接定位到已发布文章历史
+if(location.hash === '#published') showSec('published');
 </script>
 </body>
 </html>
