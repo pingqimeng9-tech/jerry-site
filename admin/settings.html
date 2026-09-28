@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jerry CMS · 设置</title>
+<link rel="stylesheet" href="./admin.css">
+<style>
+  /* —— 设置页布局 —— */
+  .set-layout{display:flex;gap:20px;align-items:flex-start}
+  .set-tabs{width:172px;flex:none;display:flex;flex-direction:column;gap:6px;position:sticky;top:24px}
+  .set-tab{display:flex;align-items:center;gap:10px;padding:11px 16px;border-radius:12px;border:1px solid transparent;background:transparent;color:var(--muted);font-size:13.5px;font-weight:600;cursor:pointer;text-align:left;font-family:inherit;transition:.15s;width:100%}
+  .set-tab:hover{background:var(--panel)}
+  .set-tab.active{background:var(--glass);border-color:var(--glass-border);color:#fff}
+  .set-main{flex:1;min-width:0}
+  .sec{display:none}
+  .sec.active{display:block}
+  .sec .glass{padding:22px 26px;margin-bottom:16px}
+  .sec h2{font-size:17px;font-weight:900;margin:4px 0 14px;display:flex;align-items:center;gap:10px}
+  .sec h2 .hint{font-size:11px;font-weight:400;color:var(--muted)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  @media(max-width:760px){.set-layout{flex-direction:column}.set-tabs{width:100%;flex-direction:row;flex-wrap:wrap;position:static}.grid2,.grid3{grid-template-columns:1fr}}
+  .row-list{display:flex;flex-direction:column;gap:8px}
+  .row-item{display:flex;gap:8px;align-items:center}
+  .row-item input{flex:1;background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:12px;padding:9px 13px;font-size:13px;outline:none;color:var(--ink);font-family:inherit}
+  .row-item input:focus{border-color:var(--aqua)}
+  .row-item .del{background:none;border:1px solid rgba(255,122,92,.35);color:var(--coral);border-radius:10px;width:34px;height:34px;cursor:pointer;flex:none}
+  .mini-btn{background:var(--glass);border:1px solid var(--glass-border);color:var(--ink);border-radius:10px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+  .mini-btn:hover{background:var(--glass-strong)}
+  .switch{position:relative;width:44px;height:24px;flex:none}
+  .switch input{opacity:0;width:0;height:0}
+  .switch i{position:absolute;inset:0;border-radius:999px;background:rgba(255,255,255,.14);transition:.2s;cursor:pointer}
+  .switch i::after{content:'';position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
+  .switch input:checked + i{background:var(--aqua)}
+  .switch input:checked + i::after{transform:translateX(20px)}
+  .with-switch{display:flex;align-items:center;gap:12px;font-size:13.5px;font-weight:700}
+  .bg-item{display:flex;align-items:center;gap:10px;padding:6px 8px;border:1px solid var(--line);border-radius:12px;margin-bottom:6px}
+  .bg-item img{width:56px;height:36px;object-fit:cover;border-radius:8px;background:rgba(0,0,0,.3)}
+  .bg-item .n{flex:1;font-family:var(--mono);font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* —— 暂存队列顶栏 —— */
+  .queue-bar{position:sticky;top:12px;z-index:40;display:none;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 18px;margin-bottom:16px;border-radius:16px;background:rgba(255,209,102,.10);border:1px solid rgba(255,209,102,.4);backdrop-filter:blur(14px)}
+  .queue-bar.show{display:flex}
+  .queue-bar .ttl{font-weight:900;font-size:13.5px;color:var(--warn)}
+  .queue-ops{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+  .queue-ops .chip{background:rgba(255,209,102,.12);color:var(--warn);border-color:rgba(255,209,102,.35)}
+  .avatar-preview{width:64px;height:64px;border-radius:50%;object-fit:cover;border:1px solid var(--glass-border);background:rgba(0,0,0,.25)}
+  .thumb-preview{height:70px;border-radius:10px;border:1px solid var(--glass-border);background:rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px}
+  .thumb-preview img{max-width:100%;max-height:100%;border-radius:10px;object-fit:cover}
+</style>
+</head>
+<body>
+<div class="wrap" style="max-width:1120px">
+  <div class="topbar">
+    <div class="logo">Jerry <b>CMS</b> <span class="dim mono" style="font-size:12px;font-weight:400">/ 设置</span></div>
+    <div class="links">
+      <a class="btn ghost" href="./index.html">📝 草稿箱</a>
+      <a class="btn ghost" href="./content.html">🗂 内容管理</a>
+      <a class="btn ghost" href="/" target="_blank">↗ 看站</a>
+    </div>
+  </div>
+
+  <!-- 暂存队列 -->
+  <div class="queue-bar" id="queueBar">
+    <span class="ttl">🔔 暂存队列 <span id="qCount">0</span> 项</span>
+    <div class="queue-ops" id="queueOps"></div>
+    <button class="btn ghost" style="padding:7px 14px;font-size:12px" onclick="clearQueue()">清空</button>
+    <button class="btn primary" style="padding:8px 18px;font-size:13px" onclick="applyQueue()">✅ 更新本地</button>
+    <button class="btn ghost" style="padding:8px 16px;font-size:13px" onclick="syncBlog()">🚀 同步 Blog</button>
+  </div>
+
+  <div class="set-layout">
+    <div class="set-tabs" id="tabs"></div>
+    <div class="set-main">
+
+      <!-- 个人资料 -->
+      <section class="sec" data-sec="profile">
+        <div class="glass">
+          <span class="kicker">Profile</span>
+          <h2>👤 个人资料 <span class="hint">站点名 / 简介 / 社交 / 导航</span></h2>
+          <div class="grid2">
+            <div class="field"><label><i></i>站点名称</label><input name="siteName" placeholder="JERRY.DEV"></div>
+            <div class="field"><label><i></i>博主昵称</label><input name="authorName" placeholder="Jerry"></div>
+          </div>
+          <div class="field" style="margin-top:14px"><label><i></i>个人简介 Bio</label><textarea name="bio" rows="2" placeholder="一句话介绍自己"></textarea></div>
+          <div class="grid2" style="margin-top:14px">
+            <div class="field"><label><i></i>头像 URL（可上传）</label>
+              <div style="display:flex;gap:10px;align-items:center">
+                <img class="avatar-preview" id="pv-avatar" style="display:none">
+                <input name="avatarUrl" placeholder="/images/me.jpg 或 https://..." style="flex:1">
+                <button class="mini-btn" type="button" onclick="pickUpload(this,'avatarUrl','images/posts')">上传</button>
+              </div>
+            </div>
+            <div class="field"><label><i></i>文章默认封面（可上传）</label>
+              <div style="display:flex;gap:10px;align-items:center">
+                <div class="thumb-preview" id="pv-cover" style="width:90px">无</div>
+                <input name="defaultPostCover" placeholder="https://..." style="flex:1">
+                <button class="mini-btn" type="button" onclick="pickUpload(this,'defaultPostCover','images/posts')">上传</button>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:16px">
+            <label class="dim mono" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase">社交链接</label>
+            <div class="grid3" style="margin-top:8px">
+              <div class="field"><label><i></i>GitHub</label><input name="social.github" placeholder="https://github.com/..."></div>
+              <div class="field"><label><i></i>Email</label><input name="social.email" placeholder="me@example.com"></div>
+              <div class="field"><label><i></i>Bilibili</label><input name="social.bilibili" placeholder="空间链接"></div>
+              <div class="field"><label><i></i>QQ</label><input name="social.qq"></div>
+              <div class="field"><label><i></i>微信</label><input name="social.wechat"></div>
+              <div class="field"><label><i></i>Gitee</label><input name="social.gitee"></div>
+            </div>
+          </div>
+          <div style="margin-top:16px">
+            <label class="dim mono" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase">导航链接（注入全站导航，留空则用默认）</label>
+            <div class="row-list" id="navRows" style="margin-top:8px"></div>
+            <button class="mini-btn" type="button" onclick="addNavRow()">+ 加一项</button>
+          </div>
+          <div style="margin-top:18px;display:flex;gap:10px">
+            <button class="btn primary" onclick="stage('profile','个人资料')">📥 暂存到操作队列</button>
+            <button class="btn ghost" onclick="stageApply('profile','个人资料')">⚡ 保存并立即生效</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 背景 -->
+      <section class="sec" data-sec="background">
+        <div class="glass">
+          <span class="kicker">Background</span>
+          <h2>🖼 背景与氛围特效 <span class="hint">背景图轮播 / 樱花·雪·萤火虫</span></h2>
+          <div class="with-switch" style="margin-bottom:14px">
+            <label class="switch"><input type="checkbox" name="useGradient" onchange="stageBgMarkDirty()"><i></i></label>
+            使用渐变流动背景（关闭则只显示背景图）
+          </div>
+          <div class="field" style="margin-bottom:14px"><label><i></i>氛围特效</label>
+            <select name="effect">
+              <option value="none">无</option>
+              <option value="sakura">🌸 樱花飘落</option>
+              <option value="snow">❄️ 下雪</option>
+              <option value="fireflies">✨ 萤火虫</option>
+            </select>
+          </div>
+          <label class="dim mono" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase">背景图（多图自动轮播虚化，全站生效）</label>
+          <div id="bgList" style="margin:10px 0"></div>
+          <button class="mini-btn" type="button" onclick="document.getElementById('bgFile').click()">＋ 上传背景图</button>
+          <input type="file" id="bgFile" accept="image/*" multiple hidden>
+          <div style="margin-top:18px;display:flex;gap:10px">
+            <button class="btn primary" onclick="stage('background','背景')">📥 暂存到操作队列</button>
+            <button class="btn ghost" onclick="stageApply('background','背景')">⚡ 保存并立即生效</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI 猫 -->
+      <section class="sec" data-sec="aiCat">
+        <div class="glass">
+          <span class="kicker">AI Cat</span>
+          <h2>🐱 AI 猫猫助理 <span class="hint">Key 只存本地 site_config.json，不会出现在公开配置里</span></h2>
+          <div class="with-switch" style="margin-bottom:14px">
+            <label class="switch"><input type="checkbox" name="enabled"><i></i></label>
+            启用 AI 猫（全站左下角悬浮猫）
+          </div>
+          <div class="grid3">
+            <div class="field"><label><i></i>猫的名字</label><input name="name" placeholder="小猫"></div>
+            <div class="field"><label><i></i>开场白</label><input name="greeting" placeholder="喵？找我什么事~"></div>
+            <div class="field"><label><i></i>模型</label><input name="model" placeholder="gemini-2.0-flash"></div>
+          </div>
+          <div class="grid2" style="margin-top:14px">
+            <div class="field"><label><i></i>服务商</label>
+              <select name="provider"><option value="gemini">Gemini（Google）</option><option value="openai">OpenAI 兼容接口</option></select>
+            </div>
+            <div class="field"><label><i></i>API Base（OpenAI 兼容时填）</label><input name="apiBase" placeholder="https://api.openai.com/v1"></div>
+          </div>
+          <div class="field" style="margin-top:14px"><label><i></i>API Key</label><input name="apiKey" type="password" placeholder="sk-... / AIza..."></div>
+          <div class="field" style="margin-top:14px"><label><i></i>系统提示词（猫猫的性格）</label><textarea name="systemPrompt" rows="3" placeholder="你是博主的猫娘助理……"></textarea></div>
+          <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn primary" onclick="stage('aiCat','AI 猫')">📥 暂存到操作队列</button>
+            <button class="btn ghost" onclick="stageApply('aiCat','AI 猫')">⚡ 保存并立即生效</button>
+            <button class="btn ghost" onclick="testCat()">🧪 测试对话</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 评论 -->
+      <section class="sec" data-sec="comment">
+        <div class="glass">
+          <span class="kicker">Comment</span>
+          <h2>💬 评论系统 <span class="hint">本地评论（随 CMS 存储）或 Gitalk（GitHub Issues）</span></h2>
+          <div class="field" style="margin-bottom:14px"><label><i></i>评论方式</label>
+            <select name="provider">
+              <option value="local">本地评论（本地 CMS 可读写）</option>
+              <option value="gitalk">Gitalk（GitHub Issues，线上可用）</option>
+            </select>
+          </div>
+          <div class="grid2">
+            <div class="field"><label><i></i>Client ID</label><input name="gitalk.clientID"></div>
+            <div class="field"><label><i></i>Client Secret（只存本地）</label><input name="gitalk.clientSecret" type="password"></div>
+            <div class="field"><label><i></i>仓库名（存评论的公开仓库）</label><input name="gitalk.repo" placeholder="yourname/blog-comments"></div>
+            <div class="field"><label><i></i>GitHub 用户名</label><input name="gitalk.owner"></div>
+          </div>
+          <div style="margin-top:18px;display:flex;gap:10px">
+            <button class="btn primary" onclick="stage('comment','评论')">📥 暂存到操作队列</button>
+            <button class="btn ghost" onclick="stageApply('comment','评论')">⚡ 保存并立即生效</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 弹幕 -->
+      <section class="sec" data-sec="danmaku">
+        <div class="glass">
+          <span class="kicker">Danmaku</span>
+          <h2>🎯 弹幕背景 <span class="hint">文字从右往左飘过的全站弹幕</span></h2>
+          <div class="with-switch" style="margin-bottom:14px">
+            <label class="switch"><input type="checkbox" name="enabled"><i></i></label>
+            启用弹幕背景
+          </div>
+          <div class="field" style="margin-bottom:14px"><label><i></i>弹幕内容（每行一条）</label><textarea name="texts" rows="5" placeholder="欢迎来到我的小站~&#10;今天也要开心鸭"></textarea></div>
+          <div class="grid2">
+            <div class="field"><label><i></i>速度（秒/条，越小越快）</label><input name="speed" type="number" min="4" max="60"></div>
+            <div class="field"><label><i></i>透明度（0~1）</label><input name="opacity" type="number" min="0.1" max="1" step="0.1"></div>
+          </div>
+          <div style="margin-top:18px;display:flex;gap:10px">
+            <button class="btn primary" onclick="stage('danmaku','弹幕')">📥 暂存到操作队列</button>
+            <button class="btn ghost" onclick="stageApply('danmaku','弹幕')">⚡ 保存并立即生效</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 图床 -->
+      <section class="sec" data-sec="picBed">
+        <div class="glass">
+          <span class="kicker">PicBed</span>
+          <h2>🏞 图床 <span class="hint">支持 Lsky Pro 标准接口（去不图床 / 自建 Lsky 均可）</span></h2>
+          <div class="field" style="margin-bottom:14px"><label><i></i>图床类型</label>
+            <select name="type">
+              <option value="local">本地存储（images/posts/）</option>
+              <option value="lsky">Lsky Pro 图床 API</option>
+            </select>
+          </div>
+          <div class="grid2">
+            <div class="field"><label><i></i>API 地址</label><input name="apiBase" placeholder="https://7bu.top"></div>
+            <div class="field"><label><i></i>API Token</label><input name="token" type="password" placeholder="1|xxxxxx"></div>
+          </div>
+          <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn primary" onclick="stage('picBed','图床')">📥 暂存到操作队列</button>
+            <button class="btn ghost" onclick="stageApply('picBed','图床')">⚡ 保存并立即生效</button>
+            <button class="btn ghost" onclick="probePicBed()">📡 发送探针测试 Token</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 音乐 -->
+      <section class="sec" data-sec="music">
+        <div class="glass">
+          <span class="kicker">Music</span>
+          <h2>🎵 网易云音乐挂件 <span class="hint">右下角悬浮播放器；歌曲 ID 在网易云网页版地址栏里</span></h2>
+          <div class="with-switch" style="margin-bottom:14px">
+            <label class="switch"><input type="checkbox" name="enabled"><i></i></label>
+            启用播放器
+          </div>
+          <div class="grid2">
+            <div class="field"><label><i></i>播放器标题</label><input name="playerTitle" placeholder="BGM"></div>
+            <div class="field"><label><i></i>默认音量（0~1）</label><input name="defaultVolume" type="number" min="0" max="1" step="0.1"></div>
+          </div>
+          <div class="field" style="margin-top:14px"><label><i></i>歌曲 ID 列表（逗号分隔，按播放顺序）</label>
+            <textarea name="songIds" rows="2" placeholder="1809646618, 3361076230, 1859390262"></textarea></div>
+          <div style="margin-top:18px;display:flex;gap:10px">
+            <button class="btn primary" onclick="stage('music','音乐')">📥 暂存到操作队列</button>
+            <button class="btn ghost" onclick="stageApply('music','音乐')">⚡ 保存并立即生效</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 页脚 -->
+      <section class="sec" data-sec="footer">
+        <div class="glass">
+          <span class="kicker">Footer</span>
+          <h2>🦶 页脚 <span class="hint">无 footer 的页面会自动注入</span></h2>
+          <div class="field" style="margin-bottom:14px"><label><i></i>页脚文字</label><input name="text" placeholder="© JERRY.DEV · 用热爱发电"></div>
+          <div class="field" style="margin-bottom:14px"><label><i></i>备案号（可选）</label><input name="beian" placeholder="京ICP备xxxxxxxx号"></div>
+          <label class="dim mono" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase">页脚链接</label>
+          <div class="row-list" id="footRows" style="margin:8px 0"></div>
+          <button class="mini-btn" type="button" onclick="addFootRow()">+ 加一条</button>
+          <div style="margin-top:18px;display:flex;gap:10px">
+            <button class="btn primary" onclick="stage('footer','页脚')">📥 暂存到操作队列</button>
+            <button class="btn ghost" onclick="stageApply('footer','页脚')">⚡ 保存并立即生效</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 画廊 -->
+      <section class="sec" data-sec="gallery">
+        <div class="glass">
+          <span class="kicker">Gallery</span>
+          <h2>📷 画廊 / 照片墙 <span class="hint">相册内容在「内容管理 → 相册」里维护</span></h2>
+          <div class="field" style="margin-bottom:14px"><label><i></i>照片墙页简介</label><input name="intro" placeholder="用镜头记录生活的碎片"></div>
+          <div class="field" style="max-width:220px"><label><i></i>展示列数（桌面端）</label><input name="columns" type="number" min="1" max="5"></div>
+          <div style="margin-top:18px;display:flex;gap:10px">
+            <button class="btn primary" onclick="stage('gallery','画廊')">📥 暂存到操作队列</button>
+            <button class="btn ghost" onclick="stageApply('gallery','画廊')">⚡ 保存并立即生效</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- GitHub 部署（= 同步 Blog） -->
+      <section class="sec" data-sec="deploy">
+        <div class="glass">
+          <span class="kicker">Deploy · Git</span>
+          <h2>🚀 同步 Blog（GitHub 部署配置）<span class="hint">暂存队列「更新本地」之后，点「同步 Blog」推送上线</span></h2>
+          <p class="dim" style="font-size:13px;margin-bottom:16px">配置一次仓库地址，之后每次点「🚀 同步 Blog」即执行 <code>git add -A → commit → push</code>，帖子与页面代码一起上去。绑定 Vercel/Netlify 的仓库会自动触发重新构建。</p>
+          <div class="field" style="margin-bottom:14px"><label><i></i>仓库地址 Repository URL</label>
+            <input id="repoUrl" placeholder="git@github.com:yourname/yourrepo.git 或 https://github.com/...">
+          </div>
+          <div class="grid3" style="margin-bottom:14px">
+            <div class="field"><label><i></i>分支 Branch</label><input id="branch" placeholder="main"></div>
+            <div class="field"><label><i></i>站点地址 Site URL</label><input id="siteUrl" placeholder="https://callmiruko.cc"></div>
+            <div class="field"><label><i></i>提交信息模板</label><input id="commitMsg" placeholder="Update via Jerry CMS"></div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn ghost" onclick="saveDeploy(true)">💾 保存部署配置</button>
+            <button class="btn ghost" onclick="doCheck()">🔍 检测环境</button>
+            <button class="btn ghost" onclick="doInit()">初始化仓库</button>
+            <button class="btn danger" onclick="doAdopt()">🔌 首次接管远端（以本地为准）</button>
+            <button class="btn primary" id="btnPush" onclick="doPush()">🚀 同步 Blog（推送）</button>
+          </div>
+          <div id="statusChips" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px"></div>
+          <div id="pendingList" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px"></div>
+        </div>
+        <div class="glass" style="padding:20px 24px">
+          <span class="kicker">Console</span>
+          <pre id="log" class="mono" style="margin-top:10px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:14px;padding:14px 16px;font-size:12px;white-space:pre-wrap;word-break:break-all;color:#c9cddd;min-height:100px">（操作日志将显示在这里）</pre>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+<div class="pic-toast" id="pic-toast"></div>
+
+<script>
+/* ================= 基础工具 ================= */
+function toast(msg){ const el=document.getElementById('pic-toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2400); }
+function log(t){ const el=document.getElementById('log'); if(!el) return; el.textContent += (t+'\n'); el.scrollTop=el.scrollHeight; }
+function clearLog(){ const el=document.getElementById('log'); if(el) el.textContent=''; }
+const $=(s,root)=> (root||document).querySelector(s);
+const $$=(s,root)=> [...(root||document).querySelectorAll(s)];
+function esc(s){ var d=document.createElement('div'); d.textContent=s==null?'':String(s); return d.innerHTML; }
+async function api(p, body){
+  const r = await fetch(p, body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:undefined);
+  return r.json();
+}
+// 文件 → base64 上传，回填到指定 name 的输入框
+function pickUpload(btn, targetName, dir){
+  const inp = document.createElement('input');
+  inp.type='file'; inp.accept='image/*';
+  inp.onchange = async ()=>{
+    const f = inp.files[0]; if(!f) return;
+    toast('⏳ 上传中…');
+    const b64 = await new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(f); });
+    const d = await api('/api/upload',{base64:b64, filename:f.name, dir});
+    if(d.ok){ $('[name="'+targetName+'"]').value = d.url; refreshPreviews(); toast('✅ 上传成功'); }
+    else toast('上传失败：'+(d.error||''));
+  };
+  inp.click();
+}
+function refreshPreviews(){
+  const av=$('[name="avatarUrl"]').value, cv=$('[name="defaultPostCover"]').value;
+  const pv=$('#pv-avatar'); if(av){ pv.src=av; pv.style.display='block'; }
+  const pc=$('#pv-cover'); if(cv){ pc.innerHTML='<img src="'+esc(cv)+'">'; }
+}
+
+/* ================= 分区 Tab ================= */
+const SECTIONS=[['profile','👤 个人资料'],['background','🖼 背景'],['aiCat','🐱 AI 猫'],['comment','💬 评论'],['danmaku','🎯 弹幕'],['picBed','🏞 图床'],['music','🎵 音乐'],['footer','🦶 页脚'],['gallery','📷 画廊'],['deploy','🚀 同步 Blog']];
+$('#tabs').innerHTML = SECTIONS.map(([k,l],i)=>`<button class="set-tab${i===0?' active':''}" data-k="${k}">${l}</button>`).join('');
+function showSec(k){
+  $$('.set-tab').forEach(b=>b.classList.toggle('active',b.dataset.k===k));
+  $$('.sec').forEach(s=>s.classList.toggle('active',s.dataset.sec===k));
+  if(k==='deploy') doCheck();
+}
+$$('.set-tab').forEach(b=>b.addEventListener('click',()=>showSec(b.dataset.k)));
+
+/* ================= 配置读写 ================= */
+let CFG=null;
+function setIn(sec,obj,path,val){ const ps=path.split('.'); let t=obj; for(let i=0;i<ps.length-1;i++){ if(typeof t[ps[i]]!=='object'||t[ps[i]]===null) t[ps[i]]={}; t=t[ps[i]]; } t[ps[ps.length-1]]=val; }
+function getIn(obj,path){ return path.split('.').reduce((o,k)=>o&&o[k],obj); }
+function loadSection(sec,cfg){
+  const root=$('.sec[data-sec="'+sec+'"]');
+  $$('input[name],select[name],textarea[name]',root).forEach(el=>{
+    const v=getIn(cfg[sec],el.name);
+    if(el.type==='checkbox') el.checked=!!v;
+    else el.value = v==null?'':v;
+  });
+  if(sec==='profile') renderNavRows(cfg.profile.navigation||[]);
+  if(sec==='background') renderBgList(cfg.background.bgImages||[]);
+  if(sec==='footer') renderFootRows(cfg.footer.links||[]);
+  if(sec==='profile') refreshPreviews();
+}
+function collectSection(sec){
+  const root=$('.sec[data-sec="'+sec+'"]');
+  const data = sec==='aiCat'||sec==='danmaku'||sec==='music' ? {...(CFG[sec]||{})} : (sec==='comment'?{...CFG.comment}:sec==='picBed'?{...CFG.picBed}:sec==='background'?{...CFG.background}:sec==='footer'?{...CFG.footer}:sec==='gallery'?{...CFG.gallery}:{...CFG.profile});
+  $$('input[name],select[name],textarea[name]',root).forEach(el=>{
+    let v;
+    if(el.type==='checkbox') v=el.checked;
+    else if(el.type==='number') v = el.value===''?0:parseFloat(el.value);
+    else v=el.value;
+    setIn(sec,data,el.name,v);
+  });
+  if(sec==='music'){ // songIds textarea → 数组
+    data.songIds = String(data.songIds||'').split(/[,,，、\s]+/).map(s=>s.trim()).filter(Boolean);
+  }
+  if(sec==='profile') data.navigation = readRows('navRows');
+  if(sec==='footer') data.links = readRows('footRows');
+  if(sec==='danmaku') data.texts = String(data.texts||'').split('\n').map(s=>s.trim()).filter(Boolean);
+  if(sec==='background') data.bgImages = readBgList();
+  return data;
+}
+function renderNavRows(rows){
+  $('#navRows').innerHTML = rows.map((r,i)=>rowHtml(r,'navRows',i)).join('') || rowHtml({},'navRows',0);
+}
+function renderFootRows(rows){
+  $('#footRows').innerHTML = rows.map((r,i)=>rowHtml(r,'footRows',i)).join('') || rowHtml({},'footRows',0);
+}
+function rowHtml(r,boxId,i){
+  return `<div class="row-item" data-i="${i}"><input placeholder="显示文字" value="${esc(r.label||'')}" data-k="label"><input placeholder="链接地址" value="${esc(r.href||'')}" data-k="href"><button class="del" type="button" onclick="this.parentNode.remove()">✕</button></div>`;
+}
+function addNavRow(){ $('#navRows').insertAdjacentHTML('beforeend', rowHtml({},'navRows',$$('#navRows .row-item').length)); }
+function addFootRow(){ $('#footRows').insertAdjacentHTML('beforeend', rowHtml({},'footRows',$$('#footRows .row-item').length)); }
+function readRows(boxId){
+  return $$('#'+boxId+' .row-item').map(row=>{
+    const label=row.querySelector('[data-k="label"]').value.trim(), href=row.querySelector('[data-k="href"]').value.trim();
+    return (label||href)?{label,href}:null;
+  }).filter(Boolean);
+}
+/* 背景图列表（本地编辑态） */
+let bgDraft=[];
+function renderBgList(list){ bgDraft=[...list]; drawBgList(); }
+function drawBgList(){
+  $('#bgList').innerHTML = bgDraft.map((u,i)=>`<div class="bg-item"><img src="${esc(u)}" onerror="this.style.visibility='hidden'"><span class="n">${esc(u)}</span><button class="mini-btn" type="button" onclick="bgUp(${i})">↑</button><button class="mini-btn" type="button" onclick="bgDel(${i})">✕</button></div>`).join('') || '<div class="dim" style="font-size:12px;padding:4px 0 8px">还没有背景图，用 CSS 渐变兜底</div>';
+}
+function bgDel(i){ bgDraft.splice(i,1); drawBgList(); }
+function bgUp(i){ if(i===0) return; [bgDraft[i-1],bgDraft[i]]=[bgDraft[i],bgDraft[i-1]]; drawBgList(); }
+function readBgList(){ return bgDraft; }
+$('#bgFile').addEventListener('change', async function(){
+  const files=[...this.files]; if(!files.length) return;
+  toast('⏳ 上传 '+files.length+' 张…');
+  for(const f of files){
+    const b64 = await new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(f); });
+    const d=await api('/api/upload',{base64:b64, filename:f.name, dir:'images/bg'});
+    if(d.ok) bgDraft.push(d.url);
+  }
+  await api('/api/bg/rebuild');           // 重建 manifest，全站背景轮播立即生效
+  drawBgList();
+  toast('✅ 背景图已上传（点「保存」写入配置）');
+  this.value='';
+});
+
+/* ================= 暂存队列 ================= */
+let QUEUE=[];
+function stage(sec,label){
+  const data=collectSection(sec);
+  return api('/api/config/stage',{section:sec,label,data}).then(d=>{
+    if(d.ok){ QUEUE=d.queue; drawQueue(); toast('📥 已暂存「'+label+'」，记得点「更新本地」'); }
+    else toast(d.error||'暂存失败');
+  });
+}
+function stageApply(sec,label){
+  const data=collectSection(sec);
+  return api('/api/config/stage',{section:sec,label,data}).then(d=>{
+    if(!d.ok){ toast(d.error||'暂存失败'); return; }
+    return api('/api/config/apply').then(d2=>{
+      if(d2.ok){ CFG[sec]=data; QUEUE=d2.queue||[]; drawQueue(); toast('⚡ 「'+label+'」已保存并生效'); }
+      else toast(d2.error||'应用失败');
+    });
+  });
+}
+function drawQueue(){
+  const bar=$('#queueBar');
+  bar.classList.toggle('show', QUEUE.length>0);
+  $('#qCount').textContent=QUEUE.length;
+  $('#queueOps').innerHTML = QUEUE.map(o=>`<span class="chip">${esc(o.label)}<button title="撤销" onclick="removeOp('${o.id}')">✕</button></span>`).join('');
+}
+async function removeOp(id){ const d=await api('/api/config/stage/remove',{id}); if(d.ok){ QUEUE=d.queue; drawQueue(); } }
+async function clearQueue(){ const d=await api('/api/config/stage/clear'); if(d.ok){ QUEUE=[]; drawQueue(); toast('已清空暂存队列'); } }
+async function applyQueue(){
+  const d=await api('/api/config/apply');
+  if(d.ok){ QUEUE=d.queue||[]; drawQueue(); toast('✅ 已更新本地：'+d.applied.join('、')); loadCfg(); }
+  else toast(d.error||'队列为空');
+}
+async function syncBlog(){ showSec('deploy'); doPush(); }
+
+/* ================= 启动加载 ================= */
+async function loadCfg(){
+  const d=await api('/api/config');
+  if(!d.ok){ toast('配置加载失败'); return; }
+  CFG=d.config; QUEUE=d.queue||[];
+  SECTIONS.forEach(([k])=>{ if(k!=='deploy'&&CFG[k]) loadSection(k,CFG); });
+  drawQueue();
+  loadDeploy();
+}
+
+/* ================= AI 猫测试 ================= */
+async function testCat(){
+  const data=collectSection('aiCat');
+  toast('⏳ 正在让猫猫回话…');
+  try{
+    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:[{role:'user',content:'你好呀，打个招呼吧'}]})});
+    const d=await r.json();
+    toast(d.ok?('🐱 猫猫说：'+d.reply.slice(0,40)):('❌ '+d.error));
+  }catch(e){ toast('❌ '+e.message); }
+}
+
+/* ================= 图床探针 ================= */
+async function probePicBed(){
+  toast('⏳ 探针发送中…');
+  // 探针前先临时应用当前表单值（探针接口读的是已保存配置）
+  const data=collectSection('picBed');
+  await api('/api/config/stage',{section:'picBed',label:'图床',data});
+  await api('/api/config/apply');
+  const d=await api('/api/picbed/probe',{});
+  toast(d.ok?('📡 连通！'+(d.msg||'')+(d.data&&d.data.name?(' · '+d.data.name):'')):('❌ '+(d.error||d.msg||'探测失败')));
+}
+
+/* ================= 部署（= 同步 Blog） ================= */
+function readForm(){ return { repoUrl:$('#repoUrl').value, branch:$('#branch').value, commitMsg:$('#commitMsg').value, siteUrl:$('#siteUrl').value }; }
+async function loadDeploy(){
+  const d=await api('/api/deploy/config');
+  if(d.ok){ $('#repoUrl').value=d.config.repoUrl||''; $('#branch').value=d.config.branch||'main'; $('#commitMsg').value=d.config.commitMsg||''; $('#siteUrl').value=d.config.siteUrl||''; }
+}
+async function saveDeploy(alsoToast){
+  const d=await api('/api/deploy/config', readForm());
+  if(alsoToast) toast(d.ok?'部署配置已保存 ✔':'保存失败');
+  return d.ok;
+}
+function chips(arr){ $('#statusChips').innerHTML = arr.map(x=>`<span class="badge ${x.cls}">● ${x.t}</span>`).join(''); }
+async function doCheck(){
+  if(!$('.sec[data-sec="deploy"]').classList.contains('active')) return;
+  clearLog(); log('> 检测环境...');
+  const d=await api('/api/deploy/check',{});
+  if(!d.ok){ log('检测失败'); return; }
+  log('Git 仓库: '+(d.git?'✓ 已初始化':'✗ 未初始化'));
+  log('远程 origin: '+(d.hasRemote?('✓ '+d.remoteUrl):'✗ 未配置'));
+  log('未提交变更: '+d.pendingChanges+' 个文件');
+  chips([
+    {t:d.git?'Git 已就绪':'未初始化', cls:d.git?'pub':'draft'},
+    {t:d.hasRemote?'远程已配置':'远程未配置', cls:d.hasRemote?'pub':'draft'},
+    {t:'待同步 '+d.pendingChanges+' 项', cls:d.pendingChanges>0?'draft':'pub'}
+  ]);
+  $('#pendingList').innerHTML = (d.pendingFiles||[]).map(x=>`<span class="chip mono">${x.x.trim()} ${x.f}</span>`).join('') || '<span class="dim mono" style="font-size:11px">本地与远程一致</span>';
+}
+async function doInit(){
+  if(!await saveDeploy(false)){ toast('请先填写仓库地址'); return; }
+  clearLog(); log('> 初始化仓库...');
+  const d=await api('/api/deploy/init', readForm());
+  (d.log||[]).forEach(l=>log(l));
+  if(d.ok){ log('✓ 初始化完成'); toast('仓库已初始化 ✔'); doCheck(); } else { log('✗ '+(d.error||'失败')); toast(d.error||'初始化失败'); }
+}
+async function doAdopt(){
+  if(!confirm('⚠️ 将用本地当前版本接管远端仓库：\n· 保留远端提交历史\n· 远端旧文件将被本地新版覆盖/删除\n\n确认执行？')) return;
+  if(!await saveDeploy(false)){ toast('保存失败'); return; }
+  clearLog(); log('> 首次接管...');
+  const d=await api('/api/deploy/adopt', readForm());
+  (d.log||[]).forEach(l=>log(l));
+  if(d.ok){ log('✓ 接管完成'); toast('接管成功 🎉'); doCheck(); } else { log('✗ '+(d.error||'失败')); toast('接管失败，详见日志'); }
+}
+async function doPush(){
+  if(!await saveDeploy(false)){ toast('保存失败'); return; }
+  const btn=$('#btnPush'); btn.disabled=true; btn.textContent='⏳ 推送中...';
+  clearLog(); log('> 同步 Blog：add → commit → push ...');
+  try{
+    const d=await api('/api/deploy/publish', readForm());
+    (d.log||[]).forEach(l=>log(l));
+    if(d.ok){ log(d.upToDate?'✓ 远程已是最新的':'✓ 推送成功！远端将自动触发构建'); toast(d.upToDate?'已是最新':'同步成功 🚀'); }
+    else { log('✗ '+(d.error||'失败')); toast('同步失败，详见日志'); }
+  }catch(e){ toast('异常'); }
+  btn.disabled=false; btn.textContent='🚀 同步 Blog（推送）';
+  doCheck();
+}
+loadCfg();
+</script>
+</body>
+</html>

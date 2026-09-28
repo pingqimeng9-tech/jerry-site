@@ -1,0 +1,304 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>创作草稿箱 · Jerry CMS</title>
+<link rel="stylesheet" href="./admin.css">
+<style>
+  .draft-head{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+  .draft-head h1{font-size:30px;font-weight:700;display:flex;align-items:center;gap:12px}
+  .draft-head .count{width:34px;height:34px;border-radius:50%;background:rgba(177,140,255,.2);border:1px solid rgba(177,140,255,.5);color:var(--violet);font-family:var(--mono);font-size:15px;display:flex;align-items:center;justify-content:center}
+  .draft-sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+  .search-pill{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--glass);border:1px solid var(--glass-border);border-radius:999px;padding:10px 18px;min-width:260px}
+  .search-pill input{background:none;border:none;outline:none;color:var(--ink);font-size:13px;width:100%}
+  .search-pill input::placeholder{color:var(--muted)}
+  .draft-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px;align-items:center}
+  .btn.newpost{background:linear-gradient(120deg,var(--violet),var(--aqua));color:#fff;box-shadow:0 10px 26px rgba(177,140,255,.3)}
+  .draft-list{display:flex;flex-direction:column;gap:14px}
+  .draft-card{padding:18px 22px}
+  .draft-card .row1{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .draft-card .cat{font-family:var(--mono);font-size:10px;color:var(--pink);border:1px solid rgba(255,140,217,.4);background:rgba(255,140,217,.08);padding:2px 10px;border-radius:999px}
+  .draft-card .date{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .draft-card .del{margin-left:auto;width:30px;height:30px;border-radius:50%;border:none;background:rgba(255,255,255,.06);color:var(--muted);font-size:14px;transition:.15s}
+  .draft-card .del:hover{background:var(--danger);color:#fff}
+  .draft-card .t{font-size:17px;font-weight:700;margin-bottom:6px}
+  .draft-card .ex{font-size:13px;color:var(--muted);margin-bottom:12px;font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .draft-card .acts{display:flex;gap:10px;align-items:center}
+  .draft-card .acts .btn{padding:8px 16px;font-size:12px}
+  .draft-card .acts .spacer{flex:1}
+  @media(max-width:640px){.search-pill{min-width:100%;margin-left:0}.draft-head h1{font-size:22px}}
+  /* ---- Notion 同步面板 ---- */
+  .nt{margin:0 0 24px;padding:0;overflow:hidden}
+  .nt-head{display:flex;align-items:center;gap:12px;padding:16px 22px;cursor:pointer;user-select:none}
+  .nt-head .nt-ico{font-size:20px}
+  .nt-head .nt-t{font-size:15px;font-weight:700}
+  .nt-head .nt-state{font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:999px;border:1px solid}
+  .nt-state.on{color:var(--aqua);border-color:rgba(92,225,230,.45);background:rgba(92,225,230,.10)}
+  .nt-state.off{color:var(--warn);border-color:rgba(255,209,102,.45);background:rgba(255,209,102,.10)}
+  .nt-head .nt-caret{margin-left:auto;color:var(--muted);transition:transform .2s}
+  .nt.open .nt-caret{transform:rotate(180deg)}
+  .nt-body{display:none;padding:0 22px 20px;border-top:1px solid var(--glass-border)}
+  .nt.open .nt-body{display:block}
+  .nt-cfg{display:grid;grid-template-columns:1.4fr 1fr auto;gap:10px;margin:16px 0 10px}
+  .nt-cfg input{background:rgba(0,0,0,.22);border:1px solid var(--glass-border);border-radius:10px;padding:10px 14px;color:var(--ink);font-size:12px;font-family:var(--mono);outline:none;width:100%;box-sizing:border-box}
+  .nt-cfg input:focus{border-color:var(--violet)}
+  .nt-hint{font-size:11px;color:var(--muted);line-height:1.7;margin-bottom:14px}
+  .nt-hint a{color:var(--aqua)}
+  .nt-ops{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .nt-ops label{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;cursor:pointer}
+  .nt-result{display:none}
+  .nt-sum{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .nt-pill{font-family:var(--mono);font-size:12px;padding:8px 16px;border-radius:999px;border:1px solid var(--glass-border);background:rgba(255,255,255,.05)}
+  .nt-pill b{font-size:15px;margin-left:6px}
+  .nt-pill.add b{color:#7CFFB2}.nt-pill.upd b{color:var(--warn)}.nt-pill.same b{color:var(--muted)}
+  .nt-group{margin-bottom:12px}
+  .nt-group h4{font-size:12px;margin:0 0 8px;color:var(--muted);font-weight:600}
+  .nt-item{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);margin-bottom:6px;font-size:13px}
+  .nt-item .tag{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:999px;flex-shrink:0}
+  .nt-item .tag.add{color:#7CFFB2;background:rgba(124,255,178,.12);border:1px solid rgba(124,255,178,.4)}
+  .nt-item .tag.upd{color:var(--warn);background:rgba(255,209,102,.12);border:1px solid rgba(255,209,102,.4)}
+  .nt-item .meta{color:var(--muted);font-size:11px;font-family:var(--mono);margin-left:auto;flex-shrink:0}
+  .nt-item .chg{width:100%;font-size:11px;color:var(--muted);margin-top:4px;font-family:var(--mono)}
+  .nt-warn{font-size:11px;color:var(--warn);background:rgba(255,209,102,.08);border:1px solid rgba(255,209,102,.3);border-radius:10px;padding:8px 12px;margin-top:6px;line-height:1.6}
+  .nt-err{font-size:12px;color:var(--danger);background:rgba(255,122,92,.08);border:1px solid rgba(255,122,92,.3);border-radius:10px;padding:10px 14px;margin-top:8px;line-height:1.6;white-space:pre-wrap}
+  .nt-log{margin-top:10px;max-height:180px;overflow:auto;background:rgba(0,0,0,.3);border-radius:10px;padding:10px 14px;font-family:var(--mono);font-size:10px;color:var(--muted);white-space:pre-wrap;line-height:1.6;display:none}
+  .nt-spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:ntrot .7s linear infinite}
+  @keyframes ntrot{to{transform:rotate(360deg)}}
+  @media(max-width:760px){.nt-cfg{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="logo">Jerry <b>CMS</b> <span class="dim mono" style="font-size:12px;font-weight:400">/ 本地管理控制台</span></div>
+    <div class="links">
+      <a class="btn ghost" href="../blog.html" target="_blank">↗ 查看博客</a>
+      <a class="btn ghost" href="settings.html">⚙ 发布设置</a>
+    </div>
+  </div>
+
+  <div class="draft-head">
+    <h1>📝 创作草稿箱 <span class="count" id="countBadge">0</span></h1>
+    <div class="search-pill">🔍<input id="search" placeholder="检索草稿..." oninput="render()"></div>
+  </div>
+  <p class="draft-sub">✨ 草稿和编辑后未推送的文章。推送成功后自动移出，已上线文章去博客页点 ✎ 编辑。</p>
+
+  <!-- Notion 同步面板 -->
+  <div class="glass nt" id="ntPanel">
+    <div class="nt-head" onclick="toggleNt()">
+      <span class="nt-ico">🔄</span>
+      <span class="nt-t">Notion 同步</span>
+      <span class="nt-state off" id="ntState">未配置</span>
+      <span class="nt-caret">▼</span>
+    </div>
+    <div class="nt-body">
+      <div class="nt-cfg">
+        <input id="ntToken" type="password" placeholder="Notion Integration Token（ntn_ 开头）" autocomplete="off">
+        <input id="ntDb" type="text" placeholder="数据库 ID（分享链接里 32 位那段，或 data source id）" autocomplete="off">
+        <button class="btn ghost" onclick="ntSave()">保存配置</button>
+      </div>
+      <div class="nt-hint">
+        获取方式：Notion 里 Settings → Connections → Develop/Manage integrations 新建 Internal Integration 拿到 Token；
+        打开你的博客数据库 → ••• → Connections 里勾选该 Integration 授权；数据库「Share to web」链接中 <code>?v=</code> 前的 32 位字符就是数据库 ID。
+        Token 只保存在本机 <code>data/notion_config.json</code>（不会上传，已在 .gitignore 中）。
+      </div>
+      <div class="nt-ops">
+        <button class="btn ghost" id="ntPreviewBtn" onclick="ntPreview()">🔍 预览变更</button>
+        <button class="btn primary" id="ntSyncBtn" onclick="ntSync()">♻️ 开始同步</button>
+        <label><input type="checkbox" id="ntAutoPub" checked> 同步后自动发布上线（推送到 GitHub/Vercel）</label>
+      </div>
+      <div class="nt-result" id="ntResult"></div>
+    </div>
+  </div>
+
+  <div class="draft-actions">
+    <a class="btn newpost" href="editor.html?id=new">✍️ 新建文章</a>
+    <div style="flex:1"></div>
+    <select id="filter" class="tb-select" style="padding:9px 14px;font-size:13px">
+      <option value="all">全部</option>
+      <option value="pending">待上线</option>
+      <option value="draft">草稿</option>
+      <option value="published">已发布</option>
+    </select>
+  </div>
+
+  <div class="draft-list" id="list"></div>
+  <div class="empty" id="empty" style="display:none">还没有草稿，点上面「✍️ 新建文章」开始创作。</div>
+</div>
+<button class="fab" title="新建文章" onclick="location.href='editor.html?id=new'">＋</button>
+<div class="pic-toast" id="pic-toast"></div>
+
+<script>
+const state = { posts: [], filter: 'all', q: '' };
+
+async function load() {
+  const res = await fetch('/api/admin/posts', { method: 'POST' });
+  const data = await res.json();
+  state.posts = data.posts || [];
+  render();
+}
+
+function isPending(p){ return p.status==='draft' || !p.syncedAt || (p.updatedAt && p.syncedAt && p.updatedAt > p.syncedAt); }
+function statusLabel(p){
+  if(p.status==='draft') return '<span style="color:#B18CFF;font-size:11px">草稿</span>';
+  if(!p.syncedAt || (p.updatedAt && p.syncedAt && p.updatedAt > p.syncedAt)) return '<span style="color:#FFD166;font-size:11px">未推送</span>';
+  return '<span style="color:#5CE1E6;font-size:11px">已上线</span>';
+}
+function render() {
+  const q = state.q.trim().toLowerCase();
+  let posts = state.posts; if(state.filter==='pending') posts=posts.filter(isPending); else if(state.filter!=='all') posts=posts.filter(p=>p.status===state.filter);
+  if (q) posts = posts.filter(p => ((p.title||'') + (p.excerpt||'') + (p.category||'')).toLowerCase().includes(q));
+  document.getElementById('countBadge').textContent = state.posts.length;
+  const list = document.getElementById('list');
+  const empty = document.getElementById('empty');
+  if (!posts.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  list.innerHTML = posts.map(card).join('');
+}
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function card(p){
+  const st = p.status === 'published'
+    ? '<span class="badge pub">● 已发布</span>'
+    : '<span class="badge draft">● 草稿</span>';
+  return `<div class="glass draft-card">
+    <div class="row1">${st}<span class="cat">${esc(p.category||'未分类')}</span> ${statusLabel(p)}<span class="date">${esc(p.date||'')}</span><button class="del" title="删除" onclick="del('${esc(p.id)}')">✕</button></div>
+    <div class="t">${esc(p.title || '无标题')}</div>
+    <div class="ex">${esc(p.excerpt || (p.markdown||'').slice(0,90))}</div>
+    <div class="acts">
+      <a class="btn ghost" href="editor.html?id=${encodeURIComponent(p.id)}">✏️ 编辑</a>
+      <a class="btn ghost" href="../post.html?id=${encodeURIComponent(p.id)}" target="_blank">👁 预览</a>
+      <button class="btn ${p.status==='published'?'danger':'primary'}" onclick="toggleStatus('${esc(p.id)}','${p.status==='published'?'draft':'published'}')">${p.status==='published'?'转为草稿':'🚀 发布'}</button>
+      <span class="spacer"></span>
+      <span class="mono dim" style="font-size:11px">浏览 ${p.views||0}</span>
+    </div>
+  </div>`;
+}
+
+async function toggleStatus(id, status){
+  const p = state.posts.find(x => x.id === id);
+  const res = await fetch('/api/post/save', { method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ id, title:p.title, category:p.category, excerpt:p.excerpt, cover:p.cover, date:p.date, tags:p.tags, mood:p.mood, markdown:p.markdown, status }) });
+  const d = await res.json();
+  toast(d.ok ? (status==='published'?'🚀 已发布！回博客页即可看到':'已转为草稿') : '保存失败');
+  load();
+}
+
+async function del(id){
+  if (!confirm('确定删除这篇草稿？此操作不可恢复。')) return;
+  const res = await fetch('/api/post/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({id}) });
+  toast((await res.json()).ok ? '已删除' : '删除失败');
+  load();
+}
+
+function toast(msg){
+  const el = document.getElementById('pic-toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(()=>el.classList.remove('show'), 2000);
+}
+
+document.getElementById('filter').addEventListener('change', e => { state.filter = e.target.value; render(); });
+document.getElementById('search').addEventListener('input', e => { state.q = e.target.value; render(); });
+
+// ==================== Notion 同步 ====================
+function toggleNt(){ document.getElementById('ntPanel').classList.toggle('open'); }
+function escNt(s){ return esc(s); }
+function ntBusy(btn, busy, text){
+  btn.disabled = busy;
+  if(busy) btn.innerHTML = '<span class="nt-spin"></span> ' + text;
+}
+async function ntInit(){
+  try{
+    const r = await (await fetch('/api/notion/config')).json();
+    const st = document.getElementById('ntState');
+    if(r.configured){ st.textContent = '已配置 ' + r.tokenMask; st.className = 'nt-state on'; }
+    else { st.textContent = '未配置'; st.className = 'nt-state off'; document.getElementById('ntPanel').classList.add('open'); }
+    if(r.databaseId) document.getElementById('ntDb').value = r.databaseId;
+  }catch(e){}
+}
+async function ntSave(){
+  const token = document.getElementById('ntToken').value.trim();
+  const databaseId = document.getElementById('ntDb').value.trim();
+  if(!databaseId){ toast('请填写数据库 ID'); return; }
+  if(!token){
+    const r0 = await (await fetch('/api/notion/config')).json();
+    if(!r0.configured){ toast('请填写 Token'); return; }
+  }
+  const r = await (await fetch('/api/notion/config', { method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ token, databaseId }) })).json();
+  if(r.ok){ toast('✅ Notion 配置已保存到本机'); ntInit(); document.getElementById('ntToken').value=''; }
+  else toast('保存失败：' + r.error);
+}
+function renderDiff(data){
+  const el = document.getElementById('ntResult');
+  el.style.display = 'block';
+  const added = data.added || [], updated = data.updated || [], same = data.unchangedCount || 0;
+  let html = `<div class="nt-sum">
+    <span class="nt-pill add">🆕 新增<b>${added.length}</b></span>
+    <span class="nt-pill upd">✏️ 修改<b>${updated.length}</b></span>
+    <span class="nt-pill same">＝ 未变<b>${same}</b></span>
+  </div>`;
+  if(added.length){
+    html += `<div class="nt-group"><h4>新增文章（${added.length}）</h4>` + added.map(p =>
+      `<div class="nt-item"><span class="tag add">新增</span><span>${escNt(p.title)}</span><span class="meta">${escNt(p.category||'')} · ${p.status==='draft'?'草稿':'发布'} · ${escNt(p.date||'')}</span></div>`).join('') + `</div>`;
+  }
+  if(updated.length){
+    html += `<div class="nt-group"><h4>有修改的文章（${updated.length}）</h4>` + updated.map(p =>
+      `<div class="nt-item" style="flex-wrap:wrap"><span class="tag upd">修改</span><span>${escNt(p.title)}</span><span class="meta">${escNt(p.category||'')} · ${p.status==='draft'?'草稿':'发布'} · ${escNt(p.date||'')}</span>${
+        (p.changes&&p.changes.length) ? `<div class="chg">${p.changes.map(c=>escNt(c.field)+'：'+escNt(c.from||'空')+' → '+escNt(c.to||'空')).join('；')}${p.bodyChanged===false?'':'；正文/素材可能有变化'}</div>` : '<div class="chg">正文或素材有修改，同步时将重新下载图片/附件/演示包</div>'
+      }</div>`).join('') + `</div>`;
+  }
+  if(!added.length && !updated.length) html += '<div class="nt-hint" style="margin:0">✅ Notion 与本地完全一致，没有需要同步的内容。</div>';
+  el.innerHTML = html;
+}
+async function ntPreview(){
+  const btn = document.getElementById('ntPreviewBtn');
+  ntBusy(btn, true, '正在连接 Notion…');
+  try{
+    const r = await (await fetch('/api/notion/preview', { method:'POST' })).json();
+    if(r.ok) renderDiff(r);
+    else document.getElementById('ntResult').innerHTML = '<div class="nt-err">'+escNt(r.error||'预览失败')+'</div>', document.getElementById('ntResult').style.display='block';
+  }catch(e){ document.getElementById('ntResult').innerHTML = '<div class="nt-err">'+escNt(e.message)+'</div>', document.getElementById('ntResult').style.display='block'; }
+  ntBusy(btn, false, ''); btn.textContent = '🔍 预览变更';
+}
+async function ntSync(){
+  const added = document.querySelectorAll('#ntResult .tag.add').length;
+  const upd = document.querySelectorAll('#ntResult .tag.upd').length;
+  const autoPub = document.getElementById('ntAutoPub').checked;
+  if(!document.querySelector('#ntResult[style*="block"]')){ toast('请先点「预览变更」确认要同步的内容'); return; }
+  if(!added && !upd){ toast('没有需要同步的内容'); return; }
+  if(!confirm(`将同步 ${added} 篇新增、${upd} 篇修改的文章${autoPub?'，完成后自动发布上线':''}（仅保存到本地草稿，不会删除文章）。继续？`)) return;
+  const btn = document.getElementById('ntSyncBtn');
+  const el = document.getElementById('ntResult');
+  ntBusy(btn, true, '同步中…');
+  el.innerHTML = '<div class="nt-hint" style="margin:0">⏳ 正在从 Notion 拉取文章并下载图片/附件/演示包，文章较多时可能需要几分钟，请勿关闭页面…</div>';
+  el.style.display = 'block';
+  try{
+    const r = await (await fetch('/api/notion/sync', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ publish: autoPub }) })).json();
+    if(!r.ok){ el.innerHTML = '<div class="nt-err">'+escNt(r.error||'同步失败')+'</div>'+(r.log?'<div class="nt-log" style="display:block">'+escNt(r.log)+'</div>':''); return; }
+    let html = `<div class="nt-sum">
+      <span class="nt-pill add">已同步<b>${r.synced}</b></span>
+      <span class="nt-pill upd">新增<b>${r.addedCount}</b> · 修改<b>${r.updatedCount}</b></span>
+      <span class="nt-pill same">文章总数<b>${r.totalPosts}</b></span>
+    </div>
+    <div class="nt-hint" style="margin:0 0 10px">素材：图片 ${r.stats.images} · 附件 ${r.stats.files} · 视频 ${r.stats.videos} · 演示包 ${r.stats.packages} · 封面 ${r.stats.covers}；本地原创文章保留 ${r.keptLocal} 篇。</div>`;
+    if(r.failures && r.failures.length) html += '<div class="nt-err">失败项：\n'+r.failures.map(escNt).join('\n')+'</div>';
+    if(r.warnings && r.warnings.length) html += r.warnings.map(w=>'<div class="nt-warn">⚠ '+escNt(w)+'</div>').join('');
+    if(r.publish){
+      if(r.publish.ok) html += '<div class="nt-hint" style="margin:10px 0 0;color:#7CFFB2">🚀 已自动发布上线，Vercel 约 1-2 分钟完成部署，刷新 callmiruko.cc 即可看到。</div>';
+      else html += '<div class="nt-err">同步完成但发布失败：'+escNt(r.publish.error||'')+'</div><div class="nt-log" style="display:block">'+escNt((r.publish.log||[]).join('\n'))+'</div>';
+    } else {
+      html += '<div class="nt-hint" style="margin:10px 0 0;color:var(--warn)">文章已保存到本地，可在草稿箱检查；确认无误后在「发布设置」里点发布，或勾选自动发布后再同步。</div>';
+    }
+    el.innerHTML = html;
+    load();
+  }catch(e){ el.innerHTML = '<div class="nt-err">'+escNt(e.message)+'</div>'; }
+  ntBusy(btn, false, ''); btn.textContent = '♻️ 开始同步';
+}
+ntInit();
+load();
+</script>
+</body>
+</html>

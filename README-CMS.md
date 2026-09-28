@@ -99,6 +99,32 @@ node server.js
 - **无障碍**：工具栏按钮带 title；关键控件为原生 button/input。
 - **安全性**：静态文件做了路径穿越拦截；上传仅接受图片并清洗文件名。
 
+## Notion 增量同步（控制台面板）
+
+控制台顶部「🔄 Notion 同步」面板（或命令行 `node scripts/notion-sync.mjs --mode=preview|sync`）：
+
+- 配置保存在 `data/notion_config.json`（Notion Integration Token + 数据库 ID），**仅本地、已 gitignore**；
+- 「预览变更」只拉数据库元数据（秒级），列出新增/修改/未变文章及字段变化，不拉正文不下载；
+- 「开始同步」仅转换新增和改动的文章（按 Notion 最后编辑时间判断），正文图片/附件/视频/HTML 演示包全部本地化，未变文章不动；本地原创文章、文章 ID、浏览量保留；
+- 勾选「同步后自动发布上线」则同步完成后自动执行 Git 推送；同步前 `data/posts.json` 自动备份（`*.bak-notion-*`）；
+- 同步以 Notion 为源头：同一篇文章本地手改后再同步，会被 Notion 版本覆盖。
+
+## 换电脑 / 从零恢复后台（CMS 已与站点一起入库）
+
+CMS 代码（`admin/`、`server.js`、启动脚本）随仓库一起版本管理，新机器上：
+
+```
+git clone <仓库地址> jerry-site
+cd jerry-site
+npm install                      # 仅 Notion 同步需要 @notionhq/client / notion-to-md
+copy data\site_config.example.json data\site_config.json   # 填入 AI Key / 图床 Token 等
+node server.js                   # 或双击 start-jerry-cms.bat
+```
+
+- `data/site_config.json`（全量密钥）与 `data/notion_config.json`（Notion Token）**不入库**，需在新机器重新填写（控制台设置页 / Notion 同步面板都可在线保存）；
+- `data/deploy_config.json`（仓库地址，无密钥）随仓库走；发布用的 SSH Key 在新机器上需自行配置；
+- 线上 `/admin/` 路径虽能打开页面壳，但所有写接口只存在于本地 `server.js`（线上 `api/` 为只读 serverless），无法通过公网改动内容；`vercel.json` 已对 `/admin/*` 设 `noindex`。
+
 ## 已知边界
 
 - `post.html` 渲染依赖 CDN 的 `marked.min.js`，离线打开文章页需联网加载该脚本（正文数据本身在本地）。完全离线也可在 `server.js` 挂一个本地 `marked`，需要的话说一声。

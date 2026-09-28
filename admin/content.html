@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jerry CMS · 内容管理</title>
+<link rel="stylesheet" href="./admin.css">
+<style>
+  .c-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  .c-tab{padding:9px 18px;border-radius:999px;border:1px solid var(--glass-border);background:var(--glass);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s}
+  .c-tab.active{background:var(--cta-grad);color:#fff;border-color:transparent}
+  .c-pane{display:none}.c-pane.active{display:block}
+  .form-glass{padding:20px 24px;margin-bottom:18px}
+  .form-glass h3{font-size:15px;font-weight:900;margin-bottom:14px;display:flex;gap:8px;align-items:center}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  @media(max-width:760px){.grid2,.grid3{grid-template-columns:1fr}}
+  .it-list{display:flex;flex-direction:column;gap:10px}
+  .it-card{padding:16px 20px}
+  .it-card .top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .it-card .top .t{font-weight:700;font-size:14.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .it-card .body{font-size:13px;color:var(--muted);line-height:1.7;max-height:64px;overflow:hidden}
+  .it-card .thumbs{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+  .it-card .thumbs img{width:52px;height:52px;object-fit:cover;border-radius:8px}
+  .it-card .acts{display:flex;gap:8px;margin-top:10px}
+  .media-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .media-row .mchip{padding:4px 10px;background:rgba(92,225,230,.12);color:var(--aqua);border:1px solid rgba(92,225,230,.3);border-radius:999px;font-family:var(--mono);font-size:11px;display:inline-flex;gap:6px;align-items:center;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .media-row .mchip button{background:none;border:none;color:inherit;opacity:.6;cursor:pointer}
+  .imgpick{display:flex;gap:12px;align-items:center}
+  .imgpick .pv{width:58px;height:58px;border-radius:12px;object-fit:cover;border:1px solid var(--glass-border);background:rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px;overflow:hidden;flex:none}
+  .imgpick .pv img{width:100%;height:100%;object-fit:cover}
+  .cmt-row{display:flex;gap:10px;align-items:center;padding:10px 14px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;font-size:13px;flex-wrap:wrap}
+  .cmt-row .who{color:var(--aqua);font-weight:700}
+  .cmt-row .when{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .cmt-row .txt{flex:1;min-width:200px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap" style="max-width:1000px">
+  <div class="topbar">
+    <div class="logo">Jerry <b>CMS</b> <span class="dim mono" style="font-size:12px;font-weight:400">/ 内容管理</span></div>
+    <div class="links">
+      <a class="btn ghost" href="./index.html">📝 草稿箱</a>
+      <a class="btn ghost" href="./settings.html">⚙️ 设置</a>
+      <a class="btn ghost" href="/" target="_blank">↗ 看站</a>
+    </div>
+  </div>
+
+  <div class="c-tabs" id="tabs">
+    <button class="c-tab active" data-k="moments">💬 说说</button>
+    <button class="c-tab" data-k="friends">🔗 友链</button>
+    <button class="c-tab" data-k="projects">🚀 项目</button>
+    <button class="c-tab" data-k="albums">📷 相册</button>
+    <button class="c-tab" data-k="comments">🗑 评论管理</button>
+  </div>
+
+  <!-- 说说 -->
+  <div class="c-pane" data-k="moments">
+    <div class="glass form-glass">
+      <h3 id="m-form-title">✏️ 发布新说说</h3>
+      <input type="hidden" id="m-id">
+      <div class="grid3">
+        <div class="field"><label><i></i>心情</label>
+          <select id="m-mood"><option value="">默认 ✨</option><option>开心</option><option>快乐</option><option>兴奋</option><option>平静</option><option>无语</option><option>难过</option><option>生气</option><option>疲惫</option><option>思考</option><option>摸鱼</option><option>庆祝</option></select>
+        </div>
+        <div class="field"><label><i></i>时间</label><input id="m-date" type="datetime-local"></div>
+        <div class="field"><label><i></i> </label>
+          <button class="btn primary" style="width:100%" onclick="saveMoment()">📥 发布 / 保存</button>
+        </div>
+      </div>
+      <div class="field" style="margin-top:14px"><label><i></i>内容</label><textarea id="m-text" rows="3" placeholder="想说的话…"></textarea></div>
+      <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="mini-btn" onclick="upMedia('m-imgs','image')">＋ 上传图片（可多选）</button>
+        <button class="mini-btn" onclick="upMedia('m-video','video')">＋ 上传视频</button>
+      </div>
+      <div class="media-row" id="m-media"></div>
+    </div>
+    <div class="it-list" id="m-list"></div>
+  </div>
+
+  <!-- 友链 -->
+  <div class="c-pane" data-k="friends">
+    <div class="glass form-glass">
+      <h3 id="f-form-title">✏️ 添加友链</h3>
+      <input type="hidden" id="f-id">
+      <div class="grid2">
+        <div class="field"><label><i></i>站点名称</label><input id="f-name" placeholder="TA 的小站"></div>
+        <div class="field"><label><i></i>站点地址</label><input id="f-url" placeholder="https://..."></div>
+      </div>
+      <div class="field" style="margin-top:14px"><label><i></i>一句话介绍</label><input id="f-desc"></div>
+      <div class="field" style="margin-top:14px"><label><i></i>头像</label>
+        <div class="imgpick">
+          <div class="pv" id="f-av-pv">🌐</div>
+          <input id="f-avatar" placeholder="https://... 或上传" style="flex:1">
+          <button class="mini-btn" onclick="upToInput('f-avatar','f-av-pv','images/posts')">上传</button>
+        </div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:10px">
+        <button class="btn primary" onclick="saveItem('friends')">📥 保存</button>
+        <button class="btn ghost" onclick="resetForm('friends')">重置</button>
+      </div>
+    </div>
+    <div class="it-list" id="f-list"></div>
+  </div>
+
+  <!-- 项目 -->
+  <div class="c-pane" data-k="projects">
+    <div class="glass form-glass">
+      <h3 id="p-form-title">✏️ 添加项目</h3>
+      <input type="hidden" id="p-id">
+      <div class="grid2">
+        <div class="field"><label><i></i>项目名称</label><input id="p-title"></div>
+        <div class="field"><label><i></i>项目链接（可选）</label><input id="p-url" placeholder="https://..."></div>
+      </div>
+      <div class="field" style="margin-top:14px"><label><i></i>项目介绍</label><textarea id="p-desc" rows="2"></textarea></div>
+      <div class="grid2" style="margin-top:14px">
+        <div class="field"><label><i></i>标签（逗号分隔）</label><input id="p-tags" placeholder="Python, Web, AI"></div>
+        <div class="field"><label><i></i>封面图</label>
+          <div class="imgpick">
+            <div class="pv" id="p-cv-pv">🚀</div>
+            <input id="p-cover" placeholder="https://... 或上传" style="flex:1">
+            <button class="mini-btn" onclick="upToInput('p-cover','p-cv-pv','images/posts')">上传</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:10px">
+        <button class="btn primary" onclick="saveItem('projects')">📥 保存</button>
+        <button class="btn ghost" onclick="resetForm('projects')">重置</button>
+      </div>
+    </div>
+    <div class="it-list" id="p-list"></div>
+  </div>
+
+  <!-- 相册 -->
+  <div class="c-pane" data-k="albums">
+    <div class="glass form-glass">
+      <h3 id="a-form-title">✏️ 新建相册</h3>
+      <input type="hidden" id="a-id">
+      <div class="grid2">
+        <div class="field"><label><i></i>相册名</label><input id="a-title" placeholder="2026 夏日记录"></div>
+        <div class="field"><label><i></i>日期</label><input id="a-date" type="date"></div>
+      </div>
+      <div style="margin-top:12px">
+        <button class="mini-btn" onclick="upMedia('a-photos','image','images/albums')">＋ 上传照片（可多选）</button>
+        <div class="media-row" id="a-media"></div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:10px">
+        <button class="btn primary" onclick="saveAlbum()">📥 保存相册</button>
+        <button class="btn ghost" onclick="resetForm('albums')">重置</button>
+      </div>
+    </div>
+    <div class="it-list" id="a-list"></div>
+  </div>
+
+  <!-- 评论管理 -->
+  <div class="c-pane" data-k="comments">
+    <div class="glass form-glass">
+      <h3>🗑 全部评论（本地评论存储）</h3>
+      <p class="dim" style="font-size:12.5px">说说/文章下方的本地评论都存在这里，可删除不当留言。Gitalk 评论由 GitHub Issues 管理，不在此列。</p>
+    </div>
+    <div id="cm-list"></div>
+  </div>
+</div>
+<div class="pic-toast" id="pic-toast"></div>
+
+<script>
+function toast(msg){ const el=document.getElementById('pic-toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2400); }
+function esc(s){ var d=document.createElement('div'); d.textContent=s==null?'':String(s); return d.innerHTML; }
+const $=(s,root)=>(root||document).querySelector(s);
+const $$=(s,root)=>[...(root||document).querySelectorAll(s)];
+async function api(p, body){
+  const r = await fetch(p, body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:undefined);
+  return r.json();
+}
+
+/* Tabs */
+$$('.c-tab').forEach(b=>b.addEventListener('click',()=>{
+  $$('.c-tab').forEach(x=>x.classList.toggle('active',x===b));
+  $$('.c-pane').forEach(x=>x.classList.toggle('active',x.dataset.k===b.dataset.k));
+}));
+
+/* 媒体上传：图片/视频 → chip 列表 */
+let mediaDraft = { m: {images:[], video:''}, a: {photos:[]} };
+function drawMedia(){
+  $('#m-media').innerHTML =
+    mediaDraft.m.images.map((u,i)=>`<span class="mchip">🖼 ${esc(short(u))}<button onclick="mediaDraft.m.images.splice(${i},1);drawMedia()">✕</button></span>`).join('') +
+    (mediaDraft.m.video?`<span class="mchip">🎬 ${esc(short(mediaDraft.m.video))}<button onclick="mediaDraft.m.video='';drawMedia()">✕</button></span>`:'');
+  $('#a-media').innerHTML = mediaDraft.a.photos.map((u,i)=>`<span class="mchip">🖼 ${esc(short(u))}<button onclick="mediaDraft.a.photos.splice(${i},1);drawMedia()">✕</button></span>`).join('');
+}
+function short(u){ return (u||'').split('/').pop().slice(0,22); }
+async function upMedia(which, kind, dir){
+  const inp=document.createElement('input');
+  inp.type='file';
+  inp.accept = kind==='video' ? 'video/*' : 'image/*';
+  if(kind==='image') inp.multiple=true;
+  inp.onchange=async ()=>{
+    const files=[...inp.files]; if(!files.length) return;
+    toast('⏳ 上传中…');
+    for(const f of files){
+      const b64=await new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result);r.readAsDataURL(f);});
+      const d=await api('/api/upload',{base64:b64, filename:f.name, dir:dir||''});
+      if(!d.ok){ toast('上传失败：'+(d.error||'')); continue; }
+      if(which==='m-imgs') mediaDraft.m.images.push(d.url);
+      else if(which==='m-video') mediaDraft.m.video=d.url;
+      else if(which==='a-photos') mediaDraft.a.photos.push(d.url);
+    }
+    drawMedia(); toast('✅ 上传完成');
+  };
+  inp.click();
+}
+async function upToInput(targetId, pvId, dir){
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='image/*';
+  inp.onchange=async ()=>{
+    const f=inp.files[0]; if(!f) return;
+    const b64=await new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result);r.readAsDataURL(f);});
+    const d=await api('/api/upload',{base64:b64, filename:f.name, dir:dir||''});
+    if(d.ok){ $('#'+targetId).value=d.url; const pv=$('#'+pvId); pv.innerHTML='<img src="'+d.url+'">'; toast('✅ 上传成功'); }
+  };
+  inp.click();
+}
+
+/* ============ 说说 ============ */
+async function loadMoments(){
+  const d=await api('/api/moments');
+  const items=(d.items||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  $('#m-list').innerHTML = items.length ? items.map(m=>`
+    <div class="glass it-card">
+      <div class="top"><span class="t">${esc((m.text||'').slice(0,60))}</span><span class="badge pub mono">${esc((m.date||'').slice(0,16))}</span></div>
+      <div class="body">${esc(m.text||'')}</div>
+      <div class="thumbs">${(m.images||[]).map(u=>`<img src="${esc(u)}">`).join('')}${m.video?`<video src="${esc(m.video)}" style="width:92px;height:52px;object-fit:cover;border-radius:8px"></video>`:''}</div>
+      <div class="acts"><button class="btn ghost" style="padding:6px 14px;font-size:12px" onclick="editMoment('${m.id}')">✎ 编辑</button><button class="btn danger" style="padding:6px 14px;font-size:12px" onclick="delItem('moments','${m.id}')">删除</button></div>
+    </div>`).join('') : '<div class="empty">还没有说说，先发一条～</div>';
+}
+function editMoment(id){
+  api('/api/moments').then(d=>{
+    const m=(d.items||[]).find(x=>x.id===id); if(!m) return;
+    $('#m-id').value=m.id; $('#m-text').value=m.text||''; $('#m-mood').value=m.mood||'';
+    $('#m-date').value=(m.date||'').slice(0,16).replace(' ','T');
+    mediaDraft.m={images:[...(m.images||[])], video:m.video||''};
+    drawMedia();
+    $('#m-form-title').textContent='✏️ 编辑说说';
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+}
+async function saveMoment(){
+  const item={
+    id: $('#m-id').value || undefined,
+    text: $('#m-text').value.trim(),
+    mood: $('#m-mood').value,
+    date: ($('#m-date').value || new Date().toISOString().slice(0,16)).replace('T',' '),
+    images: mediaDraft.m.images, video: mediaDraft.m.video
+  };
+  if(!item.text){ toast('说点什么再发～'); return; }
+  const d=await api('/api/collection/save',{name:'moments',item});
+  if(d.ok){ toast('✅ 已保存（「同步 Blog」后上线）'); resetMomentForm(); loadMoments(); }
+  else toast(d.error||'保存失败');
+}
+function resetMomentForm(){
+  $('#m-id').value=''; $('#m-text').value=''; $('#m-mood').value=''; $('#m-date').value='';
+  mediaDraft.m={images:[],video:''}; drawMedia();
+  $('#m-form-title').textContent='✏️ 发布新说说';
+}
+
+/* ============ 友链 / 项目 通用 ============ */
+const FORMS={
+  friends:{ id:'f-id', title:'f-form-title', addTitle:'✏️ 添加友链', editTitle:'✏️ 编辑友链',
+    read:()=>({name:$('#f-name').value.trim(), url:$('#f-url').value.trim(), desc:$('#f-desc').value.trim(), avatar:$('#f-avatar').value.trim()}),
+    write:f=>{ $('#f-name').value=f.name||''; $('#f-url').value=f.url||''; $('#f-desc').value=f.desc||''; $('#f-avatar').value=f.avatar||''; const pv=$('#f-av-pv'); pv.innerHTML=f.avatar?'<img src="'+esc(f.avatar)+'">':'🌐'; } },
+  projects:{ id:'p-id', title:'p-form-title', addTitle:'✏️ 添加项目', editTitle:'✏️ 编辑项目',
+    read:()=>({title:$('#p-title').value.trim(), url:$('#p-url').value.trim(), desc:$('#p-desc').value.trim(), tags:$('#p-tags').value.split(/[,，、\s]+/).filter(Boolean), cover:$('#p-cover').value.trim()}),
+    write:p=>{ $('#p-title').value=p.title||''; $('#p-url').value=p.url||''; $('#p-desc').value=p.desc||''; $('#p-tags').value=(p.tags||[]).join(', '); $('#p-cover').value=p.cover||''; const pv=$('#p-cv-pv'); pv.innerHTML=p.cover?'<img src="'+esc(p.cover)+'">':'🚀'; } }
+};
+async function saveItem(kind){
+  const F=FORMS[kind];
+  const item={ id: $('#'+F.id).value || undefined, ...F.read() };
+  const need = kind==='friends' ? item.url : item.title;
+  if(!need){ toast('名称/地址必填'); return; }
+  const d=await api('/api/collection/save',{name:kind,item});
+  if(d.ok){ toast('✅ 已保存（「同步 Blog」后上线）'); resetForm(kind); loadList(kind); }
+  else toast(d.error||'保存失败');
+}
+function resetForm(kind){
+  if(kind==='moments'){ resetMomentForm(); return; }
+  if(kind==='albums'){ resetAlbumForm(); return; }
+  const F=FORMS[kind];
+  $('#'+F.id).value=''; F.write({});
+  $('#'+F.title).textContent=F.addTitle;
+}
+async function loadList(kind){
+  if(kind==='moments'){ loadMoments(); return; }
+  if(kind==='albums'){ loadAlbums(); return; }
+  if(kind==='comments'){ loadComments(); return; }
+  const d=await api('/api/'+kind);
+  const items=(d.items||[]);
+  const F=FORMS[kind];
+  $('#'+kind[0]+'-list').innerHTML = items.length ? items.map(x=>`
+    <div class="glass it-card">
+      <div class="top"><span class="t">${esc(x.title||x.name||'')}</span>${(x.tags||[]).map(t=>`<span class="chip mono">${esc(t)}</span>`).join('')}</div>
+      <div class="body">${esc(x.desc||'')}${x.url?' · <span class="mono" style="font-size:11px">'+esc(x.url)+'</span>':''}</div>
+      <div class="acts"><button class="btn ghost" style="padding:6px 14px;font-size:12px" onclick="editItem('${kind}','${x.id}')">✎ 编辑</button><button class="btn danger" style="padding:6px 14px;font-size:12px" onclick="delItem('${kind}','${x.id}')">删除</button></div>
+    </div>`).join('') : '<div class="empty">还没有内容</div>';
+}
+async function editItem(kind,id){
+  const F=FORMS[kind];
+  const d=await api('/api/'+kind);
+  const x=(d.items||[]).find(v=>v.id===id); if(!x) return;
+  $('#'+F.id).value=x.id; F.write(x);
+  $('#'+F.title).textContent=F.editTitle;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+async function delItem(kind,id){
+  if(!confirm('确认删除这条内容？')) return;
+  const d=await api('/api/collection/delete',{name:kind,id});
+  if(d.ok){ toast('已删除'); loadList(kind); }
+}
+
+/* ============ 相册 ============ */
+function resetAlbumForm(){
+  $('#a-id').value=''; $('#a-title').value=''; $('#a-date').value='';
+  mediaDraft.a={photos:[]}; drawMedia();
+  $('#a-form-title').textContent='✏️ 新建相册';
+}
+async function loadAlbums(){
+  const d=await api('/api/albums');
+  const items=(d.items||[]);
+  $('#a-list').innerHTML = items.length ? items.map(a=>`
+    <div class="glass it-card">
+      <div class="top"><span class="t">${esc(a.title||'未命名相册')}</span><span class="badge pub mono">${(a.photos||[]).length} 张 · ${esc((a.date||'').slice(0,10))}</span></div>
+      <div class="thumbs">${(a.photos||[]).slice(0,8).map(u=>`<img src="${esc(u)}">`).join('')}</div>
+      <div class="acts"><button class="btn ghost" style="padding:6px 14px;font-size:12px" onclick="editAlbum('${a.id}')">✎ 编辑</button><button class="btn danger" style="padding:6px 14px;font-size:12px" onclick="delItem('albums','${a.id}')">删除</button></div>
+    </div>`).join('') : '<div class="empty">还没有相册</div>';
+}
+async function editAlbum(id){
+  const d=await api('/api/albums');
+  const a=(d.items||[]).find(x=>x.id===id); if(!a) return;
+  $('#a-id').value=a.id; $('#a-title').value=a.title||''; $('#a-date').value=(a.date||'').slice(0,10);
+  mediaDraft.a={photos:[...(a.photos||[])]}; drawMedia();
+  $('#a-form-title').textContent='✏️ 编辑相册';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+async function saveAlbum(){
+  const item={
+    id: $('#a-id').value || undefined,
+    title: $('#a-title').value.trim(),
+    date: $('#a-date').value || new Date().toISOString().slice(0,10),
+    photos: mediaDraft.a.photos
+  };
+  if(!item.title){ toast('给相册起个名字'); return; }
+  const d=await api('/api/collection/save',{name:'albums',item});
+  if(d.ok){ toast('✅ 相册已保存'); resetAlbumForm(); loadAlbums(); }
+  else toast(d.error||'保存失败');
+}
+
+/* ============ 评论管理 ============ */
+async function loadComments(){
+  const d=await api('/api/comments/all');
+  const items=(d.items||[]);
+  $('#cm-list').innerHTML = items.length ? items.map(c=>`
+    <div class="glass" style="padding:0;border:none;background:none">
+      <div class="cmt-row"><span class="who">${esc(c.name)}</span><span class="txt">${esc(c.text)}</span><span class="mono dim" style="font-size:10px">${esc(c.target)}</span><span class="when">${esc((c.date||'').slice(0,16))}</span><button class="btn danger" style="padding:5px 12px;font-size:11px" onclick="delComment('${c.id}')">删除</button></div>
+    </div>`).join('') : '<div class="empty">还没有评论</div>';
+}
+async function delComment(id){
+  if(!confirm('删除这条评论？')) return;
+  const d=await api('/api/comments/delete',{id});
+  if(d.ok) loadComments();
+}
+
+/* 启动 */
+function initDates(){
+  const n=new Date(), p=x=>String(x).padStart(2,'0');
+  $('#m-date').value=`${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}T${p(n.getHours())}:${p(n.getMinutes())}`;
+  $('#a-date').value=`${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}`;
+}
+initDates(); drawMedia(); loadMoments();
+</script>
+</body>
+</html>

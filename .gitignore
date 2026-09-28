@@ -10,20 +10,21 @@ node_modules/
 Thumbs.db
 .DS_Store
 
-# ============================
-# Jerry CMS 管理器文件（仅本地）
-# 这些文件不推到 GitHub/Vercel，线上完全不可访问
-# ============================
-admin/
-server.js
-start-jerry-cms.bat
-launcher.py
+# Python 启动器缓存
 __pycache__/
 
+# ============================
+# CMS 与站点深度绑定：admin/、server.js、启动脚本全部入库，
+# 换电脑 clone + npm install + node server.js 即可恢复完整后台。
+# 只隔离「含密钥」和「临时状态」文件：
+# ============================
+
 # ⚠ data/posts.json 等内容文件必须推到 GitHub —— 线上 /api/* serverless 函数直接读仓库里的这些文件
-# 只隔离含密钥/部署信息的本地文件：
+# 含密钥的全量站点配置（AI Key / 图床 Token / OAuth Secret），仅本地；脱敏模板见 site_config.example.json
 data/site_config.json
-data/deploy_config.json
+# Notion Integration Token，仅本地
+data/notion_config.json
+# 本地操作暂存队列（临时状态）
 data/staging_queue.json
 
 # CMS 临时
@@ -31,6 +32,3 @@ style-compare.html
 # 本地修复备份（不上线）
 *.bak
 *.bak-*
-
-# Notion 同步配置（含 token，仅本地）
-data/notion_config.json
