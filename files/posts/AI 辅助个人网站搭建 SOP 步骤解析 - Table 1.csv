@@ -1,0 +1,7 @@
+步骤阶段,操作说明,关键工具/平台,核心动作及要点,预期结果,实例图/示意内容 (Inferred),来源
+准备工作,准备必要的 AI 生成、代码托管和部署平台账号。,"ChatGPT / Claude, GitHub, Cloudflare",注册 GitHub 和 Cloudflare 账号；准备好 GPT 或 Claude 4.0 以上版本以获得更好的代码生成效果。,环境工具准备就绪，可随时开始生成和托管。,"GitHub 登录页面, Cloudflare 仪表盘",1
+代码生成,通过对话方式让 AI 生成个人网站的 HTML 代码，并根据反馈进行迭代调整。,ChatGPT / Claude / GitHub Copilot,明确描述需求（个人主页、博客或作品集）；指定内容（头像、简介、联系方式）；要求移动端适配；根据反馈持续修改。,获得满意的 index.html 网页文件及其配套代码。,"index.html, ""生成一个带文章列表的博客主页"" (Prompt)",1
+内容完善与预览,下载 AI 生成的文件，替换个人素材，并使用编辑器进行实时预览修改。,"VS Code, Live Preview 插件",下载 HTML 到文件夹；将素材命名为 banner.jpg 或 avatar.jpg 并放入文件夹；使用 VS Code 配合插件一边修改文字一边预览。,本地文件夹包含完整的 HTML 和图片素材，页面显示正常。,"avatar.jpg, banner.jpg, VS Code 实时预览界面",1
+代码托管,在 GitHub 上创建仓库并上传网站源文件。,GitHub,创建 New Repository；命名仓库（如 blog）；点击 Upload files 将所有文件拖入；确保主页文件命名为 index.html。,代码成功上传至 GitHub 仓库并完成初步托管。,"GitHub Repository: ""blog"", commit changes",1
+部署与加速,使用 Cloudflare Pages 连接 GitHub 仓库实现自动化部署和访问加速。,Cloudflare Pages,选择 Workers & Pages -> 创建应用程序 -> 连接 GitHub 账户 -> 选择对应的仓库 -> 点击保存并部署。,网站获得 Cloudflare 分配的默认域名并实现全球访问。,"Cloudflare Pages Deployment Success, xxx.pages.dev",1
+域名绑定,将个人购买的顶级域名或免费域名映射到 Cloudflare 部署的页面上。,"Cloudflare, 域名注册商",在 Pages 设置中点击“设置自定义域”；输入域名并等待 DNS 配置生效。,通过自定义域名（如 xxx.io）即可直接访问个人网站。,Custom domain settings: goe.zz.io,1

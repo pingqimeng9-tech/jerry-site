@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Zara The Boss - 开屏动态海报 v7（撕贴纸修正版）</title>
+<style>
+  :root{
+    --bg-deep: #150a26;
+    --bg-mid: #26123f;
+    --pink: #ff5fa2;
+    --purple: #6a3fb5;
+    --white: #f5f2ff;
+    --ink: #12081f;
+  }
+  html,body{
+    margin:0; padding:0; height:100%;
+    background:#000;
+    display:flex; align-items:center; justify-content:center;
+    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    overflow:hidden;
+  }
+  .stage{
+    position:relative;
+    width:1120px; height:630px; /* 16:9 */
+    background: radial-gradient(120% 120% at 30% 20%, var(--bg-mid), var(--bg-deep) 70%);
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+  }
+  .layer{ position:absolute; }
+  .layer img{ display:block; width:100%; height:auto; }
+
+  #bg{
+    inset:0;
+    background:
+      radial-gradient(60% 50% at 75% 15%, rgba(255,95,162,0.18), transparent 60%),
+      linear-gradient(180deg, var(--bg-mid), var(--bg-deep));
+  }
+
+  /* ===================== z-index 说明 =====================
+     0  bg
+     2  blockLeft / blockRight        卡牌
+     4  vinylWrap                     黑胶
+     5  footSplashWrap                脚下地面色块
+     6  titleWrap / badgesWrap / socialTag / decoDash   文字与标签
+     7  stickerTarget                 角色（贴纸/真身共用同一个 WebGL 画布）
+     9  welcomeWrap / 四角装饰         最上层
+     -----------------------------------------------------------
+     v6 版本里单独画了一层"角色投影(#characterShadow)"和一层
+     "角色轮廓(#characterOutline)"，用 CSS filter 硬抠图，效果是错的
+     （轮廓变成了整张图偏移一份，而不是贴着角色轮廓的圆润描边）。
+     这两层已经删掉了。sticker-forge 的 WebGL 画布本身就是透明背景，
+     它内部已经用「alpha 通道膨胀」的方式算出一圈紧贴角色边缘、粗细
+     均匀的圆角描边（贴纸感来源），还自带一个投在地面上的阴影
+     （shadow 参数），画布是透明的，所以这个阴影天然会叠在它下面的
+     卡牌 DOM 层上——不用再单独做一层假投影。
+     ============================================================ */
+
+  #decoDots{
+    left:26px; top:20px; width:44px; height:44px; z-index:9;
+    background-image: radial-gradient(var(--purple) 2px, transparent 2.4px);
+    background-size: 11px 11px;
+  }
+
+  #welcomeWrap{ left:36px; top:30px; width:300px; z-index:9; }
+
+  #socialTag{ left:36px; top:198px; width:230px; z-index:6; }
+  #socialTagGhost{
+    position:absolute; left:16px; top:2px;
+    font-size:14px; letter-spacing:.1em; color:rgba(255,255,255,0.18); font-weight:700;
+  }
+  #socialTagMain{
+    position:relative; display:inline-block;
+    background: var(--white); color:var(--ink);
+    font-size:14px; letter-spacing:.1em; font-weight:700;
+    padding:4px 10px;
+  }
+  #decoDash{
+    left:196px; top:206px; width:200px; height:2px; z-index:6;
+    background: repeating-linear-gradient(90deg, var(--pink) 0 10px, transparent 10px 18px);
+  }
+
+  #titleWrap{ left:36px; top:320px; width:400px; z-index:6; }
+  #badgesWrap{ left:288px; top:494px; width:150px; z-index:6; }
+
+  #decoBottomSquare{
+    left:36px; top:588px; width:16px; height:16px; z-index:9;
+    background: var(--white);
+  }
+  #decoBottomStripes{
+    left:64px; top:588px; width:150px; height:14px; z-index:9;
+    background: repeating-linear-gradient(115deg, var(--white) 0 6px, transparent 6px 14px);
+  }
+  #decoStripes{
+    right:34px; top:24px; width:220px; height:14px; z-index:9;
+    background: repeating-linear-gradient(115deg, var(--white) 0 6px, transparent 6px 14px);
+  }
+
+  #blockLeftWrap{
+    left:404px; top:22px; width:236px; z-index:2;
+    transform-origin: 50% 100%; /* 从下往上长出 */
+  }
+  #blockRightWrap{
+    left:560px; top:74px; width:296px; z-index:2;
+    transform-origin: 50% 0%; /* 从上往下长出 */
+  }
+
+  #vinylWrap{ right:0px; top:78px; width:336px; z-index:4; }
+  #footSplashWrap{ left:416px; top:456px; width:420px; z-index:5; }
+
+  /* ---------- 角色：贴纸 + 真身共用一个画布容器 ----------
+     character.png 是方图（1254x1254），画布容器直接用等宽高。
+     sticker-forge 会在这个 div 里自己创建一个 <canvas>，
+     不需要再放 <img>。 */
+  #stickerTarget{
+    left:300px; top:34px; width:490px; height:490px; z-index:7;
+    cursor:grab; touch-action:none;
+  }
+  /* 库把这个画布设成了可聚焦元素（方便键盘操作），拖拽时会触发浏览器默认的
+     方形聚焦虚线框——那是套在整个方形容器外面的，跟贴纸本身沿轮廓走的白色
+     描边是两回事，这里统一关掉 */
+  #stickerTarget canvas{ outline:none; }
+  #stickerTarget canvas:focus,
+  #stickerTarget canvas:focus-visible{ outline:none; }
+
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+
+  <div class="layer" id="bg"></div>
+
+  <div class="layer" id="blockLeftWrap"><img src="images/block_left.png" alt=""></div>
+  <div class="layer" id="blockRightWrap"><img src="images/block_right.png" alt=""></div>
+
+  <div class="layer" id="vinylWrap"><img src="images/Vinyl.png" alt=""></div>
+
+  <div class="layer" id="footSplashWrap"><img src="images/foot_splash.png" alt=""></div>
+
+  <div class="layer" id="titleWrap"><img src="images/Title.png" alt=""></div>
+  <div class="layer" id="badgesWrap"><img src="images/Badges.png" alt=""></div>
+
+  <div class="layer" id="stickerTarget">
+    <img id="characterFallback" src="images/character.png" alt=""
+         style="width:100%; height:100%; object-fit:contain;">
+  </div>
+
+  <div class="layer" id="decoDots"></div>
+  <div class="layer" id="decoStripes"></div>
+  <div class="layer" id="decoDash"></div>
+  <div class="layer" id="decoBottomSquare"></div>
+  <div class="layer" id="decoBottomStripes"></div>
+
+  <div class="layer" id="welcomeWrap"><img src="images/Welcome.png" alt=""></div>
+
+  <div class="layer" id="socialTag">
+    <span id="socialTagGhost">SOCIAL PHOBIA</span>
+    <span id="socialTagMain">SOCIAL PHOBIA</span>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const target = document.querySelector("#stickerTarget");
+
+/* ============================================================
+   sticker-forge —— 用法照抄它 README 的 Imperative JavaScript API。
+   这个文件用了 dynamic import()，本地预览必须起一个 http 服务器
+   （比如在这个文件夹里 `npx serve` 或 `python3 -m http.server`），
+   直接双击用 file:// 打开会被浏览器拦截模块加载。
+   ============================================================ */
+let sticker = null;
+let tornOff = false; // 记录贴纸有没有被真的撕下来过，撕过一次之后就不用再提示了
+let hintTimer = null;
+const fallbackImg = document.querySelector("#characterFallback");
+
+// sticker-forge 要求 src 必须是 data:/blob:/http(s): 开头的"绝对"地址，纯相对路径
+// "images/xxx.png" 会被它自己的校验正则拒绝。但这里不能写死 "/images/xxx.png"——
+// 那等于是在猜"网站根目录到底是不是就是这个文件夹"，猜错了就是 404（Live Server
+// 的服务根目录取决于你在 VS Code 里打开的是哪一层文件夹，这个我没法替你确定）。
+// 用 new URL(相对路径, document.baseURI) 让浏览器自己按当前页面的实际地址去解析，
+// 不管这个 pkg 文件夹被放在哪一层，算出来的都一定是对的绝对地址。
+const characterImageURL = new URL("images/character.png", document.baseURI).href;
+
+// 库自己在真正渲染出第一帧之后，会对 target 派发一个 "ready" 事件——
+// 只有听到这个事件，才把静态兜底图藏起来，换成可交互的贴纸画布。
+// 在这之前（包括库还没加载完、或者加载失败的情况），兜底图会一直显示，
+// 角色不会再出现"整个消失"的情况。
+target.addEventListener("ready", () => {
+  if (fallbackImg) fallbackImg.style.display = "none";
+});
+
+const stickerReadyPromise = (async () => {
+  try {
+    const { createSticker } = await import("./lib/sticker-forge.es.js");
+    sticker = await createSticker(target, {
+      // sticker-forge 要求 src 必须以 data:/blob:/http(s):/ 或者 "/" 开头，
+      // 相对路径 "images/xxx.png" 会被它的校验正则直接拒绝（这才是之前
+      // "零交互+没描边"的真正原因，跟文件名/文件夹结构无关）
+      source: { type: "image", src: characterImageURL, name: "character" },
+      // 贴纸描边：库自己按角色的透明通道算一圈贴边、粗细均匀的圆角描边，
+      // 这才是"贴纸感"的来源，不需要额外再画一层假的
+      outline: { width: 16, color: "#ffffff" },
+      // 贴纸投在地面/卡牌上的阴影，画布透明背景，天然叠在卡牌 DOM 层上。
+      // 之前的颜色/透明度太接近卡片本身的深紫色，几乎看不出来，这里调深调实一点
+      shadow: { color: "#05030a", opacity: 0.5, blur: 26, distance: 20, angle: 42 },
+      // 撕/拖拽手感；release:"snap" 表示撕过某个临界点松手，会自动"扯下来"飞出去，
+      // 没撕过那条线松手则会弹回原位（这两种情况都是库自带的物理效果，不用自己写）
+      // grabWidth 默认只有 22（约22px容错半径），角色图相对大，边缘一圈太细摸不到，
+      // 调到 46 大约翻倍容错范围，明显更容易抓住轮廓边缘
+      peel: { radius: 0.14, stiffness: 0.7, maxAngle: 3.4, release: "snap", grabWidth: 46 },
+      back: { color: "#f3effa", gloss: 0.55, roughness: 0.35 },
+      sound: { enabled: false }, // 开场自动播放没有用户手势，声音大概率被浏览器拦截，先关掉
+      tilt: -2,
+      quality: "high",
+    });
+    return sticker;
+  } catch (err) {
+    // 加载/初始化失败：打印到控制台方便排查，但绝不让角色因此彻底消失——
+    // #characterFallback 那张静态图会一直留在画面上兜底
+    console.error("[zara] sticker-forge 初始化失败，已回退为静态角色图：", err);
+    sticker = null;
+    return null;
+  }
+})();
+
+/* ============================================================
+   初始状态
+   ============================================================ */
+gsap.set("#welcomeWrap", {x:280, y:220, scale:1.9, transformOrigin:"0% 0%"});
+gsap.set(["#blockLeftWrap","#blockRightWrap"], {scaleY:0});
+gsap.set("#vinylWrap", {x:420, opacity:0});
+gsap.set(target, {y:90, opacity:0});
+gsap.set("#footSplashWrap", {opacity:0});
+gsap.set(["#titleWrap","#badgesWrap"], {y:36, opacity:0});
+gsap.set("#socialTag", {y:20, opacity:0});
+gsap.set(["#decoDots","#decoStripes","#decoDash","#decoBottomSquare","#decoBottomStripes"], {opacity:0});
+
+if (prefersReduced){
+  gsap.set(["#welcomeWrap","#blockLeftWrap","#blockRightWrap","#vinylWrap", target,
+            "#footSplashWrap","#titleWrap","#badgesWrap","#socialTag",
+            "#decoDots","#decoStripes","#decoDash","#decoBottomSquare","#decoBottomStripes"],
+            {clearProps:"all", opacity:1});
+} else {
+  runIntro();
+}
+
+/* ============================================================
+   入场时间轴——跟之前一样，互相咬合、没有停顿感。
+   跟 v6 唯一的区别：角色这一步不再"自动帮用户撕开"，
+   就是老老实实淡入 + 上滑，露出一张"完整的、还没被撕过的贴纸"，
+   撕不撕、什么时候撕，交给用户自己去点/去拖
+   ============================================================ */
+function runIntro(){
+  const master = gsap.timeline({defaults:{ease:"power2.out"}});
+
+  master
+    .to("#welcomeWrap", {x:0, y:0, scale:1, duration:1.0, ease:"back.out(1.4)"}, 0.3)
+    .to("#blockLeftWrap", {scaleY:1, duration:0.6, ease:"back.out(1.7)"}, 0.8)
+    .to("#blockRightWrap", {scaleY:1, duration:0.6, ease:"back.out(1.7)"}, 1.05)
+    .to("#titleWrap", {y:0, opacity:1, duration:0.7}, 1.35)
+    .to("#socialTag", {y:0, opacity:1, duration:0.6}, 1.5)
+    .to("#badgesWrap", {y:0, opacity:1, duration:0.6}, 1.7)
+    .to("#vinylWrap", {x:0, opacity:1, duration:0.9, ease:"power3.out"}, 2.0)
+    .to(target, {y:0, opacity:1, duration:0.6, ease:"back.out(1.6)"}, 2.3)
+    .to("#footSplashWrap", {opacity:1, duration:0.5}, 2.4)
+    .to(["#decoDots","#decoStripes","#decoDash","#decoBottomSquare","#decoBottomStripes"],
+        {opacity:1, duration:0.6, stagger:0.07}, 2.6)
+    .call(startAmbientLoops, null, 3.2)
+    .call(startPeelHintLoop, null, 4.5); // 静置几秒后，开始用内置的"提示抖动"引导用户去撕
+}
+
+/* ============================================================
+   贴纸交互：真正的撕/拖是 sticker-forge 库自己监听画布上的
+   pointerdown/pointermove/pointerup 完成的，不用我们自己写手势代码。
+   我们只需要监听它撕完之后派发的 DOM 事件（peelend / cyclecomplete），
+   在"确实被整张扯下来"（willReset === false）的那一刻，
+   把画布里的图换成没有描边的"真身" character.png，再单独放一遍
+   入场动画——对应你说的"撕掉贴纸后，角色再单独放一遍入场动画"
+   ============================================================ */
+stickerReadyPromise.then((s) => {
+  if (!s) return; // 库没加载成功，已经在用静态兜底图了，撕纸交互直接跳过
+  target.addEventListener("peelend", (ev) => {
+    const { willReset } = ev.detail;
+    if (willReset) return; // 没撕过临界点，松手弹回去了，什么都不用做
+    if (tornOff) return;
+    tornOff = true;
+    clearInterval(hintTimer);
+
+    // 贴纸此时正按库自带的物理效果飞出画面（约 0.46s），
+    // 飞到快结束时把整个画布淡出，避免它自己"原地飞回来"的默认复位动画穿帮
+    gsap.to(target, {
+      opacity: 0, duration: 0.32, delay: 0.28,
+      onComplete: async () => {
+        sticker.reset();                 // 清掉撕/飞的中间状态
+        await sticker.setOptions({       // 换成没有描边的"真身"
+          source: { type: "image", src: characterImageURL, name: "character-real" },
+          outline: { width: 0 },
+        });
+        gsap.set(target, {opacity:1});
+        sticker.reappear();              // 库自带的入场动画，单独给"真身"再放一遍
+      }
+    });
+  });
+});
+
+function startPeelHintLoop(){
+  if (!sticker) return;
+  hintTimer = setInterval(() => {
+    if (tornOff) { clearInterval(hintTimer); return; }
+    sticker.startInteractionHint(); // 库自带的小幅抖动提示，暗示"这里能撕"
+  }, 6000);
+}
+
+/* ============================================================
+   常驻循环
+   ============================================================ */
+function startAmbientLoops(){
+  gsap.to("#stage", {
+    scale:1.03, duration:2.2, ease:"sine.inOut",
+    yoyo:true, repeat:-1, transformOrigin:"50% 50%"
+  });
+
+  gsap.to("#vinylWrap img", {rotate:"+=360", duration:2, ease:"none", repeat:-1});
+  gsap.to("#vinylWrap", {
+    scale:1.02, duration:1.4, ease:"sine.inOut",
+    yoyo:true, repeat:-1, transformOrigin:"50% 50%"
+  });
+
+  gsap.to(target, { y:"+=8", duration:1.5, ease:"sine.inOut", yoyo:true, repeat:-1 });
+  gsap.to("#footSplashWrap", {
+    opacity:0.85, duration:1.5, ease:"sine.inOut", yoyo:true, repeat:-1
+  });
+
+  // 角色左右小幅度晃动（以脚底为轴）；画布本身只是个普通 DOM 容器，
+  // 晃它完全没问题，跟贴纸/真身内部的 WebGL 渲染互不冲突
+  gsap.set(target, {transformOrigin:"50% 100%"});
+  gsap.to(target, {
+    rotate:2, duration:3, ease:"sine.inOut", yoyo:true, repeat:-1
+  });
+
+  gsap.to("#decoStripes", {
+    x:-12, opacity:0.35, duration:1.8, ease:"sine.inOut", yoyo:true, repeat:-1
+  });
+  gsap.to("#decoDash", {
+    x:10, duration:2.4, ease:"sine.inOut", yoyo:true, repeat:-1
+  });
+  gsap.to("#decoDots", {
+    opacity:0.4, duration:2, ease:"sine.inOut", yoyo:true, repeat:-1
+  });
+}
+</script>
+</body>
+</html>

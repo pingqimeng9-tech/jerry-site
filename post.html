@@ -361,6 +361,18 @@
   .a-body code{font-family:'JetBrains Mono',monospace;background:rgba(177,140,255,.16);color:#dcd6ff;padding:2px 7px;border-radius:6px;font-size:.9em}
   .a-body pre code{color:#e6edf3}
   .a-body blockquote{border-left:3px solid var(--aqua);background:rgba(92,225,230,.06);margin:1rem 0;padding:.6rem 1.1rem;border-radius:0 12px 12px 0;color:var(--muted)}
+  /* ===== Notion 兼容：折叠块 / 待办 / 高亮 / 四级标题 ===== */
+  .a-body details{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.045);border-radius:12px;padding:10px 16px;margin:1rem 0}
+  .a-body details[open] summary{margin-bottom:8px}
+  .a-body summary{cursor:pointer;font-weight:700;list-style:none;display:flex;align-items:center;gap:8px;outline:none}
+  .a-body summary::-webkit-details-marker{display:none}
+  .a-body summary::before{content:'▸';color:var(--aqua);transition:transform .2s;display:inline-block}
+  .a-body details[open] summary::before{transform:rotate(90deg)}
+  .a-body summary > *{display:inline}
+  .a-body li input[type=checkbox]{accent-color:var(--aqua);margin-right:8px;width:15px;height:15px;vertical-align:-2px}
+  .a-body ul:has(>li input[type=checkbox]){list-style:none;padding-left:6px}
+  .a-body mark{border-radius:4px}
+  .a-body h4{font-size:1.08rem;margin:1.3rem 0 .6rem}
   .a-body .katex-display{overflow-x:auto;overflow-y:hidden;padding:4px 0}
   .a-meta .post-tags-row{display:flex;gap:6px;flex-wrap:wrap}
   .a-meta .post-tags-row span{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--pink);border:1px solid rgba(255,140,217,.4);padding:2px 9px;border-radius:100px}

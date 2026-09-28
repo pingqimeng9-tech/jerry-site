@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="zh" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>自考刷题 · Jerry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+<style>
+:root{ --radius-lg:20px; --radius-md:14px; --radius-sm:9px; --ease:cubic-bezier(.16,1,.3,1); }
+html[data-theme="dark"]{
+  --bg:#000; --bg-elev:#0a0a0a; --card:#111; --card-hover:#161616;
+  --ink:#fff; --muted:#8a8a8a; --border:rgba(255,255,255,.14); --border-strong:rgba(255,255,255,.28);
+  --accent:#fff; --accent2:#fff; --accent-ink:#000; --glow:rgba(255,255,255,.18);
+  --ok:#7CFFB2; --bad:#FF7A7A; --grid-line:rgba(255,255,255,.04);
+}
+html[data-theme="light"]{
+  --bg:#fff; --bg-elev:#f7f7f7; --card:#f3f3f3; --card-hover:#ececec;
+  --ink:#0a0a0a; --muted:#6b6b6b; --border:rgba(0,0,0,.12); --border-strong:rgba(0,0,0,.24);
+  --accent:#0a0a0a; --accent2:#0a0a0a; --accent-ink:#fff; --glow:rgba(0,0,0,.10);
+  --ok:#1a9a56; --bad:#d13d3d; --grid-line:rgba(0,0,0,.03);
+}
+html[data-theme="brand"]{
+  --bg:#07061a; --bg-elev:#0e0c2a; --card:rgba(178,140,255,.08); --card-hover:rgba(178,140,255,.16);
+  --ink:#f2f0ff; --muted:#a29cd9; --border:rgba(178,140,255,.35); --border-strong:#B18CFF;
+  --accent:#B84CFF; --accent2:#5CE1E6; --accent-ink:#0a0820; --glow:rgba(184,76,255,.55);
+  --coral:#FF5CA8; --pink:#FF8CD9; --ok:#39FFB0; --bad:#FF3D6E; --grid-line:rgba(184,76,255,.12);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0; min-height:100vh; background:var(--bg); color:var(--ink);
+  font-family:'Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased;
+  transition:background-color .45s var(--ease), color .45s var(--ease);
+  position:relative; overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none;}
+.mono{font-family:'JetBrains Mono',monospace;letter-spacing:.03em;}
+.serif{font-family:'Noto Serif SC',serif;}
+
+.cyber-grid{ position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.5; transition:opacity .5s;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 42px 42px;
+}
+html[data-theme="brand"] .cyber-grid{ opacity:1; }
+.glow-orb{position:fixed;border-radius:50%;filter:blur(70px);opacity:0;pointer-events:none;z-index:0;transition:opacity .5s;}
+html[data-theme="brand"] .glow-orb{opacity:.35;}
+.orb1{width:380px;height:380px;background:var(--accent);top:-120px;left:-100px;animation:float1 14s ease-in-out infinite;}
+.orb2{width:320px;height:320px;background:var(--accent2);bottom:-100px;right:-80px;animation:float2 17s ease-in-out infinite;}
+@keyframes float1{0%,100%{transform:translate(0,0)}50%{transform:translate(50px,70px)}}
+@keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(-60px,-50px)}}
+@keyframes holoShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+
+.hud::before, .hud::after{ content:''; position:absolute; width:14px; height:14px; border:2px solid var(--accent); opacity:0; transition:opacity .3s; }
+html[data-theme="brand"] .hud::before, html[data-theme="brand"] .hud::after{ opacity:.85; }
+.hud::before{ top:-1px; left:-1px; border-right:none; border-bottom:none; }
+.hud::after{ bottom:-1px; right:-1px; border-left:none; border-top:none; }
+.hud{position:relative;}
+
+nav{
+  display:flex; justify-content:space-between; align-items:center; padding:clamp(12px,2vw,18px) clamp(16px,4vw,48px);
+  position:sticky; top:0; z-index:100;
+  background:color-mix(in srgb, var(--bg) 78%, transparent);
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--border); transition:background-color .45s var(--ease), border-color .45s var(--ease);
+}
+nav .logo{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:clamp(14px,1.6vw,16px);}
+.nav-right{display:flex;align-items:center;gap:clamp(8px,1.5vw,14px);}
+.links{display:flex;align-items:center;gap:4px;}
+.links a{padding:8px 14px;border-radius:100px;font-size:13.5px;opacity:.7;transition:.2s;}
+.links a:hover{opacity:1;background:var(--card);}
+.links a.active{opacity:1;background:var(--card);border:1px solid var(--border);}
+@media(max-width:900px){ .links{display:none;} }
+.theme-switch{ display:flex; gap:2px; padding:3px; border-radius:100px; background:var(--card); border:1px solid var(--border); }
+.theme-btn{ width:32px; height:32px; border-radius:50%; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; background:transparent; color:var(--muted); transition:.25s var(--ease); }
+.theme-btn.active{ background:var(--accent); color:var(--accent-ink); box-shadow:0 4px 14px -4px var(--glow); transform:scale(1.06); }
+.theme-btn:hover:not(.active){ color:var(--ink); background:var(--card-hover); }
+
+.wrap{width:100%; padding:0 clamp(16px,4vw,48px); position:relative; z-index:1;}
+.hero{padding:clamp(28px,5vw,52px) 0 clamp(16px,3vw,24px); display:grid; grid-template-columns:1.3fr 1fr; gap:clamp(20px,4vw,40px); align-items:end;}
+@media(max-width:900px){ .hero{grid-template-columns:1fr;} }
+.eyebrow{font-size:clamp(11px,1.1vw,12px);font-weight:700;letter-spacing:.08em;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);}
+h1.h1{font-size:clamp(26px,4.6vw,50px);font-weight:900;margin:0 0 14px;line-height:1.18;font-family:'Noto Serif SC',serif;}
+.h1 .hl{background:linear-gradient(90deg,var(--accent),var(--accent2,var(--accent)));-webkit-background-clip:text;background-clip:text;color:transparent;}
+html[data-theme="brand"] .h1 .hl{
+  background:linear-gradient(90deg,var(--accent),var(--accent2),var(--coral),var(--accent));
+  background-size:300% 100%; -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:holoShift 5s ease-in-out infinite;
+}
+.sub{font-size:clamp(13.5px,1.4vw,15px);color:var(--muted);line-height:1.8;margin-bottom:8px;}
+.course-switch{ display:inline-flex; gap:4px; padding:5px; border-radius:100px; margin:20px 0 8px; background:var(--card); border:1px solid var(--border); }
+.course-btn{ padding:clamp(8px,1vw,10px) clamp(14px,2vw,20px); border-radius:100px; border:none; cursor:pointer; font-size:clamp(12.5px,1.3vw,14px); font-weight:700; background:transparent; color:var(--muted); transition:.25s var(--ease); white-space:nowrap; }
+.course-btn .code{opacity:.6;font-weight:400;font-size:11px;margin-left:6px;}
+.course-btn.active{ background:var(--accent); color:var(--accent-ink); }
+
+.fortune-mini{ border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px; background:var(--card); text-align:center; }
+.fortune-mini .fm-label{font-size:11px;color:var(--muted);margin-bottom:6px;}
+.fortune-mini .fm-word{font-family:'ZCOOL KuaiLe',cursive; font-size:clamp(22px,2.6vw,30px); margin-bottom:6px;}
+.fortune-mini .fm-desc{font-size:12px;color:var(--muted);}
+
+.stats-row{display:flex;gap:12px;margin:22px 0 8px;flex-wrap:wrap;}
+.stat-card{ flex:1;min-width:130px;padding:16px 18px;border-radius:var(--radius-md); background:var(--card);border:1px solid var(--border); }
+.stat-num{font-family:'JetBrains Mono',monospace;font-size:clamp(20px,2.4vw,24px);font-weight:700;color:var(--accent);}
+.stat-label{font-size:12px;color:var(--muted);margin-top:4px;}
+
+.section-label{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--muted);margin:36px 0 14px;font-family:'JetBrains Mono',monospace;}
+.module-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;}
+.module-card{ position:relative; padding:clamp(20px,2.2vw,26px) clamp(18px,2vw,24px); border-radius:var(--radius-lg); background:var(--card); border:1px solid var(--border); cursor:pointer; transition:transform .35s var(--ease), border-color .3s, background-color .3s, box-shadow .35s; overflow:hidden; }
+.module-card:hover{ transform:translateY(-6px); border-color:var(--border-strong); background:var(--card-hover); box-shadow:0 24px 50px -24px var(--glow); }
+.module-card:active{ transform:translateY(-2px) scale(.98); }
+.module-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:14px;background:var(--accent);color:var(--accent-ink);}
+.module-title{font-weight:700;font-size:clamp(15px,1.6vw,16.5px);margin-bottom:6px;}
+.module-desc{font-size:12.5px;color:var(--muted);line-height:1.6;margin-bottom:14px;}
+.module-arrow{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;transition:.25s;}
+.module-card:hover .module-arrow{color:var(--ink);gap:10px;}
+.module-tag{position:absolute;top:18px;right:18px;font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 9px;border-radius:100px;background:var(--bg-elev);color:var(--muted);border:1px solid var(--border);}
+
+.history-list{display:flex;flex-direction:column;gap:10px;}
+.history-item{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 18px; border-radius:var(--radius-md); background:var(--card); border:1px solid var(--border); }
+.history-left{display:flex;flex-direction:column;gap:3px;}
+.history-name{font-size:14px;font-weight:700;}
+.history-meta{font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+.history-badge{font-size:11px;padding:5px 12px;border-radius:100px;font-weight:700;white-space:nowrap;}
+.history-badge.done{background:color-mix(in srgb, var(--ok) 20%, transparent);color:var(--ok);}
+.history-badge.locked{background:color-mix(in srgb, var(--bad) 16%, transparent);color:var(--bad);display:flex;align-items:center;gap:5px;}
+
+.drawer-mask{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .35s var(--ease);z-index:200;}
+.drawer-mask.open{opacity:1;pointer-events:auto;}
+.drawer{ position:fixed; top:0; right:-100%; width:min(560px,100%); height:100vh; z-index:201; background:var(--bg); border-left:1px solid var(--border); transition:right .45s var(--ease); display:flex; flex-direction:column; box-shadow:-30px 0 60px -20px rgba(0,0,0,.4); }
+.drawer.open{right:0;}
+.drawer-head{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--border);}
+.drawer-title{font-weight:700;font-size:16.5px;}
+.drawer-close{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--card);color:var(--ink);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;}
+.drawer-body{padding:22px;overflow-y:auto;flex:1;}
+.placeholder-box{ border:1px dashed var(--border-strong); border-radius:var(--radius-md); padding:30px 18px; text-align:center; color:var(--muted); font-size:13px; line-height:1.8; }
+
+.quiz-progress{display:flex;gap:6px;margin-bottom:16px;}
+.quiz-progress .dot{flex:1;height:4px;border-radius:4px;background:var(--card);transition:.3s;}
+.quiz-progress .dot.done{background:var(--ok);}
+.quiz-progress .dot.current{background:var(--accent);}
+.quiz-head-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.star-btn{background:none;border:1px solid var(--border);border-radius:100px;padding:5px 12px;cursor:pointer;font-size:12px;color:var(--muted);transition:.2s;}
+.star-btn.on{color:#FFC93C;border-color:#FFC93C;}
+.quiz-passage{font-size:12.5px;line-height:1.85;color:var(--muted);background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:16px;}
+.quiz-q{font-size:14.5px;font-weight:700;margin-bottom:12px;line-height:1.6;}
+.quiz-opt{ display:flex; align-items:center; gap:12px; padding:12px 15px; border-radius:var(--radius-sm); border:1px solid var(--border); margin-bottom:9px; cursor:pointer; font-size:13.5px; transition:.2s; background:var(--card); }
+.quiz-opt:hover{border-color:var(--border-strong);background:var(--card-hover);}
+.quiz-opt .letter{width:21px;height:21px;border-radius:50%;border:1px solid var(--border-strong);display:flex;align-items:center;justify-content:center;font-size:10.5px;font-family:'JetBrains Mono',monospace;flex-shrink:0;}
+.quiz-opt.correct{border-color:var(--ok);background:color-mix(in srgb, var(--ok) 14%, var(--card));}
+.quiz-opt.correct .letter{background:var(--ok);color:#04220f;border-color:var(--ok);}
+.quiz-opt.wrong{border-color:var(--bad);background:color-mix(in srgb, var(--bad) 14%, var(--card));}
+.quiz-opt.wrong .letter{background:var(--bad);color:#2a0505;border-color:var(--bad);}
+.quiz-opt.disabled{cursor:default;}
+.quiz-feedback{margin-top:12px;padding:13px 15px;border-radius:var(--radius-sm);font-size:12.5px;line-height:1.7;display:none;background:var(--card);border:1px solid var(--border);}
+.quiz-feedback.show{display:block;animation:fadeUp .3s var(--ease);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.quiz-next{ margin-top:14px; padding:10px 20px; border-radius:100px; border:none; cursor:pointer; font-weight:700; background:var(--accent); color:var(--accent-ink); font-size:13px; display:none; }
+.quiz-next.show{display:inline-flex;}
+
+.word-card{ border:1px solid var(--border); border-radius:var(--radius-lg); padding:32px 22px; text-align:center; cursor:pointer; background:var(--card); transition:.3s; margin-bottom:14px; }
+.word-front .w-en{font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace;margin-bottom:8px;}
+.word-front .w-hint{font-size:12px;color:var(--muted);}
+.word-back{display:none;}
+.word-card.flipped .word-front{display:none;}
+.word-card.flipped .word-back{display:block;}
+.w-cn{font-size:17px;font-weight:700;margin-bottom:8px;}
+.w-ex{font-size:12px;color:var(--muted);line-height:1.7;}
+.word-actions{display:flex;gap:10px;}
+.word-actions button{flex:1;padding:11px;border-radius:100px;border:1px solid var(--border);background:var(--card);color:var(--ink);cursor:pointer;font-size:13px;font-weight:700;}
+.word-actions button.know:hover{border-color:var(--ok);color:var(--ok);}
+.word-actions button.dunno:hover{border-color:var(--bad);color:var(--bad);}
+
+footer{padding:36px clamp(16px,4vw,48px) 56px;text-align:center;font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;position:relative;z-index:1;}
+
+.exam-overlay{ position:fixed; inset:0; background:var(--bg); z-index:300; display:none; flex-direction:column; }
+.exam-overlay.open{display:flex;}
+.exam-step{ flex:1; display:none; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px; position:relative; }
+.exam-step.active{display:flex;}
+.exam-exit{position:absolute;top:20px;right:24px;background:none;border:1px solid var(--border);border-radius:50%;width:36px;height:36px;color:var(--ink);cursor:pointer;font-size:15px;z-index:5;}
+
+.temple-title{font-family:'ZCOOL KuaiLe',cursive;font-size:clamp(24px,3.2vw,32px);margin-bottom:10px;}
+.temple-sub{font-size:13px;color:var(--muted);margin-bottom:40px;}
+.draw-stick{
+  width:clamp(90px,14vw,120px); height:clamp(220px,26vw,300px); border-radius:14px; cursor:pointer;
+  background:linear-gradient(180deg, var(--accent), var(--accent2)); color:var(--accent-ink);
+  display:flex; align-items:center; justify-content:center; font-family:'ZCOOL KuaiLe',cursive; font-size:20px;
+  writing-mode:vertical-rl; box-shadow:0 20px 50px -18px var(--glow); transition:transform .3s var(--ease);
+  animation:sticksway 3s ease-in-out infinite; letter-spacing:6px;
+}
+.draw-stick:hover{transform:translateY(-8px) rotate(-2deg);}
+@keyframes sticksway{0%,100%{transform:rotate(-2deg);}50%{transform:rotate(2deg);}}
+.fortune-reveal{display:none;max-width:420px;}
+.fortune-reveal.show{display:block;animation:fadeUp .5s var(--ease);}
+.fortune-reveal .fr-grade{font-family:'ZCOOL KuaiLe',cursive;font-size:clamp(28px,4vw,40px);color:var(--accent);margin-bottom:14px;}
+.fortune-reveal .fr-text{font-size:15px;line-height:2;color:var(--ink);margin-bottom:8px;}
+.fortune-reveal .fr-sub{font-size:12.5px;color:var(--muted);margin-bottom:28px;}
+.ritual-btn{padding:13px 32px;border-radius:100px;border:none;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:14px;cursor:pointer;}
+
+.countdown-num{font-family:'JetBrains Mono',monospace;font-weight:900;font-size:clamp(80px,18vw,180px);line-height:1;color:var(--accent);text-shadow:0 0 40px var(--glow);}
+.countdown-label{font-size:13px;color:var(--muted);letter-spacing:.1em;margin-top:12px;}
+
+.exam-step.exam-run{align-items:stretch;justify-content:flex-start;text-align:left;padding:0;}
+.exam-top-bar{display:flex;justify-content:space-between;align-items:center;padding:16px clamp(16px,3vw,32px);border-bottom:1px solid var(--border);}
+.exam-timer{font-family:'JetBrains Mono',monospace;font-size:clamp(20px,2.6vw,28px);font-weight:700;color:var(--accent);}
+.exam-submit-btn{padding:10px 22px;border-radius:100px;border:none;background:var(--bad);color:#fff;font-weight:700;font-size:13px;cursor:pointer;}
+.exam-body{flex:1;overflow-y:auto;padding:clamp(16px,3vw,32px);}
+.cat-block{margin-bottom:26px;}
+.cat-title{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px;letter-spacing:.05em;font-family:'JetBrains Mono',monospace;}
+.qnum-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:8px;}
+.qnum{ aspect-ratio:1; border-radius:10px; border:1px solid var(--border); background:var(--card); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:13px; cursor:pointer; transition:.2s; position:relative; }
+.qnum:hover{border-color:var(--border-strong);}
+.qnum.answered{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
+.qnum.marked::after{content:'★';position:absolute;top:-6px;right:-6px;font-size:11px;color:#FFC93C;}
+.qnum.current{outline:2px solid var(--accent);outline-offset:2px;}
+
+/* ============ 答题详情页 ============ */
+.q-detail-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.q-back-btn{padding:8px 16px;border-radius:100px;border:1px solid var(--border);background:var(--card);color:var(--ink);cursor:pointer;font-size:12.5px;font-family:inherit;}
+.q-back-btn:hover{border-color:var(--border-strong);}
+.q-cat-tag{font-size:11px;color:var(--accent-ink);background:var(--accent);padding:5px 12px;border-radius:100px;font-family:'JetBrains Mono',monospace;}
+.q-passage{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;
+  font-size:14px;line-height:1.9;margin-bottom:18px;max-height:38vh;overflow-y:auto;white-space:pre-wrap;
+}
+.q-text{font-size:15.5px;font-weight:700;line-height:1.7;margin-bottom:14px;}
+.q-options{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
+.q-option{
+  display:flex;align-items:flex-start;gap:10px;padding:13px 16px;border-radius:var(--radius-lg);
+  border:1px solid var(--border);background:var(--card);cursor:pointer;transition:.15s;font-size:13.5px;line-height:1.6;
+}
+.q-option:hover{border-color:var(--border-strong);}
+.q-option.picked{border-color:var(--accent);background:var(--accent);color:var(--accent-ink);}
+.q-opt-mark{font-family:'JetBrains Mono',monospace;font-weight:700;flex-shrink:0;}
+.q-subjective-input{
+  width:100%;min-height:120px;border-radius:var(--radius-lg);border:1px solid var(--border);background:var(--card);
+  color:var(--ink);padding:14px 16px;font-size:13.5px;font-family:inherit;resize:vertical;box-sizing:border-box;margin-bottom:20px;
+}
+.q-nav-row{display:flex;justify-content:space-between;gap:10px;}
+.q-nav-btn{flex:1;padding:12px;border-radius:100px;border:1px solid var(--border);background:var(--card);color:var(--ink);cursor:pointer;font-size:13px;font-family:inherit;}
+.q-nav-btn:hover:not(:disabled){border-color:var(--accent);}
+.q-nav-btn:disabled{opacity:.35;cursor:default;}
+
+/* ============ 错题/参考答案 列表(抽屉里显示) ============ */
+.wrong-list{display:flex;flex-direction:column;gap:14px;}
+.wrong-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;}
+.wrong-item-head{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--accent-ink);background:var(--accent);display:inline-block;padding:3px 10px;border-radius:100px;margin-bottom:10px;}
+.wrong-item-q{font-size:13.5px;font-weight:700;line-height:1.6;margin-bottom:8px;}
+.wrong-item-your{font-size:12.5px;color:#FF7A5C;margin-bottom:4px;}
+.wrong-item-correct{font-size:12.5px;color:#54D6A0;margin-bottom:6px;}
+.wrong-item-explain{font-size:12px;color:var(--muted);line-height:1.6;}
+
+.result-stats{display:flex;gap:16px;margin:28px 0;flex-wrap:wrap;justify-content:center;}
+.result-card{padding:22px 30px;border-radius:var(--radius-lg);background:var(--card);border:1px solid var(--border);min-width:140px;}
+.result-num{font-family:'JetBrains Mono',monospace;font-size:clamp(26px,3.2vw,34px);font-weight:900;color:var(--accent);}
+.result-label{font-size:12px;color:var(--muted);margin-top:6px;}
+</style>
+</head>
+<body>
+
+<div class="cyber-grid"></div>
+<div class="glow-orb orb1"></div>
+<div class="glow-orb orb2"></div>
+
+<nav>
+  <a href="/" class="logo">JERRY.DEV</a>
+  <div class="nav-right">
+    <div class="links">
+      <a href="/">首页</a>
+      <a href="/blog.html">博客</a>
+      <a href="/rumi.html">Rumi英语</a>
+      <a href="/zikao.html" class="active">自考</a>
+    </div>
+    <div class="theme-switch" id="themeSwitch">
+      <button class="theme-btn" data-theme="dark" title="关灯">🌙</button>
+      <button class="theme-btn" data-theme="light" title="开灯">☀️</button>
+      <button class="theme-btn" data-theme="brand" title="原风格">✨</button>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <div class="eyebrow mono">ZIKAO PRACTICE · 00595 / 00794</div>
+      <h1 class="h1">刷真题，<span class="hl">3个月</span>拿下这门课</h1>
+      <div class="sub">历年真题 · 计时模拟考 · 按题型精练 · 教材+四级核心词打卡。</div>
+      <div class="course-switch" id="courseSwitch">
+        <button class="course-btn active" data-course="00595">英语阅读（一）<span class="code">00595</span></button>
+        <button class="course-btn" data-course="00794">综合英语（一）<span class="code">00794</span></button>
+      </div>
+    </div>
+    <div class="fortune-mini hud">
+      <div class="fm-label mono">TODAY'S FORTUNE</div>
+      <div class="fm-word">上上签</div>
+      <div class="fm-desc">心定则文思顺，进考场前记得求一签</div>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card hud"><div class="stat-num mono" data-count="47">0</div><div class="stat-label">已刷题目数</div></div>
+    <div class="stat-card hud"><div class="stat-num mono" data-count="68">0</div><div class="stat-label">正确率 %</div></div>
+    <div class="stat-card hud"><div class="stat-num mono" data-count="3">0</div><div class="stat-label">连续打卡天</div></div>
+    <div class="stat-card hud"><div class="stat-num mono" data-count="9">0</div><div class="stat-label">收藏题数</div></div>
+  </div>
+
+  <div class="section-label">// 五大模块</div>
+  <div class="module-grid" id="moduleGrid">
+    <div class="module-card hud" data-drawer="years">
+      <div class="module-tag">10年 · 20套</div>
+      <div class="module-icon">📄</div>
+      <div class="module-title">历年真题</div>
+      <div class="module-desc">按年份/月份浏览全国统考真题，逐题带解析。</div>
+      <div class="module-arrow">进入 →</div>
+    </div>
+    <div class="module-card hud" data-drawer="mock">
+      <div class="module-tag">仪式感</div>
+      <div class="module-icon">⛩️</div>
+      <div class="module-title">模拟考试</div>
+      <div class="module-desc">求签祈福 → 倒计时 → 铺满题号网格 → 耗时/正确率/错题复盘。</div>
+      <div class="module-arrow">进入 →</div>
+    </div>
+    <div class="module-card hud" data-drawer="quiz">
+      <div class="module-tag">可试玩</div>
+      <div class="module-icon">🎯</div>
+      <div class="module-title">题型练习</div>
+      <div class="module-desc">按仔细阅读/快速阅读/完形填空分类精练，可收藏。</div>
+      <div class="module-arrow">进入 →</div>
+    </div>
+    <div class="module-card hud" data-drawer="words">
+      <div class="module-tag">可试玩</div>
+      <div class="module-icon">📖</div>
+      <div class="module-title">刷单词</div>
+      <div class="module-desc">教材必背词 + 四级以下核心词，翻卡打卡。</div>
+      <div class="module-arrow">进入 →</div>
+    </div>
+    <div class="module-card hud" data-drawer="history">
+      <div class="module-tag">记录</div>
+      <div class="module-icon">📊</div>
+      <div class="module-title">做题记录</div>
+      <div class="module-desc">历史记录 + 收藏题，做到一半也会自动保存进度。</div>
+      <div class="module-arrow">进入 →</div>
+    </div>
+  </div>
+</div>
+
+<footer>© 2026 Jerry · 自考刷题 · 框架版</footer>
+
+<div class="drawer-mask" id="drawerMask"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <div class="drawer-title" id="drawerTitle">标题</div>
+    <button class="drawer-close" id="drawerClose">✕</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</div>
+
+<div class="exam-overlay" id="examOverlay">
+  <button class="exam-exit" id="examExit">✕</button>
+
+  <div class="exam-step active" id="stepRitual">
+    <div class="temple-title">进考场前，求一签</div>
+    <div class="temple-sub">诚心点击签筒，看看今天的考运</div>
+    <div class="draw-stick" id="drawStick">模拟考试</div>
+    <div class="fortune-reveal" id="fortuneReveal">
+      <div class="fr-grade" id="frGrade">上上签</div>
+      <div class="fr-text" id="frText">静心应答，所思皆有据；沉着落笔，分数自然来。</div>
+      <div class="fr-sub">祝今日模考 · 一举高中</div>
+      <button class="ritual-btn" id="toCountdown">进入考场 →</button>
+    </div>
+  </div>
+
+  <div class="exam-step" id="stepCountdown">
+    <div class="countdown-num" id="countdownNum">3</div>
+    <div class="countdown-label mono">考试即将开始</div>
+  </div>
+
+  <div class="exam-step exam-run" id="stepRun">
+    <div class="exam-top-bar">
+      <div class="exam-timer mono" id="examTimer">00:00</div>
+      <button class="exam-submit-btn" id="examSubmit">交卷</button>
+    </div>
+    <div class="exam-body" id="examBody"></div>
+  </div>
+
+  <div class="exam-step" id="stepResult">
+    <div class="temple-title">交卷完成</div>
+    <div class="result-stats">
+      <div class="result-card"><div class="result-num mono" id="resTime">00:00</div><div class="result-label">耗时</div></div>
+      <div class="result-card"><div class="result-num mono" id="resAcc">--%</div><div class="result-label">正确率</div></div>
+      <div class="result-card"><div class="result-num mono" id="resWrong">--</div><div class="result-label">错题数</div></div>
+    </div>
+    <button class="ritual-btn" id="viewWrong">查看错题 →</button>
+    <button class="ritual-btn" id="viewSubjective" style="margin-top:10px;">主观题参考答案 →</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const html = document.documentElement;
+  const saved = localStorage.getItem('zikao_theme') || 'dark';
+  html.setAttribute('data-theme', saved);
+  function markActive(t){ document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('active', b.dataset.theme===t)); }
+  markActive(saved);
+  document.querySelectorAll('.theme-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const t = btn.dataset.theme;
+      html.setAttribute('data-theme', t);
+      localStorage.setItem('zikao_theme', t);
+      markActive(t);
+    });
+  });
+})();
+
+(function(){
+  const btns = document.querySelectorAll('.course-btn');
+  btns.forEach(btn=>{
+    btn.addEventListener('click', ()=>{ btns.forEach(b=>b.classList.remove('active')); btn.classList.add('active'); });
+  });
+})();
+
+(function(){
+  document.querySelectorAll('.stat-num').forEach(el=>{
+    const target = parseInt(el.dataset.count,10);
+    const start = performance.now(), dur = 900;
+    function tick(now){
+      const t = Math.min(1,(now-start)/dur);
+      el.textContent = Math.round(target * (1-Math.pow(1-t,3)));
+      if(t<1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
+})();
+
+const drawer = document.getElementById('drawer');
+const drawerMask = document.getElementById('drawerMask');
+const drawerTitle = document.getElementById('drawerTitle');
+const drawerBody = document.getElementById('drawerBody');
+function openDrawer(title, bodyHtml, onOpen){
+  drawerTitle.textContent = title; drawerBody.innerHTML = bodyHtml;
+  drawer.classList.add('open'); drawerMask.classList.add('open');
+  if(onOpen) onOpen();
+}
+function closeDrawer(){ drawer.classList.remove('open'); drawerMask.classList.remove('open'); }
+document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+drawerMask.addEventListener('click', closeDrawer);
+const PLACEHOLDER = (label) => `<div class="placeholder-box">${label}<br><br>框架已搭好，下一步把真题/单词内容灌进来就能直接用。</div>`;
+
+const examOverlay = document.getElementById('examOverlay');
+document.querySelectorAll('.module-card').forEach(card=>{
+  card.addEventListener('click', ()=>{
+    const key = card.dataset.drawer;
+    if(key === 'years') startExamRitual();
+    else if(key === 'quiz') openDrawer('题型练习 · 仔细阅读 Demo', renderQuizDemo(), initQuizDemo);
+    else if(key === 'words') openDrawer('刷单词 · Demo', renderWordDemo(), initWordDemo);
+    else if(key === 'history') openDrawer('做题记录', renderHistory());
+    else if(key === 'mock') startExamRitual();
+  });
+});
+
+function renderHistory(){
+  return `
+  <div class="history-list">
+    <div class="history-item"><div class="history-left"><div class="history-name">2024年4月 英语阅读一 · 全套</div><div class="history-meta mono">耗时 52:10 · 正确率 76%</div></div><div class="history-badge done">已完成</div></div>
+    <div class="history-item"><div class="history-left"><div class="history-name">仔细阅读 Passage 3-4 专项</div><div class="history-meta mono">做到 6/10 题，未交卷</div></div><div class="history-badge locked">🔒 续做需解锁</div></div>
+    <div class="history-item"><div class="history-left"><div class="history-name">2023年10月 综合英语 · 全套</div><div class="history-meta mono">耗时 61:40 · 正确率 82%</div></div><div class="history-badge done">已完成</div></div>
+  </div>
+  <div class="section-label" style="margin-top:26px;">// 收藏题（9）</div>
+  ${PLACEHOLDER('收藏的题目会列在这里，点星标即可收藏/取消，方便考前专门回看易错/重点题。')}
+  `;
+}
+
+const DEMO_QUESTIONS = [
+  { passage:`Education is not an end, but a means to an end. Our purpose is to fit them for life.`,
+    q:`According to the passage, what is our purpose of educating children?`,
+    options:["To accustom them to varied life.","To choose a proper system of education.","To educate them only for the aim of educating them.","To make them intelligent citizens."],
+    correct:0, explain:`原文 "Our purpose is to fit them for life. Life is varied"，对应选项 A。` },
+  { passage:`American football, not to be confused with soccer, is the American national sport. It developed from rugby...`,
+    q:`American football and rugby are alike in ___.`,
+    options:["the method of playing","the method of scoring","the degree of brutality","the degree of danger"],
+    correct:1, explain:`原文 "The method of scoring...is the same as in rugby"，对应选项 B。` },
+  { passage:`Being enthusiastic means being excited about a given project. Enthusiasm entails a strong interest in the task at hand.`,
+    q:`Enthusiasm about a job does NOT mean that you ___.`,
+    options:["will make a plan and implement it effectively","must overwork everyday","will become more productive","will be anxious to get started"],
+    correct:1, explain:`其余三项原文都有依据，"must overwork everyday" 原文没提到，是 EXCEPT 题答案 B。` }
+];
+let quizIdx = 0, quizStars = {};
+function renderQuizDemo(){ quizIdx = 0; return `<div class="quiz-progress" id="qProgress">${DEMO_QUESTIONS.map((_,i)=>`<div class="dot${i===0?' current':''}"></div>`).join('')}</div><div id="quizArea"></div>`; }
+function initQuizDemo(){ paintQuiz(); }
+function paintQuiz(){
+  const item = DEMO_QUESTIONS[quizIdx];
+  const area = document.getElementById('quizArea');
+  const starred = quizStars[quizIdx];
+  area.innerHTML = `
+    <div class="quiz-head-row"><span class="mono" style="font-size:11px;color:var(--muted);">Q${quizIdx+1}</span><button class="star-btn${starred?' on':''}" id="qStar">★ 收藏</button></div>
+    <div class="quiz-passage">${item.passage}</div>
+    <div class="quiz-q">${quizIdx+1}. ${item.q}</div>
+    ${item.options.map((opt,i)=>`<div class="quiz-opt" data-i="${i}"><div class="letter">${String.fromCharCode(65+i)}</div><div>${opt}</div></div>`).join('')}
+    <div class="quiz-feedback" id="qFeedback"></div>
+    <button class="quiz-next" id="qNext">${quizIdx<DEMO_QUESTIONS.length-1?'下一题 →':'完成 ✓'}</button>
+  `;
+  document.getElementById('qStar').addEventListener('click', function(){ quizStars[quizIdx] = !quizStars[quizIdx]; this.classList.toggle('on'); });
+  document.querySelectorAll('#quizArea .quiz-opt').forEach(opt=>{
+    opt.addEventListener('click', ()=>{
+      const picked = parseInt(opt.dataset.i,10);
+      const opts = document.querySelectorAll('#quizArea .quiz-opt');
+      opts.forEach(o=>o.classList.add('disabled'));
+      opts[item.correct].classList.add('correct');
+      if(picked !== item.correct) opt.classList.add('wrong');
+      const fb = document.getElementById('qFeedback');
+      fb.innerHTML = (picked===item.correct? '✅ 回答正确！ ':'❌ 再想想 —— ') + item.explain;
+      fb.classList.add('show');
+      document.getElementById('qNext').classList.add('show');
+      document.querySelectorAll('#qProgress .dot')[quizIdx].classList.add('done');
+    });
+  });
+  document.getElementById('qNext').addEventListener('click', ()=>{
+    if(quizIdx < DEMO_QUESTIONS.length-1){ quizIdx++; document.querySelectorAll('#qProgress .dot').forEach((d,i)=>d.classList.toggle('current', i===quizIdx)); paintQuiz(); }
+    else { document.getElementById('quizArea').innerHTML = PLACEHOLDER('这轮 demo 做完啦 —— 真实内容会接入完整真题库，答题记录自动进错题本。'); }
+  });
+}
+
+const DEMO_WORDS = [
+  {en:'consequently', cn:'因此，所以（表结果）', ex:'Consequently, more and more people are learning it.'},
+  {en:'enthusiasm', cn:'热情，热忱', ex:'Enthusiasm entails having a strong interest in the task at hand.'},
+  {en:'opponent', cn:'反对者，对手', ex:'The view has its opponents.'},
+];
+let wordIdx = 0;
+function renderWordDemo(){ wordIdx = 0; return `<div id="wordArea"></div>`; }
+function initWordDemo(){ paintWord(); }
+function paintWord(){
+  const w = DEMO_WORDS[wordIdx];
+  const area = document.getElementById('wordArea');
+  area.innerHTML = `
+    <div class="word-card" id="wCard">
+      <div class="word-front"><div class="w-en mono">${w.en}</div><div class="w-hint">点卡片看释义</div></div>
+      <div class="word-back"><div class="w-cn">${w.cn}</div><div class="w-ex">${w.ex}</div></div>
+    </div>
+    <div class="word-actions"><button class="dunno">还不认识</button><button class="know">已掌握</button></div>
+    <div style="text-align:center;margin-top:14px;color:var(--muted);font-size:12px;" class="mono">${wordIdx+1} / ${DEMO_WORDS.length}</div>
+  `;
+  document.getElementById('wCard').addEventListener('click', function(){ this.classList.toggle('flipped'); });
+  area.querySelectorAll('.word-actions button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(wordIdx < DEMO_WORDS.length-1){ wordIdx++; paintWord(); }
+      else { area.innerHTML = PLACEHOLDER('这组 demo 词刷完啦 —— 真实版本会接入教材必背词 + 四级以下核心词库。'); }
+    });
+  });
+}
+
+const FORTUNES = [
+  {grade:'上上签', text:'静心应答，所思皆有据；沉着落笔，分数自然来。'},
+  {grade:'中上签', text:'今日宜稳，勿贪快；一题一题来，自有好结果。'},
+  {grade:'上签', text:'厚积已久，此时正是收获时；莫慌，稳住节奏。'},
+];
+/* ============================================================
+   2024年4月 英语阅读（一）00595 真题数据
+   —— 阅读理解(1-30)和完形填空(31-40)共40题是客观选择题，答案是我逐句核对原文推出来的，可以真判分；
+   词形变化(41-50)/选词填空(51-60)/简答(61-62)/英译汉(63-67)需要写主观内容，交卷后显示参考答案自己核对，不假装精确判分
+   ============================================================ */
+const CLOZE_PASSAGE = `We are now prepared to look briefly at the Constitution itself. What are its leading principles? What are its leading provisions?
+First of all, the Constitution is based on the principle of delegation of powers. This means that (31)____. Before it can act in a matter the federal government must find the power to do so in the Constitution. Powers not granted to the United States by the Constitution (32)____. The states thus have powers that the federal government does not have. The federal government, for example, has no power to pass laws regulating marriage and divorce in the states. Each state makes its own laws on these matters.
+Next, the Constitution provides for a federal government based on the principle of separation of powers. It provides for three distinct departments of government: legislative, executive and judicial. All legislative power granted by the Constitution is given to Congress; the executive power is given to the President; and (33)____. The Constitution has many provisions intended to keep each department independent and strong. (34)____. In this way no department can become all-powerful. The President is Commander-in-Chief of the army and navy, but (35)____. The Supreme Court has power to declare a law passed by Congress and approved by the President unconstitutional and without effect, (36)____, and they may be removed from office by Congress if they do not behave as they should.
+The powers granted to the federal government by the Constitution are great enough to make it strong and able to act vigorously in matters relating to the nation as a whole. Congress has the power to levy taxes, maintain an army and navy, declare war, regulate commerce among the states and with foreign nations, admit new states into the Union, and to do many other things. (37)____. The federal courts try all cases arising under the Constitution and under federal laws and treaties. (38)____, the state constitution or law must give way. The United States Constitution and the laws and treaties made under it are the Supreme Law of the Land.
+The Constitution is the defender of the rights of the individual. It upholds the principles of (39)____. It provides for a fair trial for persons accused of crimes, and forbids cruel and unusual punishments. It protects the home against unlawful search by authorities. It forbids any state to (40)____.`;
+const CLOZE_OPTIONS = [
+  "A. Each department has ways of exerting control over the others",
+  "B. nor denied by it to the state are reserved to the states or to the people themselves",
+  "C. If any state constitution or state law is in conflict with the federal Constitution or with any laws or treaties made in accordance with it",
+  "D. but the President appoints Supreme Court justices with the consent of the Senate",
+  "E. The President's powers include the making of treaties with foreign nations with the consent of the Senate",
+  "F. the judicial power is given to the Supreme Court and other federal courts",
+  "G. it provides for a national government that has only those powers granted to it in the Constitution by the people",
+  "H. freedom of religion, freedom of the press, and freedom of speech",
+  "I. all the money for supporting an army and navy must be appropriated by Congress",
+  "J. deprive any person of life, liberty or property without due process of law, or to deny to any person equal protection of the laws",
+  "K. because the colonies had grown stronger and were in less need of British support",
+  "L. The makers of the Constitution had no choice but to continue the dual system of government"
+];
+const CLOZE_ANSWER_LETTERS = {31:'G',32:'B',33:'F',34:'A',35:'E',36:'D',37:'I',38:'C',39:'H',40:'J'};
+
+const PASSAGES = {
+  p1: `Education is not an end, but a means to an end. In other words, we do not educate children only for the aim of educating them. Our purpose is to fit them for life. Life is varied; so is education.\nIn some countries with advanced industries, they have free education for all. Under this system, people, no matter whether they are rich or poor, clever or foolish, have a chance to be educated at universities or colleges. They have for some time thought, by free education for all, they can solve all the problems of a society and build a perfect nation. But we can already see that free education for all is not enough. We find in such countries a far larger number of people with university degrees than there are jobs for them to fill. As a result of their degrees, they refuse to do what they think is "low" work. In fact, to work with one's hands is thought to be dirty and shameful in such countries.\nBut we have only to think a moment to understand that the work of a completely uneducated farmer is as important as that of a professor. We can live without education, but we should die if none of us grew crops. If no one cleaned our streets and took the rubbish away from our houses, we should get terrible diseases in our towns. If there were no service people, because everyone was ashamed to do such work, the professors would have to waste much of their time doing house work.\nOn the other hand, if all the farmers were completely uneducated, their production would remain low. As the population grows larger and larger in the modern world, we should die if we did not have enough food.\nIn fact, when we say all of us must be educated to fit ourselves for life, it means that all must be educated: firstly, to realize that everyone can do whatever job is suited to his brain and ability; secondly, to understand that all jobs are necessary to society and that it is bad to be ashamed of one's own work or to look down upon someone else's; thirdly, to master all the necessary know-how (技能) to do one's job well. Only such education can be called valuable to society.`,
+  p2: `American football, not to be confused with the football called soccer, is the American national sport. It developed from the British game of rugby, and although it is played in no other country in the world (except Canada), it excites tremendous enthusiasm.\nThe method of scoring (计分) in American football is the same as in rugby. Players try to carry the ball over the opponents' line, and then to earn more points by kicking the ball between the upright goal posts above the bar. But that is where the likeness between the two games ends.\nAmerican football has a reputation for being a brutal and dangerous game. This reputation is not really deserved. The players hurl themselves at each other fiercely at each other, but today their uniforms and helmets (fitted with visors to protect their faces) are so skillful to protect them that there are few serious injuries. By comparison, the rugby player is almost naked, having only a thin jersey (紧身套衫) and a pair of shorts to protect him from his opponents' boots and tackling (阻截铲球).\nThe Americans now have a new craze, a game which most other countries call "football", but which they call soccer. Soccer is spreading like wildfire through all the States and gaining in popularity on baseball. It is run by big business and TV advertisers, who are doing everything they can to sell it to the public. They are employing famous fashion designers to design novel (新奇的) uniforms for the players. They have introduced a musical background to the games, and there is a big screen in the stadium that explains to spectators (观众) what is happening. Most important, they have hired, at enormous expense, famous coaches and players from Europe and South America. They have also changed some of the rules, including the offside (越位) rules to make the game more exciting.\nSoccer games can now draw crowds of over 70 thousand in cities where baseball attracts a mere 20 thousand spectators. The soccer stadiums are much more luxurious than the vast majority of European and South American league grounds. There is a seat for everyone and a parking lot for 25 thousand cars. Soccer is being brilliantly promoted, like any other promising American product.`,
+  p3: `English is now the international language for airline pilots, scientists, medical experts, businessmen and many others. Consequently, more and more people are learning it. The BBC's English teaching programmes are broadcast daily to four continents and supplied to radio stations in 120 countries. Films and videos are on the air or used in institutions in over 100 countries. All this helps to add more speakers to the estimated 100 million who used English as a second language. The rush to learn English has reached even China. The main reason for the upsurge (上升) in interest is recent increase in China's contacts with the outside world.\nUnlike many other widely used languages, English can be correctly used in a very simple form with less than one thousand words and very few grammatical rules. This was pointed out in the 1920's by two Cambridge scholars, Ogden and Richards, who devised a system called "Basic English". Another reason for the popularity of English is that English-speaking countries are spread throughout the world. An estimated 310 million people in Britain, the U.S.A., Canada, Australia, South Africa, etc. use English as their mother tongue. Also in former British colonial areas in Africa and Asia where many local languages are spoken, no common language has been found which would make a suitable substitute for English.\nIn Delhi, although nationalists would prefer to phase out (逐步停止) the use of English, the man from South India finds English more acceptable than Hindi, while the northerner prefers English to any of the southern languages. Turning from India to Africa, a similar problem exists. However reluctant African nations are to use English and, as it were, subject themselves to a kind of "cultural imperialism", there seems to be no alternative language which will do the job of communication effectively.\nThe view that spreading the use of English is entirely beneficial has its opponents. Some teachers who have returned from overseas consider it creates a wider gap between those who are educated and those who have little or no education. Nevertheless, in many parts of the world, the technical and people's living conditions, is just not available in the mother tongue. A second language opens the door to the worldwide sharing of skills and discoveries in science, engineering and medicine.\nAs for the future, it seems certain that English in one form or another will be spoken by far more people than it is today. It will doubtless continue to change and develop—as a living language always does.`,
+  p4: `We have all had to work and do things that we did not especially enjoy. Usually, some chirpy (活泼的) person would tell us to be more enthusiastic. "You'll have more fun," they would say. Well, they were partly right. Being enthusiastic about something means being excited about a given project. Enthusiasm entails having a strong interest in the task at hand. If you decided to learn a new language, which is not easy by any account, you would have to dedicate yourself wholehearted to the cause. Anything less would result in failure.\nWhat is real enthusiasm? In your quest for success, enthusiasm means that you believe deeply in what the company is doing. You also believe that your job is important and contributes to the cause. It means that you're willing to work your butt off (努力做某事) to achieve the company's goals. Real enthusiasm is when you leap out of bed in the morning and attack your day with gusto (热忱). You have zeal for the work you do and the people you work with. This pushes you to improve and become a better person. Enthusiasm means that you are stimulated by your work, and are able to keep growing professionally. Furthermore, most jobs have some elements that are less fun and more difficult to carry out. This is where passion really comes into play. When you love what you do, it isn't too difficult to get psyched up and get the job done. The hard part is performing equally well in those less interesting tasks.\nPassion helps you get ahead. Enthusiasm about a job or project usually translates into positive energy. That is, if you are excited about a project, you will be anxious to get started and get results. The mere fact of looking forward to your work will help make you more productive and effective. You will plan more effectively and pay careful attention to detail. You will carry out your plan more carefully and aim for the best results possible. Another important point is that passionate people are usually those that are thrust into positions of leadership. A leader must have zest if people are to follow him and achieve the corporate mission. To inspire them, he needs to exude enthusiasm. In leaders, this translates into charisma (领袖人物的超凡魅力). Being fervent about your work shows a willingness to do more and learn more. This will definitely help you stand out from the crowed and get top management's attention.\nIncreasing your enthusiasm. Most men aren't born great—they become great. Similarly, not everyone is the enthusiastic type that falls in love with their work. However, do not despair; there are ways to become more passionate. One good way to boost your gusto is by reading about successful people. Reading about real success stories often illustrates that people much like yourself have become business leaders. In most cases, they all share one trait: enthusiasm. If you want to succeed, you should be excited about your work, your life and your co-workers.`,
+  p5: `Annie was born in a poor family, on April 4th, 1866. Her mother died when she was eight years old. Two years later, her father disappeared never to be heard from again. Annie and her brother were sent to children's home. The boy died.\nFour years later, she left the children's home and entered an institution for the blind, where she learnt Braille. This is a kind of printing that blind people can read by touching groups of raised points that are printed on paper. Later, an operation helped her to get back part of her sight, but she remained at the institution for six years more. There she studied the teaching of deafblind children.\nOne day a letter from my father arrived at the school, asking for a teacher for me. Annie considered this was just the kind of demanding job she wanted. That is how Annie came to be with us.\nAnnie was among the first to realize that blind people never know their hidden strength until they are treated like normal human beings. She never pitied me; she never praised me unless what I did was as good as that of the best of a normal person. And she encouraged me when I made up my mind to go to college.\nDuring my years in school, Annie sat beside me in every class. She spelled out for me the things that the teachers taught. And, because most books were not printed in Braille, she herself read them to me by spelling into my hand what was written in the books.\nIt took great imagination as well as patience for Annie to teach me to speak. Putting both my hands on her face when she spoke, she let me feel all the movements of her lips and throat. Together we repeated and repeated words and sentences. My speech was ill-formed and not pleasant to hear. But I was delighted to be able to say words that my family and a few friends could understand. To Annie I owe thanks for this priceless gift of speech. It has helped me to serve others.\nMy teacher's gifted instruction lived on after her death. She had believed in me. I must always keep on trying to do my best. "No matter what happens," she often said, "keep on beginning. Each time you fail, start all over again. You will grow stronger each time, until you can do and finish what you started out to do." Who could count the times Annie tried, failed, and then succeeded? What a great teacher! What a great person!`,
+  p6a: `There was a time in the early history of man when the days had no names! The reason was quite simple: Man had not invented the week.\nIn those days, the only division of times was the month, and there were too many days in the month for each of them to have a separate name. But when men began to build cities, they wanted to have a special day on which to trade, a market day. Sometimes these market days were fixed at every tenth day, some every seventh or every fifth day. The Babylonians decided that it should be every seventh day. On this day they didn't work, but met for trade or religious festivals.\nThe Jews followed their example, but kept every seventh day for religious purposes. On this day the week came into existence. It was space between market days. The Jews gave each of the seven days a name, but it was really a number after the Sabbath day (which was Saturday). For example, Wednesday was called the fourth day (four days after Saturday).\nWhen the Egyptians adopted the seven-day week, they named the days after five planets, the sun and the moon. The Romans used the Egyptian names for their days of the week: the day of the sun, of the moon, of the planet Mars, of Mercury, of Jupiter, of Venus, and of Saturn.\nWe get our names for the days not from the Romans but from the Angio-Saxons, who called most of the days after their own gods, which roughly the same as the gods of the Romans. The day of the sun became Sannandaeg, or Sunday. The day of the moon was called Monandaeg, or Monday. The day of Mars became the day of the Tiw, who was their god of war. This became Tiwesdaeg, or Tuesday. Instead of Mercury's name, that of the god Woden was given to Wednesday. The Roman day of Jupiter, the thunder, became the day of the thunder god Thor, and this became Thursday. The next day was named for Frigg, the wife of their god Odin, and so we have Friday. The day of Saturn became Saeterndaeg, a translation from the Roman, and then Saturday.\nA day, by the way, used to be counted as the space between sunrise and sunset. The Romans counted it as from Midnight, and most modern nations use this method.`
+};
+
+const EXAM_DATA = [];
+
+function addQ(n, cat, passageKey, qText, options, correctIdx, explain){
+  EXAM_DATA[n] = { n, cat, passage: passageKey ? PASSAGES[passageKey] : null, qText, options, correctIdx, explain, type:'mcq' };
+}
+
+// ---- 仔细阅读理解 Passage 1 (Q1-5) ----
+addQ(1,'仔细阅读理解','p1','According to the passage, what is our purpose of educating children?',
+  ['To accustom them to varied life.','To choose a proper system of education.','To educate them only for the aim of educating them.','To make them intelligent citizens.'],0,
+  '原文："Our purpose is to fit them for life. Life is varied; so is education." 对应A。');
+addQ(2,'仔细阅读理解','p1','The author thought that free education for all is not enough because ________.',
+  ['people with degrees fail to solve all the problems of a society','people with degrees lack necessary skills to do their jobs','people with degrees consider themselves superior to those working with their hand','people with degrees look for the jobs with high payment'],2,
+  '原文提到有学位的人"refuse to do what they think is low work"，看不起体力劳动，对应C。');
+addQ(3,'仔细阅读理解','p1','The work of a completely uneducated farmer is as important as a professor\'s because ________.',
+  ['we would live a better life with the farmers\' help','we would grow crops by ourselves as farmers','without farmers we would create more physical jobs for educated people','without farmers we would die of food shortage'],3,
+  '原文："we should die if none of us grew crops"，对应D。');
+addQ(4,'仔细阅读理解','p1','According to the passage, which of the following statements is CORRECT?',
+  ['Farmers also need to receive education to increase their production.','The professors could waste much time doing housework.','We couldn\'t live without education.','Service people feel ashamed of their work.'],1,
+  '原文明确写道："the professors would have to waste much of their time doing house work"，对应B；原文说的是"we can live without education"，C与原文矛盾。');
+addQ(5,'仔细阅读理解','p1','Education should be various because ________.',
+  ['life is varied','free education for all is possible','people have different professional backgrounds','some jobs are not necessary'],0,
+  '原文："Life is varied; so is education."，对应A。');
+
+// ---- Passage 2 (Q6-10) ----
+addQ(6,'仔细阅读理解','p2','According to paragraph 1 of this passage, which of the following statements is CORRECT?',
+  ['American football is no longer played in this world.','American football is played only in America and Canada.','American football is played only in the United States.','American football is played only in Britain.'],1,
+  '原文："it is played in no other country in the world (except Canada)"，对应B。');
+addQ(7,'仔细阅读理解','p2','American football and rugby are alike in ________.',
+  ['the method of playing','the method of scoring','the degree of brutality','the degree of danger'],1,
+  '原文："The method of scoring in American football is the same as in rugby."，对应B。');
+addQ(8,'仔细阅读理解','p2','American football has become less brutal and dangerous in recent years because ________.',
+  ['it failed to attract more spectators','it is not as famous as before','the football coaches have laid down new rules on this game','the players have equipped with special uniforms and helmets to protect themselves from few serious injuries'],3,
+  '原文提到球员的uniforms and helmets保护得很好，"there are few serious injuries"，对应D。');
+addQ(9,'仔细阅读理解','p2','Big business and TV advertisers are doing everything to "sell" soccer to the public EXCEPT ________.',
+  ['designing novel uniforms for the players by employing famous fashion designers','broadcasting popular soccer games on social websites','changing some of the rules to make the soccer games more excited','introducing a musical background and explaining what is happening in the game on a big screen in the stadium'],1,
+  '原文提到的是电视广告商和大屏幕/音乐背景，没有提到"social websites"，对应B(EXCEPT)。');
+addQ(10,'仔细阅读理解','p2','It can be inferred from the passage that ________ is a most promising game in America.',
+  ['the national sport of baseball','British rugby','soccer','American football'],2,
+  '原文最后一句："Soccer is being brilliantly promoted, like any other promising American product."，对应C。');
+
+// ---- Passage 3 (Q11-15) ----
+addQ(11,'仔细阅读理解','p3','People have become more interested in English recently in China because ________.',
+  ['China\'s opening up to the outside world has enhanced','people in China are interested in English films and videos','BBC is promoting English teaching programmes','English is the second official language in China'],0,
+  '原文："The main reason for the upsurge in interest is recent increase in China\'s contacts with the outside world."，对应A。');
+addQ(12,'仔细阅读理解','p3','The international popularity of English is due to the following facts EXCEPT ________.',
+  ['English can be correctly used in a very simple form','English is the local language in many countries','English is promoted by radio stations in more than one hundred countries','English helps people to communicate each other with some words and very few grammatical rules'],2,
+  '原文给出的两大原因是"简单形式(Basic English)"和"英语国家遍布世界"，广播电台是传播途径而非popularity的原因，对应C(EXCEPT)。');
+addQ(13,'仔细阅读理解','p3','"Basic English" refers to ________.',
+  ['English used by non-native speakers','a system of teaching developed in England','the simplicity of the English language','the thousand English words most commonly used'],2,
+  '原文："English can be correctly used in a very simple form with less than one thousand words and very few grammatical rules...called \'Basic English\'."，对应C。');
+addQ(14,'仔细阅读理解','p3','Many of the Third World people oppose the use of English in their countries because ________.',
+  ['they consider it a form of cultural imperialism','the English language is not easy to learn','other languages are more beneficial','they hope to remain their local culture'],0,
+  '原文："subject themselves to a kind of \'cultural imperialism\'"，对应A。');
+addQ(15,'仔细阅读理解','p3','According to this passage, what is the author\'s view of the spread of English?',
+  ['positive','negative','neutral','impressive'],2,
+  '全文正反两方面观点都有提及(有利于知识共享，也有人担忧文化鸿沟/文化侵略)，语气克制平衡，对应C。');
+
+// ---- Passage 4 (Q16-20) ----
+addQ(16,'仔细阅读理解','p4','According to the passage, the interpretation of real enthusiasm included the following statements EXCEPT ________.',
+  ['showing much interest in the task at hand','trying to avoid challenges in the project','going to work with great zeal every morning','your true belief in the company\'s aim'],1,
+  '原文强调热情的人会主动迎难而上("passion really comes into play")，并未提到"avoid challenges"，对应B(EXCEPT)。');
+addQ(17,'仔细阅读理解','p4','Enthusiasm about a job or project does NOT mean that you ________.',
+  ['will make a plan and implement it effectively','must overwork everyday','will become more productive','will be anxious to get started and obtain best results possible'],1,
+  '原文没有提到"must overwork everyday"这种绝对说法，对应B。');
+addQ(18,'仔细阅读理解','p4','Why do we need to do our work with enthusiasm?',
+  ['Because this can help us make a fortune.','Because this can distinguish us from the rest of the people and become a leader.','Because our colleagues may appreciate this.','Because this puts us in a good mood when working.'],1,
+  '原文："stand out from the crowd and get top management\'s attention"，且passionate people usually被推向leadership，对应B。');
+addQ(19,'仔细阅读理解','p4','A leader must have zest because ________.',
+  ['he wants to show his charisma','he needs to inspire his men','he wants to earn more attention','he needs to survive in his mission'],1,
+  '原文："A leader must have zest if people are to follow him...To inspire them, he needs to exude enthusiasm."，对应B。');
+addQ(20,'仔细阅读理解','p4','What can we infer from the last paragraph of this passage?',
+  ['Enthusiasm is the common factor of being successful shared by many business leaders.','Enthusiasm is a born talent that can help us obtain inspirations from other people.','Reading about successful people can make us love our work at hand.','Reading about successful people helps us become less excited about life.'],0,
+  '原文："they all share one trait: enthusiasm"，对应A；且"most men aren\'t born great"否定了B。');
+
+// ---- 快速阅读 Passage 5 (Q21-25) ----
+addQ(21,'快速阅读理解','p5','When was Annie born?',['In 1856.','In 1859.','In 1866.','In 1869.'],2,'原文："Annie was born...on April 4th, 1866."，对应C。');
+addQ(22,'快速阅读理解','p5','What is Braille?',['It\'s a kind of printing for blind people.','It\'s a kind of sign language.','It\'s a kind of points.','It\'s a kind of equipment.'],0,'原文："she learnt Braille. This is a kind of printing that blind people can read by touching."，对应A。');
+addQ(23,'快速阅读理解','p5','Where did Annie study the teaching of deafblind children?',['In the children\'s home.','In an institution for blind people.','In a university.','In a training school.'],1,'原文她在"institution for the blind"多留了六年研究deafblind教学，对应B。');
+addQ(24,'快速阅读理解','p5','How did Annie help me know my hidden strength?',['She always praised me.','She often pitied me.','She disagreed on my decision to go to college.','She treated me like a normal girl.'],3,'原文："She never pitied me; she never praised me unless..."实际是"待我如常人"，对应D。');
+addQ(25,'快速阅读理解','p5','How did I feel when I was able to say words that my family and a few friends could understand?',['comfortable','happy','proud','shy'],1,'原文："I was delighted..."，delighted≈happy，对应B。');
+
+// ---- 快速阅读 Passage 6 (Q26-30) ----
+addQ(26,'快速阅读理解','p6a','In the early history of man, the days had no names because ________.',['man had no idea of time','man had not invented the week','man had no concept of time','man had no time to figure out names for the days'],1,'原文："Man had not invented the week."，对应B。');
+addQ(27,'快速阅读理解','p6a','In those days, man divided times only by ________.',['the month','the minute','the year','the hour'],0,'原文："the only division of times was the month"，对应A。');
+addQ(28,'快速阅读理解','p6a','How did the Jews name each of the seven days?',['They named each day after the gods.','They named each day for religious purposes.','They gave each day a number after Saturday.','They gave each day a specific name.'],2,'原文："it was really a number after the Sabbath day (Saturday)"，对应C。');
+addQ(29,'快速阅读理解','p6a','The Romans named the days after some planets EXCEPT ________.',['Mars','Mercury','Venus','Pluto'],3,'原文提到的是Mars/Mercury/Jupiter/Venus/Saturn，没有Pluto(冥王星)，对应D。');
+addQ(30,'快速阅读理解','p6a','The Roman day of Jupiter, the thunder, became ________.',['Monday','Tuesday','Wednesday','Thursday'],3,'原文："The Roman day of Jupiter...became the day of the thunder god Thor...Thursday."，对应D。');
+
+// ---- 完形填空 Cloze (Q31-40)：10题共用同一段短文，从12个选项里选 ----
+for(let n=31;n<=40;n++){
+  const letter = CLOZE_ANSWER_LETTERS[n];
+  const correctIdx = letter.charCodeAt(0) - 65; // A=0,B=1...
+  EXAM_DATA[n] = {
+    n, cat:'完形填空(教材选段)', passage: CLOZE_PASSAGE, qText:`短文第 (${n}) 空处应填入哪一项？`,
+    options: CLOZE_OPTIONS, correctIdx, type:'mcq',
+    explain: `根据上下文逻辑与语法衔接，第(${n})空对应 ${letter} 项。`
+  };
+}
+
+// ---- 主观题区（41-67）：词形变化/选词填空/简答/英译汉，交卷后显示参考答案自己核对 ----
+const SUBJECTIVE_ITEMS = [
+  {n:41, cat:'词形变化', qText:'(dark) A young voice started to sing in the ________.', ref:'darkness'},
+  {n:42, cat:'词形变化', qText:'(society) Certain other forms of politeness are observed on ________ occasions.', ref:'social'},
+  {n:43, cat:'词形变化', qText:'(produce) Many resources are consumed in the ________ of cars.', ref:'production'},
+  {n:44, cat:'词形变化', qText:'(wild) Frampton ________ seized his hat and stick.', ref:'wildly'},
+  {n:45, cat:'词形变化', qText:'(attract) The display in the window was ________.', ref:'attractive'},
+  {n:46, cat:'词形变化', qText:'(rob) It had been with them when they made their big ________ on the Coast.', ref:'robbery'},
+  {n:47, cat:'词形变化', qText:'(friend) Neither Rube nor I were married and we soon became very ________.', ref:'friendly'},
+  {n:48, cat:'词形变化', qText:'(surprise) Swain and Koppel were so ________ that they could not say a word.', ref:'surprised'},
+  {n:49, cat:'词形变化', qText:'(advantage) It is not ________ for individuals to drive everywhere.', ref:'advantageous'},
+  {n:50, cat:'词形变化', qText:'(major) The ________ of his customers came after six p.m.', ref:'majority'},
+  {n:51, cat:'选词填空', qText:'Britain kept out of foreign politics as ________ as possible.', ref:'much'},
+  {n:52, cat:'选词填空', qText:'Europe was divided ________ two camps.', ref:'into'},
+  {n:53, cat:'选词填空', qText:'Germany was growing ________ strong.', ref:'too'},
+  {n:54, cat:'选词填空', qText:'The various German states had been ________ under the King of Prussia.', ref:'united'},
+  {n:55, cat:'选词填空', qText:'Britain watched him with ________ mistrust.', ref:'growing'},
+  {n:56, cat:'选词填空', qText:'They had ________ to build a very large navy.', ref:'begun'},
+  {n:57, cat:'选词填空', qText:'They could only have one ________, to fight their British rival.', ref:'purpose'},
+  {n:58, cat:'选词填空', qText:'Britain now openly ________ with France (原句"made ___ with France"一类表述).', ref:'（该空对照课本原文核对，教材原句用词可能是"friends/terms"一类，请以教材为准）'},
+  {n:59, cat:'选词填空', qText:'Plans were ________ for an army of 150,000 men.', ref:'made'},
+  {n:60, cat:'选词填空', qText:'When war came in 1914 this force ________ to arrive in time to save Paris.', ref:'（请对照教材原文核对，此空不十分确定，可能是"managed"一类）'},
+  {n:61, cat:'简答', qText:'How can we learn a new language with enthusiasm?', ref:'需要全身心投入(dedicate yourself wholeheartedly)，对任务保持强烈兴趣，主动迎接挑战——用自己的话结合Passage 4作答即可，没有固定标准句。'},
+  {n:62, cat:'简答', qText:'According to paragraph 2, what are the benefits we can obtain from real enthusiasm about our work?', ref:'促使自己不断进步、持续成长(pushes you to improve and become a better person / keep growing professionally)——结合原文段落用自己的话回答。'},
+  {n:63, cat:'英译汉', qText:'I had a tiny apartment in the Latin Quarter overlooking a cemetery and I was earning barely enough money to keep body and soul together.', ref:'参考：我在拉丁区有一间可以俯瞰墓地的小公寓，赚的钱刚够维持生计。'},
+  {n:64, cat:'英译汉', qText:'I answered, thanking her, and presently I received from her another letter saying that she was passing through Paris and would like to have a chat with me.', ref:'参考：我回信表示感谢，不久收到她的另一封信，说她将途经巴黎，想和我聊聊。'},
+  {n:65, cat:'英译汉', qText:'Foyot\'s is a restaurant at which the French senators eat and it was so far beyond my means that I had never even thought of going there.', ref:'参考：福约是一家法国参议员们常去吃饭的餐厅，远超我的经济能力，我从未想过要去那里。'},
+  {n:66, cat:'英译汉', qText:'If I cut out coffee for the next two weeks I could manage well enough.', ref:'参考：如果接下来两周我不喝咖啡，钱还是够用的。'},
+  {n:67, cat:'英译汉', qText:'She was talkative, but since she seemed inclined to talk about me I was prepared to be an attentive listener.', ref:'参考：她很健谈，但既然她似乎更愿意谈论我，我也乐得当一个专心的听众。'}
+];
+SUBJECTIVE_ITEMS.forEach(item => { EXAM_DATA[item.n] = { ...item, type:'subjective' }; });
+
+const REAL_CATS = [
+  {name:'仔细阅读理解 (1-20)', start:1, count:20},
+  {name:'快速阅读理解 (21-30)', start:21, count:10},
+  {name:'完形填空 (31-40)', start:31, count:10},
+  {name:'词汇 (41-50)', start:41, count:10},
+  {name:'选词填空 (51-60)', start:51, count:10},
+  {name:'简答 (61-62)', start:61, count:2},
+  {name:'英译汉 (63-67)', start:63, count:5}
+];
+const TOTAL_Q = 67;
+let examSeconds = 0, examTimerHandle = null, answeredMap = {};
+
+function showStep(id){
+  document.querySelectorAll('.exam-step').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function startExamRitual(){
+  examOverlay.classList.add('open');
+  showStep('stepRitual');
+  document.getElementById('fortuneReveal').classList.remove('show');
+  document.getElementById('drawStick').style.display='flex';
+}
+document.getElementById('examExit').addEventListener('click', ()=>{ examOverlay.classList.remove('open'); clearInterval(examTimerHandle); });
+
+document.getElementById('drawStick').addEventListener('click', function(){
+  const f = FORTUNES[Math.floor(Math.random()*FORTUNES.length)];
+  document.getElementById('frGrade').textContent = f.grade;
+  document.getElementById('frText').textContent = f.text;
+  this.style.display = 'none';
+  document.getElementById('fortuneReveal').classList.add('show');
+});
+document.getElementById('toCountdown').addEventListener('click', ()=>{
+  showStep('stepCountdown');
+  let n = 3;
+  const el = document.getElementById('countdownNum');
+  el.textContent = n;
+  const iv = setInterval(()=>{
+    n--;
+    if(n<=0){ clearInterval(iv); beginExamRun(); } else { el.textContent = n; }
+  },800);
+});
+
+let currentQ = 1;
+
+function qnumGridHtml(){
+  return REAL_CATS.map(cat=>{
+    let grid = '';
+    for(let i=0;i<cat.count;i++){
+      const num = cat.start+i;
+      const cls = ['qnum'];
+      if(answeredMap[num]!==undefined) cls.push('answered');
+      if(num===currentQ) cls.push('current');
+      grid += `<div class="${cls.join(' ')}" data-q="${num}">${num}</div>`;
+    }
+    return `<div class="cat-block"><div class="cat-title">${cat.name}</div><div class="qnum-grid">${grid}</div></div>`;
+  }).join('');
+}
+
+function renderQuestion(n){
+  currentQ = n;
+  const q = EXAM_DATA[n];
+  const body = document.getElementById('examBody');
+  if(!q){ body.innerHTML = '<div class="q-detail">这道题数据缺失</div>'; return; }
+
+  const passageHtml = q.passage ? `<div class="q-passage">${escapeHtml(q.passage).replace(/\n/g,'<br><br>')}</div>` : '';
+  let answerAreaHtml = '';
+
+  if(q.type === 'mcq'){
+    const picked = answeredMap[n];
+    answerAreaHtml = `
+      <div class="q-text">${n}. ${escapeHtml(q.qText)}</div>
+      <div class="q-options">
+        ${q.options.map((opt,i)=>`
+          <div class="q-option ${picked===i?'picked':''}" data-i="${i}">
+            <span class="q-opt-mark">${String.fromCharCode(65+i)}</span>${escapeHtml(opt)}
+          </div>`).join('')}
+      </div>`;
+  } else {
+    // 主观题：文本框自己作答，不判分，交卷后对照参考答案自己核对
+    const val = answeredMap[n] || '';
+    answerAreaHtml = `
+      <div class="q-text">${n}. ${escapeHtml(q.qText)}</div>
+      <textarea class="q-subjective-input" id="subjInput" placeholder="在这里写下你的答案（这类题交卷后显示参考答案，需要自己核对，不会自动判分）">${escapeHtml(val)}</textarea>`;
+  }
+
+  body.innerHTML = `
+    <div class="q-detail-head">
+      <button class="q-back-btn" id="qBackBtn">← 返回总览</button>
+      <span class="q-cat-tag">${escapeHtml(q.cat)}</span>
+    </div>
+    ${passageHtml}
+    ${answerAreaHtml}
+    <div class="q-nav-row">
+      <button class="q-nav-btn" id="qPrevBtn" ${n<=1?'disabled':''}>← 上一题</button>
+      <button class="q-nav-btn" id="qNextBtn" ${n>=TOTAL_Q?'disabled':''}>下一题 →</button>
+    </div>
+  `;
+
+  document.getElementById('qBackBtn').addEventListener('click', renderGrid);
+  document.getElementById('qPrevBtn')?.addEventListener('click', ()=> renderQuestion(n-1));
+  document.getElementById('qNextBtn')?.addEventListener('click', ()=> renderQuestion(n+1));
+
+  if(q.type === 'mcq'){
+    body.querySelectorAll('.q-option').forEach(el=>{
+      el.addEventListener('click', function(){
+        answeredMap[n] = parseInt(this.dataset.i, 10);
+        body.querySelectorAll('.q-option').forEach(o=>o.classList.remove('picked'));
+        this.classList.add('picked');
+      });
+    });
+  } else {
+    document.getElementById('subjInput').addEventListener('input', function(){
+      if(this.value.trim()) answeredMap[n] = this.value; else delete answeredMap[n];
+    });
+  }
+}
+
+function renderGrid(){
+  const body = document.getElementById('examBody');
+  body.innerHTML = qnumGridHtml();
+  body.querySelectorAll('.qnum').forEach(el=>{
+    el.addEventListener('click', function(){ renderQuestion(parseInt(this.dataset.q,10)); });
+  });
+}
+
+function beginExamRun(){
+  showStep('stepRun');
+  answeredMap = {};
+  currentQ = 1;
+  renderGrid();
+  examSeconds = 0;
+  const timerEl = document.getElementById('examTimer');
+  clearInterval(examTimerHandle);
+  examTimerHandle = setInterval(()=>{
+    examSeconds++;
+    const m = String(Math.floor(examSeconds/60)).padStart(2,'0');
+    const s = String(examSeconds%60).padStart(2,'0');
+    timerEl.textContent = `${m}:${s}`;
+  },1000);
+}
+
+let lastWrongList = [];
+
+document.getElementById('examSubmit').addEventListener('click', ()=>{
+  clearInterval(examTimerHandle);
+  const m = String(Math.floor(examSeconds/60)).padStart(2,'0');
+  const s = String(examSeconds%60).padStart(2,'0');
+  document.getElementById('resTime').textContent = `${m}:${s}`;
+
+  // 真实判分：只对客观题(1-40)算正确率，主观题(41-67)不计入正确率，交卷后单独显示参考答案
+  let correctCount = 0, objectiveCount = 0;
+  lastWrongList = [];
+  for(let n=1;n<=40;n++){
+    const q = EXAM_DATA[n];
+    if(!q || q.type!=='mcq') continue;
+    objectiveCount++;
+    if(answeredMap[n] === q.correctIdx) correctCount++;
+    else lastWrongList.push(n);
+  }
+  const acc = objectiveCount>0 ? Math.round(correctCount/objectiveCount*100) : 0;
+  document.getElementById('resAcc').textContent = acc+'%';
+  document.getElementById('resWrong').textContent = lastWrongList.length;
+  showStep('stepResult');
+});
+
+document.getElementById('viewWrong').addEventListener('click', ()=>{
+  examOverlay.classList.remove('open');
+  if(lastWrongList.length===0){
+    openDrawer('错题查看', PLACEHOLDER('这次客观题(1-40题)全对，没有错题～'));
+    return;
+  }
+  const html = lastWrongList.map(n=>{
+    const q = EXAM_DATA[n];
+    const picked = answeredMap[n];
+    return `
+      <div class="wrong-item">
+        <div class="wrong-item-head">第${n}题 · ${escapeHtml(q.cat)}</div>
+        <div class="wrong-item-q">${escapeHtml(q.qText)}</div>
+        <div class="wrong-item-your">你的答案：${picked!==undefined ? String.fromCharCode(65+picked)+'. '+escapeHtml(q.options[picked]) : '（未作答）'}</div>
+        <div class="wrong-item-correct">正确答案：${String.fromCharCode(65+q.correctIdx)}. ${escapeHtml(q.options[q.correctIdx])}</div>
+        <div class="wrong-item-explain">${escapeHtml(q.explain||'')}</div>
+      </div>`;
+  }).join('');
+  openDrawer('错题查看 (' + lastWrongList.length + '题)', `<div class="wrong-list">${html}</div>`);
+});
+
+document.getElementById('viewSubjective') && document.getElementById('viewSubjective').addEventListener('click', ()=>{
+  examOverlay.classList.remove('open');
+  const html = SUBJECTIVE_ITEMS.map(item => `
+    <div class="wrong-item">
+      <div class="wrong-item-head">第${item.n}题 · ${escapeHtml(item.cat)}</div>
+      <div class="wrong-item-q">${escapeHtml(item.qText)}</div>
+      <div class="wrong-item-your">你写的：${escapeHtml(answeredMap[item.n] || '（未作答）')}</div>
+      <div class="wrong-item-correct">参考答案：${escapeHtml(item.ref)}</div>
+    </div>`).join('');
+  openDrawer('主观题参考答案 (41-67题)', `<div class="wrong-list">${html}</div>`);
+});
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str==null ? '' : str;
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>
