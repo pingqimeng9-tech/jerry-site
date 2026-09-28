@@ -35,7 +35,30 @@
       '.site-preview{width:100%!important;}',
       '.site-preview[data-ratio="portrait"] .sp-stage{height:auto;aspect-ratio:9/16;max-height:78vh;width:auto;max-width:100%;margin:0 auto;}',
       '.site-preview .sp-tools .sp-w{display:none;}',
-    '}'
+    '}',
+    /* ===== 可下载附件卡片 ===== */
+    '.file-attach{margin:1.3rem auto;width:100%;max-width:720px}',
+    '.file-attach a.fa-card{display:flex;align-items:center;gap:13px;padding:13px 15px;border-radius:13px;',
+      'border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);backdrop-filter:blur(10px);',
+      'box-shadow:0 10px 26px rgba(0,0,0,.25);text-decoration:none;transition:.15s;cursor:pointer}',
+    '.file-attach a.fa-card:hover{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.55);transform:translateY(-1px)}',
+    '.file-attach .fa-icon{flex:none;width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;',
+      'font-size:23px;background:linear-gradient(135deg,#FF7A5C,#FF8CD9);box-shadow:0 6px 16px rgba(255,122,92,.3)}',
+    '.file-attach .fa-icon.ic-zip{background:linear-gradient(135deg,#f5b041,#f39c12)}',
+    '.file-attach .fa-icon.ic-exe{background:linear-gradient(135deg,#5dade2,#2e86c1)}',
+    '.file-attach .fa-icon.ic-pdf{background:linear-gradient(135deg,#ec7063,#c0392b)}',
+    '.file-attach .fa-icon.ic-doc{background:linear-gradient(135deg,#5dade2,#2874a6)}',
+    '.file-attach .fa-icon.ic-xls{background:linear-gradient(135deg,#58d68d,#229954)}',
+    '.file-attach .fa-icon.ic-ppt{background:linear-gradient(135deg,#f1948a,#cb4335)}',
+    '.file-attach .fa-icon.ic-img{background:linear-gradient(135deg,#af7ac5,#7d3c98)}',
+    '.file-attach .fa-icon.ic-av{background:linear-gradient(135deg,#48c9b0,#138d75)}',
+    '.file-attach .fa-icon.ic-txt{background:linear-gradient(135deg,#aab7b8,#566573)}',
+    '.file-attach .fa-meta{flex:1;min-width:0}',
+    '.file-attach .fa-name{font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.file-attach .fa-sub{font-size:11.5px;color:#c9c6e8;margin-top:3px;font-family:"JetBrains Mono",Consolas,monospace}',
+    '.file-attach .fa-btn{flex:none;border:none;border-radius:999px;padding:9px 18px;font-weight:700;font-size:12.5px;',
+      'background:linear-gradient(120deg,#FF7A5C,#FF8CD9);color:#fff;cursor:pointer;font-family:inherit;white-space:nowrap}',
+    '@media (max-width:760px){ .file-attach{max-width:100%} .file-attach .fa-btn{padding:8px 13px} }'
   ].join('');
 
   function injectCssOnce() {
@@ -44,6 +67,43 @@
     st.id = 'jerry-site-embed-css';
     st.textContent = CSS;
     document.head.appendChild(st);
+  }
+
+  // ===== 附件卡片 =====
+  var ATTACH_ICONS = {
+    zip:['zip','7z','rar','tar','gz'], exe:['exe','msi','apk','dmg','iso','appimage'],
+    pdf:['pdf'], doc:['doc','docx'], xls:['xls','xlsx','csv'], ppt:['ppt','pptx'],
+    img:['png','jpg','jpeg','gif','webp','svg','bmp','avif','ico'],
+    av:['mp3','wav','flac','aac','ogg','m4a','mp4','webm','mov','mkv','avi'],
+    txt:['txt','md']
+  };
+  function iconOfName(name){
+    var m = /\.([a-z0-9]+)$/i.exec(name||''); var ext = m ? m[1].toLowerCase() : '';
+    for (var k in ATTACH_ICONS){ if (ATTACH_ICONS[k].indexOf(ext) !== -1) return k; }
+    return 'file';
+  }
+  function buildAttach(el){
+    if (el.dataset.faReady) return; el.dataset.faReady = '1';
+    el.setAttribute('contenteditable', 'false');
+    var href = el.getAttribute('data-href') || '';
+    var name = el.getAttribute('data-name') || '附件';
+    var size = el.getAttribute('data-size') || '';
+    var icon = el.getAttribute('data-icon') || iconOfName(name);
+    var glyph = {zip:'🗜️', exe:'💻', pdf:'📕', doc:'📘', xls:'📗', ppt:'📙', img:'🖼️', av:'🎬', txt:'📝', file:'📎'}[icon] || '📎';
+    var a = document.createElement('a');
+    a.className = 'fa-card';
+    a.href = href; a.setAttribute('download', name); a.target = '_blank'; a.rel = 'noopener';
+    a.innerHTML =
+      '<span class="fa-icon ic-' + icon + '">' + glyph + '</span>' +
+      '<span class="fa-meta"><div class="fa-name"></div><div class="fa-sub"></div></span>' +
+      '<span class="fa-btn">⬇ 下载</span>';
+    a.querySelector('.fa-name').textContent = name;
+    a.querySelector('.fa-sub').textContent = (size ? size + ' · ' : '') + '点击下载到本地';
+    // 编辑器正文内：阻止点击跳转（避免误点离开编辑页），选中卡片后按 Delete 即可删除
+    a.addEventListener('mousedown', function(e){
+      if (el.isContentEditable || el.closest('[contenteditable="true"]')) e.preventDefault();
+    });
+    el.appendChild(a);
   }
 
   function build(el) {
@@ -153,9 +213,68 @@
     renderFrame();
   }
 
+  /* 旧版本损坏数据自愈：裸 <iframe src="/packages/..."> 还原为标准占位块，
+     并清掉崩解后外露的包名行 / 工具栏按钮文字行（如 "25%50%75%100%竖屏刷新新窗口"） */
+  function pkgNameOf(src) {
+    var m = String(src || '').match(/\/packages\/([^/]+)\//);
+    return m ? decodeURIComponent(m[1]) : '';
+  }
+  function isJunkBtnLine(t) {
+    t = (t || '').replace(/\s/g, '');
+    return /25%50%75%100%/.test(t) && /刷新/.test(t) && /新窗口/.test(t);
+  }
+  function isJunkTitleLine(t, pkgName) {
+    t = (t || '').trim();
+    if (!t || t.length > 40 || /[。.!?！？，,；;]/.test(t)) return false;
+    if (pkgName && t === pkgName) return true;
+    return /__/.test(t) && /\d/.test(t) && /^[\w\-\u4e00-\u9fa5]+$/.test(t);  // 形如 cropper__10___1_
+  }
+  function prevMeaningful(node) {
+    var p = node.previousSibling;
+    while (p && ((p.nodeType === 3 && !p.textContent.trim())
+      || (p.nodeType === 1 && (/^(BR|SCRIPT|STYLE)$/i.test(p.tagName) || !p.textContent.trim())))) {
+      p = p.previousSibling;   // 跳过空文本、<br>、空 <p>/<div>（编辑器会把空行渲染成 <p><br></p>）
+    }
+    return p;
+  }
+  function salvageIframes(root) {
+    (root || document).querySelectorAll('iframe[src*="/packages/"]').forEach(function (f) {
+      if (f.closest('.site-preview') || f.dataset.spSalvaged) return;
+      var src = f.getAttribute('src') || '';
+      var pkgName = pkgNameOf(src);
+
+      // 向上最多清理 3 个前置块：工具栏文字行 + 包名行（可能只存在其一，顺序不定）
+      for (var i = 0; i < 3; i++) {
+        var p = prevMeaningful(f);
+        if (!p || p.nodeType !== 1) break;
+        var tx = p.textContent.trim();
+        if (isJunkBtnLine(tx) || isJunkTitleLine(tx, pkgName)) {
+          var before = p.previousSibling;
+          p.parentNode.removeChild(p);
+          if (before) f = f; /* no-op, keep anchor */
+          continue;
+        }
+        break;
+      }
+
+      // 替换为标准占位块（scan 的 MutationObserver 会接着 build）
+      var div = document.createElement('div');
+      div.className = 'site-preview';
+      div.setAttribute('data-src', src);
+      div.setAttribute('data-zip', '');
+      div.setAttribute('data-name', pkgName || '网站预览');
+      div.setAttribute('data-w', f.getAttribute('data-w') || '72%');
+      if (f.getAttribute('data-ratio') === 'portrait') div.setAttribute('data-ratio', 'portrait');
+      f.dataset.spSalvaged = '1';
+      if (f.parentNode) f.parentNode.replaceChild(div, f);
+    });
+  }
+
   function scan() {
     injectCssOnce();
+    salvageIframes(document);
     document.querySelectorAll('.site-preview:not([data-sp-ready])').forEach(build);
+    document.querySelectorAll('.file-attach:not([data-fa-ready])').forEach(buildAttach);
   }
 
   if (document.readyState === 'loading') {
@@ -170,4 +289,5 @@
   mo.observe(document.documentElement, { childList: true, subtree: true });
 
   window.__jerrySiteEmbedScan = scan;
+  window.__jerrySiteEmbedIconOf = iconOfName;
 })();

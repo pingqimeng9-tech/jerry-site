@@ -28,3 +28,6 @@ data/staging_queue.json
 
 # CMS 临时
 style-compare.html
+# 本地修复备份（不上线）
+*.bak
+*.bak-*
