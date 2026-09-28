@@ -8,8 +8,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/blog.css">
 <link rel="stylesheet" href="/css/pages.css">
+<script src="/assets/layout.js" defer></script>
 </head>
-<body>
+<body data-page="photowall">
 <div class="blob blob1"></div><div class="blob blob2"></div><div class="blob blob3"></div>
 
 <nav>
@@ -25,11 +26,11 @@
 
 <main class="wrap">
   <a class="page-back" href="/" id="back-link" style="display:none">← 返回相册列表</a>
-  <div class="page-head">
+  <div class="page-head" data-module="head">
     <h1 class="page-title" id="page-title">照片墙</h1>
     <p class="page-sub" id="page-sub">用镜头记录生活的碎片</p>
   </div>
-  <div id="view"><div class="empty-tip">加载中…</div></div>
+  <div id="view" data-module="view"><div class="empty-tip">加载中…</div></div>
 </main>
 
 <div class="lightbox" id="lightbox">

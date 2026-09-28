@@ -11,8 +11,9 @@
 <style>
   .moment-list{max-width:760px;margin:0 auto}
 </style>
+<script src="/assets/layout.js" defer></script>
 </head>
-<body>
+<body data-page="moments">
 <div class="blob blob1"></div><div class="blob blob2"></div><div class="blob blob3"></div>
 
 <nav>
@@ -28,11 +29,11 @@
 
 <main class="wrap">
   <a class="page-back" href="/">← 返回首页</a>
-  <div class="page-head">
+  <div class="page-head" data-module="head">
     <h1 class="page-title">说说</h1>
     <p class="page-sub">碎碎念、生活碎片与突然的想法</p>
   </div>
-  <div class="moment-list" id="moment-list">
+  <div class="moment-list" id="moment-list" data-module="list">
     <div class="empty-tip">加载中…</div>
   </div>
 </main>

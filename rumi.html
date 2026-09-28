@@ -311,8 +311,9 @@
   @media (max-width:940px){.char-grid,.level-row,.merch-grid{grid-template-columns:repeat(2,1fr);}.reel-row{grid-template-columns:1fr;}.book-section{grid-template-columns:1fr;}.book-stack{margin:0 auto 20px;max-width:320px;}}
   @media (max-width:520px){.char-grid,.level-row,.merch-grid{grid-template-columns:1fr 1fr;}.contact-mini-grid{grid-template-columns:1fr;}}
 </style>
+<script src="/assets/layout.js" defer></script>
 </head>
-<body>
+<body data-page="rumi">
 
 <div class="breadcrumb">← <a href="index.html">返回 JERRY.DEV</a> ／ 你正在浏览 Rumi英语 独立页面</div>
 
@@ -377,7 +378,7 @@
 </div>
 
 <div class="wrap">
-  <section class="section" id="characters">
+  <section class="section" id="characters" data-module="characters">
     <div class="section-head center">
       <div class="eyebrow-tag">👋 角色世界</div>
       <h2 class="kawaii">认识 Rumi 和 TA 的朋友们</h2>
@@ -390,7 +391,7 @@
       <div class="char-card"><div class="avatar"><img src="images/rumi/char-4.png" alt="示例角色" onerror="this.style.display='none'"></div><h3 class="balloon">Leo</h3><p>小小发明家，带认知词汇变成小实验。</p></div>
     </div>
   </section>
-  <section class="section tint" id="levels" style="border-radius:40px;">
+  <section class="section tint" id="levels" data-module="levels" style="border-radius:40px;">
     <div class="section-head center"><div class="eyebrow-tag">🚀 Power Up 分级体系</div><h2 class="kawaii">陪孩子一级一级 <span class="balloon" style="color:var(--coral)">Power Up</span></h2></div>
     <div class="level-row">
       <div class="level-card" style="--lv-color:var(--sky-deep);"><div class="lv">LEVEL 0</div><span class="age">3–4 岁</span><h3>磨耳朵 · Listen &amp; Play</h3></div>
@@ -399,7 +400,7 @@
       <div class="level-card" style="--lv-color:var(--grape);"><div class="lv">LEVEL 3</div><span class="age">7–8 岁</span><h3>自主阅读 · Read Along</h3></div>
     </div>
   </section>
-  <section class="section" id="books">
+  <section class="section" id="books" data-module="books">
     <div class="book-section">
       <div class="book-stack"><div class="book-mock b3"><b>Lv.3</b></div><div class="book-mock b2"><b>Lv.1</b></div><div class="book-mock b1"><b>Lv.0</b></div></div>
       <div>
@@ -411,7 +412,7 @@
       </div>
     </div>
   </section>
-  <section class="section tint" id="merch" style="border-radius:40px;">
+  <section class="section tint" id="merch" data-module="merch" style="border-radius:40px;">
     <div class="section-head center"><div class="eyebrow-tag">🧸 周边好物</div><h2 class="kawaii">把 Rumi 带回家</h2></div>
     <div class="merch-grid">
       <div class="merch-card"><div class="merch-thumb"><img src="images/rumi/merch-plush.jpg" onerror="this.style.display='none'"></div><div class="merch-info"><span class="pill">玩偶</span><h4>Rumi 公仔</h4></div></div>
@@ -420,7 +421,7 @@
       <div class="merch-card"><div class="merch-thumb"><img src="images/rumi/merch-cards.jpg" onerror="this.style.display='none'"></div><div class="merch-info"><span class="pill">卡片</span><h4>词卡</h4></div></div>
     </div>
   </section>
-  <section class="section" id="reviews">
+  <section class="section" id="reviews" data-module="reviews">
     <div class="section-head center"><div class="eyebrow-tag">🎥 抖音精选</div><h2 class="kawaii">动画片段 &amp; 家长说</h2></div>
     <div class="reel-row">
       <div class="reel-card"><div class="reel-video"><video loop playsinline><source src="videos/reel-1.mp4"></video></div></div>
@@ -428,7 +429,7 @@
       <div class="reel-card"><div class="reel-video"><video loop playsinline><source src="videos/reel-3.mp4"></video></div></div>
     </div>
   </section>
-  <section class="section" id="contact">
+  <section class="section" id="contact" data-module="contact">
     <div class="contact-card">
       <h2 class="kawaii">让孩子的第一次英语启蒙，从 Rumi 开始</h2>
       <p>加下面的微信或QQ，预约一节免费体验课。</p>

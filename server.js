@@ -278,6 +278,26 @@ async function handleApi(req, res, pathname) {
     return send(res, 200, { ok: true, posts: readStore().posts.map(p => ({ ...p, syncedAt: p.syncedAt || '', thumb: p.thumb || '' })) });
   }
 
+  // 页面布局配置：读取 / 保存（data/layout_config.json，随仓库上线，不含密钥）
+  const LAYOUT_CFG = path.join(DATA_DIR, 'layout_config.json');
+  if (req.method === 'GET' && pathname === '/api/layout/config') {
+    try { return send(res, 200, { ok: true, config: JSON.parse(fs.readFileSync(LAYOUT_CFG, 'utf8')) }); }
+    catch (e) { return send(res, 200, { ok: true, config: null }); }
+  }
+  if (req.method === 'POST' && pathname === '/api/layout/config') {
+    const body = await readBody(req).catch(() => ({}));
+    if (!body || typeof body !== 'object') return send(res, 400, { ok: false, error: '配置格式错误' });
+    if (body.format !== 'jerry-layout/v1') return send(res, 400, { ok: false, error: 'format 必须为 jerry-layout/v1' });
+    if (!body.pages || typeof body.pages !== 'object') return send(res, 400, { ok: false, error: 'pages 必须是对象' });
+    for (const [pk, pc] of Object.entries(body.pages)) {
+      if (!Array.isArray(pc.modules)) return send(res, 400, { ok: false, error: '页面 ' + pk + ' 的 modules 必须是数组' });
+      for (const m of pc.modules) if (!m.id) return send(res, 400, { ok: false, error: '页面 ' + pk + ' 存在缺少 id 的模块' });
+    }
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(LAYOUT_CFG, JSON.stringify(body, null, 2), 'utf8');
+    return send(res, 200, { ok: true });
+  }
+
   // 桌宠动作包：读取 / 保存（data/pet_packs.json，随仓库上线，不含密钥）
   const PET_PACKS = path.join(DATA_DIR, 'pet_packs.json');
   if (req.method === 'GET' && pathname === '/api/pet/packs') {

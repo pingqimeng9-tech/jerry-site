@@ -301,6 +301,39 @@
         </div>
       </section>
 
+      <!-- 页面布局 -->
+      <section class="sec" data-sec="layout">
+        <div class="glass">
+          <span class="kicker">Layout · Modules & Theme</span>
+          <h2>🧩 页面布局与外观 <span class="hint">模块隐藏 / 拖拽排序 / 页面标题 / 主题色 · 圆角 · 间距 · 宽度</span></h2>
+
+          <label class="dim mono" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase">全局外观（对所有页面生效）</label>
+          <div style="display:flex;gap:18px;flex-wrap:wrap;margin:10px 0 6px;align-items:center">
+            <div style="text-align:center"><input type="color" id="lgViolet" value="#B18CFF" style="width:46px;height:34px;border:none;background:none;cursor:pointer"><div class="dim" style="font-size:10.5px">主紫</div></div>
+            <div style="text-align:center"><input type="color" id="lgAqua" value="#5CE1E6" style="width:46px;height:34px;border:none;background:none;cursor:pointer"><div class="dim" style="font-size:10.5px">青</div></div>
+            <div style="text-align:center"><input type="color" id="lgCoral" value="#FF7A5C" style="width:46px;height:34px;border:none;background:none;cursor:pointer"><div class="dim" style="font-size:10.5px">珊瑚</div></div>
+            <div style="text-align:center"><input type="color" id="lgPink" value="#FF8CD9" style="width:46px;height:34px;border:none;background:none;cursor:pointer"><div class="dim" style="font-size:10.5px">粉</div></div>
+            <div style="min-width:190px;flex:0 1 220px">卡片圆角 <b id="lgRadiusV">18</b>px<input type="range" id="lgRadius" min="6" max="32" value="18" style="width:100%"></div>
+            <div style="min-width:190px;flex:0 1 220px">首页板块间距 <b id="lgGapV">36</b>px<input type="range" id="lgGap" min="10" max="120" value="36" style="width:100%"></div>
+            <div style="min-width:190px;flex:0 1 220px">内容最大宽度 <b id="lgWidthV">1000</b>px<input type="range" id="lgWidth" min="860" max="1280" step="20" value="1000" style="width:100%"></div>
+          </div>
+
+          <label class="dim mono" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin-top:18px;display:block">各页面模块（拖动 ☰ 排序，眼睛切换显隐；📌 为固定位置模块）</label>
+          <div id="lgPageTabs" style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0"></div>
+          <div id="lgModuleList" style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px"></div>
+          <div id="lgTexts" style="display:flex;flex-direction:column;gap:9px;margin-bottom:14px"></div>
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <button class="btn primary" onclick="lgSave()">💾 保存并立即生效</button>
+            <button class="btn ghost" onclick="lgLoad()">🔄 重新载入</button>
+            <button class="btn ghost" onclick="lgReset()">↺ 恢复默认布局</button>
+            <button class="btn ghost" onclick="lgPreview()">👁 打开该页预览（带模块标记）</button>
+            <span id="lgStat" class="dim mono" style="font-size:11.5px"></span>
+          </div>
+          <p class="dim" style="font-size:11.5px;margin-top:10px">保存后刷新页面即可看到效果；要让线上访客看到，记得再点左侧「🚀 同步 Blog」发布。隐藏的模块不会删除，随时可再打开。</p>
+        </div>
+      </section>
+
       <!-- 桌宠虚拟人 -->
       <section class="sec" data-sec="pet">
         <div class="glass">
@@ -418,7 +451,7 @@ function refreshPreviews(){
 }
 
 /* ================= 分区 Tab ================= */
-const SECTIONS=[['profile','👤 个人资料'],['background','🖼 背景'],['aiCat','🐱 AI 猫'],['comment','💬 评论'],['danmaku','🎯 弹幕'],['picBed','🏞 图床'],['music','🎵 音乐'],['footer','🦶 页脚'],['gallery','📷 画廊'],['pet','🐾 桌宠'],['published','📚 已发布文章'],['deploy','🚀 同步 Blog']];
+const SECTIONS=[['profile','👤 个人资料'],['background','🖼 背景'],['layout','🧩 布局'],['aiCat','🐱 AI 猫'],['comment','💬 评论'],['danmaku','🎯 弹幕'],['picBed','🏞 图床'],['music','🎵 音乐'],['footer','🦶 页脚'],['gallery','📷 画廊'],['pet','🐾 桌宠'],['published','📚 已发布文章'],['deploy','🚀 同步 Blog']];
 $('#tabs').innerHTML = SECTIONS.map(([k,l],i)=>`<button class="set-tab${i===0?' active':''}" data-k="${k}">${l}</button>`).join('');
 function showSec(k){
   $$('.set-tab').forEach(b=>b.classList.toggle('active',b.dataset.k===k));
@@ -426,6 +459,7 @@ function showSec(k){
   if(k==='deploy') doCheck();
   if(k==='published') loadPublished();
   if(k==='pet') petLoad();
+  if(k==='layout'){ lgLoad(); if(!window.__lgBound){ lgBindGlobal(); window.__lgBound=true; } }
 }
 $$('.set-tab').forEach(b=>b.addEventListener('click',()=>showSec(b.dataset.k)));
 
@@ -568,6 +602,147 @@ async function probePicBed(){
   await api('/api/config/apply');
   const d=await api('/api/picbed/probe',{});
   toast(d.ok?('📡 连通！'+(d.msg||'')+(d.data&&d.data.name?(' · '+d.data.name):'')):('❌ '+(d.error||d.msg||'探测失败')));
+}
+
+/* ================= 🧩 页面布局 ================= */
+const LG_PAGES=[['index','🏠 首页'],['blog','📘 博客列表'],['post','📄 文章页'],['friends','🔗 友链'],['moments','💬 说说'],['photowall','🖼 照片墙'],['projects','🧪 项目'],['timeline','🕘 时间线'],['rumi','🐾 Rumi英语']];
+const LG_URL={index:'/',friends:'/friends.html',moments:'/moments.html',photowall:'/photowall.html',projects:'/projects.html',timeline:'/timeline.html',rumi:'/rumi.html',blog:'/blog.html',post:null};
+const LG_DEFAULT={
+  format:'jerry-layout/v1',version:1,
+  global:{violet:'#B18CFF',aqua:'#5CE1E6',coral:'#FF7A5C',pink:'#FF8CD9',cardRadius:18,sectionGap:36,contentWidth:1000},
+  pages:{
+    index:{modules:[
+      {id:'hero',title:'首屏 Hero（打字机 + 名片卡）',hidden:false,sortable:false},
+      {id:'about',title:'01 我是谁',hidden:false,sortable:true},
+      {id:'timeline',title:'02 我的经历',hidden:false,sortable:true},
+      {id:'reflect',title:'03 深层反思',hidden:false,sortable:true},
+      {id:'links',title:'04 我的系统（博客/抖音/Notion 入口）',hidden:false,sortable:true}]},
+    blog:{modules:[
+      {id:'search',title:'顶部搜索条',hidden:false,sortable:false},
+      {id:'b-profile',title:'左栏 · 作者资料卡',hidden:false,sortable:true},
+      {id:'b-stats',title:'左栏 · 文章/浏览统计',hidden:false,sortable:true},
+      {id:'b-social',title:'左栏 · 社交按钮',hidden:false,sortable:true},
+      {id:'b-cats',title:'左栏 · 分类导航',hidden:false,sortable:true},
+      {id:'b-recent',title:'左栏 · 最近更新',hidden:false,sortable:true},
+      {id:'b-archive',title:'左栏 · 归档',hidden:false,sortable:true},
+      {id:'b-bar',title:'分类标签栏 + 图库/列表切换',hidden:false,sortable:false},
+      {id:'b-list',title:'文章列表主体',hidden:false,sortable:false},
+      {id:'w-points',title:'右栏 · 桌宠积分卡',hidden:false,sortable:true},
+      {id:'w-news',title:'右栏 · 更新日志卡',hidden:false,sortable:true}]},
+    post:{modules:[
+      {id:'p-profile',title:'左栏 · 作者资料卡',hidden:false,sortable:true},
+      {id:'p-tags',title:'左栏 · 标签云',hidden:false,sortable:true},
+      {id:'p-recent',title:'左栏 · 最近更新',hidden:false,sortable:true},
+      {id:'p-toc',title:'右栏 · 本文目录',hidden:false,sortable:true},
+      {id:'p-music',title:'右栏 · 音乐挂件',hidden:false,sortable:true},
+      {id:'c-breadcrumb',title:'正文 · 面包屑导航',hidden:false,sortable:false},
+      {id:'c-cover',title:'正文 · 封面横幅',hidden:false,sortable:false},
+      {id:'c-actions',title:'正文 · 喜欢/收藏/分享/喝咖啡按钮',hidden:false,sortable:false},
+      {id:'c-tags',title:'正文 · 标签行',hidden:false,sortable:false},
+      {id:'c-comments',title:'正文 · 评论区',hidden:false,sortable:false}]},
+    friends:{modules:[
+      {id:'head',title:'页面标题区',hidden:false,sortable:false},
+      {id:'grid',title:'友链卡片墙',hidden:false,sortable:false},
+      {id:'apply',title:'申请友链说明卡',hidden:false,sortable:false}],
+      texts:[{key:'friends.title',label:'页面大标题',selector:'.page-title',default:'朋友们'},{key:'friends.sub',label:'页面副标题',selector:'.page-sub',default:'互相串门的邻居们'}]},
+    moments:{modules:[
+      {id:'head',title:'页面标题区',hidden:false,sortable:false},
+      {id:'list',title:'说说列表',hidden:false,sortable:false}],
+      texts:[{key:'moments.title',label:'页面大标题',selector:'.page-title',default:'说说'},{key:'moments.sub',label:'页面副标题',selector:'.page-sub',default:'碎碎念、生活碎片与突然的想法'}]},
+    photowall:{modules:[
+      {id:'head',title:'页面标题区',hidden:false,sortable:false},
+      {id:'view',title:'相册/照片墙',hidden:false,sortable:false}],
+      texts:[{key:'photowall.title',label:'页面大标题',selector:'#page-title',default:'照片墙'},{key:'photowall.sub',label:'页面副标题',selector:'#page-sub',default:'用镜头记录生活的碎片'}]},
+    projects:{modules:[
+      {id:'head',title:'页面标题区',hidden:false,sortable:false},
+      {id:'grid',title:'项目卡片墙',hidden:false,sortable:false}],
+      texts:[{key:'projects.title',label:'页面大标题',selector:'.page-title',default:'项目展示'},{key:'projects.sub',label:'页面副标题',selector:'.page-sub',default:'做过并愿意展示的东西'}]},
+    timeline:{modules:[
+      {id:'head',title:'页面标题区',hidden:false,sortable:false},
+      {id:'list',title:'时间线',hidden:false,sortable:false}],
+      texts:[{key:'timeline.title',label:'页面大标题',selector:'.page-title',default:'时间线'},{key:'timeline.sub',label:'页面副标题',selector:'.page-sub',default:'文章与说说，按时间串起来的足迹'}]},
+    rumi:{modules:[
+      {id:'characters',title:'Rumi 和朋友们（角色介绍）',hidden:false,sortable:true},
+      {id:'levels',title:'Power Up 分级体系',hidden:false,sortable:true},
+      {id:'books',title:'配套教材',hidden:false,sortable:true},
+      {id:'merch',title:'周边好物',hidden:false,sortable:true},
+      {id:'reviews',title:'抖音精选/好评',hidden:false,sortable:true},
+      {id:'contact',title:'预约体验课（微信/QQ）',hidden:false,sortable:true}]}
+  }
+};
+let lgCfg=null, lgCur='index', lgDragIdx=-1;
+async function lgLoad(){
+  const d=await api('/api/layout/config');
+  lgCfg=(d&&d.config)?d.config:JSON.parse(JSON.stringify(LG_DEFAULT));
+  if(!lgCfg.global) lgCfg.global={};
+  lgRenderGlobal(); lgRenderPageTabs(); lgRenderModules();
+  $('#lgStat').textContent='已载入当前布局';
+}
+function lgRenderGlobal(){
+  const g=lgCfg.global||{};
+  $('#lgViolet').value=g.violet||'#B18CFF'; $('#lgAqua').value=g.aqua||'#5CE1E6';
+  $('#lgCoral').value=g.coral||'#FF7A5C'; $('#lgPink').value=g.pink||'#FF8CD9';
+  $('#lgRadius').value=g.cardRadius??18; $('#lgRadiusV').textContent=g.cardRadius??18;
+  $('#lgGap').value=g.sectionGap??36; $('#lgGapV').textContent=g.sectionGap??36;
+  $('#lgWidth').value=g.contentWidth??1000; $('#lgWidthV').textContent=g.contentWidth??1000;
+}
+function lgBindGlobal(){
+  const bind=(id,key,labelId)=>{$(id).addEventListener('input',e=>{lgCfg.global[key]=isNaN(+e.target.value)?e.target.value:+e.target.value;if(labelId)$(labelId).textContent=e.target.value;});};
+  bind('#lgViolet','violet');bind('#lgAqua','aqua');bind('#lgCoral','coral');bind('#lgPink','pink');
+  bind('#lgRadius','cardRadius','#lgRadiusV');bind('#lgGap','sectionGap','#lgGapV');bind('#lgWidth','contentWidth','#lgWidthV');
+}
+function lgRenderPageTabs(){
+  $('#lgPageTabs').innerHTML=LG_PAGES.map(([k,n])=>'<button type="button" class="mini-btn '+(k===lgCur?'':'')+'" data-lgpage="'+k+'" style="'+(k===lgCur?'background:linear-gradient(120deg,#B18CFF,#5CE1E6);color:#151033;font-weight:700':'')+'">'+n+'</button>').join('');
+  $('#lgPageTabs').querySelectorAll('[data-lgpage]').forEach(b=>b.onclick=()=>{lgCur=b.dataset.lgpage;lgRenderPageTabs();lgRenderModules();});
+}
+function lgRenderModules(){
+  const pc=lgCfg.pages[lgCur]||{modules:[]};
+  const list=$('#lgModuleList');
+  list.innerHTML='';
+  pc.modules.forEach((m,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.04)'+(m.hidden?';opacity:.5':'');
+    if(m.sortable!==false){row.draggable=true;row.style.cursor='move';}
+    row.dataset.idx=i;
+    row.innerHTML='<span style="width:18px;text-align:center;cursor:grab">'+(m.sortable===false?'📌':'☰')+'</span>'+
+      '<span style="flex:1;font-size:13px">'+esc(m.title||m.id)+'</span>'+
+      '<label class="switch" style="transform:scale(.8)"><input type="checkbox" '+(m.hidden?'':'checked')+'><i></i></label>';
+    row.querySelector('input').onchange=e=>{m.hidden=!e.target.checked;lgRenderModules();};
+    if(m.sortable!==false){
+      row.addEventListener('dragstart',()=>{lgDragIdx=i;row.style.opacity='.4';});
+      row.addEventListener('dragend',()=>{row.style.opacity='1';lgDragIdx=-1;});
+      row.addEventListener('dragover',e=>{e.preventDefault();});
+      row.addEventListener('drop',e=>{e.preventDefault();if(lgDragIdx<0||lgDragIdx===i)return;const arr=pc.modules;const[mv]=arr.splice(lgDragIdx,1);arr.splice(i,0,mv);lgDragIdx=-1;lgRenderModules();});
+    }
+    list.appendChild(row);
+  });
+  // 文案
+  const box=$('#lgTexts');
+  if(pc.texts&&pc.texts.length){
+    box.innerHTML='<label class="dim mono" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase">页面文案（留空则用默认）</label>'+
+      pc.texts.map(t=>'<div style="display:flex;gap:10px;align-items:center"><span class="dim" style="width:96px;font-size:12px">'+esc(t.label)+'</span><input value="'+esc(t.value??'')+'" placeholder="'+esc(t.default||'')+'" data-lgtext="'+t.key+'" style="flex:1"></div>').join('');
+    box.querySelectorAll('[data-lgtext]').forEach(inp=>{const t=pc.texts.find(x=>x.key===inp.dataset.lgtext);inp.oninput=()=>{t.value=inp.value;};});
+  } else box.innerHTML='';
+}
+async function lgSave(){
+  if(lgCfg.format!=='jerry-layout/v1'){toast('❌ format 错误');return;}
+  const d=await api('/api/layout/config',lgCfg);
+  if(d.ok){$('#lgStat').textContent='✅ 已保存，刷新页面即生效（上线请点同步 Blog）';toast('🧩 布局已保存');}
+  else {$('#lgStat').textContent='❌ '+(d.error||'保存失败');toast('保存失败');}
+}
+function lgReset(){
+  if(!confirm('恢复为默认布局与外观？当前未保存的调整会丢失。'))return;
+  lgCfg=JSON.parse(JSON.stringify(LG_DEFAULT));
+  lgRenderGlobal();lgRenderModules();
+  toast('已恢复默认（需点保存才会生效）');
+}
+async function lgPreview(){
+  let url=LG_URL[lgCur];
+  if(lgCur==='post'){
+    try{const d=await api('/api/posts');const p=(d.posts||[])[0];url=p?('/post.html?id='+encodeURIComponent(p.id)):'/blog.html';}
+    catch(e){url='/blog.html';}
+  }
+  window.open(url+(url.includes('?')?'&':'?')+'layoutEdit=1','_blank');
 }
 
 /* ================= 🐾 桌宠动作包 ================= */
