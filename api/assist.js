@@ -183,25 +183,6 @@ module.exports = async (req, res) => {
         authReady: !!(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.RESEND_API_KEY)
       });
     }
-    if (doWhat === 'diag' && req.method === 'GET') {
-      const out = { supabaseUrlConfigured: !!process.env.SUPABASE_URL, resendConfigured: !!process.env.RESEND_API_KEY };
-      try {
-        const rr = await fetch('https://api.resend.com/', { headers: { Authorization: 'Bearer ' + (process.env.RESEND_API_KEY || '') } });
-        out.resendReach = rr.status;
-      } catch (e) { out.resendReach = 'ERR ' + (e.cause && e.cause.code || e.message); }
-      try {
-        const admin = supabaseAdmin();
-        const q = await admin.from('email_otp_codes').select('email').limit(1);
-        out.otpTable = q.error ? ('ERR ' + q.error.code + ': ' + q.error.message).slice(0, 160) : 'OK';
-      } catch (e) { out.otpTable = 'ERR ' + (e.cause && e.cause.code || e.message); }
-      try {
-        const rr2 = await fetch((process.env.SUPABASE_URL || '').replace(/\/$/, '') + '/auth/v1/health', {
-          headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY || '' }
-        });
-        out.supabaseAuthHealth = rr2.status + ' ' + (await rr2.text()).slice(0, 80);
-      } catch (e) { out.supabaseAuthHealth = 'ERR ' + (e.cause && e.cause.code || e.message); }
-      return res.status(200).json(out);
-    }
     if (doWhat === 'music' && req.method === 'GET') return await handleMusic(req, res);
     if (doWhat === 'chat' && req.method === 'POST') return await handleChat(req, res);
     if (doWhat === 'send-code' && req.method === 'POST') return await handleSendCode(req, res);
