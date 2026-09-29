@@ -152,9 +152,10 @@
     document.head.appendChild(st);
   }
 
-  // 对外 API（供页面脚本/控制台使用）
+  // 对外 API（供页面脚本/控制台/前台可视化编辑器使用）
   window.JerryLayout = {
     get: function () { return CFG; },
+    setConfig: function (c) { CFG = c; window.__layoutConfig = c; applyAll(); return CFG; },
     reapply: applyAll
   };
 })();

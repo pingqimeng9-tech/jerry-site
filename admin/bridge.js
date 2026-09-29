@@ -48,6 +48,15 @@
     injectPostPill();
     injectBlogEnhancements();
     watchSitePreview();
+    loadInlineEditor();
+  }
+
+  /* ---------- 5) 前台可视化布局编辑器（页面本体上直接改布局/外观） ---------- */
+  function loadInlineEditor() {
+    if (window.__jlInlineEditor) return;
+    var s = document.createElement('script');
+    s.src = '/assets/inline-editor.js';
+    document.head.appendChild(s);
   }
 
   /* ---------- 1) 导航注入「草稿箱 / 设置」 ---------- */
