@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Jerry CMS 线上后台 · 管理员登录配置指南</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; color: #222; line-height: 1.75; font-size: 13px; margin: 0; }
+  h1 { font-size: 24px; margin: 0 0 4px; color: #2b2440; }
+  .sub { color: #777; font-size: 12px; margin-bottom: 20px; }
+  h2 { font-size: 17px; margin: 26px 0 10px; padding: 7px 13px; background: linear-gradient(90deg, rgba(177,140,255,.16), rgba(92,225,230,.10)); border-left: 4px solid #b18cff; border-radius: 0 8px 8px 0; color: #2b2440; page-break-after: avoid; }
+  h3 { font-size: 14px; margin: 16px 0 6px; color: #4a3f73; }
+  code { background: #f2eefc; padding: 1px 6px; border-radius: 4px; font-family: Consolas, monospace; font-size: 12px; color: #6d3bc4; word-break: break-all; }
+  pre { background: #1b1730; color: #e8e2ff; padding: 12px 14px; border-radius: 9px; font-family: Consola, monospace; font-size: 11.5px; line-height: 1.6; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+  pre .c { color: #9a8fc9; }
+  .step { background: #faf9ff; border: 1px solid #e7e1fb; border-radius: 10px; padding: 4px 16px 12px; margin: 10px 0; page-break-inside: avoid; }
+  .num { display: inline-block; width: 22px; height: 22px; line-height: 22px; text-align: center; background: #b18cff; color: #fff; border-radius: 50%; font-size: 12px; font-weight: 700; margin-right: 7px; }
+  .warn { background: #fff6ec; border: 1px solid #ffd9a8; border-radius: 9px; padding: 10px 14px; margin: 10px 0; font-size: 12.5px; }
+  .warn b { color: #c2570a; }
+  .ok { background: #eefbf6; border: 1px solid #b8ecd4; border-radius: 9px; padding: 10px 14px; margin: 10px 0; font-size: 12.5px; }
+  .key { display: inline-block; background: #1b1730; color: #7ff0d6; font-family: Consolas, monospace; font-size: 11.5px; padding: 2px 8px; border-radius: 5px; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 12px; }
+  th, td { border: 1px solid #ddd6f5; padding: 7px 10px; text-align: left; vertical-align: top; }
+  th { background: #f2eefc; color: #2b2440; }
+  .small { color: #888; font-size: 11.5px; }
+  ul { margin: 6px 0 6px 0; padding-left: 22px; }
+  li { margin: 3px 0; }
+  .tag { display:inline-block; font-size:10.5px; padding:1px 8px; border-radius:99px; font-weight:700; }
+  .tag.secret { background:#ffe4ec; color:#c02a5c; }
+  .tag.public { background:#e0f7f1; color:#0c8a6b; }
+  .tag.ready { background:#e6f0ff; color:#2359c6; }
+  .pagebreak { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<h1>Jerry CMS 线上后台 · 管理员登录配置指南</h1>
+<div class="sub">适用站点：https://callmiruko.cc ｜ 管理员邮箱：zengaihua008@gmail.com ｜ 预计耗时 15-25 分钟</div>
+
+<div class="warn">
+<b>先说现状（代码已全部完成并上线）：</b><br>
+① 线上后台 <code>/admin/</code> 已加上登录门，任何人打开都必须先过邮箱验证码，后台内容完全遮蔽；<br>
+② 安全测试已通过：非管理员邮箱发码直接 <b>403 拒绝</b>、不带登录凭证调用写接口 <b>401 拒绝</b>、伪造凭证 <b>401 拒绝</b>；<br>
+③ 但排查发现你原来的 <b>Supabase 项目已经失效</b>（域名在全球 DNS 都查不到，疑似免费项目长期闲置被回收），所以登录邮件暂时发不出来；<br>
+④ 线上保存功能还缺一个 <b>GitHub Token</b>。<br>
+按下面 7 步配完即可在任何电脑/手机上登录网站后台直接发文、改设置。
+</div>
+
+<h2>原理：为什么黑客进不来</h2>
+<div class="step">
+<ul>
+  <li><b>唯一管理员</b>：管理员邮箱白名单写死在服务端（<code>zengaihua008@gmail.com</code>），其他邮箱在"发验证码"第一步就被拒绝，根本收不到码、建不了会话。</li>
+  <li><b>验证码</b>：6 位数字，10 分钟过期、5 次输错作废、60 秒只能发一次。</li>
+  <li><b>每次操作都验票</b>：后台每次保存都带登录票据，服务器实时向 Supabase 验票并核对邮箱，票据伪造/过期一律拒绝。</li>
+  <li><b>密钥永不进前端</b>：GitHub Token、Supabase 密钥只存在 Vercel 环境变量里，浏览器里看不到。</li>
+  <li><b>保存即发布</b>：线上每次保存都通过 GitHub API 提交回仓库，Vercel 自动重新部署，约 1-2 分钟生效。</li>
+</ul>
+</div>
+
+<h2>第一步：重建 Supabase 项目（约 5 分钟）</h2>
+<div class="step">
+<p><span class="num">1</span>打开 <code>https://supabase.com</code> 登录（国内网络打不开就挂梯子，只在配置时需要，以后用不到）。</p>
+<p><span class="num">2</span>点 <b>New project</b>：名字随意（如 <code>jerry-site</code>），区域选 <b>Southeast Asia (Singapore)</b>（离中国最近），设置并<b>牢记数据库密码</b>，等项目初始化完成（约 2 分钟）。</p>
+<p><span class="num">3</span>取两个值（后面要用，先复制到记事本）：</p>
+<ul>
+  <li>左下角齿轮 <b>Project Settings → Data API</b>（旧版叫 API）：复制 <b>Project URL</b>，形如 <code>https://xxxxxxxx.supabase.co</code> <span class="tag public">公开值</span></li>
+  <li>同一页面 <b>API Keys</b> 区域：复制 <b>publishable / anon key</b>（<code>sb_publishable_...</code> 开头）<span class="tag public">公开值</span></li>
+  <li>再复制 <b>service_role / secret key</b>（<code>sb_secret_...</code> 开头，点 Reveal 才显示）<span class="tag secret">机密值</span> 这个只能放进环境变量，绝不发给别人、不贴前端。</li>
+</ul>
+<p class="small">注：新版 Supabase 界面把密钥分成 publishable（公开）和 secret（机密）两类，对应旧版的 anon 和 service_role。</p>
+</div>
+
+<h2>第二步：创建验证码数据表（约 2 分钟）</h2>
+<div class="step">
+<p><span class="num">1</span>左侧菜单 <b>SQL Editor → New query</b>。</p>
+<p><span class="num">2</span>打开你项目仓库里的 <code>api/schema.sql</code>，<b>整份复制</b>粘贴进去，点 <b>Run</b>。看到 Success 即可。</p>
+<p>这份脚本除了建登录验证码表，还会把前台通行证（积分/打卡/评论）的表一起建好，可重复运行。</p>
+<p class="small">如果只想最小化配置，只跑脚本第 10-17 行的 <code>email_otp_codes</code> 建表语句也能登录后台，但建议整份跑。</p>
+</div>
+
+<h2>第三步：关闭公开注册（约 1 分钟，重要）</h2>
+<div class="step">
+<p><span class="num">1</span><b>Authentication → Sign In / Providers</b>（或 Authentication → Settings）。</p>
+<p><span class="num">2</span>找到 <b>Allow new users to sign up</b>（允许新用户注册）开关，<b>关掉</b>。</p>
+<p><span class="num">3</span>Email 登录保持开启即可。</p>
+<p>这样全世界只有白名单邮箱能建立会话——管理员登录走的是服务端接口，不受这个开关影响。</p>
+</div>
+
+<h2>第四步：创建 GitHub Token（约 3 分钟）</h2>
+<div class="step">
+<p><span class="num">1</span>打开 <code>https://github.com/settings/personal-access-tokens/new</code>（Fine-grained token，细粒度令牌）。</p>
+<p><span class="num">2</span>填写：</p>
+<ul>
+  <li><b>Token name</b>：<code>jerry-cms-online</code></li>
+  <li><b>Expiration</b>：选 90 天会过期（到期重做一次即可）；嫌麻烦选自定义最长 1 年。</li>
+  <li><b>Repository access</b>：选 <b>Only select repositories</b> → 勾选 <code>jerry-site</code>。</li>
+  <li><b>Permissions → Repository permissions → Contents</b>：改成 <b>Read and write</b>（读写），其他权限一律不动。</li>
+</ul>
+<p><span class="num">3</span>点 Generate token，复制 <code>github_pat_...</code> 开头的字符串<span class="tag secret">机密值</span>，它只显示一次。</p>
+</div>
+
+<h2>第五步：在 Vercel 配置环境变量（约 5 分钟）</h2>
+<div class="step">
+<p>打开 <code>https://vercel.com</code> → 你的 <b>jerry-site</b> 项目 → <b>Settings → Environment Variables</b>。</p>
+<p>把里面<b>旧的</b> <code>SUPABASE_URL</code>、<code>SUPABASE_SERVICE_ROLE_KEY</code>（旧项目已失效）编辑更新；没有的就 New Add。逐条添加如下：</p>
+<table>
+<tr><th style="width:230px">变量名（Key）</th><th>填什么（Value）</th><th>环境</th></tr>
+<tr><td><span class="key">SUPABASE_URL</span></td><td>新项目的 Project URL，<code>https://xxxx.supabase.co</code></td><td>Production</td></tr>
+<tr><td><span class="key">SUPABASE_SERVICE_ROLE_KEY</span> <span class="tag secret">机密</span></td><td>新的 <code>sb_secret_...</code> 密钥</td><td>Production</td></tr>
+<tr><td><span class="key">GITHUB_TOKEN</span> <span class="tag secret">机密</span></td><td>刚生成的 <code>github_pat_...</code></td><td>Production</td></tr>
+<tr><td><span class="key">RESEND_API_KEY</span> <span class="tag ready">可能已有</span></td><td>Resend 后台 API Keys 页面的 <code>re_...</code>；旧值若还在就不用动</td><td>Production</td></tr>
+<tr><td><span class="key">ADMIN_EMAIL</span> <span class="tag public">可选</span></td><td>不填默认就是 <code>zengaihua008@gmail.com</code>；以后要加多个管理员用英文逗号分隔</td><td>Production</td></tr>
+</table>
+<div class="warn"><b>Resend 注意：</b>免费版自带的发件邮箱 <code>onboarding@resend.dev</code> <b>只能发给你 Resend 账号注册时用的那个邮箱</b>。所以请确认你的 Resend 账号就是用 <code>zengaihua008@gmail.com</code> 注册的；若不是，去 Resend 用该邮箱注册一个账号并替换 <code>RESEND_API_KEY</code>。</div>
+</div>
+
+<h2>第六步：重新部署（约 1 分钟）</h2>
+<div class="step">
+<p><span class="num">1</span>Vercel 顶部 <b>Deployments</b> 标签 → 找到最上面一条部署 → 右侧 <b>⋯ → Redeploy</b>（环境变量改完必须重新部署才生效）。</p>
+<p><span class="num">2</span>等约 1-2 分钟状态变 Ready。</p>
+</div>
+
+<h2>第七步：把两个公开值发给我（约 1 分钟）</h2>
+<div class="step">
+<p>新 Supabase 项目的 <b>Project URL</b> 和 <b>sb_publishable_ 公开密钥</b>（这两个本来就是设计为公开的，贴给我无安全风险）发给我，我会替换前台 3 处引用（首页、博客页、后台登录门）并发布——这样前台的通行证登录/积分系统也会一起恢复。</p>
+<p>当然你也可以自己改：仓库里搜索旧值 <code>ytvhanawoaepwfsgqqnzs</code> 和 <code>sb_publishable_EfxYndz6...</code>，全部替换成新值。</p>
+</div>
+
+<h2>验证成功</h2>
+<div class="ok">
+打开 <code>https://callmiruko.cc/admin/index.html</code> → 邮箱已预填 → 点"发送验证码" → Gmail 收到 6 位码 → 输入后进入后台 → 右下角出现"<b>● 线上编辑模式</b>"浮条即成功。<br>
+在任何电脑、手机浏览器登录都一样可用；登录状态会记住，过期后重新收一次码即可。
+</div>
+
+<h2 class="pagebreak">线上后台能做什么 / 不能做什么</h2>
+<table>
+<tr><th style="width:55%">功能</th><th>线上后台</th><th>说明</th></tr>
+<tr><td>写文章 / 改文章 / 删除 / 草稿</td><td>✅ 支持</td><td>保存即提交仓库并自动部署</td></tr>
+<tr><td>说说、友链、项目、相册、评论管理</td><td>✅ 支持</td><td>同上</td></tr>
+<tr><td>页面布局、外观、桌宠动作包设置</td><td>✅ 支持</td><td>同上</td></tr>
+<tr><td>站点设置（昵称/背景/社交/音乐等）</td><td>✅ 支持</td><td>密钥类字段（AI Key、图床 Token）线上不可改，由环境变量/本地管理</td></tr>
+<tr><td>上传图片（≤4MB）</td><td>✅ 支持</td><td>Serverless 请求体上限 4MB</td></tr>
+<tr><td>大文件（zip/exe/视频）、网站演示包上传</td><td>❌ 仅本地</td><td>体积超限且线上无法解压；在本地编辑器操作，发布后线上可见</td></tr>
+<tr><td>Notion 同步、图床探针、一键发布按钮</td><td>❌ 仅本地</td><td>线上保存即自动发布，无需这些按钮（会显示友好提示）</td></tr>
+</table>
+
+<h2>故障排查</h2>
+<table>
+<tr><th style="width:45%">现象</th><th>处理</th></tr>
+<tr><td>点发送验证码提示"登录服务尚未配置完成"</td><td>三个变量（SUPABASE_URL / SERVICE_ROLE_KEY / RESEND_API_KEY）没配齐或没 Redeploy</td></tr>
+<tr><td>提示 fetch failed / 发信失败</td><td>SUPABASE_URL 复制错（常见多了斜杠/空格），或 service_role key 拿成了 publishable key</td></tr>
+<tr><td>收不到邮件</td><td>查 Gmail 垃圾邮件；确认 Resend 注册邮箱 = zengaihua008@gmail.com；60 秒内重复发送会被冷却拦截</td></tr>
+<tr><td>登录后保存报 GITHUB_TOKEN 错误</td><td>Token 没配、过期，或忘了给 jerry-site 仓库 Contents 读写权限</td></tr>
+<tr><td>保存后线上没变化</td><td>等 1-2 分钟 Vercel 部署完成；去 Deployments 看最新一条是否 Ready</td></tr>
+<tr><td>提示登录过期</td><td>重新收一次验证码登录即可</td></tr>
+</table>
+
+<h2>安全加固清单（做完即满分）</h2>
+<ul>
+  <li>✅ 后台登录门 + 邮箱白名单（已上线）</li>
+  <li>✅ 写接口服务端强制鉴权（已上线）</li>
+  <li>☐ 关闭 Supabase 公开注册（第三步）</li>
+  <li>☐ GitHub Token 只授权单仓库 Contents 权限（第四步）</li>
+  <li>☐ 吊销之前在聊天里发过的旧 Notion Token（Notion → Settings → Integrations）</li>
+  <li>☐ 清理 Vercel 里旧的 <code>NOTION_TOKEN</code>、<code>NOTION_DATABASE_ID</code> 环境变量</li>
+  <li>☐ 机密值（sb_secret、github_pat、re_ 开头）只进 Vercel 环境变量，绝不贴进任何网页/聊天/仓库</li>
+</ul>
+
+</body>
+</html>
