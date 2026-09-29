@@ -72,6 +72,10 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(204).end();
   try {
     const doWhat = (req.query && req.query.do) || (req.method === 'POST' ? 'chat' : '');
+    // 能力探测：前端据此决定是否渲染 AI 猫（无 Key 时线上不显示哑猫）
+    if (doWhat === 'ping') {
+      return res.status(200).json({ ok: true, chatReady: !!(process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY), musicReady: true });
+    }
     if (doWhat === 'music' && req.method === 'GET') return await handleMusic(req, res);
     if (doWhat === 'chat' && req.method === 'POST') return await handleChat(req, res);
     res.status(404).json({ ok: false, error: '未知操作：do=music(GET) 或 do=chat(POST)' });

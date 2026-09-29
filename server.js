@@ -742,6 +742,10 @@ async function handleApi(req, res, pathname) {
 
   // ==================== AI 猫助理（Gemini / OpenAI 兼容）====================
   const assistDo = (new URL(req.url, 'http://x').searchParams.get('do')) || '';
+  if (req.method === 'GET' && pathname === '/api/assist' && assistDo === 'ping') {
+    const ai = readSiteConfig().aiCat || {};
+    return send(res, 200, { ok: true, chatReady: !!(ai.enabled && ai.apiKey), musicReady: true });
+  }
   if (req.method === 'POST' && (pathname === '/api/chat' || (pathname === '/api/assist' && assistDo === 'chat'))) {
     const body = await readBody(req, 2e6).catch(() => ({}));
     const ai = readSiteConfig().aiCat || {};

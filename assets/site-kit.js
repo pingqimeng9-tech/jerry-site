@@ -94,8 +94,13 @@
     injectNav();
     if (CFG.danmaku && CFG.danmaku.enabled) initDanmaku();
     if (CFG.background && CFG.background.effect && CFG.background.effect !== 'none') initAmbient(CFG.background.effect);
-    // AI 猫：本地由 CMS 代理；线上若部署了 /api/chat（Vercel 环境变量配 Key）同样可用，失败自动降级
-    if (CFG.aiCat && CFG.aiCat.enabled) initCat();
+    // AI 猫：先探测后端是否具备对话能力（本地看 Key 配置，线上看 Vercel 环境变量），
+    // 没有能力就不渲染猫按钮，避免访客看到“不会说话的哑猫”
+    if (CFG.aiCat && CFG.aiCat.enabled) {
+      fetch('/api/assist?do=ping').then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) { if (d && d.chatReady) initCat(); })
+        .catch(function () {});
+    }
     if (CFG.music && CFG.music.enabled && (CFG.music.songIds || []).length) initMusic();
     injectFooter();
   }
