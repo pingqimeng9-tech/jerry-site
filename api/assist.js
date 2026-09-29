@@ -9,7 +9,8 @@
 // 管理员白名单：ADMIN_EMAIL（多个用逗号分隔；默认 zengaihua008@gmail.com）
 const { createClient } = require('@supabase/supabase-js');
 
-const ADMIN_EMAILS = (process.env.ADMIN_EMAIL || 'zengaihua008@gmail.com')
+// 管理员白名单只从环境变量 ADMIN_EMAIL 读取（逗号分隔多个），代码库里不写死任何邮箱
+const ADMIN_EMAILS = (process.env.ADMIN_EMAIL || '')
   .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 const CODE_TTL_MINUTES = 10;
 const RESEND_COOLDOWN_SECONDS = 60;
@@ -99,6 +100,9 @@ async function handleSendCode(req, res) {
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ ok: false, error: '邮箱格式不对' });
   }
+  if (!ADMIN_EMAILS.length) {
+    return res.status(503).json({ ok: false, error: '登录服务尚未配置完成（缺少 ADMIN_EMAIL）' });
+  }
   if (!ADMIN_EMAILS.includes(email)) {
     return res.status(403).json({ ok: false, error: '该邮箱没有管理员权限' });
   }
@@ -143,6 +147,7 @@ async function handleVerifyCode(req, res) {
   const email = (body.email || '').trim().toLowerCase();
   const code = String(body.code || '').trim();
   if (!email || !code) return res.status(400).json({ ok: false, error: '缺少邮箱或验证码' });
+  if (!ADMIN_EMAILS.length) return res.status(503).json({ ok: false, error: '登录服务尚未配置完成（缺少 ADMIN_EMAIL）' });
   if (!ADMIN_EMAILS.includes(email)) return res.status(403).json({ ok: false, error: '该邮箱没有管理员权限' });
 
   const admin = supabaseAdmin();

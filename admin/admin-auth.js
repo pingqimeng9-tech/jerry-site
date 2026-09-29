@@ -9,7 +9,8 @@
 
   var SUPABASE_URL = 'https://ytvhanawoaepwfsgqqnzs.supabase.co';
   var SUPABASE_ANON = 'sb_publishable_EfxYndz6uTCRevj2YyCO0A_936qng6d';
-  var ADMIN_HINT = 'zengaihua008@gmail.com';
+  // 注意：管理员邮箱白名单只存在于服务端（环境变量 ADMIN_EMAIL），前端不写死任何邮箱，
+  // 避免查看页面源码就能知道站长邮箱；非白名单邮箱在发码环节就会被服务端拒绝。
 
   var isLocal = /^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(location.hostname);
   if (isLocal) return; // 本地环境信任，不做任何拦截
@@ -50,8 +51,8 @@
       '<div class="aa-card">' +
       '<div class="aa-logo">🔐</div>' +
       '<h2>Jerry CMS 管理员登录</h2>' +
-      '<div class="aa-sub">线上后台仅对站长本人开放。<br>请输入管理员邮箱，收取一次性验证码登录。</div>' +
-      '<input id="aa-email" type="email" autocomplete="email" placeholder="管理员邮箱" value="' + ADMIN_HINT + '">' +
+      '<div class="aa-sub">线上后台仅对站长开放。<br>请输入管理员邮箱，收取一次性验证码登录。</div>' +
+      '<input id="aa-email" type="email" autocomplete="email" placeholder="管理员邮箱">' +
       '<button id="aa-send">发送验证码</button>' +
       '<input id="aa-code" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="输入邮箱收到的 6 位验证码" style="display:none;letter-spacing:4px">' +
       '<button id="aa-verify" style="display:none">验证并进入后台</button>' +
@@ -101,7 +102,8 @@
         var v = await client.auth.verifyOtp({ email: email, token: d.token_hash, type: 'magiclink' });
         if (v.error) throw v.error;
         var sess = v.data.session;
-        if (!sess || (sess.user.email || '').toLowerCase() !== email) throw new Error('登录身份不匹配');
+        if (!sess) throw new Error('登录失败，请重试');
+        // 邮箱是否为管理员由服务端在每次接口调用时强制校验，前端不保存/比对邮箱
         mask.remove(); document.body.style.overflow = '';
         onSuccess(sess);
       } catch (e) {
@@ -244,14 +246,10 @@
     var client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, { persistSession: true });
     client.auth.getSession().then(function (r) {
       var sess = r.data.session;
-      var email = sess && sess.user && (sess.user.email || '').toLowerCase();
-      // 前端白名单仅用于 UX；真正的权限校验全部在服务端
-      if (sess && email === ADMIN_HINT) {
-        installAdapter(client);
-      } else {
-        if (sess) client.auth.signOut(); // 非管理员账号登录过：清掉
-        showGate(client, function () { installAdapter(client); });
-      }
+      // 有会话就先放行进入界面；是否为管理员由服务端在每次接口调用时强制校验，
+      // 非管理员即使进入界面也看不到/改不了任何数据（接口全部 403）。
+      if (sess) installAdapter(client);
+      else showGate(client, function () { installAdapter(client); });
     });
   });
 })();

@@ -36,7 +36,7 @@
 <body>
 
 <h1>Jerry CMS 线上后台 · 管理员登录配置指南</h1>
-<div class="sub">适用站点：https://callmiruko.cc ｜ 管理员邮箱：zengaihua008@gmail.com ｜ 预计耗时 15-25 分钟</div>
+<div class="sub">适用站点：https://callmiruko.cc ｜ 管理员邮箱：仅你本人掌握，保存在服务端环境变量中，页面与代码库均不展示 ｜ 预计耗时 15-25 分钟</div>
 
 <div class="warn">
 <b>先说现状（代码已全部完成并上线）：</b><br>
@@ -50,7 +50,7 @@
 <h2>原理：为什么黑客进不来</h2>
 <div class="step">
 <ul>
-  <li><b>唯一管理员</b>：管理员邮箱白名单写死在服务端（<code>zengaihua008@gmail.com</code>），其他邮箱在"发验证码"第一步就被拒绝，根本收不到码、建不了会话。</li>
+  <li><b>唯一管理员</b>：管理员邮箱白名单保存在服务端环境变量里（前端页面和公开代码库都看不到它），其他邮箱在"发验证码"第一步就被拒绝，根本收不到码、建不了会话。</li>
   <li><b>验证码</b>：6 位数字，10 分钟过期、5 次输错作废、60 秒只能发一次。</li>
   <li><b>每次操作都验票</b>：后台每次保存都带登录票据，服务器实时向 Supabase 验票并核对邮箱，票据伪造/过期一律拒绝。</li>
   <li><b>密钥永不进前端</b>：GitHub Token、Supabase 密钥只存在 Vercel 环境变量里，浏览器里看不到。</li>
@@ -110,9 +110,9 @@
 <tr><td><span class="key">SUPABASE_SERVICE_ROLE_KEY</span> <span class="tag secret">机密</span></td><td>新的 <code>sb_secret_...</code> 密钥</td><td>Production</td></tr>
 <tr><td><span class="key">GITHUB_TOKEN</span> <span class="tag secret">机密</span></td><td>刚生成的 <code>github_pat_...</code></td><td>Production</td></tr>
 <tr><td><span class="key">RESEND_API_KEY</span> <span class="tag ready">可能已有</span></td><td>Resend 后台 API Keys 页面的 <code>re_...</code>；旧值若还在就不用动</td><td>Production</td></tr>
-<tr><td><span class="key">ADMIN_EMAIL</span> <span class="tag public">可选</span></td><td>不填默认就是 <code>zengaihua008@gmail.com</code>；以后要加多个管理员用英文逗号分隔</td><td>Production</td></tr>
+<tr><td><span class="key">ADMIN_EMAIL</span> <span class="tag secret">必填</span></td><td>你的管理员 Gmail 地址（即你用来登录后台的邮箱）；以后要加多个管理员用英文逗号分隔。<b>不要填错，否则收不到登录码</b></td><td>Production</td></tr>
 </table>
-<div class="warn"><b>Resend 注意：</b>免费版自带的发件邮箱 <code>onboarding@resend.dev</code> <b>只能发给你 Resend 账号注册时用的那个邮箱</b>。所以请确认你的 Resend 账号就是用 <code>zengaihua008@gmail.com</code> 注册的；若不是，去 Resend 用该邮箱注册一个账号并替换 <code>RESEND_API_KEY</code>。</div>
+<div class="warn"><b>Resend 注意：</b>免费版自带的发件邮箱 <code>onboarding@resend.dev</code> <b>只能发给你 Resend 账号注册时用的那个邮箱</b>。所以请确认你的 Resend 账号就是用<b>你的管理员 Gmail</b>（即填进 ADMIN_EMAIL 的那个）注册的；若不是，去 Resend 用该邮箱注册一个账号并替换 <code>RESEND_API_KEY</code>。</div>
 </div>
 
 <h2>第六步：重新部署（约 1 分钟）</h2>
@@ -129,7 +129,7 @@
 
 <h2>验证成功</h2>
 <div class="ok">
-打开 <code>https://callmiruko.cc/admin/index.html</code> → 邮箱已预填 → 点"发送验证码" → Gmail 收到 6 位码 → 输入后进入后台 → 右下角出现"<b>● 线上编辑模式</b>"浮条即成功。<br>
+打开 <code>https://callmiruko.cc/admin/index.html</code> → 手动输入你的管理员邮箱 → 点"发送验证码" → Gmail 收到 6 位码 → 输入后进入后台 → 右下角出现"<b>● 线上编辑模式</b>"浮条即成功。登录页不会显示任何邮箱地址，陌生人无法得知管理员是谁。<br>
 在任何电脑、手机浏览器登录都一样可用；登录状态会记住，过期后重新收一次码即可。
 </div>
 
@@ -150,7 +150,7 @@
 <tr><th style="width:45%">现象</th><th>处理</th></tr>
 <tr><td>点发送验证码提示"登录服务尚未配置完成"</td><td>三个变量（SUPABASE_URL / SERVICE_ROLE_KEY / RESEND_API_KEY）没配齐或没 Redeploy</td></tr>
 <tr><td>提示 fetch failed / 发信失败</td><td>SUPABASE_URL 复制错（常见多了斜杠/空格），或 service_role key 拿成了 publishable key</td></tr>
-<tr><td>收不到邮件</td><td>查 Gmail 垃圾邮件；确认 Resend 注册邮箱 = zengaihua008@gmail.com；60 秒内重复发送会被冷却拦截</td></tr>
+<tr><td>收不到邮件</td><td>查 Gmail 垃圾邮件；确认 Resend 注册邮箱 = 你填的 ADMIN_EMAIL；60 秒内重复发送会被冷却拦截</td></tr>
 <tr><td>登录后保存报 GITHUB_TOKEN 错误</td><td>Token 没配、过期，或忘了给 jerry-site 仓库 Contents 读写权限</td></tr>
 <tr><td>保存后线上没变化</td><td>等 1-2 分钟 Vercel 部署完成；去 Deployments 看最新一条是否 Ready</td></tr>
 <tr><td>提示登录过期</td><td>重新收一次验证码登录即可</td></tr>

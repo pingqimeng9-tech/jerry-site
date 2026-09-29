@@ -18,7 +18,8 @@ const { createClient } = require('@supabase/supabase-js');
 
 const REPO = process.env.GITHUB_REPO || 'pingqimeng9-tech/jerry-site';
 const BRANCH = process.env.GITHUB_BRANCH || 'main';
-const ADMIN_EMAILS = (process.env.ADMIN_EMAIL || 'zengaihua008@gmail.com')
+// 管理员白名单只从环境变量 ADMIN_EMAIL 读取，代码库里不写死任何邮箱
+const ADMIN_EMAILS = (process.env.ADMIN_EMAIL || '')
   .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 const MAX_FILE_BYTES = 4 * 1024 * 1024;
 
@@ -69,6 +70,7 @@ async function authenticate(req, res) {
   const admin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
   const { data, error } = await admin.auth.getUser(token);
   if (error || !data.user) { res.status(401).json({ ok: false, error: '登录无效，请重新登录' }); return null; }
+  if (!ADMIN_EMAILS.length) { res.status(503).json({ ok: false, error: 'CMS 未配置 ADMIN_EMAIL' }); return null; }
   const email = (data.user.email || '').toLowerCase();
   if (!ADMIN_EMAILS.includes(email)) { res.status(403).json({ ok: false, error: '该账号没有管理权限' }); return null; }
   return data.user;

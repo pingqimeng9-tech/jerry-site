@@ -101,7 +101,7 @@
 
 ### 验证结果
 
-- 本地仓库：240 文件入库，git 身份 qiu/zengaihua008@gmail.com。
+- 本地仓库：240 文件入库（git 提交身份使用隐私邮箱，不暴露真实邮箱）。
 - 空远端首推：publish → 远端收到全部 2 条提交 ✓。
 - 旧远端接管（用 Downloads 原版备份构建旧远端实测）：adopt → 远端提交链 = 旧版提交 + 接管提交；远端 HEAD 的 blog.html 已是新版（含 bridge）、admin/ 目录存在、api/（Notion 接口）原样保留 ✓。
 - 测试后已还原：本地回到 d8e8a3d、origin 已移除、deploy_config 清空、测试远端删除、服务已停。
