@@ -9,8 +9,8 @@
   'use strict';
   if (window.JerryCmsAdapter) return;
 
-  var SUPABASE_URL = 'https://ytvhanawoaepwfsgqqnzs.supabase.co';
-  var SUPABASE_ANON = 'sb_publishable_EfxYndz6uTCRevj2YyCO0A_936qng6d';
+  var SUPABASE_URL = 'https://zwgfuvqeypzrqguphyzt.supabase.co';
+  var SUPABASE_ANON = 'sb_publishable_r1w5x_a8sCSolxBdfNghGQ_j3WYcDoT';
 
   var isLocal = /^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(location.hostname);
 
