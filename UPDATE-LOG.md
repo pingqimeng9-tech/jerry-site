@@ -5,6 +5,34 @@
 
 ---
 
+## 2026-09-29 · 目录重构 + 前台编辑器线上化 + 大文件面板
+
+### 一、仓库目录重构：访客区与管理区分离
+
+- 新增 `site/` 作为 Vercel 站点根（Output Directory = `site`）：9 个访客页面、`admin/`、`assets/`、`css/`、`partials/`、`data/`、`images/`、`files/`、`videos/`、`packages/`、`site.config.json` 全部归入；URL 零变化。
+- `api/`、`scripts/`、`docs/`、`server.js`、`vercel.json` 等工程文件留在仓库根；`posts-html/`、`launcher.py` 移入 `_archive/`（保留不删）；`script/` 统一为 `scripts/`。
+- `server.js` 静态根改为 `site/`；8 个只读 API 数据路径改 `site/data/`；`api/cms.js` 所有仓库写操作统一加 `site/` 前缀；Notion 同步等旧脚本路径同步适配，功能保留。
+- `.gitignore` 同时覆盖 `data/` 与 `site/data/` 下的敏感文件（site_config / notion_config / staging_queue）。
+
+### 二、前台可视化编辑器 100% 搬到线上
+
+- 新增 `site/admin/studio/`：`cms-adapter.js`（Supabase 会话 + 线上写操作经 `/api/cms` 提交 GitHub 的共享适配层，后台页与前台桥共用）、`bridge.js`（双环境：本地探测本地服务直接注入；线上先查会话痕迹，**访客零网络请求/零界面**，管理员登录后才加载并注入）、`inline-editor.js`（前台可视化布局编辑器，由 `assets/` 移入）。
+- 9 个访客页面静态引入 `/admin/studio/bridge.js`（defer），服务端不再动态注入；`admin-auth.js` 瘦身为纯登录门。
+- 验证：本地编辑入口完整；线上访客截图确认无草稿箱/设置/新帖子/编辑页面任何入口；studio 资源与后台页线上 200。
+
+### 三、大文件上传面板（绕过 Vercel 4.5MB 请求体限制）
+
+- 后台「内容管理 → 📦 大文件」：一键打开 GitHub 网页拖拽上传页（`site/files/posts`、`site/videos/posts`、`site/images/posts`），提交后 Vercel 1-2 分钟自动部署；面板经 GitHub 公开 API 列出已传文件、大小并一键复制站内链接。
+- HTML 实时演示包结构特殊，仍走本地编辑器的"网站包上传"。
+
+### 遗留事项
+
+1. Supabase 新项目未配置前，线上登录门可见但发码返回 503；配置指南见 `docs/online-admin-setup.pdf`。配置完成后需替换 3 处旧项目常量（`site/index.html`、`site/blog.html`、`site/admin/studio/cms-adapter.js`）。
+2. 大文件（尤其视频）随 git 入库会增大仓库体积；GitHub 单文件硬上限 100MB。
+3. 本地历史备份（.cms-backup-*、*.bak 等）按要求原位保留，未入库、不影响站点。
+
+---
+
 ## 2026-09-08 · 第三轮：草稿箱对标改版 + 视频插入 + 网站包实时预览
 
 ### 改动范围
