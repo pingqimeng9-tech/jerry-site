@@ -54,6 +54,7 @@
     <button class="c-tab" data-k="projects">🚀 项目</button>
     <button class="c-tab" data-k="albums">📷 相册</button>
     <button class="c-tab" data-k="comments">🗑 评论管理</button>
+    <button class="c-tab" data-k="bigfiles">📦 大文件</button>
   </div>
 
   <!-- 说说 -->
@@ -162,11 +163,75 @@
     </div>
     <div id="cm-list"></div>
   </div>
+
+  <!-- 大文件上传（GitHub 网页拖拽，无大小限制） -->
+  <div class="c-pane" data-k="bigfiles">
+    <div class="glass form-glass">
+      <h3>📦 大文件 / 附件上传（无大小限制）</h3>
+      <p class="dim" style="font-size:12.5px;line-height:1.8">
+        编辑器里的直接上传适合 <b>4MB 以内</b>的图片和小附件；<b>zip、exe、安装包、视频、大图</b>等请走 GitHub 网页拖拽：
+        文件提交后 Vercel 会在 <b>1-2 分钟</b>内自动部署，部署完成即可在文章里引用下载，链接永久有效。
+      </p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 6px">
+        <a class="mini-btn" style="text-decoration:none;display:inline-block" target="_blank"
+           href="https://github.com/pingqimeng9-tech/jerry-site/upload/main/site/files/posts">📎 上传附件（zip/exe/pdf/任意）</a>
+        <a class="mini-btn" style="text-decoration:none;display:inline-block" target="_blank"
+           href="https://github.com/pingqimeng9-tech/jerry-site/upload/main/site/videos/posts">🎬 上传视频</a>
+        <a class="mini-btn" style="text-decoration:none;display:inline-block" target="_blank"
+           href="https://github.com/pingqimeng9-tech/jerry-site/upload/main/site/images/posts">🖼 上传大图</a>
+        <button class="mini-btn" onclick="refreshBigFiles()">🔄 刷新文件列表</button>
+      </div>
+      <p class="dim" style="font-size:12px;line-height:1.8;margin-top:8px">
+        步骤：① 点上面按钮打开 GitHub 页面（需已登录 GitHub）→ ② 把文件拖进网页虚线框（可一次多个）→
+        ③ 拉到页面底部点 <b>Commit changes</b> → ④ 等 1-2 分钟 → ⑤ 点"刷新文件列表"，复制链接贴进文章。<br>
+        ⚠️ 文件名建议只用中文/英文/数字/横线/点，不要带空格和特殊符号。<br>
+        💡 HTML 实时演示包（解压成网站那种）结构特殊，仍请在<b>本地编辑器</b>里用"网站包上传"。
+      </p>
+    </div>
+    <div class="glass form-glass">
+      <h3 style="margin-bottom:10px">📂 已上传的文件（点击复制站内链接）</h3>
+      <div id="bf-list"><p class="dim" style="font-size:12.5px">点上方"刷新文件列表"加载。</p></div>
+    </div>
+  </div>
 </div>
 <div class="pic-toast" id="pic-toast"></div>
 
 <script>
 function toast(msg){ const el=document.getElementById('pic-toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2400); }
+
+/* 大文件面板：读 GitHub 公开仓库目录，给出可复制的站内下载链接 */
+const BF_REPO = 'pingqimeng9-tech/jerry-site';
+const BF_DIRS = [
+  { key: 'files/posts', label: '📎 附件（files/posts）', urlPrefix: '/files/posts/' },
+  { key: 'videos/posts', label: '🎬 视频（videos/posts）', urlPrefix: '/videos/posts/' }
+];
+function fmtSize(n){ n=+n||0; return n<1024?n+' B':n<1048576?(n/1024).toFixed(1)+' KB':(n/1048576).toFixed(1)+' MB'; }
+async function copyText(t){
+  try{ await navigator.clipboard.writeText(t); toast('✅ 已复制：'+t.split('/').pop()); }
+  catch(e){ const i=document.createElement('input'); i.value=t; document.body.appendChild(i); i.select(); document.execCommand('copy'); i.remove(); toast('✅ 已复制'); }
+}
+async function refreshBigFiles(){
+  const box = document.getElementById('bf-list'); if(!box) return;
+  box.innerHTML = '<p class="dim" style="font-size:12.5px">⏳ 正在读取仓库…（刚上传请确认已在 GitHub 点 Commit，并等部署约 1-2 分钟）</p>';
+  const sections = [];
+  for (const d of BF_DIRS){
+    try{
+      const r = await fetch('https://api.github.com/repos/'+BF_REPO+'/contents/site/'+d.key+'?ref=main');
+      const items = r.ok ? await r.json() : [];
+      const files = (Array.isArray(items)?items:[]).filter(x=>x.type==='file')
+        .sort((a,b)=>(b.name||'').localeCompare((a.name||''))).slice(0,40);
+      const rows = files.length ? files.map(f=>{
+        const link = location.origin + d.urlPrefix + encodeURIComponent(f.name).replace(/%25/g,'%');
+        return '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px dashed rgba(177,140,255,.2)">'
+          +'<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px">'+esc(f.name)+'</span>'
+          +'<span class="dim" style="font-size:11.5px;white-space:nowrap">'+fmtSize(f.size)+'</span>'
+          +'<button class="mini-btn" style="padding:4px 12px" onclick=\'copyText('+JSON.stringify(link)+')\'>复制链接</button></div>';
+      }).join('') : '<p class="dim" style="font-size:12px;padding:6px 10px">（空）</p>';
+      sections.push('<div style="margin-bottom:14px"><div style="font-weight:700;font-size:13px;margin:6px 0">'+d.label+'</div>'+rows+'</div>');
+    }catch(e){ sections.push('<p class="dim" style="font-size:12px">读取失败：'+esc(e.message)+'</p>'); }
+  }
+  box.innerHTML = sections.join('') + '<p class="dim" style="font-size:11.5px;margin-top:6px">链接形如 '+location.origin+'/files/posts/文件名 —— 复制后在文章编辑器里用"附件/下载卡片"或普通链接贴入即可。</p>';
+}
 function esc(s){ var d=document.createElement('div'); d.textContent=s==null?'':String(s); return d.innerHTML; }
 const $=(s,root)=>(root||document).querySelector(s);
 const $$=(s,root)=>[...(root||document).querySelectorAll(s)];
