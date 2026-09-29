@@ -1,7 +1,7 @@
-﻿// /api/comments.js — Jerry CMS 评论列表（只读，读取仓库内 data/comments.json）
+// /api/comments.js — Jerry CMS 评论列表（只读，读取仓库内 data/comments.json）
 const fs = require('fs');
 const path = require('path');
-const FILE = path.join(process.cwd(), 'data', 'comments.json');
+const FILE = path.join(process.cwd(), 'site', 'data'), 'comments.json');
 function load(){ try{ return JSON.parse(fs.readFileSync(FILE,'utf8')).items||[]; }catch(e){ return []; } }
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin','*');

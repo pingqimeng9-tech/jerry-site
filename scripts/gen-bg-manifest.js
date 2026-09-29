@@ -12,7 +12,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const TARGET_DIR = path.join(__dirname, '..', 'images', 'bg');
+const TARGET_DIR = path.join(__dirname, '..', 'site', 'images', 'bg');
 const OUTPUT_FILE = path.join(TARGET_DIR, 'manifest.json');
 const ALLOWED_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif', '.bmp']);
 

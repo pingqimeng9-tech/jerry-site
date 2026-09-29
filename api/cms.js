@@ -23,11 +23,13 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAIL || '')
   .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 const MAX_FILE_BYTES = 4 * 1024 * 1024;
 
+// 站点内容全部在仓库 site/ 目录（Vercel Output Directory），仓库路径统一加前缀
+const RP = p => 'site/' + p;
 const COLLECTION_FILES = {
-  moments: 'data/moments.json', friends: 'data/friends.json',
-  projects: 'data/projects.json', albums: 'data/albums.json', comments: 'data/comments.json'
+  moments: RP('data/moments.json'), friends: RP('data/friends.json'),
+  projects: RP('data/projects.json'), albums: RP('data/albums.json'), comments: RP('data/comments.json')
 };
-// 上传目录白名单（相对仓库根）
+// 上传目录白名单（前端传入的相对路径，不含 site/ 前缀；写仓库时由 RP() 统一加）
 const UPLOAD_DIRS = {
   'images/posts': true, 'images/albums': true, 'images/bg': true, 'images/pet': true,
   'videos/posts': true, 'files/posts': true
@@ -127,7 +129,7 @@ const b64 = obj => Buffer.from(JSON.stringify(obj, null, 2), 'utf8').toString('b
 
 // ---------- 业务操作（与本地 server.js 行为一致） ----------
 async function opPostSave(body) {
-  const data = (await readRepoJson('data/posts.json')) || { json: { posts: [] } };
+  const data = (await readRepoJson(RP('data/posts.json'))) || { json: { posts: [] } };
   const store = data.json;
   let id = (body.id || '').trim();
   let post = store.posts.find(x => x.id === id);
@@ -150,14 +152,14 @@ async function opPostSave(body) {
   post.syncedAt = '';
   if (body.thumb) post.thumb = (body.thumb || '').trim();
   store.posts.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  await commitFiles([{ path: 'data/posts.json', contentBase64: b64(store) }], 'CMS: 保存文章 ' + post.title);
+  await commitFiles([{ path: RP('data/posts.json'), contentBase64: b64(store) }], 'CMS: 保存文章 ' + post.title);
   return { id: post.id, status: post.status };
 }
 async function opPostDelete(body) {
-  const data = await readRepoJson('data/posts.json');
+  const data = await readRepoJson(RP('data/posts.json'));
   if (!data) throw new Error('posts.json 不存在');
   data.json.posts = data.json.posts.filter(x => x.id !== body.id);
-  await commitFiles([{ path: 'data/posts.json', contentBase64: b64(data.json) }], 'CMS: 删除文章 ' + body.id);
+  await commitFiles([{ path: RP('data/posts.json'), contentBase64: b64(data.json) }], 'CMS: 删除文章 ' + body.id);
   return {};
 }
 async function opCollectionSave(body) {
@@ -184,12 +186,12 @@ async function opCollectionDelete(body) {
 }
 async function opLayoutSave(body) {
   if (body.format !== 'jerry-layout/v1' || !body.pages) throw new Error('布局配置格式错误');
-  await commitFiles([{ path: 'data/layout_config.json', contentBase64: b64(body) }], 'CMS: 更新页面布局');
+  await commitFiles([{ path: RP('data/layout_config.json'), contentBase64: b64(body) }], 'CMS: 更新页面布局');
   return {};
 }
 async function opPetSave(body) {
   if (body.format !== 'jerry-pet-pack/v1' || !Array.isArray(body.packs)) throw new Error('桌宠配置格式错误');
-  await commitFiles([{ path: 'data/pet_packs.json', contentBase64: b64(body) }], 'CMS: 更新桌宠动作包');
+  await commitFiles([{ path: RP('data/pet_packs.json'), contentBase64: b64(body) }], 'CMS: 更新桌宠动作包');
   return {};
 }
 // 公开设置：密钥字段一律剔除，绝不允许写进仓库里的 site.config.json
@@ -199,14 +201,14 @@ const SECRET_KEYS = {
 async function opConfigApply(body) {
   const ops = Array.isArray(body.ops) ? body.ops : [];
   if (!ops.length) throw new Error('暂存队列是空的');
-  const data = (await readRepoJson('site.config.json')) || { json: {} };
+  const data = (await readRepoJson(RP('site.config.json'))) || { json: {} };
   const cfg = data.json;
   for (const op of ops) {
     const sectionData = JSON.parse(JSON.stringify(op.data || {}));
     if (SECRET_KEYS[op.section]) SECRET_KEYS[op.section].forEach(k => delete sectionData[k]);
     cfg[op.section] = sectionData;
   }
-  await commitFiles([{ path: 'site.config.json', contentBase64: b64(cfg) }], 'CMS: 更新站点设置');
+  await commitFiles([{ path: RP('site.config.json'), contentBase64: b64(cfg) }], 'CMS: 更新站点设置');
   return { applied: ops.map(o => o.label || o.section) };
 }
 async function opUpload(body) {
@@ -219,7 +221,7 @@ async function opUpload(body) {
   if (buf.length === 0) throw new Error('文件为空');
   if (buf.length > MAX_FILE_BYTES) throw new Error('线上单文件不能超过 4MB，大文件（视频/压缩包/EXE）请在本地编辑或使用图床');
   const name = Date.now().toString(36) + '_' + safeName;
-  const relPath = dir + '/' + name;
+  const relPath = RP(dir + '/' + name);
   await commitFiles([{ path: relPath, contentBase64: raw }], 'CMS: 上传 ' + safeName);
   return { url: '/' + relPath, name: safeName, size: buf.length };
 }
@@ -236,7 +238,7 @@ module.exports = async (req, res) => {
     let result = {};
     switch (doWhat) {
       case 'admin-posts': {
-        const d = await readRepoJson('data/posts.json');
+        const d = await readRepoJson(RP('data/posts.json'));
         result = { posts: d ? d.json.posts : [] }; break;
       }
       case 'admin-collection': {
@@ -246,18 +248,18 @@ module.exports = async (req, res) => {
         result = { items: d ? d.json.items : [] }; break;
       }
       case 'config-get': {
-        const d = await readRepoJson('site.config.json');
+        const d = await readRepoJson(RP('site.config.json'));
         result = { config: d ? d.json : {} }; break;
       }
       case 'packages': {
         // 列 packages/ 下每个演示包的 meta.json
         const list = [];
-        const rr = await gh('packages');
+        const rr = await gh(RP('packages'));
         if (rr.ok) {
           const dirs = await rr.json();
           for (const dir of Array.isArray(dirs) ? dirs : []) {
             if (dir.type !== 'dir') continue;
-            const m = await readRepoJson('packages/' + dir.name + '/meta.json');
+            const m = await readRepoJson(RP('packages/' + dir.name + '/meta.json'));
             if (m) list.push({ id: dir.name, ...m.json });
           }
         }

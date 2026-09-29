@@ -23,7 +23,7 @@ import https from 'node:https';
 import crypto from 'node:crypto';
 
 const DRY = process.argv.includes('--dry');
-const ROOT = process.cwd();
+const ROOT = path.resolve(process.cwd(), 'site');  // 站点根：从仓库根目录运行本脚本
 const IMG_DIR = path.join(ROOT, 'images/posts');
 const FILE_DIR = path.join(ROOT, 'files/posts');
 const VID_DIR = path.join(ROOT, 'videos/posts');

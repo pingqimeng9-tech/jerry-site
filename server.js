@@ -9,14 +9,15 @@ const path = require('path');
 const { exec } = require('child_process');
 
 const ROOT = __dirname;
-const DATA_DIR = path.join(ROOT, 'data');
+const SITE = path.join(ROOT, 'site');   // 站点发布根：访客可见的页面/资源/数据/后台全部在此目录
+const DATA_DIR = path.join(SITE, 'data');
 const STORE = path.join(DATA_DIR, 'posts.json');
 const DEPLOY_CFG = path.join(DATA_DIR, 'deploy_config.json');
 const SITE_CFG = path.join(DATA_DIR, 'site_config.json');          // 全量设置（含密钥，仅本地）
-const SITE_CFG_PUBLIC = path.join(ROOT, 'site.config.json');       // 对外公开子集（静态文件，线上也能读）
+const SITE_CFG_PUBLIC = path.join(SITE, 'site.config.json');       // 对外公开子集（静态文件，线上也能读）
 const QUEUE_STORE = path.join(DATA_DIR, 'staging_queue.json');     // 操作暂存队列
 const NOTION_CFG = path.join(DATA_DIR, 'notion_config.json');     // Notion 同步配置（含 token，仅本地，已 gitignore）
-const UPLOAD_DIR = path.join(ROOT, 'images', 'posts');
+const UPLOAD_DIR = path.join(SITE, 'images', 'posts');
 const PORT = process.env.PORT || 5858;
 
 // 各内容模块的 JSON 存储文件（data/<name>.json，{items:[]} 结构）
@@ -110,7 +111,7 @@ function runNotionSync(mode, timeoutMs) {
   return new Promise(resolve => {
     const { spawn } = require('child_process');
     const child = spawn(process.execPath, [path.join(ROOT, 'scripts', 'notion-sync.mjs'), '--mode=' + mode], {
-      cwd: ROOT, windowsHide: true, env: process.env
+      cwd: SITE, windowsHide: true, env: process.env
     });
     let out = '', err = '';
     const timer = setTimeout(() => { try { child.kill(); } catch (e) {} resolve({ ok: false, error: '同步超时（超过 ' + Math.round(timeoutMs / 1000) + ' 秒）' }); }, timeoutMs);
@@ -375,8 +376,8 @@ async function handleApi(req, res, pathname) {
     const b64 = m ? m[2] : body.base64;
     const isVideo = /\.(mp4|webm|mov|m4v|mkv|avi)$/i.test(safeName);
     // dir 参数：允许上传到 images/posts、images/albums、images/bg（白名单，防路径穿越）
-    const allowedDirs = { 'images/posts': UPLOAD_DIR, 'images/albums': path.join(ROOT, 'images', 'albums'), 'images/bg': path.join(ROOT, 'images', 'bg'), 'images/pet': path.join(ROOT, 'images', 'pet') };
-    let dir = isVideo ? path.join(ROOT, 'videos', 'posts') : (allowedDirs[body.dir] || UPLOAD_DIR);
+    const allowedDirs = { 'images/posts': UPLOAD_DIR, 'images/albums': path.join(SITE, 'images', 'albums'), 'images/bg': path.join(SITE, 'images', 'bg'), 'images/pet': path.join(SITE, 'images', 'pet') };
+    let dir = isVideo ? path.join(SITE, 'videos', 'posts') : (allowedDirs[body.dir] || UPLOAD_DIR);
     const relDir = isVideo ? 'videos/posts' : (allowedDirs[body.dir] ? body.dir : 'images/posts');
     const name = Date.now().toString(36) + '_' + safeName;
     fs.mkdirSync(dir, { recursive: true });
@@ -391,7 +392,7 @@ async function handleApi(req, res, pathname) {
     const safeName = path.basename(body.filename).replace(/[^\w.\u4e00-\u9fa5-]/g, '_');
     const m = /^data:([^;]+);base64,(.*)$/s.exec(body.base64);
     const b64 = m ? m[2] : body.base64;
-    const dir = path.join(ROOT, 'files', 'posts');
+    const dir = path.join(SITE, 'files', 'posts');
     fs.mkdirSync(dir, { recursive: true });
     const name = Date.now().toString(36) + '_' + safeName;
     const buf = Buffer.from(b64, 'base64');
@@ -409,7 +410,7 @@ async function handleApi(req, res, pathname) {
     if (!isZip && !isHtml) return send(res, 400, { ok: false, error: '只支持 .zip 网站包或单个 .html 文件' });
     const safeName = path.basename(body.filename).replace(/[^\w.\u4e00-\u9fa5-]/g, '_');
     const id = 'pkg_' + Date.now().toString(36);
-    const pkgDir = path.join(ROOT, 'packages', id);
+    const pkgDir = path.join(SITE, 'packages', id);
     const siteDir = path.join(pkgDir, 'site');
     fs.mkdirSync(siteDir, { recursive: true });
     let entry = 'index.html';
@@ -444,7 +445,7 @@ async function handleApi(req, res, pathname) {
   }
   // 已有网站包列表
   if (req.method === 'GET' && pathname === '/api/packages') {
-    const dir = path.join(ROOT, 'packages');
+    const dir = path.join(SITE, 'packages');
     const out = [];
     if (fs.existsSync(dir)) {
       for (const d of fs.readdirSync(dir)) {
@@ -798,7 +799,7 @@ async function handleApi(req, res, pathname) {
 
   // 背景图上传后自动重建 manifest（站点背景轮播读这个文件）
   if (req.method === 'POST' && pathname === '/api/bg/rebuild') {
-    const dir = path.join(ROOT, 'images', 'bg');
+    const dir = path.join(SITE, 'images', 'bg');
     const out = [];
     if (fs.existsSync(dir)) {
       for (const f of fs.readdirSync(dir)) {
@@ -817,8 +818,8 @@ async function handleApi(req, res, pathname) {
 function serveStatic(req, res, pathname) {
   let rel = decodeURIComponent(pathname);
   if (rel === '/') rel = '/index.html';
-  const filePath = path.normalize(path.join(ROOT, rel));
-  if (!filePath.startsWith(ROOT)) { res.writeHead(403); return res.end('Forbidden'); }
+  const filePath = path.normalize(path.join(SITE, rel));
+  if (!filePath.startsWith(SITE)) { res.writeHead(403); return res.end('Forbidden'); }
   fs.readFile(filePath, (err, data) => {
     if (err) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end('404 Not Found: ' + rel); }
     const ext = path.extname(filePath).toLowerCase();
