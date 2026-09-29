@@ -77,7 +77,7 @@
       <section class="sec" data-sec="profile">
         <div class="glass">
           <span class="kicker">Profile</span>
-          <h2>👤 个人资料 <span class="hint">站点名 / 简介 / 社交 / 导航</span></h2>
+          <h2>👤 个人资料 <span class="hint">全站生效：导航站名、博客作者卡、社交按钮、页脚；保存并立即生效后刷新页面查看</span></h2>
           <div class="grid2">
             <div class="field"><label><i></i>站点名称</label><input name="siteName" placeholder="JERRY.DEV"></div>
             <div class="field"><label><i></i>博主昵称</label><input name="authorName" placeholder="Jerry"></div>
@@ -126,7 +126,7 @@
       <section class="sec" data-sec="background">
         <div class="glass">
           <span class="kicker">Background</span>
-          <h2>🖼 背景与氛围特效 <span class="hint">背景图轮播 / 樱花·雪·萤火虫</span></h2>
+          <h2>🖼 背景与氛围特效 <span class="hint">全站生效：背景图 12 秒虚化轮播 / 樱花·雪·萤火虫；关闭渐变则纯图背景</span></h2>
           <div class="with-switch" style="margin-bottom:14px">
             <label class="switch"><input type="checkbox" name="useGradient" onchange="stageBgMarkDirty()"><i></i></label>
             使用渐变流动背景（关闭则只显示背景图）
@@ -154,7 +154,7 @@
       <section class="sec" data-sec="aiCat">
         <div class="glass">
           <span class="kicker">AI Cat</span>
-          <h2>🐱 AI 猫猫助理 <span class="hint">Key 只存本地 site_config.json，不会出现在公开配置里</span></h2>
+          <h2>🐱 AI 猫猫助理 <span class="hint">本地填 Key 即用；线上需在 Vercel 环境变量配 GEMINI_API_KEY（或 OPENAI_API_KEY），Key 永不下发浏览器</span></h2>
           <div class="with-switch" style="margin-bottom:14px">
             <label class="switch"><input type="checkbox" name="enabled"><i></i></label>
             启用 AI 猫（全站左下角悬浮猫）
@@ -252,7 +252,7 @@
       <section class="sec" data-sec="music">
         <div class="glass">
           <span class="kicker">Music</span>
-          <h2>🎵 网易云音乐挂件 <span class="hint">右下角悬浮播放器；歌曲 ID 在网易云网页版地址栏里</span></h2>
+          <h2>🎵 网易云音乐挂件 <span class="hint">全站右下角悬浮播放器，本地与线上均可播放并显示歌名；歌曲 ID 在网易云网页版地址栏里</span></h2>
           <div class="with-switch" style="margin-bottom:14px">
             <label class="switch"><input type="checkbox" name="enabled"><i></i></label>
             启用播放器
@@ -291,9 +291,9 @@
       <section class="sec" data-sec="gallery">
         <div class="glass">
           <span class="kicker">Gallery</span>
-          <h2>📷 画廊 / 照片墙 <span class="hint">相册内容在「内容管理 → 相册」里维护</span></h2>
-          <div class="field" style="margin-bottom:14px"><label><i></i>照片墙页简介</label><input name="intro" placeholder="用镜头记录生活的碎片"></div>
-          <div class="field" style="max-width:220px"><label><i></i>展示列数（桌面端）</label><input name="columns" type="number" min="1" max="5"></div>
+          <h2>📷 画廊 / 照片墙 <span class="hint">相册内容在「内容管理 → 相册」里维护；页标题/副标题在页面编辑模式里直接改</span></h2>
+          <div class="field" style="max-width:220px;margin-bottom:14px"><label><i></i>照片展示列数（桌面端 1~5）</label><input name="columns" type="number" min="1" max="5" placeholder="3"></div>
+          <div class="dim" style="font-size:12px;line-height:1.7">列数对相册内照片瀑布流生效，保存并立即生效后打开任意相册查看。</div>
           <div style="margin-top:18px;display:flex;gap:10px">
             <button class="btn primary" onclick="stage('gallery','画廊')">📥 暂存到操作队列</button>
             <button class="btn ghost" onclick="stageApply('gallery','画廊')">⚡ 保存并立即生效</button>

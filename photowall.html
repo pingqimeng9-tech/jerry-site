@@ -48,6 +48,14 @@ var view = document.getElementById('view');
 var albums = [];
 var inAlbum = null;
 var photos = [];
+var galleryCfg = { intro: '', columns: 3 };
+
+// 画廊设置（照片瀑布流列数）来自 site.config.json；页标题/副标题由布局系统统一管理
+fetch('/site.config.json', { cache: 'no-store' }).then(r=>r.ok?r.json():null).then(function(c){
+  if (c && c.gallery) {
+    galleryCfg.columns = Math.min(5, Math.max(1, parseInt(c.gallery.columns, 10) || 3));
+  }
+}).catch(function(){});
 
 fetch('/api/albums').then(r=>r.json()).then(d=>{
   albums = (d.items||[]);
@@ -84,7 +92,7 @@ function renderAlbum(a){
   history.replaceState(null, '', location.pathname + '?album=' + encodeURIComponent(a.id));
   photos = (a.photos||[]).filter(Boolean);
   if(!photos.length){ view.innerHTML = '<div class="empty-tip">这个相册还是空的</div>'; return; }
-  view.innerHTML = '<div class="masonry">' + photos.map(function(u,i){
+  view.innerHTML = '<div class="masonry" style="columns:'+galleryCfg.columns+'">' + photos.map(function(u,i){
     return '<div class="ph" data-i="'+i+'"><img src="'+esc(u)+'" loading="lazy" alt=""></div>';
   }).join('') + '</div>';
   view.querySelectorAll('.ph').forEach(function(ph){

@@ -43,18 +43,6 @@
     100% {opacity:0; transform:translateY(-70px) scale(0.8);}
   }
 
-  /* 顶部弹幕轨道 */
-  #danmaku-container {
-    position: fixed; top: 85px; left: 0; width: 100%; height: 140px;
-    pointer-events: none; z-index: 10; overflow: hidden;
-  }
-  .danmaku-item {
-    position: absolute; white-space: nowrap; font-size: 15px; font-weight: 500;
-    color: rgba(255,255,255,0.9); text-shadow: 1px 1px 4px rgba(0,0,0,0.8);
-    animation: danmakuSlide linear infinite; right: -20%;
-  }
-  @keyframes danmakuSlide { 0% { transform: translateX(20vw); } 100% { transform: translateX(-120vw); } }
-
   a{color:inherit;text-decoration:none;}
   .mono{font-family:'JetBrains Mono',monospace;}
   .serif{font-family:'Noto Serif SC',serif;}
@@ -488,6 +476,7 @@
 <link rel="stylesheet" href="/assets/pet.css">
 
 <script src="/assets/layout.js" defer></script>
+<script src="/assets/site-kit.js" defer></script>
 </head>
 <body data-page="blog">
 
@@ -498,7 +487,6 @@
 <div class="bg-overlay"></div>
 
 <div id="sparkle-field"></div>
-<div id="danmaku-container"></div>
 
 <nav id="nav">
   <a class="logo" href="/">JERRY.DEV</a>
@@ -814,10 +802,19 @@ function setupMobileChrome(){
   window.addEventListener('resize', syncStickyTop);
 }
 
+// 预取站点公开配置（默认封面等），与文章列表并行
+const siteCfgPromise = fetch('/site.config.json', { cache: 'no-store' })
+  .then(r => r.ok ? r.json() : null).catch(() => null);
+function defaultCover(){
+  const c = window.JERRY_SITE_CFG || window.__blogSiteCfg || null;
+  return (c && c.profile && c.profile.defaultPostCover) || '';
+}
+
 async function loadPosts(){
   const contentArea = document.getElementById('content-area');
   try {
-    const res = await fetch('/api/posts');
+    const [siteCfg, res] = await Promise.all([siteCfgPromise, fetch('/api/posts')]);
+    if (siteCfg) window.__blogSiteCfg = siteCfg;
     const data = await res.json();
 
     if(!data.ok){
@@ -899,13 +896,15 @@ function postCardHtml(post, alreadyEscaped){
 
   // 图片和文字都放进DOM里，具体显示哪个由CSS按当前视图模式（图库/列表）决定，
   // 这样列表视图不会因为"只塞了一张图进去"而变成没有文字的空卡片
-  const coverImg = post.cover
-    ? `<img class="post-cover-img" src="${post.cover}" alt="" loading="lazy" onerror="this.style.display='none'">`
+  // 封面优先级：文章缩略图 thumb > 文章封面 cover > 站点默认封面
+  const cover = post.thumb || post.cover || defaultCover();
+  const coverImg = cover
+    ? `<img class="post-cover-img" src="${cover}" alt="" loading="lazy" onerror="this.style.display='none'">`
     : '';
 
   return `
     <a class="post-card" href="/post.html?id=${post.id}">
-      <div class="post-preview${post.cover ? ' has-cover' : ''}">
+      <div class="post-preview${cover ? ' has-cover' : ''}">
         ${coverImg}
         <div class="post-preview-text">${excerpt}</div>
       </div>
@@ -1455,17 +1454,19 @@ function setupSidebarSearch(){
       resultsEl.innerHTML = `<div class="ssr-empty">没找到包含"${escapeHtml(q)}"的文章，换个词试试？</div>`;
       return;
     }
-    resultsEl.innerHTML = matched.map(p => `
+    resultsEl.innerHTML = matched.map(p => {
+      const cov = p.thumb || p.cover || defaultCover();
+      return `
       <a href="/post.html?id=${p.id}">
-        ${p.cover
-          ? `<img class="ssr-thumb" src="${p.cover}" alt="" loading="lazy" onerror="this.style.display='none'">`
+        ${cov
+          ? `<img class="ssr-thumb" src="${cov}" alt="" loading="lazy" onerror="this.style.display='none'">`
           : `<div class="ssr-thumb"></div>`}
         <div class="ssr-text">
           <div class="ssr-title">${highlight(p.title || '无标题', q)}</div>
           <div class="ssr-meta">${p.date ? p.date : ''}${p.category ? ' · ' + escapeHtml(p.category) : ''}</div>
         </div>
       </a>
-    `).join('');
+    `;}).join('');
   });
 }
 
@@ -1579,29 +1580,7 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
   }
 })();
 
-/* ================= 顶部弹幕 ================= */
-(function initDanmaku() {
-  const container = document.getElementById('danmaku-container');
-  if (!container) return;
-  
-  const texts = [
-    "太酷了！UI审美完全在线", "这背景好通透，求壁纸！", "膜拜大佬~", 
-    "日常打卡来看更新", "学到了学到了", "这个搜索框爱了", 
-    "催更催更！", "前排围观", "记笔记了，干货满满", 
-    "66666 梦幻联动", "好有科技感的设计", "感谢分享~", "Mark一下以后看"
-  ];
-  const tracks = [10, 50, 90]; 
-  
-  setInterval(() => {
-    const el = document.createElement('div');
-    el.className = 'danmaku-item';
-    el.textContent = texts[Math.floor(Math.random() * texts.length)];
-    el.style.top = tracks[Math.floor(Math.random() * tracks.length)] + 'px';
-    el.style.animationDuration = (12 + Math.random() * 6) + 's';
-    container.appendChild(el);
-    setTimeout(() => el.remove(), 20000);
-  }, 1800); 
-})();
+/* 顶部硬编码弹幕已移除：全站弹幕统一由 /assets/site-kit.js 读取设置 → 弹幕背景 驱动 */
 </script>
 
 <!-- 桌宠系统（公共文件） -->

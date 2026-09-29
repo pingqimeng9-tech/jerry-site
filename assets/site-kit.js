@@ -15,13 +15,14 @@
   var API_BASE = ''; // 本地 CMS 存在时可用 /api/*；线上为静态站，AI/音乐元数据自动降级
 
   var DEFAULTS = {
-    profile: { siteName: 'JERRY.DEV', authorName: 'Jerry', bio: '', avatarUrl: '', social: {}, navigation: [] },
+    profile: { siteName: 'JERRY.DEV', authorName: 'Jerry', bio: '', avatarUrl: '', defaultPostCover: '', social: {}, navigation: [] },
     background: { useGradient: true, bgImages: [], effect: 'none' },
     danmaku: { enabled: false, texts: [], speed: 12, opacity: 0.5 },
     aiCat: { enabled: false, name: '小猫', greeting: '喵？' },
     comment: { provider: 'local' },
     music: { enabled: false, songIds: [], defaultVolume: 0.5, playerTitle: 'BGM' },
-    footer: { text: '', links: [], beian: '' }
+    footer: { text: '', links: [], beian: '' },
+    gallery: { intro: '', columns: 3 }
   };
 
   function loadConfig() {
@@ -30,6 +31,7 @@
       .catch(function () { return null; })
       .then(function (c) {
         CFG = deepMerge(JSON.parse(JSON.stringify(DEFAULTS)), c || {});
+        window.JERRY_SITE_CFG = CFG; // 供各页面渲染脚本读取（默认封面等）
         // 探测本地 CMS（有则启用 AI / 评论等动态能力）
         return fetch('/api/admin/posts', { method: 'POST' }).then(function (r) { return r.ok; }).catch(function () { return false; });
       })
@@ -71,7 +73,15 @@
     '.jsk-danmaku span{position:absolute;white-space:nowrap;font-size:14px;color:rgba(255,255,255,.85);text-shadow:0 2px 8px rgba(0,0,0,.6);will-change:transform}',
     '.jsk-fx{position:fixed;inset:0;pointer-events:none;z-index:1}',
     '.jsk-footer-links{display:flex;gap:16px;justify-content:center;margin-bottom:6px;flex-wrap:wrap}',
-    '.jsk-footer-links a{color:#c9c6e8;text-decoration:none}.jsk-footer-links a:hover{color:#5CE1E6}'
+    '.jsk-footer-links a{color:#c9c6e8;text-decoration:none}.jsk-footer-links a:hover{color:#5CE1E6}',
+    /* 背景图轮播层 */
+    '.jsk-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}',
+    '.jsk-bg .jsk-bg-slide{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity 1.6s ease;filter:blur(26px) saturate(1.1);transform:scale(1.08)}',
+    '.jsk-bg .jsk-bg-slide.on{opacity:.38}',
+    '.jsk-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,8,26,.45),rgba(10,8,26,.72))}',
+    'body.jsk-no-gradient{background:#0b0918!important}',
+    'body.jsk-no-gradient .jsk-bg .jsk-bg-slide.on{opacity:.85}',
+    'body.jsk-no-gradient .jsk-bg::after{background:linear-gradient(180deg,rgba(10,8,26,.25),rgba(10,8,26,.55))}'
   ].join('');
 
   function boot(local) {
@@ -79,12 +89,84 @@
     st.textContent = css;
     document.head.appendChild(st);
 
+    applyBackground();
+    applyProfile();
     injectNav();
     if (CFG.danmaku && CFG.danmaku.enabled) initDanmaku();
     if (CFG.background && CFG.background.effect && CFG.background.effect !== 'none') initAmbient(CFG.background.effect);
-    if (CFG.aiCat && CFG.aiCat.enabled && API_BASE === '') initCat();
+    // AI 猫：本地由 CMS 代理；线上若部署了 /api/chat（Vercel 环境变量配 Key）同样可用，失败自动降级
+    if (CFG.aiCat && CFG.aiCat.enabled) initCat();
     if (CFG.music && CFG.music.enabled && (CFG.music.songIds || []).length) initMusic();
     injectFooter();
+  }
+
+  /* ---------- 背景：背景图轮播 + 渐变开关 ---------- */
+  function applyBackground() {
+    var bg = CFG.background || {};
+    if (bg.useGradient === false) document.body.classList.add('jsk-no-gradient');
+    var imgs = (bg.bgImages || []).filter(Boolean);
+    if (!imgs.length) return;
+    var layer = document.createElement('div');
+    layer.className = 'jsk-bg';
+    var slides = imgs.map(function (u) {
+      var d = document.createElement('div');
+      d.className = 'jsk-bg-slide';
+      d.style.backgroundImage = 'url("' + String(u).replace(/"/g, '%22') + '")';
+      layer.appendChild(d);
+      return d;
+    });
+    document.body.appendChild(layer);
+    var cur = 0;
+    slides[0].classList.add('on');
+    if (slides.length > 1) setInterval(function () {
+      slides[cur].classList.remove('on');
+      cur = (cur + 1) % slides.length;
+      slides[cur].classList.add('on');
+    }, 12000);
+  }
+
+  /* ---------- 个人资料：导航站名 / 博客作者卡 / 社交按钮 ---------- */
+  function applyProfile() {
+    var p = CFG.profile || {};
+    if (p.siteName) {
+      document.querySelectorAll('nav .logo, nav a.logo').forEach(function (el) {
+        if (el && el.children.length === 0) el.textContent = p.siteName;
+      });
+    }
+    // 博客页左栏作者卡
+    var nameEl = document.querySelector('.avatar-name');
+    if (nameEl && p.authorName) nameEl.textContent = p.authorName;
+    var tagEl = document.querySelector('.avatar-tag');
+    if (tagEl && p.bio) tagEl.textContent = p.bio;
+    var circle = document.querySelector('.avatar-circle');
+    if (circle && p.avatarUrl) {
+      circle.textContent = '';
+      circle.style.overflow = 'hidden';
+      circle.style.padding = '0';
+      var im = document.createElement('img');
+      im.src = p.avatarUrl; im.alt = '';
+      im.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block';
+      im.onerror = function () { im.remove(); circle.textContent = (p.authorName || 'J').slice(0, 1); };
+      circle.appendChild(im);
+    }
+    // 社交按钮：按配置重建（RSS 始终保留）
+    var row = document.querySelector('.social-row');
+    if (row && p.social) {
+      var s = p.social;
+      var btns = [];
+      var ghSvg = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>';
+      var mailSvg = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>';
+      if (s.github) btns.push('<a href="' + esc(s.github) + '" target="_blank" rel="noopener" title="GitHub" class="social-btn">' + ghSvg + '</a>');
+      if (s.email) btns.push('<a href="mailto:' + esc(s.email) + '" title="邮箱" class="social-btn">' + mailSvg + '</a>');
+      if (s.bilibili) btns.push('<a href="' + esc(s.bilibili) + '" target="_blank" rel="noopener" title="Bilibili" class="social-btn text-badge">B</a>');
+      if (s.qq) btns.push('<a href="https://wpa.qq.com/msgrd?v=3&uin=' + encodeURIComponent(String(s.qq).replace(/[^0-9]/g, '')) + '&site=qq&menu=yes" target="_blank" rel="noopener" title="QQ ' + esc(s.qq) + '" class="social-btn text-badge">Q</a>');
+      if (s.wechat) btns.push('<span title="微信：' + esc(s.wechat) + '" class="social-btn text-badge">微</span>');
+      if (s.gitee) btns.push('<a href="' + esc(s.gitee) + '" target="_blank" rel="noopener" title="Gitee" class="social-btn text-badge">G</a>');
+      // 保留原有的 RSS 按钮
+      var rss = row.querySelector('a[title="RSS"]');
+      if (rss) btns.push(rss.outerHTML);
+      if (btns.length) row.innerHTML = btns.join('');
+    }
   }
 
   /* ---------- 导航注入：把配置的导航项补进 nav .links（已存在的跳过） ---------- */
@@ -216,7 +298,12 @@
       var tip = addMsg('assistant', '…思考中');
       fetch('/api/chat', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history })
+        body: JSON.stringify({
+          messages: history,
+          provider: ai.provider || 'gemini',
+          model: ai.model || '',
+          systemPrompt: ai.systemPrompt || ''
+        })
       }).then(function (r) { return r.json(); }).then(function (d) {
         if (d.ok) {
           tip.textContent = d.reply;
