@@ -427,7 +427,7 @@
     if(!reply && window.JerryPet && window.JerryPet.settings && window.JerryPet.settings.aiChat){
       showBubbleTyped('…思考中', 42);
       try{
-        const r = await fetch('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'},
+        const r = await fetch('/api/assist?do=chat', {method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({ messages: [{role:'user', content:text}] })});
         const d = await r.json();
         if(d.ok && d.reply) reply = d.reply;

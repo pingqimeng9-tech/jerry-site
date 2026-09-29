@@ -587,7 +587,7 @@ async function testCat(){
   const data=collectSection('aiCat');
   toast('⏳ 正在让猫猫回话…');
   try{
-    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:[{role:'user',content:'你好呀，打个招呼吧'}]})});
+    const r=await fetch('/api/assist?do=chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:[{role:'user',content:'你好呀，打个招呼吧'}]})});
     const d=await r.json();
     toast(d.ok?('🐱 猫猫说：'+d.reply.slice(0,40)):('❌ '+d.error));
   }catch(e){ toast('❌ '+e.message); }

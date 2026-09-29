@@ -741,7 +741,8 @@ async function handleApi(req, res, pathname) {
   }
 
   // ==================== AI 猫助理（Gemini / OpenAI 兼容）====================
-  if (req.method === 'POST' && pathname === '/api/chat') {
+  const assistDo = (new URL(req.url, 'http://x').searchParams.get('do')) || '';
+  if (req.method === 'POST' && (pathname === '/api/chat' || (pathname === '/api/assist' && assistDo === 'chat'))) {
     const body = await readBody(req, 2e6).catch(() => ({}));
     const ai = readSiteConfig().aiCat || {};
     if (!ai.enabled) return send(res, 200, { ok: false, error: 'AI 猫未开启' });
@@ -775,7 +776,7 @@ async function handleApi(req, res, pathname) {
   }
 
   // ==================== 网易云音乐元数据代理 ====================
-  if (req.method === 'GET' && pathname === '/api/music') {
+  if (req.method === 'GET' && (pathname === '/api/music' || (pathname === '/api/assist' && assistDo === 'music'))) {
     const ids = (new URL(req.url, 'http://x').searchParams.get('ids') || '').split(',').map(s => s.trim()).filter(Boolean);
     if (!ids.length) return send(res, 200, { ok: true, songs: [] });
     try {

@@ -296,7 +296,7 @@
       addMsg('user', text);
       history.push({ role: 'user', content: text });
       var tip = addMsg('assistant', '…思考中');
-      fetch('/api/chat', {
+      fetch('/api/assist?do=chat', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: history,
@@ -333,7 +333,7 @@
     var cover = el.querySelector('.cover'), tEl = el.querySelector('.t'), aEl = el.querySelector('.a');
 
     var meta = {};
-    fetch('/api/music?ids=' + ids.join(',')).then(function (r) { return r.json(); }).then(function (d) {
+    fetch('/api/assist?do=music&ids=' + ids.join(',')).then(function (r) { return r.json(); }).then(function (d) {
       (d.songs || []).forEach(function (s) { meta[s.id] = s; });
       applyTrack();
     }).catch(function () { applyTrack(); });
