@@ -823,21 +823,7 @@ function serveStatic(req, res, pathname) {
   fs.readFile(filePath, (err, data) => {
     if (err) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end('404 Not Found: ' + rel); }
     const ext = path.extname(filePath).toLowerCase();
-    // 对 HTML 页面：自动注入 bridge.js（仅本地管理入口，线上无此逻辑）
-    if (ext === '.html' || ext === '.htm') {
-      let html = data.toString('utf8');
-      // 不给 admin/ 页面注入（避免递归）
-      if (!rel.startsWith('/admin/')) {
-        const bridgeTag = '<script src="/admin/bridge.js"></script>';
-        if (html.includes('</body>')) {
-          html = html.replace('</body>', bridgeTag + '\n</body>');
-        } else {
-          html += bridgeTag;
-        }
-      }
-      res.writeHead(200, { 'Content-Type': MIME[ext] });
-      return res.end(html, 'utf8');
-    }
+    // bridge.js 已由页面静态引用（/admin/studio/bridge.js），自身按环境判断是否注入编辑能力，无需服务端注入
     const headers = { 'Content-Type': MIME[ext] || 'application/octet-stream' };
     // /files/ 下为文章附件：强制浏览器下载（PDF/图片等也不直接打开），文件名支持中文
     if (rel.startsWith('/files/')) {

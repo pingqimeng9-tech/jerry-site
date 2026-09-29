@@ -29,11 +29,49 @@
     document.head.appendChild(st);
   } catch (e) {}
 
-  /* ---------- 探测本地 CMS 服务 ---------- */
-  fetch('/api/admin/posts', { method: 'POST' })
-    .then(function (r) { return r.ok ? r.json() : null; })
-    .then(function (d) { if (d && d.ok) inject(); })
-    .catch(function () { /* 线上环境：静默 */ });
+  /* ---------- 编辑权限探测（双环境） ----------
+   * 本地：探测本地 CMS 接口 /api/admin/posts，成功即注入
+   * 线上：先查本地会话痕迹（无痕迹立即退出，访客零网络请求、零界面）；
+   *      有痕迹再加载 Supabase 校验管理员会话，通过后注入并安装线上适配层 */
+  var isLocal = /^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(location.hostname);
+  if (isLocal) {
+    fetch('/api/admin/posts', { method: 'POST' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && d.ok) inject(); })
+      .catch(function () {});
+  } else {
+    bootOnlineEditor();
+  }
+
+  function loadAdapter() {
+    if (window.JerryCmsAdapter) return Promise.resolve(window.JerryCmsAdapter);
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = '/admin/studio/cms-adapter.js';
+      s.onload = function () { resolve(window.JerryCmsAdapter); };
+      s.onerror = function () { reject(new Error('adapter load fail')); };
+      document.head.appendChild(s);
+    });
+  }
+
+  function bootOnlineEditor() {
+    // 访客（从未登录过后台）：localStorage 无会话痕迹 → 立即结束，不加载任何外部组件
+    var trace = false;
+    try {
+      trace = Object.keys(localStorage).some(function (k) {
+        return k.indexOf('sb-') === 0 && k.indexOf('auth-token') !== -1 &&
+          (localStorage.getItem(k) || '').indexOf('access_token') !== -1;
+      });
+    } catch (e) {}
+    if (!trace) return;
+    loadAdapter().then(function (Adapter) {
+      return Adapter.getClient().then(function (client) {
+        return client.auth.getSession().then(function (r) {
+          if (r.data.session) { Adapter.install(client); inject(); }
+        });
+      });
+    }).catch(function () { /* 未登录/组件失败：静默，不影响访客 */ });
+  }
 
   function mkNavLink(href, label) {
     var a = document.createElement('a');
@@ -55,7 +93,7 @@
   function loadInlineEditor() {
     if (window.__jlInlineEditor) return;
     var s = document.createElement('script');
-    s.src = '/assets/inline-editor.js';
+    s.src = '/admin/studio/inline-editor.js';
     document.head.appendChild(s);
   }
 
