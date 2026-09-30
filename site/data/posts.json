@@ -1,6 +1,45 @@
 {
   "posts": [
     {
+      "id": "写作体验升级jerrydev-编辑器现在长这样_muoibq2l",
+      "views": 1,
+      "createdAt": "2026-09-30 08:37:28",
+      "title": "写作体验升级：Jerry.dev 编辑器现在长这样",
+      "category": "建站笔记",
+      "excerpt": "一次真实的编辑器实战：斜杠菜单、Callout、折叠块、代码高亮、表格、目录、书签卡片、图片图注、待办清单、划词批注，全部在一篇文章里用给你看。",
+      "cover": "https://picsum.photos/seed/jerryeditor/1200/630",
+      "tags": [
+        "建站笔记",
+        "编辑器",
+        "Jerry.dev"
+      ],
+      "mood": "",
+      "markdown": "最近把博客编辑器按 <mark class=\"notion-highlight\" data-anno-id=\"a_muoibofykxify\" data-color=\"yellow_background\">Notion 的写作习惯</mark>重做了一遍。这篇文章本身就是用新编辑器写的，所有功能都用了一遍。\n\n## 为什么要重做\n\n旧编辑器只能点工具栏，写作思路总被打断。现在大部分操作都能在键盘上完成：打个斜杠就能插入任何块。\n\n<div class=\"callout co-tip\" data-type=\"tip\"><span class=\"co-icon\">💡</span><div class=\"co-text\">这是一个提示框：写作时不用离开键盘，斜杠菜单支持中文搜索。</div></div>\n\n<div class=\"callout co-warning\" data-type=\"warning\"><span class=\"co-icon\">⚠️</span><div class=\"co-text\">这是警告框：线上后台传文件有 <mark class=\"notion-highlight\" data-anno-id=\"a_muoibp6abqbun\" data-color=\"blue_background\" style=\"background: rgba(163, 201, 245, 0.32);\">4.5MB 限制</mark>，大文件方案还在路上。</div></div>\n\n### 折叠块：常见问题\n\n<details>\n<summary>问：斜杠菜单怎么打开？</summary>\n答：空行打 / 就能唤出，支持中文过滤；Esc 关闭，↑↓ 选择，Enter 插入。\n</details>\n\n### 代码块\n\n```javascript\nfunction greet(name) {\n  return `Hello, ${name}!`;\n}\n```\n\n### 可视化表格\n\n| 功能 | 入口 | 状态 |\n| --- | --- | --- |\n| 斜杠菜单 | 打 / | 已上线 |\n| 划词批注 | 选中文字点💬 | 已上线 |\n| 折叠块 | 斜杠→折叠 | 已上线 |\n\n### 文内目录\n\n<div class=\"toc-block\" contenteditable=\"false\"><div class=\"toc-b-title\">📑 目录</div></div>\n\n### 书签卡片\n\n<a class=\"bookmark-card\" contenteditable=\"false\" href=\"https://github.com/pingqimeng9-tech/jerry-site\" target=\"_blank\" rel=\"noopener\"><span class=\"bm-ic\">🔖</span><span><span class=\"bm-tx\">github.com</span><br><span class=\"bm-url\">https://github.com/pingqimeng9-tech/jerry-site</span></span></a>\n\n### 图片与图注\n\n<figure><img src=\"https://picsum.photos/seed/jerryeditor/720/320\" alt=\"编辑器示意图\"><figcaption>图 1：新编辑器斜杠菜单实拍</figcaption></figure>\n\n### 待办清单\n\n- [ ] 斜杠菜单、块手柄、浮动工具条\n\n- [ ] 折叠、Callout、代码块、表格、目录\n\n- [ ] 划词批注、图片灯箱、粘贴增强\n\n-\n\n---\n\n以上就是全部新块。后续还会做大文件直传和 AI 辅助，慢慢来。",
+      "annotations": [
+        {
+          "id": "a_muoibofykxify",
+          "text": "Notion 的写作习惯",
+          "color": "yellow_background",
+          "comment": {
+            "text": "设计目标：让写作思路不被工具栏打断。"
+          }
+        },
+        {
+          "id": "a_muoibp6abqbun",
+          "text": "4.5MB 限制",
+          "color": "blue_background",
+          "comment": {
+            "text": "Vercel Hobby 计划的请求体上限，后续改 Supabase Storage 直传解决。"
+          }
+        }
+      ],
+      "status": "published",
+      "date": "2026-09-30",
+      "updatedAt": "2026-09-30 08:40:23",
+      "syncedAt": "",
+      "thumb": "https://picsum.photos/seed/jerryeditor/600/400"
+    },
+    {
       "id": "实时预览验证-可删除_muleehe2",
       "views": 1,
       "createdAt": "2026-09-28 04:24:20",

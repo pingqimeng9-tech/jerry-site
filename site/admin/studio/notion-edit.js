@@ -163,9 +163,34 @@
     return blockOf(sel.getRangeAt(0).startContainer);
   }
   function transformBlock(tag) {
-    var map = { p: 'p', h1: 'h1', h2: 'h2', h3: 'h3', quote: 'blockquote', code: 'pre' };
-    var t = map[tag] || 'p';
-    exec('formatBlock', t);
+    var map = { p: 'p', h1: 'h1', h2: 'h2', h3: 'h3', h4: 'h4', h5: 'h5', h6: 'h6', quote: 'blockquote', code: 'pre' };
+    var t = (map[tag] || 'p').toUpperCase();
+    var info = caretInfo();
+    var block = info && info.block;
+    // execCommand formatBlock 在空段落（<p><br></p>）或 details/callout 等结构块附近会选错块、
+    // 把光标跳进上一个结构块内部，这里改为对光标所在块做显式标签替换
+    if (!block || block === body || block.nodeName === t) {
+      if (block && block.nodeName === t) return;
+      try { exec('formatBlock', t.toLowerCase()); } catch (e) {}
+      return;
+    }
+    // li 内不拆列表，交给 execCommand
+    var inLi = (function () { var n = block; while (n && n !== body) { if (n.nodeName === 'LI') return true; n = n.parentNode; } return false; })();
+    if (inLi) { exec('formatBlock', t.toLowerCase()); return; }
+    var nb = document.createElement(t);
+    while (block.firstChild) nb.appendChild(block.firstChild);
+    if (block.className && t === 'BLOCKQUOTE') nb.className = block.className;
+    block.parentNode.replaceChild(nb, block);
+    try {
+      if (nb.textContent.replace(/\u200B/g, '').trim() === '') {
+        // 空块用零宽空格文本节点承接光标：<br> 空块在结构块（details 等）后方时，
+        // Chrome 会把输入路由到邻近块；零宽空格文本节点可稳定承接（序列化时已清理）
+        nb.innerHTML = '\u200B';
+        var rr0 = document.createRange(); rr0.setStart(nb.firstChild, 0); rr0.collapse(true);
+        var ss0 = window.getSelection(); ss0.removeAllRanges(); ss0.addRange(rr0);
+      } else placeCaret(nb, true);
+    } catch (e) {}
+    mark();
   }
 
   // ============================================================
@@ -186,7 +211,10 @@
     { ic: '▾', t: '折叠块', d: 'Toggle，点击展开收起', run: function () { insertToggle(); } },
     { g: '内容块' },
     { ic: '</>', t: '代码块', d: '带语言高亮', run: function () { insertCodeBlock(); } },
-    { ic: '💡', t: '提示框 Callout', d: '醒目标注块', run: function () { insertCallout('tip'); } },
+    { ic: '💡', t: '提示框', d: 'Callout · 小贴士/建议', k: 'callout tip tishi', run: function () { insertCallout('tip'); } },
+    { ic: '⚠️', t: '警告框', d: 'Callout · 注意/警告', k: 'callout warning jinggao', run: function () { insertCallout('warning'); } },
+    { ic: '❌', t: '危险框', d: 'Callout · 禁止/危险操作', k: 'callout danger weixian', run: function () { insertCallout('danger'); } },
+    { ic: 'ℹ️', t: '信息框', d: 'Callout · 背景信息说明', k: 'callout info xinxi', run: function () { insertCallout('info'); } },
     { ic: '▦', t: '表格', d: '可视化插入表格', run: function () { openTableGrid(); } },
     { ic: '📑', t: '目录', d: '自动收集标题生成目录', run: function () { insertToc(); } },
     { ic: '🔖', t: '书签卡片', d: '网址链接卡片', run: function () { insertBookmark(); } },
@@ -214,7 +242,7 @@
     var q = menuState.query.toLowerCase();
     var list = menuState.items.filter(function (it) {
       if (it.g) return false;
-      if (menuState.mode === 'slash') return !q || (it.t + ' ' + it.d).toLowerCase().indexOf(q) >= 0;
+      if (menuState.mode === 'slash') return !q || (it.t + ' ' + (it.d || '') + ' ' + (it.k || '')).toLowerCase().indexOf(q) >= 0;
       if (menuState.mode === 'emoji') return !q || it.t.indexOf(q) >= 0;
       return !q || it.t.toLowerCase().indexOf(q) >= 0;
     });
@@ -267,6 +295,9 @@
 
   body.addEventListener('input', function () {
     var info = caretInfo(); if (!info) { hideMenu(); return; }
+    // 代码块内：一切 markdown 自动化（斜杠/emoji/[[链接]]/行内格式）都禁用，反引号星号均为字面字符
+    var inCodeBlock = (function () { var n = info.sel.anchorNode; while (n && n !== body) { if (n.nodeName === 'PRE') return true; n = n.parentNode; } return false; })();
+    if (inCodeBlock) { if (menuState.open) hideMenu(); updateWordCount(); return; }
     // 斜杠
     var mSlash = info.prefix.match(/(^|[\s>])\/([\w\u4e00-\u9fa5]*)$/);
     if (mSlash) {
@@ -368,13 +399,26 @@
   }
   function insertTaskAtCaret(checked) {
     var info = caretInfo();
+    var block = info && info.block;
+    // 优先显式构建：把当前空段落（markdown [] 触发，块内只有触发词已被删除）替换为任务列表，
+    // execCommand('insertUnorderedList') 在含零宽空格/结构块附近时结构不稳定
+    if (block && block.parentNode === body && /^P|H[1-6]$|BLOCKQUOTE/.test(block.nodeName)) {
+      var ul = document.createElement('ul'); ul.className = 'cms-task';
+      var li0 = document.createElement('li');
+      var cb0 = document.createElement('input'); cb0.type = 'checkbox'; cb0.contentEditable = 'false'; if (checked) cb0.checked = true;
+      li0.appendChild(cb0);
+      li0.appendChild(document.createTextNode('\u200B'));
+      ul.appendChild(li0);
+      block.replaceWith(ul);
+      var rrT = document.createRange(); rrT.setStart(li0.lastChild, 0); rrT.collapse(true);
+      var ssT = window.getSelection(); ssT.removeAllRanges(); ssT.addRange(rrT);
+      mark();
+      return;
+    }
     exec('insertUnorderedList');
-    var li = info.block.tagName === 'LI' ? info.block : (currentBlock() && currentBlock().tagName === 'LI' ? currentBlock() : ($$('li', body).slice(-1)[0]));
-    // 在当前 li 开头插入 checkbox
     var host = currentBlock();
     if (host && host.tagName === 'LI' && !host.querySelector('input[type=checkbox]')) {
-      var cb = document.createElement('input'); cb.type = 'checkbox'; if (checked) cb.checked = true; cb.disabled = false;
-      cb.contentEditable = 'false';
+      var cb = document.createElement('input'); cb.type = 'checkbox'; if (checked) cb.checked = true; cb.contentEditable = 'false';
       host.insertBefore(cb, host.firstChild);
       mark();
     } else { insertTask(); }
@@ -796,11 +840,27 @@
       if (inPre) { e.preventDefault(); document.execCommand('insertText', false, '  '); return; }
       if (li) { e.preventDefault(); document.execCommand(e.shiftKey ? 'outdent' : 'indent'); mark(); return; }
     }
-    // 空列表项回车退出列表
+    // Enter：代码块内始终插入换行文本（Chrome 默认会生成 <div> 嵌套，破坏代码结构与序列化；
+    // execCommand insertText '\n' 在 contenteditable 里也会被转成块拆分，必须用 Range 插文本节点）
+    if (e.key === 'Enter' && inPre) {
+      e.preventDefault();
+      try {
+        var rrN2 = sel.getRangeAt(0);
+        rrN2.deleteContents();
+        var tn = document.createTextNode('\n');
+        rrN2.insertNode(tn);
+        rrN2.setStartAfter(tn); rrN2.setEndAfter(tn);
+      } catch (err) { document.execCommand('insertHTML', false, '\n'); }
+      mark();
+      return;
+    }
+    // 列表项回车：任务列表续建带勾选框的项；空项退出列表
     if (e.key === 'Enter' && li && !e.shiftKey) {
-      var txt = li.textContent.replace(/^\s*/, '');
-      var hasCheck = li.querySelector('input[type=checkbox]');
-      if (hasCheck) txt = txt.replace(/^\s*/, '');
+      var ulHost = li.parentElement;
+      var taskHere = li.querySelector('input[type=checkbox]');
+      var taskList = taskHere || (ulHost && Array.prototype.some.call(ulHost.children, function (x) { return x.querySelector && x.querySelector('input[type=checkbox]'); }));
+      var txt = li.textContent.replace(/\u200B/g, '').replace(/^\s*/, '');
+      if (taskHere) txt = txt.replace(/^\s*/, '');
       if (txt.trim() === '') {
         e.preventDefault();
         if (li.parentElement && li.parentElement.children.length === 1) {
@@ -813,6 +873,30 @@
         }
         return;
       }
+      if (taskList) {
+        // 非空任务项回车：续建一个新的待办项（Notion 行为）
+        e.preventDefault();
+        var nli = el('li');
+        var ncb = document.createElement('input'); ncb.type = 'checkbox'; ncb.contentEditable = 'false';
+        nli.appendChild(ncb);
+        nli.appendChild(document.createTextNode('\u200B'));
+        li.after(nli);
+        if (ulHost && !/cms-task/.test(ulHost.className || '')) ulHost.className = (ulHost.className ? ulHost.className + ' ' : '') + 'cms-task';
+        var rrN = document.createRange(); rrN.setStart(nli.lastChild, 0); rrN.collapse(true);
+        var ssN = window.getSelection(); ssN.removeAllRanges(); ssN.addRange(rrN);
+        mark();
+        return;
+      }
+    }
+    // 标题内回车：在标题下方新建普通段落（Notion 行为，避免浏览器继续生成标题/div）
+    if (e.key === 'Enter' && block && /^H[1-6]$/.test(block.nodeName) && !e.shiftKey) {
+      e.preventDefault();
+      var np2 = el('p'); np2.innerHTML = '\u200B';
+      block.after(np2);
+      var rrH = document.createRange(); rrH.setStart(np2.firstChild, 0); rrH.collapse(true);
+      var ssH = window.getSelection(); ssH.removeAllRanges(); ssH.addRange(rrH);
+      mark();
+      return;
     }
     // 空引用回车退出
     if (e.key === 'Enter' && block && block.nodeName === 'BLOCKQUOTE' && block.textContent.trim() === '') {
@@ -872,9 +956,18 @@
   var CODE_LANGS = [['javascript','JS'],['typescript','TS'],['html','HTML'],['css','CSS'],['python','Python'],['java','Java'],['go','Go'],['rust','Rust'],['c','C'],['cpp','C++'],['csharp','C#'],['sql','SQL'],['bash','Bash'],['json','JSON'],['yaml','YAML'],['markdown','Markdown'],['xml','XML'],['plaintext','Text']];
   function insertCodeBlock(lang) {
     var l = lang || 'javascript';
-    var html = '<pre><code class="language-' + l + '" data-lang="' + l + '"></code></pre>';
+    // 空 code 无子节点时 Chrome 会把输入落到 <pre> 直接文本节点，用零宽空格承接（序列化时全局清理）
+    var html = '<pre><code class="language-' + l + '" data-lang="' + l + '">' + '\u200B' + '</code></pre>';
     var nodes = insertBlock(html);
-    setTimeout(function () { var c = $$('pre code', body).slice(-1)[0]; if (c) placeCaret(c, true); }, 0);
+    setTimeout(function () {
+      var c = $$('pre code', body).slice(-1)[0];
+      if (c) {
+        if (c.firstChild && c.firstChild.nodeType === 3) {
+          var rrC = document.createRange(); rrC.setStart(c.firstChild, 0); rrC.collapse(true);
+          var ssC = window.getSelection(); ssC.removeAllRanges(); ssC.addRange(rrC);
+        } else placeCaret(c, true);
+      }
+    }, 0);
   }
   // 代码块悬浮工具条
   var codeBar = el('div', 'ne-codebar');
@@ -922,11 +1015,45 @@
       }).join('') || '<li style="list-style:none;color:#999">暂无标题</li>';
     });
   }
+  // 保证正文始终有块级容器：空 body 补空段落；body 直接挂的裸文本节点包进 <p>
+  // （全新文章第一次输入时浏览器可能把文字写进 body 裸文本节点，导致斜杠菜单/Markdown 转换全部失效）
+  function normalizeBody(focusLast) {
+    if (!body.firstChild) {
+      body.innerHTML = '<p><br></p>';
+      if (focusLast) { try { placeCaret(body.firstChild, true); } catch (e) {} }
+      return;
+    }
+    var changed = false;
+    Array.prototype.slice.call(body.childNodes).forEach(function (n) {
+      if (n.nodeType === 3 && n.textContent.replace(/\u200B/g, '').trim() !== '') {
+        var p = document.createElement('p');
+        body.insertBefore(p, n);
+        p.appendChild(n);
+        changed = true;
+      }
+    });
+    if (changed) { try { var lastP = body.lastElementChild; if (lastP && lastP.tagName === 'P') placeCaret(lastP, true); } catch (e) {} }
+  }
+  body.addEventListener('focus', function () { normalizeBody(true); });
+  body.addEventListener('beforeinput', function () {
+    if (!body.firstChild) { body.innerHTML = '<p><br></p>'; try { placeCaret(body.firstChild, true); } catch (e) {} return; }
+    // 光标若停在 body 自身（裸文本层级），移入末尾段落，保证输入落进块级元素
+    var sel = window.getSelection();
+    if (sel && sel.rangeCount) {
+      var node = sel.getRangeAt(0).startContainer;
+      if (node === body || (node.nodeType === 3 && node.parentNode === body)) {
+        var target = node.nodeType === 3 ? null : (body.lastElementChild && /^P$/.test(body.lastElementChild.tagName) ? body.lastElementChild : null);
+        if (!target) { var np = document.createElement('p'); np.innerHTML = '<br>'; body.appendChild(np); target = np; }
+        try { placeCaret(target, true); } catch (e) {}
+      }
+    }
+  });
   var neDebounce = null;
   new MutationObserver(function () {
     clearTimeout(neDebounce);
-    neDebounce = setTimeout(function () { refreshTocBlocks(); decorateBlocks(); decorateAnnos(); updateWordCount(); }, 120);
+    neDebounce = setTimeout(function () { normalizeBody(); refreshTocBlocks(); decorateBlocks(); decorateAnnos(); updateWordCount(); }, 120);
   }).observe(body, { childList: true, subtree: true, characterData: true });
+  normalizeBody();
 
   function insertBookmark() {
     var u = prompt('输入要收藏的网址：', 'https://');
@@ -1225,5 +1352,5 @@
   decorateAnnos();
 
   // 对外暴露（与批注模块提前挂载的方法合并，勿整体覆盖）
-  window.__ne = Object.assign(window.__ne || {}, { insertToggle: insertToggle, insertCallout: insertCallout, insertCodeBlock: insertCodeBlock, insertToc: insertToc, refreshToc: refreshTocBlocks });
+  window.__ne = Object.assign(window.__ne || {}, { insertToggle: insertToggle, insertCallout: insertCallout, insertCodeBlock: insertCodeBlock, insertToc: insertToc, insertBookmark: insertBookmark, insertEmbed: insertEmbed, openTableGrid: openTableGrid, refreshToc: refreshTocBlocks });
 })();

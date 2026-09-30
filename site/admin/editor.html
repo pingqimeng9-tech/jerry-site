@@ -622,7 +622,7 @@ function htmlToMd(root){
       let bufHost=document.createElement('div');
       const flush=()=>{ const txt=inlineText(bufHost); if(txt.trim()){ push(txt); } bufHost=document.createElement('div'); };
       el.childNodes.forEach(n=>{
-        if(n.nodeType===1 && isBlockTag(n.tagName)){ flush(); walk(n); }
+        if(n.nodeType===1 && (isBlockTag(n.tagName) || (n.tagName==='A' && n.className && /bookmark-card/.test(n.className)))){ flush(); walk(n); }
         else if(n.nodeType===1 || n.nodeType===3){ bufHost.appendChild(n.cloneNode(true)); }
       });
       flush(); return;
@@ -696,7 +696,7 @@ function htmlToMd(root){
   // 顶层遍历
   bodyRootChildren(root).forEach(n=>{
     if(n.nodeType===3){ const tx=n.textContent.replace(/&nbsp;/g,' '); if(tx.trim()) push(tx); return; }
-    if(n.nodeType===1){ if(isBlockTag(n.tagName)) walk(n); else push(inlineText(n)); }
+    if(n.nodeType===1){ if(isBlockTag(n.tagName) || (n.tagName==='A' && n.className && /bookmark-card/.test(n.className))) walk(n); else push(inlineText(n)); }
   });
   return lines.join('\n\n').replace(/\n{3,}/g,'\n\n').replace(/\u200b/g,'').trim();
 }
@@ -721,7 +721,7 @@ async function load(){
     const thumbEl = document.getElementById('thumb');
     if(thumbEl) thumbEl.value = p.thumb||'';
     document.getElementById('date').value = (p.date||'').slice(0,10);
-    body.innerHTML = mdToHtml(p.markdown) || '';
+    body.innerHTML = mdToHtml(p.markdown) || '<p><br></p>';
     if(window.__ne && window.__ne.setAnnotations) window.__ne.setAnnotations(p.annotations || []);
     renderTags(); syncCover(false); setMode(); clean();
     if(window.__jerrySiteEmbedScan) window.__jerrySiteEmbedScan();
