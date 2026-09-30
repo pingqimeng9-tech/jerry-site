@@ -374,6 +374,37 @@
   .a-body mark{border-radius:4px}
   .a-body h4{font-size:1.08rem;margin:1.3rem 0 .6rem}
   .a-body .katex-display{overflow-x:auto;overflow-y:hidden;padding:4px 0}
+  /* ===== Notion 兼容：Callout / 目录块 / 书签卡片 / 图注 / 代码复制 / 灯箱 ===== */
+  .a-body .callout{display:flex;gap:11px;align-items:flex-start;border-radius:12px;padding:12px 15px;margin:1.1rem 0;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);line-height:1.7}
+  .a-body .callout .co-icon{font-size:17px;line-height:1.7;flex:none}
+  .a-body .callout .co-text{flex:1;min-width:0}
+  .a-body .callout.co-tip{border-color:rgba(124,255,178,.4);background:rgba(124,255,178,.09)}
+  .a-body .callout.co-warning{border-color:rgba(255,209,102,.45);background:rgba(255,209,102,.1)}
+  .a-body .callout.co-danger{border-color:rgba(255,122,92,.5);background:rgba(255,122,92,.1)}
+  .a-body .callout.co-info{border-color:rgba(92,225,230,.45);background:rgba(92,225,230,.09)}
+  .a-body .toc-block{border:1px dashed rgba(92,225,230,.4);background:rgba(92,225,230,.06);border-radius:12px;padding:13px 18px;margin:1.3rem 0}
+  .a-body .toc-block .toc-b-title{font-weight:700;color:var(--aqua);font-size:13.5px;margin-bottom:8px}
+  .a-body .toc-block ul{margin:0;padding-left:20px}
+  .a-body .toc-block li{margin:4px 0;font-size:13.5px}
+  .a-body .toc-block li.h3{list-style:none;margin-left:18px}
+  .a-body .toc-block a{color:var(--muted);text-decoration:none;transition:.15s}
+  .a-body .toc-block a:hover{color:var(--aqua)}
+  .a-body .bookmark-card{display:flex;gap:12px;align-items:center;border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:12px 15px;margin:1.1rem 0;text-decoration:none;color:inherit;background:rgba(255,255,255,.04);transition:.18s}
+  .a-body p .bookmark-card{display:flex}
+  .a-body .bookmark-card:hover{border-color:var(--aqua);background:rgba(92,225,230,.07)}
+  .a-body .bookmark-card .bm-ic{font-size:22px;flex:none}
+  .a-body .bookmark-card .bm-url{font-size:12px;color:#8fdfe4;word-break:break-all}
+  .a-body .bookmark-card .bm-tx{font-size:13.5px;font-weight:600}
+  .a-body figure{margin:1.4rem 0;text-align:center}
+  .a-body figure img{margin-bottom:0}
+  .a-body figcaption{font-size:12.5px;color:var(--muted);margin-top:7px}
+  .a-body pre .code-copy{position:absolute;top:8px;right:60px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#ddd;border-radius:7px;font-size:10.5px;padding:2px 9px;cursor:pointer;z-index:2}
+  .a-body pre .code-copy:hover{background:rgba(92,225,230,.2);color:#fff}
+  .a-body pre.hl-wrap{white-space:pre-wrap;word-break:break-word}
+  .a-body img.ne-zoomable{cursor:zoom-in}
+  #ne-lightbox{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;cursor:zoom-out;backdrop-filter:blur(6px)}
+  #ne-lightbox.open{display:flex}
+  #ne-lightbox img{max-width:93vw;max-height:93vh;border-radius:10px;box-shadow:0 20px 80px rgba(0,0,0,.7)}
   .a-meta .post-tags-row{display:flex;gap:6px;flex-wrap:wrap}
   .a-meta .post-tags-row span{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--pink);border:1px solid rgba(255,140,217,.4);padding:2px 9px;border-radius:100px}
   /* ===== 文末评论区 ===== */
@@ -686,6 +717,8 @@ async function loadPost(){
     renderMath();
 
     buildTOC();
+    enhanceTocBlocks();
+    initLightbox();
     mountPostComments(id);
     // 会员锁分类：异步校验（不阻塞文章显示；未解锁才替换为锁定卡）
     if (locked) {
@@ -816,6 +849,65 @@ function enhanceCodeBlocks(){
       tag.style.cssText = 'position:absolute;top:8px;right:14px;font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.1em;text-transform:uppercase;pointer-events:none';
       pre.appendChild(tag);
     }
+    if (!pre.querySelector('.code-copy')) {
+      const btn = document.createElement('button');
+      btn.className = 'code-copy';
+      btn.type = 'button';
+      btn.textContent = '复制';
+      btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(block.innerText.replace(/\n?$/, '')).then(() => {
+          btn.textContent = '已复制';
+          setTimeout(() => { btn.textContent = '复制'; }, 1500);
+        }).catch(() => {});
+      });
+      pre.appendChild(btn);
+    }
+  });
+}
+
+// ===== 文内目录块：把 .toc-block 占位渲染为真实目录（复用标题锚点） =====
+function enhanceTocBlocks(){
+  const body = document.getElementById('a-body');
+  if (!body) return;
+  const heads = Array.prototype.slice.call(body.querySelectorAll('h1,h2,h3'));
+  body.querySelectorAll('.toc-block').forEach(tb => {
+    if (tb.dataset.tocDone) return;
+    tb.dataset.tocDone = '1';
+    let html = '<div class="toc-b-title">📑 目录</div><ul>';
+    heads.forEach((h, idx) => {
+      if (tb.contains(h)) return;
+      if (!h.id) h.id = 'toc-heading-' + idx;
+      html += '<li class="' + (h.tagName === 'H3' ? 'h3' : '') + '"><a href="#' + h.id + '">' + escapeHtml(h.textContent) + '</a></li>';
+    });
+    html += '</ul>';
+    tb.innerHTML = html;
+    tb.querySelectorAll('a').forEach(a => a.addEventListener('click', e => {
+      e.preventDefault();
+      document.getElementById(a.getAttribute('href').slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }));
+  });
+}
+
+// ===== 图片灯箱：正文图片点击放大（链接图/书签/网站包除外） =====
+function initLightbox(){
+  const body = document.getElementById('a-body');
+  if (!body) return;
+  let box = document.getElementById('ne-lightbox');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'ne-lightbox';
+    box.innerHTML = '<img alt="图片预览">';
+    document.body.appendChild(box);
+    box.addEventListener('click', () => box.classList.remove('open'));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') box.classList.remove('open'); });
+  }
+  body.querySelectorAll('img').forEach(img => { if (!img.closest('a')) img.classList.add('ne-zoomable'); });
+  body.addEventListener('click', e => {
+    const img = e.target;
+    if (img.tagName !== 'IMG') return;
+    if (img.closest('a,.bookmark-card,.site-preview')) return;
+    box.querySelector('img').src = img.src;
+    box.classList.add('open');
   });
 }
 
