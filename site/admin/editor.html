@@ -579,7 +579,12 @@ function htmlToMd(root){
       else if(t==='code') out+='`'+inner+'`';
       else if(t==='a') out+='['+inner+']('+(n.getAttribute('href')||'')+')';
       else if(t==='img') out+='!['+(n.getAttribute('alt')||'')+']('+(n.getAttribute('src')||'')+')';
-      else if(t==='u'||t==='ins'||t==='mark'||(t==='span'&&n.getAttribute('style'))) out+=n.outerHTML;  // 下划线/高亮/彩色字：原样保留 HTML
+      else if(t==='u'||t==='ins'||(t==='span'&&n.getAttribute('style'))) out+=n.outerHTML;  // 下划线/彩色字：原样保留 HTML
+      else if(t==='mark'){
+        // 划词批注：规范化为干净的 <mark data-anno-id data-color>（注释内容存 annotations）
+        var aid=n.getAttribute('data-anno-id')||'', acol=n.getAttribute('data-color')||'';
+        out+='<mark class="notion-highlight"'+(aid?' data-anno-id="'+aid+'"':'')+(acol?' data-color="'+acol+'"':'')+'>'+inner+'</mark>';
+      }
       else out+=inner;                 // 其他 span/font：保留文字
     });
     return out;
@@ -613,13 +618,12 @@ function htmlToMd(root){
       return;
     }
     if(t==='p'||t==='div'||t==='section'||t==='article'){
-      let buf='';
-      const flush=()=>{ if(buf.trim()){ push(buf); buf=''; } };
+      // 行内内容累积到临时容器后整体 inlineText：逐子节点调 inlineText(n) 会丢掉 n 自身的格式标签（粗体/批注等）
+      let bufHost=document.createElement('div');
+      const flush=()=>{ const txt=inlineText(bufHost); if(txt.trim()){ push(txt); } bufHost=document.createElement('div'); };
       el.childNodes.forEach(n=>{
-        if(n.nodeType===3){ buf+=n.textContent.replace(/&nbsp;/g,' ').replace(/\u200b/g,''); return; }
-        if(n.nodeType!==1) return;
-        if(isBlockTag(n.tagName)){ flush(); walk(n); }
-        else buf+=inlineText(n);
+        if(n.nodeType===1 && isBlockTag(n.tagName)){ flush(); walk(n); }
+        else if(n.nodeType===1 || n.nodeType===3){ bufHost.appendChild(n.cloneNode(true)); }
       });
       flush(); return;
     }
@@ -718,6 +722,7 @@ async function load(){
     if(thumbEl) thumbEl.value = p.thumb||'';
     document.getElementById('date').value = (p.date||'').slice(0,10);
     body.innerHTML = mdToHtml(p.markdown) || '';
+    if(window.__ne && window.__ne.setAnnotations) window.__ne.setAnnotations(p.annotations || []);
     renderTags(); syncCover(false); setMode(); clean();
     if(window.__jerrySiteEmbedScan) window.__jerrySiteEmbedScan();
   }catch(e){ toast('加载失败：'+e.message); }
@@ -741,6 +746,7 @@ async function save(status, silent){
     const thumbEl=document.getElementById('thumb');
     doc.thumb=thumbEl?thumbEl.value.trim():'';
     doc.markdown=htmlToMd(body);
+    doc.annotations=(window.__ne && window.__ne.getAnnotations)?window.__ne.getAnnotations():(doc.annotations||[]);
     // Auto-generate excerpt from markdown if empty
     if(!doc.excerpt && doc.markdown){
       const plain = doc.markdown.replace(/[#*>\-\[\]()!|~_]/g,'').replace(/\n+/g,' ').trim();

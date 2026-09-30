@@ -45,6 +45,18 @@
     + '.ne-drop-line{height:3px;border-radius:2px;background:linear-gradient(90deg,#5CE1E6,#B18CFF);box-shadow:0 0 10px rgba(92,225,230,.7);margin:2px 0;pointer-events:none}'
     + '.ne-wordbar{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:9000;background:rgba(20,16,40,.92);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:6px 16px;font-size:11px;color:rgba(255,255,255,.65);display:flex;gap:14px;backdrop-filter:blur(10px)}'
     + '.ne-wordbar b{color:#5CE1E6;font-weight:700}'
+    + '#body mark.notion-highlight{border-radius:3px;padding:0 2px;color:inherit;cursor:pointer}'
+    + '.ne-anno-card{position:fixed;z-index:10002;display:none;width:300px;background:rgba(20,16,40,.98);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:12px 14px;box-shadow:0 12px 40px rgba(0,0,0,.5);font-size:13px;color:#eee}'
+    + '.ne-anno-card.open{display:block}'
+    + '.ne-anno-card .ac-quote{font-size:12px;color:#b8b5d6;border-left:3px solid #ffd166;padding-left:8px;margin-bottom:8px;max-height:54px;overflow:auto;line-height:1.6}'
+    + '.ne-anno-card .ac-colors{display:flex;gap:6px;margin-bottom:8px}'
+    + '.ne-anno-card .ac-colors button{width:20px;height:20px;border-radius:50%;border:1px solid rgba(255,255,255,.25);cursor:pointer;padding:0}'
+    + '.ne-anno-card .ac-colors button.sel{outline:2px solid #5ce1e6;outline-offset:1px}'
+    + '.ne-anno-card .ac-input{width:100%;box-sizing:border-box;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:#eee;padding:8px;font-size:12.5px;resize:vertical;font-family:inherit;line-height:1.6}'
+    + '.ne-anno-card .ac-foot{display:flex;justify-content:space-between;margin-top:8px}'
+    + '.ne-anno-card .ac-foot button{border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:#ddd;border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer}'
+    + '.ne-anno-card .ac-del{color:#ff9c8a!important;border-color:rgba(255,122,92,.4)!important}'
+    + '.ne-anno-card .ac-done{background:rgba(92,225,230,.18)!important;color:#fff!important}'
     + '.ne-tablegrid{position:fixed;z-index:10003;display:none;background:rgba(20,16,40,.98);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:10px}'
     + '.ne-tablegrid.open{display:block}'
     + '.ne-tablegrid .cells{display:grid;grid-template-columns:repeat(8,22px);grid-auto-rows:22px;gap:3px}'
@@ -536,6 +548,7 @@
     mark();
   }
 
+
   // ============================================================
   // 5. 划词浮动工具条 + 颜色板
   // ============================================================
@@ -548,6 +561,7 @@
     + '<button data-c="link" title="链接 (Ctrl+K)">🔗</button>'
     + '<button data-c="fg" title="文字颜色">A</button>'
     + '<button data-c="bg" title="高亮颜色">🖍</button>'
+    + '<button data-c="anno" title="划词批注 / 注释">💬</button>'
     + '<button data-c="md" title="复制为 Markdown">MD</button>';
   document.body.appendChild(inlineBar);
   var palette = el('div', 'ne-palette');
@@ -561,6 +575,7 @@
     btn.addEventListener('click', function () {
       var c = btn.dataset.c;
       if (c === 'link') { doLink(); hideInline(); return; }
+      if (c === 'anno') { createAnnotationFromSelection(); hideInline(); return; }
       if (c === 'md') { copySelectionMd(); hideInline(); return; }
       if (c === 'fg' || c === 'bg') {
         paletteMode = c;
@@ -603,6 +618,168 @@
       if (body.contains(sel.getRangeAt(0).commonAncestorContainer)) showInlineBar(); else hideInline();
     }, 10);
   });
+
+  // ============================================================
+  // 5.5 划词批注（作者注释；与前台 post.annotations 数据结构互通）
+  // ============================================================
+  var ANNO_COLORS = {
+    yellow_background: 'rgba(245,224,163,.35)', red_background: 'rgba(245,169,163,.32)',
+    blue_background: 'rgba(163,201,245,.32)', green_background: 'rgba(169,224,186,.32)',
+    gray_background: 'rgba(212,212,212,.26)', purple_background: 'rgba(211,184,240,.34)',
+    pink_background: 'rgba(245,184,222,.34)', orange_background: 'rgba(245,199,158,.34)'
+  };
+  var ANNO_ORDER = ['yellow_background', 'red_background', 'blue_background', 'green_background', 'gray_background', 'purple_background', 'pink_background', 'orange_background'];
+  var annotations = [];
+  function findAnno(id) { for (var i = 0; i < annotations.length; i++) if (String(annotations[i].id) === String(id)) return annotations[i]; return null; }
+  function genAnnoId() { return 'a_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+  var annoCard = el('div', 'ne-anno-card');
+  annoCard.innerHTML =
+      '<div class="ac-quote"></div>'
+    + '<div class="ac-colors">' + ANNO_ORDER.map(function (c) { return '<button type="button" data-color="' + c + '" style="background:' + ANNO_COLORS[c] + '" title="' + c + '"></button>'; }).join('') + '</div>'
+    + '<textarea class="ac-input" rows="3" placeholder="写批注 / 注释（读者点击高亮即可看到）"></textarea>'
+    + '<div class="ac-foot"><button type="button" class="ac-del">删除批注</button><button type="button" class="ac-done">完成</button></div>';
+  document.body.appendChild(annoCard);
+  var currentAnnoId = null;
+  function closeAnnoCard() { annoCard.classList.remove('open'); currentAnnoId = null; }
+  function paintColorDots() {
+    var a = findAnno(currentAnnoId);
+    $$('.ac-colors button', annoCard).forEach(function (b) { b.classList.toggle('sel', !!a && b.dataset.color === a.color); });
+  }
+  function openAnnoCard(id, rect) {
+    var a = findAnno(id); if (!a) return;
+    currentAnnoId = id;
+    $('.ac-quote', annoCard).textContent = a.text;
+    $('.ac-input', annoCard).value = (a.comment && a.comment.text) || '';
+    paintColorDots();
+    annoCard.classList.add('open');
+    var w = 300, h = annoCard.offsetHeight || 190;
+    var cx = rect ? rect.left : (window.innerWidth / 2 - w / 2);
+    var x = Math.max(8, Math.min(cx, window.innerWidth - w - 8));
+    var y = rect ? rect.bottom + 10 : (window.innerHeight / 2 - 100);
+    if (rect && y + h > window.innerHeight - 8) y = rect.top - h - 10;
+    annoCard.style.left = x + 'px'; annoCard.style.top = Math.max(8, y) + 'px';
+  }
+  $('.ac-done', annoCard).addEventListener('click', closeAnnoCard);
+  $('.ac-input', annoCard).addEventListener('input', function () {
+    var a = findAnno(currentAnnoId); if (a) { a.comment = a.comment || {}; a.comment.text = this.value; mark(); }
+  });
+  $$('.ac-colors button', annoCard).forEach(function (b) {
+    b.addEventListener('mousedown', function (e) { e.preventDefault(); });
+    b.addEventListener('click', function () {
+      var a = findAnno(currentAnnoId); if (!a) return;
+      a.color = b.dataset.color;
+      $$('mark.notion-highlight', body).forEach(function (mk) {
+        if (mk.dataset.annoId === a.id) { mk.dataset.color = a.color; mk.style.background = ANNO_COLORS[a.color] || ''; }
+      });
+      paintColorDots(); mark();
+    });
+  });
+  $('.ac-del', annoCard).addEventListener('click', function () {
+    var a = findAnno(currentAnnoId); if (!a) { closeAnnoCard(); return; }
+    $$('mark.notion-highlight', body).forEach(function (mk) {
+      if (mk.dataset.annoId !== a.id) return;
+      var p = mk.parentNode;
+      while (mk.firstChild) p.insertBefore(mk.firstChild, mk);
+      p.removeChild(mk); if (p.normalize) p.normalize();
+    });
+    annotations = annotations.filter(function (x) { return x.id !== a.id; });
+    closeAnnoCard(); mark();
+  });
+  document.addEventListener('mousedown', function (e) {
+    if (!annoCard.classList.contains('open')) return;
+    if (annoCard.contains(e.target)) return;
+    if (e.target.closest && e.target.closest('mark.notion-highlight')) return;
+    closeAnnoCard();
+  }, true);
+
+  function createAnnotationFromSelection() {
+    var sel = window.getSelection();
+    if (!sel || sel.isCollapsed) return;
+    var range = sel.getRangeAt(0);
+    if (!body.contains(range.commonAncestorContainer)) return;
+    var startEl = range.startContainer.nodeType === 1 ? range.startContainer : range.startContainer.parentElement;
+    var inMark = startEl && startEl.closest ? startEl.closest('mark.notion-highlight') : null;
+    if (inMark && range.collapsed) { openAnnoCard(inMark.dataset.annoId, inMark.getBoundingClientRect()); return; }
+    var text = sel.toString();
+    if (!text.trim()) { toast('请先选中要批注的文字'); return; }
+    if (inMark) { openAnnoCard(inMark.dataset.annoId, inMark.getBoundingClientRect()); return; }
+    var id = genAnnoId();
+    var mk = document.createElement('mark');
+    mk.className = 'notion-highlight';
+    mk.dataset.annoId = id; mk.dataset.color = 'yellow_background';
+    mk.style.background = ANNO_COLORS.yellow_background;
+    try { range.surroundContents(mk); }
+    catch (e) { toast('选区跨了多种格式，请选连续的纯文本再加批注'); return; }
+    annotations.push({ id: id, text: text, color: 'yellow_background', comment: { text: '' } });
+    mark();
+    var r = mk.getBoundingClientRect();
+    sel.removeAllRanges();
+    openAnnoCard(id, r);
+    setTimeout(function () { var ta = $('.ac-input', annoCard); ta.focus(); }, 30);
+  }
+
+  // 单击已有高亮（非拖选）打开批注卡片
+  body.addEventListener('click', function (e) {
+    var mk = e.target.closest && e.target.closest('mark.notion-highlight');
+    if (!mk || !mk.dataset.annoId) return;
+    setTimeout(function () {
+      var sel = window.getSelection();
+      if (!sel || sel.isCollapsed) openAnnoCard(mk.dataset.annoId, mk.getBoundingClientRect());
+    }, 0);
+  });
+
+  function wrapAnnoText(a) {
+    var walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT, null);
+    var node;
+    while ((node = walker.nextNode())) {
+      if (node.parentNode && node.parentNode.closest && node.parentNode.closest('mark.notion-highlight,script,style')) continue;
+      var idx = node.nodeValue.indexOf(a.text);
+      if (idx === -1) continue;
+      var range = document.createRange();
+      range.setStart(node, idx); range.setEnd(node, idx + a.text.length);
+      var mk = document.createElement('mark');
+      mk.className = 'notion-highlight'; mk.dataset.annoId = a.id;
+      mk.dataset.color = a.color || 'yellow_background';
+      mk.style.background = ANNO_COLORS[mk.dataset.color] || ANNO_COLORS.yellow_background;
+      try { range.surroundContents(mk); } catch (e) {}
+      return true;
+    }
+    return false;
+  }
+  function decorateAnnos() {
+    $$('mark.notion-highlight[data-anno-id]', body).forEach(function (mk) {
+      var a = findAnno(mk.dataset.annoId);
+      var colorKey = mk.dataset.color || (a && a.color) || 'yellow_background';
+      mk.dataset.color = colorKey;
+      mk.style.background = ANNO_COLORS[colorKey] || '';
+      if (a) { a.text = mk.textContent; a.color = colorKey; }
+    });
+    annotations.forEach(function (a) {
+      if ($$('mark.notion-highlight[data-anno-id="' + a.id + '"]', body).length) return;
+      wrapAnnoText(a);
+    });
+  }
+
+  window.__ne = window.__ne || {};
+  window.__ne.setAnnotations = function (arr) {
+    annotations = Array.isArray(arr) ? arr.slice() : [];
+    decorateAnnos();
+  };
+  window.__ne.getAnnotations = function () {
+    // 文字被删空的批注：移除空壳 mark
+    $$('mark.notion-highlight[data-anno-id]', body).forEach(function (mk) {
+      if (mk.textContent.trim()) return;
+      var p = mk.parentNode; if (p) { p.removeChild(mk); if (p.normalize) p.normalize(); }
+    });
+    $$('mark.notion-highlight[data-anno-id]', body).forEach(function (mk) {
+      var a = findAnno(mk.dataset.annoId);
+      if (!a) annotations.push({ id: mk.dataset.annoId, text: mk.textContent, color: mk.dataset.color || 'yellow_background', comment: { text: '' } });
+      else { a.text = mk.textContent; a.color = mk.dataset.color || a.color; }
+    });
+    var liveIds = $$('mark.notion-highlight[data-anno-id]', body).map(function (m) { return m.dataset.annoId; });
+    return annotations.filter(function (a) { return liveIds.indexOf(a.id) !== -1; });
+  };
 
   // ============================================================
   // 6. 结构化键盘：Tab / Enter / Backspace / 快捷键
@@ -748,7 +925,7 @@
   var neDebounce = null;
   new MutationObserver(function () {
     clearTimeout(neDebounce);
-    neDebounce = setTimeout(function () { refreshTocBlocks(); decorateBlocks(); }, 120);
+    neDebounce = setTimeout(function () { refreshTocBlocks(); decorateBlocks(); decorateAnnos(); updateWordCount(); }, 120);
   }).observe(body, { childList: true, subtree: true, characterData: true });
 
   function insertBookmark() {
@@ -1045,7 +1222,8 @@
   updateWordCount();
   refreshTocBlocks();
   decorateBlocks();
+  decorateAnnos();
 
-  // 对外暴露
-  window.__ne = { insertToggle: insertToggle, insertCallout: insertCallout, insertCodeBlock: insertCodeBlock, insertToc: insertToc, refreshToc: refreshTocBlocks };
+  // 对外暴露（与批注模块提前挂载的方法合并，勿整体覆盖）
+  window.__ne = Object.assign(window.__ne || {}, { insertToggle: insertToggle, insertCallout: insertCallout, insertCodeBlock: insertCodeBlock, insertToc: insertToc, refreshToc: refreshTocBlocks });
 })();

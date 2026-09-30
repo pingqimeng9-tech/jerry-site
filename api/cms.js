@@ -146,6 +146,7 @@ async function opPostSave(body) {
   post.tags = Array.isArray(body.tags) ? body.tags : [];
   post.mood = (body.mood || '').trim();
   post.markdown = body.markdown || '';
+  post.annotations = Array.isArray(body.annotations) ? body.annotations : [];
   post.status = body.status === 'draft' ? 'draft' : 'published';
   if (body.date) post.date = body.date; else if (!post.date) post.date = nowStr().split(' ')[0];
   post.updatedAt = nowStr();

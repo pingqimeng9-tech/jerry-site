@@ -10,5 +10,5 @@ module.exports = async (req, res) => {
   if(!id) return res.status(400).json({ok:false,error:'缺少文章 id 参数'});
   const p = load().find(x=>x.id===id);
   if(!p) return res.status(200).json({ok:false,error:'文章不存在'});
-  res.status(200).json({ok:true,post:{id:p.id,title:p.title||'',date:p.date||null,category:p.category||null,views:p.views||0,cover:p.cover||null,markdown:p.markdown||'',annotations:[]}});
+  res.status(200).json({ok:true,post:{id:p.id,title:p.title||'',date:p.date||null,category:p.category||null,views:p.views||0,cover:p.cover||null,markdown:p.markdown||'',annotations:Array.isArray(p.annotations)?p.annotations:[]}});
 };

@@ -1043,7 +1043,21 @@ function applyAnnotations(annotations){
   const body = document.getElementById('a-body');
   if(!body) return;
 
+  // 1) 新版文章：<mark data-anno-id> 已随 markdown 透传在正文里，只需补颜色和事件
+  const boundIds = new Set();
+  body.querySelectorAll('mark.notion-highlight[data-anno-id]').forEach(mark => {
+    const id = String(mark.dataset.annoId);
+    boundIds.add(id);
+    const anno = annotations.find(a => String(a.id) === id);
+    const colorKey = mark.dataset.color || (anno && anno.color);
+    mark.style.background = NOTION_COLOR_MAP[colorKey] || 'rgba(255,201,60,.35)';
+    mark.dataset.bound = '1';
+    mark.addEventListener('click', () => openAnnoDrawer(id, annotations));
+  });
+
+  // 2) 旧版文章兜底：annotations 里有数据但正文没有对应 mark，按原文文本查找包裹
   annotations.forEach(anno => {
+    if (boundIds.has(String(anno.id))) return;
     if(!anno.text || !anno.text.trim()) return;
     // 在正文渲染出来的DOM里找这段被高亮的原文，找到就用<mark>包起来。
     // 用纯文本节点级别的查找+替换，不动其他HTML结构，避免破坏加粗/链接这些已有格式。
@@ -1051,6 +1065,8 @@ function applyAnnotations(annotations){
   });
 
   body.querySelectorAll('.notion-highlight').forEach(mark => {
+    if (mark.dataset.bound) return;
+    mark.dataset.bound = '1';
     mark.addEventListener('click', () => openAnnoDrawer(mark.dataset.annoId, annotations));
   });
 }
@@ -1067,6 +1083,7 @@ function wrapFirstTextMatch(root, text, anno){
     const mark = document.createElement('mark');
     mark.className = 'notion-highlight';
     mark.dataset.annoId = anno.id;
+    if (anno.color) mark.dataset.color = anno.color;
     mark.style.background = NOTION_COLOR_MAP[anno.color] || 'rgba(255,201,60,.35)';
     try{
       range.surroundContents(mark);
@@ -1080,7 +1097,7 @@ function wrapFirstTextMatch(root, text, anno){
 
 function openAnnoDrawer(annoId, annotations){
   const anno = annotations.find(a => String(a.id) === String(annoId));
-  if(!anno || !anno.comment) return;
+  if(!anno) return;
   document.getElementById('annoDrawerText').textContent = anno.text;
   document.getElementById('annoDrawerComment').textContent = anno.comment.text || '（没有评论内容）';
   document.getElementById('annoDrawer').classList.add('open');

@@ -272,7 +272,7 @@ async function handleApi(req, res, pathname) {
     if (!p) return send(res, 200, { ok: false, error: '文章不存在' });
     return send(res, 200, { ok: true, post: { id: p.id, title: p.title, date: p.date, category: p.category,
       views: p.views || 0, cover: p.cover || null, excerpt: p.excerpt || '', status: p.status,
-      markdown: p.markdown || '', tags: p.tags || [], mood: p.mood || '' } });
+      markdown: p.markdown || '', annotations: p.annotations || [], tags: p.tags || [], mood: p.mood || '' } });
   }
   // 管理端全量列表
   if (req.method === 'POST' && pathname === '/api/admin/posts') {
@@ -350,6 +350,7 @@ async function handleApi(req, res, pathname) {
     post.tags = Array.isArray(body.tags) ? body.tags : [];
     post.mood = (body.mood || '').trim();
     post.markdown = body.markdown || '';
+    post.annotations = Array.isArray(body.annotations) ? body.annotations : [];
     post.status = body.status === 'draft' ? 'draft' : 'published';
     if (body.date) post.date = body.date; else if (!post.date) post.date = nowStr().split(' ')[0];
     post.updatedAt = nowStr();
