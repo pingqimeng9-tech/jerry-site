@@ -85,8 +85,9 @@
         });
         var d = await r.json();
         if (!d.ok) throw new Error(d.error || '验证失败');
-        // 用 token_hash 兑换正式 Supabase 会话
-        var v = await client.auth.verifyOtp({ email: email, token: d.token_hash, type: 'magiclink' });
+        // 用服务端 generateLink 返回的 token_hash 兑换正式 Supabase 会话
+        // （自定义发信流程必须用 token_hash 参数；token 参数仅用于 6 位数字 OTP）
+        var v = await client.auth.verifyOtp({ token_hash: d.token_hash, type: 'magiclink' });
         if (v.error) throw v.error;
         var sess = v.data.session;
         if (!sess) throw new Error('登录失败，请重试');
