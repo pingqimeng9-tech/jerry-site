@@ -308,50 +308,36 @@
   /* ================= 🖼️ 图库视图 (Notion Gallery Style - 默认) ================= */
   .view-gallery .post-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
   @media (max-width:1280px){ .view-gallery .post-grid { grid-template-columns: repeat(2, 1fr); } }
-  .view-gallery .post-card { flex-direction: column; height: 250px; padding: 0; }
-  
-  .view-gallery .post-preview { 
-    flex: 1; padding: 18px 22px; font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.7; overflow: hidden;
-    /* 核心：Notion 同款文字渐隐效果 */
-    mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
+  /* 卡片纵向：封面（若有）→ 标题 → 摘要（始终在标题下）→ 元信息 */
+  .post-card { flex-direction: column; padding: 0; }
+  .post-card .post-preview { flex: none; }
+  .post-card .post-cover-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .post-card .post-bottom { display: flex; flex-direction: column; flex: 1; padding: 14px 18px 16px; gap: 7px; }
+  .post-card .post-excerpt {
+    font-size: 12.5px; line-height: 1.65; color: var(--muted);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
-  /* 有封面图时不需要文字渐隐遮罩，图片本身铺满，靠.post-bottom的深色底衬托标题可读性 */
-  .view-gallery .post-preview.has-cover {
-    padding: 0; mask-image: none; -webkit-mask-image: none;
-  }
-  .view-gallery .post-cover-img {
-    width: 100%; height: 100%; object-fit: cover; display: block;
-  }
-  .view-gallery .post-preview.has-cover .post-preview-text { display: none; } /* 有图时藏文字 */
-  .view-gallery .post-preview:not(.has-cover) .post-cover-img { display: none; } /* 没图时藏图片标签 */
-  
-  .view-gallery .post-bottom { 
-    background: rgba(0,0,0,0.25); border-top: 1px solid var(--glass-border); padding: 14px 22px; flex-shrink: 0;
-  }
-  .view-gallery .post-title { 
-    font-family: 'Noto Serif SC', serif; font-weight: 700; font-size: 16px; margin-bottom: 6px;
+  .post-card .post-meta { margin-top: auto; padding-top: 4px; }
+
+  /* ---------- 图库视图（默认）---------- */
+  .view-gallery .post-preview { height: 150px; overflow: hidden; }
+  .view-gallery .post-bottom { background: rgba(0,0,0,0.22); border-top: 1px solid var(--glass-border); }
+  .view-gallery .post-title {
+    font-family: 'Noto Serif SC', serif; font-weight: 700; font-size: 16px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px;
   }
-  .view-gallery .post-title::before { content: "📄"; font-size: 14px; } /* 添加类似 Notion 的前置 icon */
+  .view-gallery .post-title::before { content: "📄"; font-size: 14px; }
 
   /* ================= 🔲 列表视图 (List Style) ================= */
   .view-list .post-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
-  .view-list .post-card { flex-direction: column; padding: 22px 24px; }
-  .view-list .post-preview { 
-    font-size: 13.5px; color: var(--muted); line-height: 1.75; margin-bottom: 12px;
-    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-    mask-image: none; -webkit-mask-image: none; order: 2; /* 摘要在下方 */
+  .view-list .post-card { padding: 20px 24px; }
+  .view-list .post-preview, .view-list .post-cover-img { display: none; }
+  .view-list .post-bottom { background: transparent; border: none; padding: 0; }
+  .view-list .post-excerpt { font-size: 13.5px; line-height: 1.75; -webkit-line-clamp: 2; }
+  .view-list .post-title {
+    font-family: 'Noto Serif SC', serif; font-weight: 700; font-size: 18px; white-space: normal;
   }
-  .view-list .post-cover-img { display: none; } /* 列表视图保持纯文字，不显示封面图 */
-  .view-list .post-bottom { 
-    background: transparent; border: none; padding: 0; order: 1; /* 标题在上方 */
-  }
-  .view-list .post-title { 
-    font-family: 'Noto Serif SC', serif; font-weight: 700; font-size: 18px; margin-bottom: 8px; 
-    white-space: normal;
-  }
-  .view-list .post-title::before { content: ""; display: none; } /* 列表模式隐藏 icon */
+  .view-list .post-title::before { content: ""; display: none; }
 
   .state-box{ text-align:center;padding:60px 20px;color:var(--muted); background:var(--glass);border:1px solid var(--glass-border);border-radius:18px; }
   .state-box.error{color:#FF9E8A;}
@@ -921,12 +907,10 @@ function postCardHtml(post, alreadyEscaped){
 
   return `
     <a class="post-card" href="/p/${post.slug || (post.id||'').split('_').pop()}">
-      <div class="post-preview${cover ? ' has-cover' : ''}">
-        ${coverImg}
-        <div class="post-preview-text">${excerpt}</div>
-      </div>
+      ${cover ? `<div class="post-preview has-cover">${coverImg}</div>` : ''}
       <div class="post-bottom">
         <div class="post-title" title="${title}">${title}</div>
+        <div class="post-excerpt">${excerpt}</div>
         <div class="post-meta">
           ${post.date ? `<span>📅 ${post.date}</span>` : ''}
           ${post.category ? `<span>🏷️ ${escapeHtml(post.category)}</span>` : ''}

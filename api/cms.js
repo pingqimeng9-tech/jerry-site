@@ -22,6 +22,10 @@ const BRANCH = process.env.GITHUB_BRANCH || 'main';
 const ADMIN_EMAILS = (process.env.ADMIN_EMAIL || '')
   .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 const MAX_FILE_BYTES = 4 * 1024 * 1024;
+// 直传 Supabase Storage 的单文件上限（标准 PUT 上传，覆盖图片与常规视频；
+// 流量从浏览器直达 Supabase，不经过 Vercel 函数，故不受 4.5MB 请求体限制）
+const MAX_DIRECT_BYTES = 100 * 1024 * 1024;
+const MEDIA_BUCKET = 'jerry-media';
 
 // 站点内容全部在仓库 site/ 目录（Vercel Output Directory），仓库路径统一加前缀
 const RP = p => 'site/' + p;
@@ -227,6 +231,48 @@ async function opUpload(body) {
   return { url: '/' + relPath, name: safeName, size: buf.length };
 }
 
+// 线上大文件直传：校验管理员后，用 service role 确保公开存储桶存在并签发一次性上传 URL。
+// 浏览器拿到 signedUrl 后把文件二进制 PUT 到 Supabase（不经过本函数），从根本上绕开 Vercel 4.5MB/10s 限制。
+async function opUploadSign(body) {
+  const dir = body.dir || 'images/posts';
+  if (!UPLOAD_DIRS[dir]) throw new Error('不允许的上传目录: ' + dir);
+  const safeName = (body.filename || 'file').split(/[\\/]/).pop().replace(/[^\w.一-龥-]/g, '_') || 'file';
+  const size = Number(body.size) || 0;
+  if (size <= 0) throw new Error('文件为空');
+  if (size > MAX_DIRECT_BYTES) throw new Error('单个文件不能超过 100MB；更大的视频请在本地编辑器上传');
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) throw new Error('存储服务未配置');
+
+  const name = Date.now().toString(36) + '_' + safeName;
+  const objectPath = dir + '/' + name;
+  const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+  // 确保公开存储桶存在（service role 可管理桶；已存在则跳过）
+  const { data: buckets, error: listErr } = await sb.storage.listBuckets();
+  if (listErr) throw new Error('读取存储桶失败: ' + listErr.message);
+  const exists = (buckets || []).some(function (b) { return b.id === MEDIA_BUCKET; });
+  if (!exists) {
+    const { error: createErr } = await sb.storage.createBucket(MEDIA_BUCKET, {
+      public: true,
+      fileSizeLimit: MAX_DIRECT_BYTES,
+      allowedMimeTypes: null
+    });
+    // 并发下可能已被创建，忽略“已存在”类报错
+    if (createErr && !/already|exist/i.test(createErr.message)) throw new Error('创建存储桶失败: ' + createErr.message);
+  }
+
+  const { data: signed, error: signErr } = await sb.storage.from(MEDIA_BUCKET).createSignedUploadUrl(objectPath);
+  if (signErr || !signed || !signed.signedUrl) throw new Error('签发上传地址失败: ' + (signErr ? signErr.message : '未知错误'));
+  const pub = sb.storage.from(MEDIA_BUCKET).getPublicUrl(objectPath);
+
+  return {
+    signedUrl: signed.signedUrl,
+    publicUrl: pub.data.publicUrl,
+    path: objectPath,
+    name: safeName,
+    size: size
+  };
+}
+
 module.exports = async (req, res) => {
   cors(res);
   if (req.method === 'OPTIONS') return res.status(204).end();
@@ -274,6 +320,7 @@ module.exports = async (req, res) => {
       case 'pet-save': result = await opPetSave(body); break;
       case 'config-apply': result = await opConfigApply(body); break;
       case 'upload': result = await opUpload(body); break;
+      case 'upload-sign': result = await opUploadSign(body); break;
       case 'comments-delete': result = await opCollectionDelete({ name: 'comments', id: body.id }); break;
       default: return res.status(404).json({ ok: false, error: '未知 CMS 操作: ' + doWhat });
     }

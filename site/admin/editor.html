@@ -878,23 +878,20 @@ function attachBlockHtml(a){
   return '<div class="file-attach" contenteditable="false" data-href="'+esc(a.url)+'" data-name="'+esc(a.name)+'" data-size="'+esc(a.sizeText||'')+'" data-icon="'+esc(a.icon||'')+'"></div>';
 }
 async function doUploadAttach(f){
-  if(f.size > 300*1024*1024){ toast('文件超过 300MB 上限'); return; }
-  const reader=new FileReader();
-  reader.onload=async()=>{
-    toast('附件上传中…');
-    try{
-      const r=await postJSON('/api/attachment/upload',{filename:f.name,base64:reader.result});
-      if(!r.ok){ toast('上传失败：'+(r.error||'')); return; }
-      r.icon = (window.__jerrySiteEmbedIconOf ? window.__jerrySiteEmbedIconOf(r.name) : '');
-      body.focus();
-      document.execCommand('insertHTML',false,'<p><br></p>'+attachBlockHtml(r)+'<p><br></p>');
-      if(window.__jerrySiteEmbedScan) window.__jerrySiteEmbedScan();
-      closePic(); attachFile.value='';
-      markDirty();
-      toast('附件已插入，发布后读者可直接下载');
-    }catch(e){ toast('上传失败：'+e.message); }
-  };
-  reader.readAsDataURL(f);
+  var maxMb = (window.JerryUpload && JerryUpload.isLocal) ? 300 : 100;
+  if(f.size > maxMb*1024*1024){ toast('文件超过 '+maxMb+'MB 上限'); return; }
+  toast('附件上传中…');
+  try{
+    const r=await JerryUpload.uploadFile(f,{dir:'files/posts',onProgress:p=>toast('附件上传中 '+p+'%')});
+    if(!r.ok){ toast('上传失败：'+(r.error||'')); return; }
+    r.icon = (window.__jerrySiteEmbedIconOf ? window.__jerrySiteEmbedIconOf(r.name) : '');
+    body.focus();
+    document.execCommand('insertHTML',false,'<p><br></p>'+attachBlockHtml(r)+'<p><br></p>');
+    if(window.__jerrySiteEmbedScan) window.__jerrySiteEmbedScan();
+    closePic(); attachFile.value='';
+    markDirty();
+    toast('附件已插入，发布后读者可直接下载');
+  }catch(e){ toast('上传失败：'+e.message); }
 }
 async function postJSON(url, obj){
   const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});
@@ -902,30 +899,36 @@ async function postJSON(url, obj){
 }
 async function doUpload(f){
   if(!/^image\//.test(f.type)){ toast('请选择图片文件'); return; }
-  toast('⏳ 上传中...');
-  const reader=new FileReader();
-  reader.onload=async ()=>{
-    try{
-      // 走图床接口：设置页配置了 Lsky Pro 就传图床，否则服务端自动落本地
-      const d=await postJSON('/api/picbed/upload',{filename:f.name,base64:reader.result});
-      if(d.ok){ st.lastUrl=d.url; showPicDone(d.url); toast('✅ 上传成功！'+(d.via==='picbed'?'（图床）':'（本地）')); }
-      else toast('上传失败: '+(d.error||''));
-    }catch(e){ toast('连接异常: '+e.message); }
-  };
-  reader.readAsDataURL(f);
+  toast('⏳ 图片上传中...');
+  try{
+    // 本地走本地图床/落盘；线上由 uploader 直传 Supabase Storage（无 4.5MB 限制）
+    if(window.JerryUpload && !JerryUpload.isLocal){
+      const d=await JerryUpload.uploadFile(f,{dir:'images/posts',onProgress:p=>toast('⏳ 图片上传中 '+p+'%')});
+      st.lastUrl=d.url; showPicDone(d.url); toast('✅ 图片上传成功');
+      return;
+    }
+    // 本地：保留图床接口（设置页配置了 Lsky Pro 就传图床，否则落本地）
+    const reader=new FileReader();
+    reader.onload=async ()=>{
+      try{
+        const d=await postJSON('/api/picbed/upload',{filename:f.name,base64:reader.result});
+        if(d.ok){ st.lastUrl=d.url; showPicDone(d.url); toast('✅ 上传成功！'+(d.via==='picbed'?'（图床）':'（本地）')); }
+        else toast('上传失败: '+(d.error||''));
+      }catch(e){ toast('连接异常: '+e.message); }
+    };
+    reader.readAsDataURL(f);
+  }catch(e){ toast('上传失败: '+e.message); }
 }
 async function doUploadVideo(f){
   if(!/^video\//.test(f.type) && !/\.(mp4|webm|mov|m4v)$/i.test(f.name)){ toast('请选择视频文件'); return; }
+  var maxMb = (window.JerryUpload && JerryUpload.isLocal) ? 300 : 100;
+  if(f.size > maxMb*1024*1024){ toast('视频超过 '+maxMb+'MB 上限，更大视频请在本地编辑器上传'); return; }
   toast('⏳ 视频上传中（大文件请稍候）...');
-  const reader=new FileReader();
-  reader.onload=async ()=>{
-    try{
-      const d=await postJSON('/api/upload',{filename:f.name,base64:reader.result});
-      if(d.ok){ insertVideo(d.url); closePic(); toast('✅ 视频已插入！'); }
-      else toast('上传失败: '+(d.error||''));
-    }catch(e){ toast('连接异常: '+e.message); }
-  };
-  reader.readAsDataURL(f);
+  try{
+    const d=await JerryUpload.uploadFile(f,{dir:'videos/posts',onProgress:p=>toast('⏳ 视频上传中 '+p+'%')});
+    if(d.ok){ insertVideo(d.url); closePic(); toast('✅ 视频已插入！'); }
+    else toast('上传失败: '+(d.error||''));
+  }catch(e){ toast('上传失败: '+e.message); }
 }
 function insertVideo(url){
   body.focus();
@@ -1023,6 +1026,7 @@ fetch('/api/admin/posts',{method:'POST'}).then(r=>r.json()).then(d=>{
   document.getElementById('catList').innerHTML=cats.map(c=>`<option value="${c}">`).join('');
 }).catch(()=>{});
 </script>
+<script src="/admin/studio/uploader.js"></script>
 <script src="/admin/studio/notion-edit.js"></script>
 <script src="/admin/studio/annotate.js"></script>
 <script src="/admin/embed.js"></script>

@@ -300,7 +300,7 @@
   ];
   var EMOJIS = ['😀','😂','😍','🤔','😭','😎','🥳','😴','🤯','👍','👏','🙏','💪','🔥','✨','🎉','❤️','💡','⚠️','❌','✅','⭐','🚀','🎯','📌','☕','🍀','🌙','☀️','⚡'];
   var menu = el('div', 'ne-menu'); document.body.appendChild(menu);
-  var menuState = { open: false, mode: 'slash', active: 0, items: [], query: '', anchor: null };
+  var menuState = { open: false, mode: 'slash', active: 0, items: [], query: '', anchor: null, pickRange: null };
 
   function showMenu(mode, rect, items, query) {
     menuState.mode = mode; menuState.items = items; menuState.query = query || ''; menuState.active = 0;
@@ -339,12 +339,22 @@
     menu.innerHTML = html;
     $$('.ne-item', menu).forEach(function (node) {
       node.onmouseenter = function () { menuState.active = +node.dataset.i; $$('.ne-item', menu).forEach(function (n) { n.classList.remove('active'); }); node.classList.add('active'); };
-      node.onclick = function () { menuState.active = +node.dataset.i; confirmMenu(); };
+      // 关键：按下时阻止默认行为，避免 contenteditable 失焦、触屏首次点击选区被折叠（点一下没反应的根因）
+      node.onmousedown = function (e) {
+        e.preventDefault();
+        try { var s = window.getSelection(); menuState.pickRange = s.rangeCount ? s.getRangeAt(0).cloneRange() : null; } catch (_) { menuState.pickRange = null; }
+      };
+      node.onclick = function (e) { e.preventDefault(); menuState.active = +node.dataset.i; confirmMenu(); };
     });
   }
   function confirmMenu() {
     var it = menuState.list[menuState.active];
     var mode = menuState.mode;
+    // 触屏点按后可能已失焦，先把选区恢复到按下菜单项瞬间的位置，保证删触发词/插入落在正确光标处
+    if (menuState.pickRange) {
+      try { body.focus(); var ps = window.getSelection(); ps.removeAllRanges(); ps.addRange(menuState.pickRange); } catch (_) {}
+      menuState.pickRange = null;
+    }
     if (mode === 'slash') {
       eraseTrigger(/(^|[\s>])\/[\w\u4e00-\u9fa5]*$/);
     } else if (mode === 'emoji') {
@@ -684,6 +694,7 @@
     ctxMenu.innerHTML = html;
     $$('.ne-item', ctxMenu).forEach(function (node, i) {
       var it = items.filter(function (x) { return !x.g; })[i];
+      node.onmousedown = function (e) { e.preventDefault(); }; // 触屏点菜单不丢选区
       node.onclick = function (e) {
         e.stopPropagation();
         if (it.sub) { renderCtx(it.sub.concat([{ g: '返回' }, { ic: '↩️', t: '返回', back: true }]), x, y); return; }

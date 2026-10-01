@@ -254,9 +254,10 @@
       return;
     }
     showToast('⏳ 正在合成并上传…');
-    var payload = JSON.stringify({ filename: 'annotated-' + Date.now() + '.png', base64: dataUrl, dir: 'images/posts' });
-    fetch('/api/upload', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload })
-      .then(function (r) { return r.json(); })
+    var uploadTask = window.JerryUpload
+      ? JerryUpload.uploadDataUrl(dataUrl, { dir: 'images/posts', filename: 'annotated-' + Date.now() + '.png' })
+      : fetch('/api/upload', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ filename: 'annotated-' + Date.now() + '.png', base64: dataUrl, dir: 'images/posts' }) }).then(function (r) { return r.json(); });
+    uploadTask
       .then(function (d) {
         if (d.ok && d.url) {
           if (doneCb) doneCb(d.url);

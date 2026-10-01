@@ -90,7 +90,8 @@
       [['/api/pet/packs'], 'pet-save'],
       [['/api/comments/delete'], 'comments-delete'],
       [['/api/admin/posts'], 'admin-posts'],
-      [['/api/admin/collection'], 'admin-collection']
+      [['/api/admin/collection'], 'admin-collection'],
+      [['/api/upload-sign'], 'upload-sign']
     ];
     var LOCAL_ONLY = {
       '/api/notion/config': 'Notion 同步仅本地编辑器可用',
