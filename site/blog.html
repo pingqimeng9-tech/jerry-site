@@ -903,7 +903,7 @@ function postCardHtml(post, alreadyEscaped){
     : '';
 
   return `
-    <a class="post-card" href="/post.html?id=${post.id}">
+    <a class="post-card" href="/p/${post.slug || (post.id||'').split('_').pop()}">
       <div class="post-preview${cover ? ' has-cover' : ''}">
         ${coverImg}
         <div class="post-preview-text">${excerpt}</div>
@@ -1349,7 +1349,7 @@ function buildRecentList(posts){
     .sort((a,b) => new Date(b.date) - new Date(a.date))
     .slice(0, 6);
   el.innerHTML = `<div class="recent-label">最近更新</div>` + recent.map(p => `
-    <a href="/post.html?id=${p.id}">${escapeHtml(p.title || '无标题')}</a>
+    <a href="/p/${p.slug || (p.id||'').split('_').pop()}">${escapeHtml(p.title || '无标题')}</a>
   `).join('');
 }
 
@@ -1457,7 +1457,7 @@ function setupSidebarSearch(){
     resultsEl.innerHTML = matched.map(p => {
       const cov = p.thumb || p.cover || defaultCover();
       return `
-      <a href="/post.html?id=${p.id}">
+      <a href="/p/${p.slug || (p.id||'').split('_').pop()}">
         ${cov
           ? `<img class="ssr-thumb" src="${cov}" alt="" loading="lazy" onerror="this.style.display='none'">`
           : `<div class="ssr-thumb"></div>`}
@@ -2004,7 +2004,7 @@ window.jerrySiteReady = JerrySite.init();
           listEl.innerHTML = `<div class="jerry-profile-empty">${kind === 'liked' ? '还没点赞过文章' : '还没收藏过文章'}</div>`;
           return;
         }
-        listEl.innerHTML = rows.map(p => `<a href="/post.html?id=${encodeURIComponent(p.id)}">${escapeHtml(p.title || '无标题')}</a>`).join('');
+        listEl.innerHTML = rows.map(p => `<a href="/p/${p.slug || (p.id||'').split('_').pop()}">${escapeHtml(p.title || '无标题')}</a>`).join('');
       }catch(err){
         // 后端还没有对应的RPC（get_my_liked_posts / get_my_favorited_posts），先友好提示，不要把报错糊用户脸上
         console.warn('拉取' + kind + '列表失败（可能是后端RPC还没上线）:', err);

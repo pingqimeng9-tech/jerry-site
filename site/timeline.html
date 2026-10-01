@@ -45,7 +45,7 @@ Promise.all([
   fetch('/api/moments').then(r=>r.json()).catch(()=>({items:[]}))
 ]).then(function(rs){
   var posts = (rs[0].posts||[]).map(function(p){
-    return { type:'post', date:(p.date||''), title:p.title, desc:p.excerpt||'', tag:p.category||'', href:'/post.html?id='+encodeURIComponent(p.id), views:p.views };
+    return { type:'post', date:(p.date||''), title:p.title, desc:p.excerpt||'', tag:p.category||'', href:'/p/'+(p.slug||(p.id||'').split('_').pop()), views:p.views };
   });
   var moments = (rs[1].items||[]).map(function(m){
     return { type:'moment', date:(m.date||''), title:(m.text||'').slice(0,60), desc:(m.text||'').slice(0,120), tag:'说说', href:'/moments.html' };

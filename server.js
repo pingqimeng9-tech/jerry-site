@@ -74,7 +74,8 @@ function slugify(s) {
     .replace(/^-|-$/g, '').slice(0, 48);
 }
 function publicPost(p) {
-  return { id: p.id, title: p.title, date: p.date, category: p.category,
+  const slug = (p.slug && String(p.slug).trim()) || String(p.id || '').split('_').pop();
+  return { id: p.id, slug, title: p.title, date: p.date, category: p.category,
            excerpt: p.excerpt || p.summary || '', views: p.views || 0, cover: p.cover || null, thumb: p.thumb || null };
 }
 function readBody(req, limit) {
@@ -267,10 +268,13 @@ async function handleApi(req, res, pathname) {
   }
   // 单篇
   if (req.method === 'GET' && pathname === '/api/post') {
-    const id = new URL(req.url, 'http://x').searchParams.get('id') || '';
-    const p = readStore().posts.find(x => x.id === id);
+    const uq = new URL(req.url, 'http://x').searchParams;
+    const id = uq.get('id') || '';
+    const slug = uq.get('slug') || '';
+    const slugOf = x => (x.slug && String(x.slug).trim()) || String(x.id || '').split('_').pop();
+    const p = readStore().posts.find(x => id ? x.id === id : (x.slug === slug || slugOf(x) === slug || x.id.endsWith('_' + slug)));
     if (!p) return send(res, 200, { ok: false, error: '文章不存在' });
-    return send(res, 200, { ok: true, post: { id: p.id, title: p.title, date: p.date, category: p.category,
+    return send(res, 200, { ok: true, post: { id: p.id, slug: slugOf(p), title: p.title, date: p.date, category: p.category,
       views: p.views || 0, cover: p.cover || null, excerpt: p.excerpt || '', status: p.status,
       markdown: p.markdown || '', annotations: p.annotations || [], tags: p.tags || [], mood: p.mood || '' } });
   }
@@ -342,6 +346,18 @@ async function handleApi(req, res, pathname) {
       id = id || (slug + '_' + Date.now().toString(36));
       post = { id, views: 0, createdAt: nowStr() };
       store.posts.push(post);
+    }
+    // 自定义短链：规范化 + 唯一性校验（与其他文章的自定义 slug 或自动短码冲突则拒绝）
+    const wantSlug = (body.slug || '').trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
+    if (wantSlug) {
+      const autoOf = x => String(x.id || '').split('_').pop();
+      const clash = store.posts.find(x => x.id !== post.id &&
+        ((x.slug && String(x.slug).trim().toLowerCase() === wantSlug) ||
+         (!x.slug && autoOf(x) === wantSlug)));
+      if (clash) return send(res, 200, { ok: false, error: '短链 /p/' + wantSlug + ' 已被文章《' + (clash.title || '未命名') + '》占用，请换一个' });
+      post.slug = wantSlug;
+    } else {
+      delete post.slug;  // 清空自定义，回退自动随机码
     }
     post.title = (body.title || '').trim();
     post.category = (body.category || '未分类').trim();
@@ -842,6 +858,10 @@ const server = http.createServer((req, res) => {
     handleApi(req, res, u.pathname).catch(e => send(res, 500, { ok: false, error: e.message }));
     return;
   }
+  // 短链 /p/<slug>：与 vercel.json rewrites 行为一致，静默返回 post.html（slug 由前端从路径解析）
+  if (/^\/p\/[^/]+$/.test(u.pathname)) { serveStatic(req, res, '/post.html'); return; }
+  // 老版内容管理台已废弃，收口到新版控制台
+  if (u.pathname === '/admin/content.html') { res.writeHead(302, { Location: '/admin/index.html' }); return res.end(); }
   serveStatic(req, res, u.pathname);
 });
 

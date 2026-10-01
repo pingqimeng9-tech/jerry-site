@@ -635,18 +635,25 @@
 let currentPost = null;
 let currentPostId = null;
 
+// 短链：/p/<slug>，slug 取自定义值或文章 id 末段随机码
+function postSlugOf(p){ return (p && (p.slug || (String(p.id||'').split('_').pop()))) || ''; }
+function postHrefOf(p){ return '/p/' + postSlugOf(p); }
+
 async function loadPost(){
   const container = document.getElementById('article-container');
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
+  // 短链 /p/<slug>：rewrite 后地址栏无 query，slug 从路径解析（?slug= 兜底）
+  const pathSlug = (window.location.pathname.match(/^\/p\/([^\/?#]+)/) || [])[1];
+  const slug = params.get('slug') || (pathSlug ? decodeURIComponent(pathSlug) : null);
 
-  if(!id){
-    container.innerHTML = `<div class="state-box error">缺少文章 id，请从博客列表页点进来</div>`;
+  if(!id && !slug){
+    container.innerHTML = `<div class="state-box error">缺少文章链接，请从博客列表页点进来</div>`;
     return;
   }
 
   try {
-    const res = await fetch('/api/post?id=' + encodeURIComponent(id));
+    const res = await fetch(slug ? ('/api/post?slug=' + encodeURIComponent(slug)) : ('/api/post?id=' + encodeURIComponent(id)));
     const data = await res.json();
 
     if(!data.ok){
@@ -656,7 +663,9 @@ async function loadPost(){
 
     const post = data.post;
     currentPost = post;
-    currentPostId = id;
+    currentPostId = post.id; // 点赞/收藏/浏览量一律用真实 id（短链 slug 也能正确归因）
+    // 旧长链 ?id= 打开后，地址栏静默替换为短链 /p/<slug>（复制地址/转发即短链）
+    if(!slug && postSlugOf(post)){ try{ history.replaceState(null, '', postHrefOf(post)); }catch(e){} }
     document.title = (post.title || '文章') + ' · Jerry';
 
     const locked = isLockedCategory(post.category);
@@ -1298,7 +1307,7 @@ async function openShareModal(post, postId){
   document.getElementById('posterTitle').textContent = post.title || '无标题';
   document.getElementById('posterExcerpt').textContent = excerptFromMarkdown(post.markdown, 80);
 
-  const shareUrl = window.location.href;
+  const shareUrl = window.location.origin + postHrefOf(post); // 海报二维码统一用短链
   document.getElementById('posterDomain').textContent = window.location.hostname;
 
   const qrEl = document.getElementById('posterQr');
@@ -1356,7 +1365,7 @@ document.getElementById('shareSaveBtn')?.addEventListener('click', async () => {
 document.getElementById('shareCopyBtn')?.addEventListener('click', async () => {
   const btn = document.getElementById('shareCopyBtn');
   try{
-    await navigator.clipboard.writeText(window.location.href);
+    await navigator.clipboard.writeText(window.location.origin + postHrefOf(currentSharePost));
     const original = btn.textContent;
     btn.textContent = '✓ 已复制';
     setTimeout(() => { btn.textContent = original; }, 1500);
@@ -1386,7 +1395,7 @@ function buildRecentPosts(posts, currentPostId){
     .sort((a,b) => new Date(b.date) - new Date(a.date))
     .slice(0, 6);
   const el = document.getElementById('recentPostsList');
-  el.innerHTML = recent.map(p => `<a href="/post.html?id=${p.id}">${escapeHtml(p.title || '无标题')}</a>`).join('')
+  el.innerHTML = recent.map(p => `<a href="${postHrefOf(p)}">${escapeHtml(p.title || '无标题')}</a>`).join('')
     || `<span style="color:var(--muted);font-size:12px;">暂无其他文章</span>`;
 }
 
@@ -2263,7 +2272,7 @@ window.jerrySiteReady = JerrySite.init();
           listEl.innerHTML = `<div class="jerry-profile-empty">${kind === 'liked' ? '还没点赞过文章' : '还没收藏过文章'}</div>`;
           return;
         }
-        listEl.innerHTML = rows.map(p => `<a href="/post.html?id=${encodeURIComponent(p.id)}">${escapeHtml(p.title || '无标题')}</a>`).join('');
+        listEl.innerHTML = rows.map(p => `<a href="${postHrefOf(p)}">${escapeHtml(p.title || '无标题')}</a>`).join('');
       }catch(err){
         // 后端还没有对应的RPC（get_my_liked_posts / get_my_favorited_posts），先友好提示，不要把报错糊用户脸上
         console.warn('拉取' + kind + '列表失败（可能是后端RPC还没上线）:', err);

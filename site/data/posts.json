@@ -109,22 +109,6 @@
       "syncedAt": "2026-09-28 22:28:47"
     },
     {
-      "id": "自检文章编辑器链路测试_mtts38lb",
-      "views": 0,
-      "createdAt": "2026-09-08 20:29:57",
-      "title": "自检文章：编辑器链路测试",
-      "category": "未分类",
-      "excerpt": "这是自检正文第一段。第二段：验证保存链路。",
-      "cover": "",
-      "tags": [],
-      "mood": "",
-      "markdown": "这是自检正文第一段。第二段：验证保存链路。",
-      "status": "draft",
-      "date": "2026-09-08",
-      "updatedAt": "2026-09-08 20:29:57",
-      "syncedAt": ""
-    },
-    {
       "id": "hello-world",
       "title": "你好，Jerry CMS",
       "date": "2026-09-07",

@@ -193,6 +193,37 @@
     mark();
   }
 
+  // 字号：有选区包裹选区；无选区（空行/光标处）插入承接 span，后续输入即为该字号
+  function applyFontSize(px) {
+    var sel = window.getSelection();
+    if (sel.rangeCount && !sel.isCollapsed && body.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+      var range0 = sel.getRangeAt(0);
+      var frag = range0.cloneContents();
+      var tmp = document.createElement('div'); tmp.appendChild(frag);
+      var inner0 = tmp.innerHTML || '&nbsp;';
+      range0.deleteContents();
+      var sp0 = document.createElement('span'); sp0.style.fontSize = px; sp0.innerHTML = inner0;
+      range0.insertNode(sp0);
+      range0.setStartAfter(sp0); range0.collapse(true);
+      sel.removeAllRanges(); sel.addRange(range0);
+      mark();
+      return;
+    }
+    if (!sel.rangeCount) return;
+    var info = caretInfo();
+    if (!info) return;
+    var sp = document.createElement('span');
+    sp.style.fontSize = px;
+    sp.textContent = '\u200B'; // 零宽空格承接光标，输入落进 span；序列化时全局清理
+    var r = sel.getRangeAt(0);
+    r.deleteContents();
+    r.insertNode(sp);
+    var rr = document.createRange(); rr.setStart(sp.firstChild, 0); rr.collapse(true);
+    sel.removeAllRanges(); sel.addRange(rr);
+    body.focus();
+    mark();
+  }
+
   // ============================================================
   // 1. 斜杠命令菜单 + emoji 菜单 + [[ 文章链接菜单（共用）
   // ============================================================
@@ -204,6 +235,12 @@
     { ic: 'H3', t: '三级标题', d: '小节标题', run: function () { transformBlock('h3'); } },
     { ic: '❝', t: '引用', d: '引用块', run: function () { transformBlock('quote'); } },
     { ic: '➖', t: '分割线', d: '水平分割线', run: function () { exec('insertHorizontalRule'); } },
+    { g: '字号（选中文字改大小；不选中则后续输入生效）' },
+    { ic: 'A·', t: '小字', d: '14px 注释/次要文字', k: 'font size xiaozi 14', run: function () { applyFontSize('14px'); } },
+    { ic: 'A', t: '正文字号', d: '16px 默认', k: 'font size zhengwen 16', run: function () { applyFontSize('16px'); } },
+    { ic: 'A+', t: '大字', d: '24px 强调', k: 'font size dazi 24', run: function () { applyFontSize('24px'); } },
+    { ic: 'A++', t: '超大字', d: '32px 小标题式强调', k: 'font size chaoda 32', run: function () { applyFontSize('32px'); } },
+    { ic: 'A+++', t: '巨型字', d: '48px 海报式大字', k: 'font size juxing 48', run: function () { applyFontSize('48px'); } },
     { g: '列表' },
     { ic: '•', t: '无序列表', d: '圆点列表', run: function () { exec('insertUnorderedList'); } },
     { ic: '1.', t: '有序列表', d: '编号列表', run: function () { exec('insertOrderedList'); } },
@@ -492,48 +529,87 @@
   var ctxMenu = el('div', 'ne-menu'); ctxMenu.style.minWidth = '230px'; document.body.appendChild(ctxMenu);
   function closeCtx() { ctxMenu.classList.remove('open'); }
   document.addEventListener('click', closeCtx);
+  // 高亮常用色（右键快捷）
+  var CTX_HL = [['🟡 黄色', '#FFD166'], ['🔴 红色', '#fca5a5'], ['🔵 蓝色', '#93c5fd'], ['🟢 绿色', '#7CFFB2'], ['🟣 紫色', '#d8b4fe'], ['🧽 无高亮', 'transparent']];
+  // 字号子菜单
+  function ctxFontSub() {
+    return [['小字', '14px'], ['正文字号', '16px'], ['大字', '24px'], ['超大字', '32px'], ['巨型字', '48px']].map(function (p) {
+      return { ic: 'A', t: p[0] + '（' + p[1] + '）', fn: function () { applyFontSize(p[1]); } };
+    });
+  }
   body.addEventListener('contextmenu', function (e) {
+    // body 外（工具栏/侧栏/输入框）放行浏览器原生菜单
+    if (!body.contains(e.target)) return;
     var sel = window.getSelection();
-    var hasSel = sel && !sel.isCollapsed && body.contains(sel.getRangeAt(0).commonAncestorContainer);
-    var b = blockOf(e.target);
+    var hasSel = sel && !sel.isCollapsed && sel.rangeCount && body.contains(sel.getRangeAt(0).commonAncestorContainer);
     var items = [];
-    if (e.target.closest && e.target.closest('td,th')) {
-      items = tableMenuItems(e.target.closest('td,th'));
+    var cell = e.target.closest && e.target.closest('td,th');
+    var img = e.target.tagName === 'IMG' ? e.target : (e.target.closest && e.target.closest('img'));
+    if (cell) {
+      items = tableMenuItems(cell);
+    } else if (img && body.contains(img)) {
+      var setW = function (w) { img.style.width = w; img.setAttribute('data-w', w); mark(); };
+      items = [
+        { ic: '✏️', t: '圈画标注（箭头/红圈/文字）', fn: function () { if (window.openImageAnnotator) window.openImageAnnotator(img, function (url) { img.src = url; mark(); }); else toast('标注器未加载'); } },
+        { ic: '⛶', t: '放大查看', fn: function () { lbImg.src = img.src; lightbox.classList.add('open'); } },
+        { ic: '📏', t: '宽度 …', sub: ['25%', '50%', '75%', '100%'].map(function (w) { return { ic: '▯', t: w, fn: function () { setW(w); } }; }) },
+        { ic: '🔗', t: '复制图片地址', fn: function () { if (navigator.clipboard) navigator.clipboard.writeText(img.src); toast('图片地址已复制'); } },
+        { ic: '📝', t: '修改 alt 替代文本', fn: function () { var a = prompt('图片 alt 替代文本：', img.alt || ''); if (a !== null) { img.alt = a; mark(); } } },
+        { ic: '🗑️', t: '删除图片', fn: function () { var f = img.closest('figure'); if (f) f.remove(); else img.remove(); mark(); } }
+      ];
     } else if (hasSel) {
       items = [
-        { ic: '✂️', t: '剪切', fn: function () { document.execCommand('cut'); } },
-        { ic: '📋', t: '复制', fn: function () { document.execCommand('copy'); } },
+        { ic: '✂️', t: '剪切', d: 'Ctrl+X', fn: function () { document.execCommand('cut'); } },
+        { ic: '📋', t: '复制', d: 'Ctrl+C', fn: function () { document.execCommand('copy'); } },
         { ic: '📝', t: '粘贴为纯文本', d: 'Ctrl+Shift+V', fn: function () { toast('请按 Ctrl+Shift+V 粘贴纯文本'); } },
         { g: '样式' },
-        { ic: 'B', t: '粗体', fn: function () { exec('bold'); } },
-        { ic: 'I', t: '斜体', fn: function () { exec('italic'); } },
-        { ic: 'U', t: '下划线', fn: function () { exec('underline'); } },
-        { ic: 'S', t: '删除线', fn: function () { exec('strikeThrough'); } },
-        { ic: '</>', t: '行内代码', fn: function () { wrapInlineCode(); } },
-        { ic: '🔗', t: '插入链接', fn: function () { doLink(); } },
+        { ic: 'B', t: '粗体', d: 'Ctrl+B', fn: function () { exec('bold'); } },
+        { ic: 'I', t: '斜体', d: 'Ctrl+I', fn: function () { exec('italic'); } },
+        { ic: 'U', t: '下划线', d: 'Ctrl+U', fn: function () { exec('underline'); } },
+        { ic: 'S', t: '删除线', d: 'Ctrl+Shift+S', fn: function () { exec('strikeThrough'); } },
+        { ic: '</>', t: '行内代码', d: 'Ctrl+E', fn: function () { wrapInlineCode(); } },
+        { ic: '🔠', t: '字号 …', sub: ctxFontSub() },
+        { ic: '🖍', t: '高亮颜色 …', sub: CTX_HL.map(function (p) { return { ic: p[0].slice(0, 2), t: p[0].slice(2), fn: function () { exec('hiliteColor', p[1]); } }; }) },
+        { ic: '💬', t: '划词批注 / 注释', d: 'Ctrl+M', fn: function () { createAnnotationFromSelection(); } },
+        { ic: '🔗', t: '插入链接', d: 'Ctrl+K', fn: function () { doLink(); } },
         { g: '其他' },
         { ic: '📄', t: '复制为 Markdown', fn: function () { copySelectionMd(); } },
-        { ic: '🧹', t: '清除格式', fn: function () { exec('removeFormat'); } }
+        { ic: '🧹', t: '清除格式', d: 'Ctrl+\\', fn: function () { exec('removeFormat'); } }
       ];
-    } else if (b) {
-      items = [
-        { ic: '🔁', t: '转成 …', sub: [
-          { t: '正文', fn: function () { transformBlock('p'); } },
-          { t: '一级标题', fn: function () { transformBlock('h1'); } },
-          { t: '二级标题', fn: function () { transformBlock('h2'); } },
-          { t: '三级标题', fn: function () { transformBlock('h3'); } },
-          { t: '引用', fn: function () { transformBlock('quote'); } },
-          { t: '代码块', fn: function () { transformBlock('code'); } }
-        ] },
-        { ic: '⬆️', t: '上移块', fn: function () { moveBlock(b, -1); } },
-        { ic: '⬇️', t: '下移块', fn: function () { moveBlock(b, 1); } },
-        { ic: '📋', t: '复制块', fn: function () { copyBlock(b); } },
-        { ic: '📄', t: '复制为 Markdown', fn: function () { copyBlockMd(b); } },
-        { ic: '➕', t: '在下方插入段落', fn: function () { var p = el('p'); p.innerHTML = '<br>'; body.insertBefore(p, b.nextSibling); placeCaret(p); mark(); } },
-        { ic: '🗑️', t: '删除块', fn: function () { b.remove(); mark(); } }
-      ];
+    } else {
+      var b = blockOf(e.target);
+      if (b) {
+        items = [
+          { ic: '🔁', t: '转成 …', sub: [
+            { t: '正文', d: 'Ctrl+Alt+0', fn: function () { transformBlock('p'); } },
+            { t: '一级标题', d: 'Ctrl+Alt+1', fn: function () { transformBlock('h1'); } },
+            { t: '二级标题', d: 'Ctrl+Alt+2', fn: function () { transformBlock('h2'); } },
+            { t: '三级标题', d: 'Ctrl+Alt+3', fn: function () { transformBlock('h3'); } },
+            { t: '引用', fn: function () { transformBlock('quote'); } },
+            { t: '代码块', fn: function () { transformBlock('code'); } },
+            { g: '提示框' },
+            { t: '💡 提示框', fn: function () { insertCallout('tip'); } },
+            { t: '⚠️ 警告框', fn: function () { insertCallout('warning'); } },
+            { t: '❌ 危险框', fn: function () { insertCallout('danger'); } },
+            { t: 'ℹ️ 信息框', fn: function () { insertCallout('info'); } }
+          ] },
+          { ic: '⬆️', t: '上移块', d: 'Ctrl+Shift+↑', fn: function () { moveBlock(b, -1); } },
+          { ic: '⬇️', t: '下移块', d: 'Ctrl+Shift+↓', fn: function () { moveBlock(b, 1); } },
+          { ic: '📋', t: '复制块', d: 'Ctrl+Shift+D', fn: function () { copyBlock(b); } },
+          { ic: '📄', t: '复制为 Markdown', fn: function () { copyBlockMd(b); } },
+          { ic: '➕', t: '在下方插入段落', fn: function () { var p = el('p'); p.innerHTML = '<br>'; body.insertBefore(p, b.nextSibling); placeCaret(p); mark(); } },
+          { ic: '✏️', t: '在此插入块（斜杠）', d: '/', fn: function () { var p = el('p'); p.textContent = '\u200B'; body.insertBefore(p, b.nextSibling); var rr = document.createRange(); rr.setStart(p.firstChild, 0); rr.collapse(true); var ss = window.getSelection(); ss.removeAllRanges(); ss.addRange(rr); body.focus(); document.execCommand('insertText', false, '/'); mark(); } },
+          { ic: '🗑️', t: '删除块', fn: function () { b.remove(); mark(); } }
+        ];
+      } else {
+        // body 空白处
+        items = [
+          { ic: '✏️', t: '在此新建段落', fn: function () { var p = el('p'); p.innerHTML = '<br>'; body.appendChild(p); placeCaret(p); body.focus(); mark(); } },
+          { ic: '🧱', t: '插入块（斜杠菜单）', d: '/', fn: function () { var p = el('p'); p.textContent = '\u200B'; body.appendChild(p); var rr = document.createRange(); rr.setStart(p.firstChild, 0); rr.collapse(true); var ss = window.getSelection(); ss.removeAllRanges(); ss.addRange(rr); body.focus(); document.execCommand('insertText', false, '/'); mark(); } },
+          { ic: '📝', t: '粘贴为纯文本', d: 'Ctrl+Shift+V', fn: function () { toast('请按 Ctrl+Shift+V 粘贴纯文本'); } }
+        ];
+      }
     }
-    if (!items.length) return;
     e.preventDefault();
     renderCtx(items, e.clientX, e.clientY);
   });
@@ -542,7 +618,8 @@
     items.forEach(function (it) {
       if (it.g) { html += '<div class="ne-group">' + it.g + '</div>'; return; }
       var sub = it.sub ? ' ▸' : '';
-      html += '<div class="ne-item"><span class="ic">' + it.ic + '</span><span class="tx"><b>' + it.t + sub + '</b></span></div>';
+      var keys = it.d ? '<span class="keys">' + it.d + '</span>' : '';
+      html += '<div class="ne-item"><span class="ic">' + (it.ic || '') + '</span><span class="tx"><b>' + it.t + sub + '</b></span>' + keys + '</div>';
     });
     ctxMenu.innerHTML = html;
     $$('.ne-item', ctxMenu).forEach(function (node, i) {
@@ -920,6 +997,20 @@
         e.preventDefault(); var b = currentBlock(); if (b) moveBlock(b, k === 'arrowup' ? -1 : 1); return;
       }
       if (e.shiftKey && k === 'd') { e.preventDefault(); var cb = currentBlock(); if (cb) { var clone = cb.cloneNode(true); cb.parentNode.insertBefore(clone, cb.nextSibling); mark(); } return; }
+      // 划词批注 Ctrl+M
+      if (k === 'm') { e.preventDefault(); createAnnotationFromSelection(); return; }
+      // 对齐 Ctrl+Shift+L / E / R
+      if (e.shiftKey && k === 'l') { e.preventDefault(); exec('justifyLeft'); return; }
+      if (e.shiftKey && k === 'e') { e.preventDefault(); exec('justifyCenter'); return; }
+      if (e.shiftKey && k === 'r') { e.preventDefault(); exec('justifyRight'); return; }
+      // 清除格式 Ctrl+\
+      if (k === '\\') { e.preventDefault(); exec('removeFormat'); return; }
+    }
+    // 标题/正文：Ctrl+Alt+0/1/2/3（Notion 肌肉记忆）
+    if ((e.ctrlKey || e.metaKey) && e.altKey && /^[0-3]$/.test(e.key)) {
+      e.preventDefault();
+      transformBlock({ '0': 'p', '1': 'h1', '2': 'h2', '3': 'h3' }[e.key]);
+      return;
     }
   });
 
@@ -1201,7 +1292,8 @@
     var imgCtx = document.getElementById('imgCtx');
     if (!imgCtx || imgCtx.dataset.neDone) return;
     imgCtx.dataset.neDone = '1';
-    var btns = '<button data-ne="caption" title="添加/编辑图注">图注</button>'
+    var btns = '<button data-ne="anno" title="圈画标注：箭头/红圈/文字">✏️</button>'
+      + '<button data-ne="caption" title="添加/编辑图注">图注</button>'
       + '<button data-ne="alt" title="alt 替代文本">ALT</button>'
       + '<button data-ne="link" title="给图片加链接">🔗</button>'
       + '<button data-ne="zoom" title="放大查看">⛶</button>';
@@ -1214,6 +1306,7 @@
       }
       if (!img) return;
       if (act === 'zoom') { lbImg.src = img.src || img.querySelector('img').src; lightbox.classList.add('open'); return; }
+      if (act === 'anno') { var im0 = img.tagName === 'IMG' ? img : img.querySelector('img'); if (im0 && window.openImageAnnotator) window.openImageAnnotator(im0, function (url) { im0.src = url; mark(); }); return; }
       if (act === 'alt') { var a = prompt('图片 alt 替代文本（无障碍/加载失败时显示）：', img.alt || ''); if (a !== null) { img.alt = a; mark(); } return; }
       if (act === 'link') {
         var u = prompt('图片点击跳转的链接（留空取消链接）：', img.closest('a') ? img.closest('a').href : 'https://');
@@ -1352,5 +1445,5 @@
   decorateAnnos();
 
   // 对外暴露（与批注模块提前挂载的方法合并，勿整体覆盖）
-  window.__ne = Object.assign(window.__ne || {}, { insertToggle: insertToggle, insertCallout: insertCallout, insertCodeBlock: insertCodeBlock, insertToc: insertToc, insertBookmark: insertBookmark, insertEmbed: insertEmbed, openTableGrid: openTableGrid, refreshToc: refreshTocBlocks });
+  window.__ne = Object.assign(window.__ne || {}, { insertToggle: insertToggle, insertCallout: insertCallout, insertCodeBlock: insertCodeBlock, insertToc: insertToc, insertBookmark: insertBookmark, insertEmbed: insertEmbed, openTableGrid: openTableGrid, refreshToc: refreshTocBlocks, applyFontSize: applyFontSize });
 })();

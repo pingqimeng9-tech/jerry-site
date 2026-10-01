@@ -60,6 +60,14 @@
             <p class="dim" style="font-size:10px;margin-top:4px">博客卡片优先使用缩略图，无则回退到封面</p>
           </div>
           <div class="field">
+            <label style="font-size:12px;font-weight:700;color:var(--aqua)">🔗 短链接 Slug</label>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+              <span class="dim mono" style="font-size:11px;white-space:nowrap">/p/</span>
+              <input id="slug" placeholder="留空自动生成随机短链" style="flex:1;min-width:0">
+            </div>
+            <p class="dim" style="font-size:10px;margin-top:4">分享用短链，仅允许英文/数字/横线，如 editor-upgrade；留空则自动用随机码</p>
+          </div>
+          <div class="field">
             <label class="l-tag"><i></i>标签 Tags</label>
             <div class="chips" id="tagChips"></div>
             <input id="tagInput" placeholder="输入标签后按回车 (Enter)" onkeydown="onTagKey(event)">
@@ -142,7 +150,7 @@
 <script>
 const qs = new URLSearchParams(location.search);
 const searchId = (qs.get('id') || 'new');
-let doc = { id: searchId==='new' ? null : searchId, title:'', category:'', cover:'', excerpt:'', thumb:'', date:'', tags:[], markdown:'', status:'draft' };
+let doc = { id: searchId==='new' ? null : searchId, title:'', category:'', cover:'', excerpt:'', thumb:'', slug:'', date:'', tags:[], markdown:'', status:'draft' };
 const st = { dirty:false, imgTarget:'editor', lastUrl:'', colorMode:'text', deploying:false };
 
 // ---------- 取色器 ----------
@@ -218,7 +226,11 @@ function refreshToolbar(){
 }
 function setFontSize(px){
   const sel=window.getSelection();
-  if(!sel || sel.isCollapsed || sel.rangeCount===0){ toast('请先选中文字再设置字号'); return; }
+  if(!sel || sel.isCollapsed || sel.rangeCount===0){
+    // 空行/光标处：交给 notion-edit 插入承接 span，后续输入即为该字号
+    if(window.__ne && typeof window.__ne.applyFontSize==='function'){ window.__ne.applyFontSize(px); markDirty(); return; }
+    toast('请先选中文字再设置字号'); return;
+  }
   const range=sel.getRangeAt(0);
   const frag=range.cloneContents(); const tmp=document.createElement('div'); tmp.appendChild(frag);
   const inner=tmp.innerHTML || '&nbsp;';
@@ -579,7 +591,8 @@ function htmlToMd(root){
       else if(t==='code') out+='`'+inner+'`';
       else if(t==='a') out+='['+inner+']('+(n.getAttribute('href')||'')+')';
       else if(t==='img') out+='!['+(n.getAttribute('alt')||'')+']('+(n.getAttribute('src')||'')+')';
-      else if(t==='u'||t==='ins'||(t==='span'&&n.getAttribute('style'))) out+=n.outerHTML;  // 下划线/彩色字：原样保留 HTML
+      else if(t==='u'||t==='ins') out+=n.outerHTML;  // 下划线原样保留
+      else if(t==='span'&&n.getAttribute('style')) out+=(inner.trim()?n.outerHTML:inner);  // 彩色字/字号 span：原样保留；空壳（选了字号没打字）丢弃
       else if(t==='mark'){
         // 划词批注：规范化为干净的 <mark data-anno-id data-color>（注释内容存 annotations）
         var aid=n.getAttribute('data-anno-id')||'', acol=n.getAttribute('data-color')||'';
@@ -713,11 +726,13 @@ async function load(){
     const data = await res.json();
     if(!data.ok){ toast(data.error||'加载失败'); return; }
     const p = data.post;
-    doc = {...doc, id:p.id, title:p.title, category:p.category, cover:p.cover, excerpt:p.excerpt, date:p.date, tags:p.tags||[], markdown:p.markdown||'', status:p.status||'draft'};
+    doc = {...doc, id:p.id, slug:p.slug||(p.id||'').split('_').pop(), title:p.title, category:p.category, cover:p.cover, excerpt:p.excerpt, date:p.date, tags:p.tags||[], markdown:p.markdown||'', status:p.status||'draft'};
     document.getElementById('title').value = p.title||'';
     document.getElementById('category').value = p.category||'';
     document.getElementById('cover').value = p.cover||'';
     document.getElementById('excerpt').value = p.excerpt||'';
+    const slugEl0 = document.getElementById('slug');
+    if(slugEl0) slugEl0.value = p.slug || ''; // 仅自定义 slug 回填；自动短码走 placeholder 提示
     const thumbEl = document.getElementById('thumb');
     if(thumbEl) thumbEl.value = p.thumb||'';
     document.getElementById('date').value = (p.date||'').slice(0,10);
@@ -745,6 +760,13 @@ async function save(status, silent){
     doc.date=document.getElementById('date').value;
     const thumbEl=document.getElementById('thumb');
     doc.thumb=thumbEl?thumbEl.value.trim():'';
+    // 自定义短链：仅允许小写英文/数字/横线；留空则删除自定义值、回退自动随机码
+    const slugEl=document.getElementById('slug');
+    if(slugEl){
+      let s=(slugEl.value||'').trim().toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'');
+      if(slugEl.value.trim() && !s){ toast('⚠️ 短链只能包含英文、数字和横线'); return; }
+      doc.slug=s;
+    }
     doc.markdown=htmlToMd(body);
     doc.annotations=(window.__ne && window.__ne.getAnnotations)?window.__ne.getAnnotations():(doc.annotations||[]);
     // Auto-generate excerpt from markdown if empty
@@ -973,6 +995,8 @@ setInterval(()=>{
           document.getElementById('category').value = doc.category||'';
           document.getElementById('cover').value = doc.cover||'';
           document.getElementById('excerpt').value = doc.excerpt||'';
+          const slugElR = document.getElementById('slug');
+          if(slugElR) slugElR.value = doc.slug||'';
           const thumbEl = document.getElementById('thumb');
           if(thumbEl) thumbEl.value = doc.thumb||'';
           document.getElementById('date').value = doc.date||'';
@@ -997,6 +1021,7 @@ fetch('/api/admin/posts',{method:'POST'}).then(r=>r.json()).then(d=>{
 }).catch(()=>{});
 </script>
 <script src="/admin/studio/notion-edit.js"></script>
+<script src="/admin/studio/annotate.js"></script>
 <script src="/admin/embed.js"></script>
 </body>
 </html>
