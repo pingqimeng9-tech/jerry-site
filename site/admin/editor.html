@@ -13,6 +13,7 @@
 <div class="editor-shell">
   <div class="editor-top">
     <a class="btn ghost" href="./index.html">← 控制台</a>
+    <button type="button" class="btn ghost ne-aside-toggle" id="asideToggle" onclick="document.body.classList.add('aside-open')">⚙️ 属性</button>
     <h1><span class="kicker" style="margin:0">Editor</span><span id="topTitle" class="dim" style="font-weight:600;font-size:13px">新建文章</span></h1>
     <div class="right">
       <span class="dim mono" style="font-size:11px" id="saveState"></span>
@@ -42,7 +43,7 @@
 
     <aside class="aside glass">
       <div class="mm">
-        <div class="mm-head"><div class="mode" id="modeTag">post · 本地</div><h2>属性设置</h2></div>
+        <div class="mm-head"><div><div class="mode" id="modeTag">post · 本地</div><h2>属性设置</h2></div><button type="button" class="mm-close" id="asideClose" onclick="document.body.classList.remove('aside-open')">✕</button></div>
         <div class="mm-body">
           <div class="field">
             <label class="l-cat"><i></i>分类 Category</label>
@@ -93,6 +94,8 @@
     </aside>
   </div>
 </div>
+<!-- 手机端属性抽屉遮罩 -->
+<div class="aside-mask" id="asideMask" onclick="document.body.classList.remove('aside-open')"></div>
 
 <!-- 取色器模态（字色/高亮共用） -->
 <div class="color-modal" id="colorModal">

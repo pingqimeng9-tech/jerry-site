@@ -84,7 +84,16 @@
       /* 就地文案编辑 */
       'body.jl-editing [data-jl-text]{outline:2px dotted rgba(255,140,217,.7)!important;outline-offset:3px;border-radius:6px;cursor:text;background:rgba(255,140,217,.07)}',
       '.jl-hint{position:fixed;left:50%;top:66px;transform:translateX(-50%);z-index:2147483799;font-size:12px;color:#10102a;background:linear-gradient(120deg,#B18CFF,#5CE1E6);font-weight:700;padding:7px 16px;border-radius:999px;display:none;font-family:"Noto Sans SC",system-ui,sans-serif;box-shadow:0 10px 26px rgba(0,0,0,.3)}',
-      'body.jl-editing .jl-hint{display:block}'
+      'body.jl-editing .jl-hint{display:block}',
+      /* 手机端：编辑工具条移到左下（避开右下搜索/桌宠底座与正文中央），按钮可横滑 */
+      '@media (max-width:760px){',
+      '.jl-bar{left:10px;right:10px;transform:none;bottom:calc(10px + env(safe-area-inset-bottom));justify-content:flex-start;',
+      'padding:5px 7px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}',
+      '.jl-bar::-webkit-scrollbar{display:none}',
+      '.jl-bar button{font-size:12px;padding:9px 12px;flex:none}',
+      '.jl-panel{left:10px;right:10px;bottom:calc(64px + env(safe-area-inset-bottom));transform:none;width:auto}',
+      '.jl-modbar .jl-name{display:none}',
+      '}'
     ].join('');
     document.head.appendChild(st);
   }

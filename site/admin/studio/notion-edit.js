@@ -104,7 +104,43 @@
     + '.editor-body table th,.editor-body table td{border:1px solid rgba(255,255,255,.25);padding:7px 11px;min-width:46px;vertical-align:top}'
     + '.editor-body table th{background:rgba(92,225,230,.12);font-weight:700}'
     + '.editor-body table td.cell-cursor{box-shadow:inset 0 0 0 2px #5CE1E6}'
-    + '.editor-body .ne-block-dragging{opacity:.35}';
+    + '.editor-body .ne-block-dragging{opacity:.35}'
+    // ===== 手机端（≤720px）：浮层底部化、触控目标放大 =====
+    + '@media (max-width:720px){'
+    + '.ne-menu{left:10px!important;right:10px!important;bottom:12px!important;top:auto!important;min-width:0;width:auto;max-height:52vh;border-radius:18px 18px 10px 10px;padding:8px}'
+    + '.ne-item{padding:10px 10px;min-height:44px;align-items:center}'
+    + '.ne-item .ic{width:30px;height:30px;font-size:15px}'
+    + '.ne-item .tx b{font-size:13.5px}.ne-item .tx span{font-size:11px}'
+    + '.ne-inline{left:10px!important;right:10px!important;bottom:12px!important;top:auto!important;transform:none!important;max-width:none;justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;border-radius:14px;padding:6px}'
+    + '.ne-inline::-webkit-scrollbar{display:none}'
+    + '.ne-inline button{width:40px;height:38px;font-size:16px;flex:none}'
+    + '.ne-palette{left:50%!important;top:50%!important;bottom:auto!important;transform:translate(-50%,-50%)!important;width:min(92vw,340px);grid-template-columns:repeat(8,1fr);gap:6px;padding:10px}'
+    + '.ne-palette button{width:26px;height:26px}'
+    + '.ne-anno-card{left:12px!important;right:12px!important;top:auto!important;bottom:84px!important;width:auto}'
+    + '.ne-tablegrid{left:50%!important;top:50%!important;bottom:auto!important;transform:translate(-50%,-50%)!important}'
+    + '.ne-tblbar{left:10px!important;right:10px!important;bottom:12px!important;top:auto!important;max-width:none;justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap}'
+    + '.ne-tblbar button{min-width:34px;height:34px;font-size:14px;flex:none}'
+    + '.ne-codebar{left:10px!important;right:10px!important;bottom:12px!important;top:auto!important;justify-content:center;flex-wrap:wrap}'
+    + '.ne-codebar select,.ne-codebar button{font-size:13px;padding:6px 10px}'
+    + '.ne-grip{left:-24px!important}'
+    + '.ne-grip button{width:24px;height:30px;font-size:16px}'
+    + '.ne-wordbar{display:none!important}'
+    + '.ne-lightbox img{max-width:96vw;max-height:78vh}'
+    + '.editor-body{padding-left:14px;padding-right:14px}'
+    + '.editor-body .callout{padding:10px 12px;gap:8px}'
+    + '.editor-body pre{padding:12px;-webkit-overflow-scrolling:touch}'
+    + '.editor-body table{display:block;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}'
+    + '}'
+    // ===== 平板竖屏（721–1024px）=====
+    + '@media (min-width:721px) and (max-width:1024px){'
+    + '.ne-menu{max-width:46vw}.ne-inline{max-width:60vw;flex-wrap:wrap}'
+    + '}'
+    // ===== 手机横屏（矮屏）：菜单限高，避免超出视口 =====
+    + '@media (max-width:1024px) and (max-height:540px){'
+    + '.ne-menu{max-height:46vh}.ne-inline{max-width:70vw}'
+    + '.ne-palette{top:auto!important;bottom:10px!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important}'
+    + '.ne-anno-card{left:auto!important;right:10px!important;bottom:10px!important;top:auto!important;width:300px}'
+    + '}';
   var styleEl = document.createElement('style');
   styleEl.textContent = CSS;
   document.head.appendChild(styleEl);
@@ -537,6 +573,30 @@
       return { ic: 'A', t: p[0] + '（' + p[1] + '）', fn: function () { applyFontSize(p[1]); } };
     });
   }
+  // —— 触屏长按（500ms）唤起同一个自定义菜单；正在选词时不拦截 ——
+  (function () {
+    var timer = null, sx = 0, sy = 0, fired = false;
+    body.addEventListener('touchstart', function (e) {
+      if (e.touches.length !== 1) return;
+      var t = e.touches[0]; sx = t.clientX; sy = t.clientY; fired = false;
+      timer = setTimeout(function () {
+        var sel = window.getSelection();
+        var selecting = sel && !sel.isCollapsed && sel.rangeCount && body.contains(sel.getRangeAt(0).commonAncestorContainer);
+        if (selecting) return; // 选词中：交给系统选词与划词工具条
+        fired = true;
+        var ev = new MouseEvent('contextmenu', { bubbles: true, cancelable: true, view: window, clientX: sx, clientY: sy });
+        body.dispatchEvent(ev);
+      }, 500);
+    }, { passive: true });
+    body.addEventListener('touchmove', function (e) {
+      if (!timer || !e.touches.length) return;
+      var t = e.touches[0];
+      if (Math.abs(t.clientX - sx) > 10 || Math.abs(t.clientY - sy) > 10) { clearTimeout(timer); timer = null; }
+    }, { passive: true });
+    var cancel = function () { if (timer) { clearTimeout(timer); timer = null; } };
+    body.addEventListener('touchend', function (e) { if (fired) { e.preventDefault(); fired = false; } cancel(); }, { passive: false });
+    body.addEventListener('touchcancel', cancel, { passive: true });
+  })();
   body.addEventListener('contextmenu', function (e) {
     // body 外（工具栏/侧栏/输入框）放行浏览器原生菜单
     if (!body.contains(e.target)) return;

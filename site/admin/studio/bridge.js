@@ -128,9 +128,13 @@
     var pill = document.createElement('a');
     pill.href = '/admin/editor.html?id=' + encodeURIComponent(id);
     pill.textContent = '✎ 编辑本文';
+    pill.className = 'jerry-edit-pill';
     pill.style.cssText = 'position:fixed;right:20px;bottom:20px;z-index:2147483000;display:inline-flex;align-items:center;gap:6px;padding:11px 20px;'
       + 'border-radius:999px;background:linear-gradient(120deg,#FF7A5C,#FF8CD9);color:#fff;font-size:13px;font-weight:700;'
       + "font-family:'Noto Sans SC',system-ui,sans-serif;text-decoration:none;box-shadow:0 10px 26px rgba(255,122,92,.4);transition:.25s;";
+    // 手机端：缩小并上移，避开右下角的搜索/桌宠浮动底座
+    var pillCss = document.createElement('style');
+    pillCss.textContent = '@media (max-width:760px){.jerry-edit-pill{right:12px!important;bottom:calc(86px + env(safe-area-inset-bottom))!important;padding:8px 14px!important;font-size:12px!important}}';
     pill.addEventListener('mouseenter', function () {
       pill.style.transform = 'translateY(-2px)';
       pill.style.boxShadow = '0 14px 32px rgba(255,122,92,.5)';
@@ -139,6 +143,7 @@
       pill.style.transform = '';
       pill.style.boxShadow = '0 10px 26px rgba(255,122,92,.4)';
     });
+    document.head.appendChild(pillCss);
     document.body.appendChild(pill);
   }
 
