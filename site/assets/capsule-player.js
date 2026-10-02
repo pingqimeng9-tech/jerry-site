@@ -583,9 +583,29 @@
         jm.style.bottom = visible ? raise + 'px' : '';
         // 给正文底部留出播放器高度，使最后一行能滚到悬浮播放器上方，不被永久遮挡
         document.body.style.paddingBottom = Math.round(raise + 64) + 'px';
+        // 窄屏右下角有移动动作坞 #mobile-action-dock，播放器收窄并左对齐、右缘让开它
+        var mini = jm.querySelector('.jm-mini');
+        if (mini) {
+          var dock = document.querySelector('#mobile-action-dock');
+          var dr = dock ? dock.getBoundingClientRect() : null;
+          var narrow = window.innerWidth <= 680 && dr && dr.width > 0 && dr.left < window.innerWidth;
+          if (narrow) {
+            var w = Math.round(dr.left - 20);
+            if (w > 200) {
+              mini.style.width = w + 'px';
+              // #jm 锚点在屏幕水平中心(vw/2)：用 x 把 mini 左缘钉到屏幕左侧 12px
+              if (gsap) gsap.set(mini, { xPercent: 0, x: 12 - window.innerWidth / 2 });
+              else { mini.style.left = (12 - window.innerWidth / 2) + 'px'; mini.style.transform = 'none'; }
+            }
+          } else if (mini.style.width) {
+            mini.style.width = ''; mini.style.left = '';
+            if (gsap) gsap.set(mini, { xPercent: -50, x: 0 });
+          }
+        }
       }
     }
     setInterval(tick, 350);
+    window.addEventListener('resize', tick);
     tick();
   }
 
