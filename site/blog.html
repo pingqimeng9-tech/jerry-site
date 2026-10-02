@@ -342,8 +342,10 @@
   /* ================== Folder 文件夹视图（1:1 复刻 folder-back-panel lab） ================== */
   #content-area.view-folder{ --f-shell:#06060b; }
   .view-folder .post-grid{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px 22px; }
-  .view-folder .post-card{ display:block; padding:0; background:transparent; border:0; box-shadow:none; overflow:visible; height:auto; }
-  .view-folder .post-preview, .view-folder .post-bottom{ display:none; }
+  .view-folder .post-card{ display:block; padding:0; background:transparent !important; border:0; box-shadow:none !important; overflow:visible; height:auto;
+    backdrop-filter:none !important; -webkit-backdrop-filter:none !important; border-radius:0; transform:none !important; }
+  .view-folder .post-card:hover{ background:transparent !important; box-shadow:none !important; transform:none !important; }
+  .view-folder .post-preview, .view-folder .post-bottom{ display:none !important; }
   .f-slot{ display:flex; justify-content:center; padding:150px 0 14px; }
   .f-stage{ width:280px; height:296px; position:relative; perspective:1100px; cursor:pointer; outline:none; -webkit-tap-highlight-color:transparent; }
   /* 扩大悬停热区，鼠标移到飞出的卡片/上方间隙时不会误合上 */
@@ -432,6 +434,8 @@
     .f-card.fc2{ --fx:2px;  --fy:-144px; --fr:2deg; }
     .f-card.fc3{ --fx:78px;  --fy:-114px; --fr:11deg; }
     .f-front h3{ font-size:13px; }
+    .f-meta{ left:14px; right:14px; gap:8px; }
+    .f-meta span:last-child{ display:none; }
   }
   @media (max-width:380px){
     .view-folder .post-grid{ grid-template-columns:1fr; }
@@ -1108,13 +1112,16 @@ setupViewSwitcher();
       st._hover=false;
       if(!S.pin){ st.classList.remove('open'); resetTilt(st); }
     });
-    // 触屏：首次点按在 pointerdown 拦截，只展开不跳转
+    // pointerdown：记录指针类型；触屏首次点主体（未展开、未点卡片）拦截并展开，不跳转
     document.addEventListener('pointerdown',e=>{
-      if(!isFolder()||e.pointerType!=='touch') return;
+      if(!isFolder()) return;
       const st=e.target.closest&&e.target.closest('.f-stage'); if(!st) return;
-      if(!st.classList.contains('open') && !(e.target.closest&&e.target.closest('.f-card'))){ e.preventDefault(); openTouch(st); }
+      st._ptype=e.pointerType;
+      if(e.pointerType==='touch' && !st.classList.contains('open') && !(e.target.closest&&e.target.closest('.f-card'))){
+        e.preventDefault(); st._tapOpened=true; openTouch(st);
+      }
     },true);
-    // click：章节卡=直达章节；鼠标点主体=进文章；触屏未展开=展开（兜底），已展开=进文章
+    // click：① 点章节卡→直达该章节；② 首次展开的那一下→只展开；③ 其余点主体（鼠标单击/触屏第二次点）→打开文章
     document.addEventListener('click',e=>{
       if(!isFolder()) return;
       const st=e.target.closest&&e.target.closest('.f-stage'); if(!st) return;
@@ -1124,12 +1131,10 @@ setupViewSwitcher();
         location.href='/p/'+st.dataset.slug+'#'+card.dataset.anchor;
         return;
       }
-      if(st._ptype==='mouse') return;
-      if(!st.classList.contains('open')){ e.preventDefault(); e.stopPropagation(); openTouch(st); }
-    },true);
-    document.addEventListener('pointerdown',e=>{
-      if(!isFolder()) return;
-      const st=e.target.closest&&e.target.closest('.f-stage'); if(st) st._ptype=e.pointerType;
+      if(st._tapOpened){ st._tapOpened=false; e.preventDefault(); e.stopPropagation(); return; }
+      // 点文件夹主体 → 打开文章（手动导航，避免触屏滚动/卡片层级导致 a 默认跳转失效）
+      e.preventDefault(); e.stopPropagation();
+      location.href='/p/'+st.dataset.slug;
     },true);
   }
 

@@ -40,27 +40,11 @@
       "thumb": "https://picsum.photos/seed/jerryeditor/600/400"
     },
     {
-      "id": "实时预览验证-可删除_muleehe2",
-      "views": 1,
-      "createdAt": "2026-09-28 04:24:20",
-      "title": "实时预览验证-可删除",
-      "category": "技术测试",
-      "excerpt": "",
-      "cover": "",
-      "tags": [],
-      "mood": "",
-      "markdown": "<div class=\"site-preview\" contenteditable=\"false\" data-src=\"/packages/pkg_mulecea0/site/index.html\" data-zip=\"\" data-name=\"cropper-live\" data-w=\"72%\"></div>",
-      "status": "draft",
-      "date": "2026-09-28",
-      "updatedAt": "2026-09-28 04:24:20",
-      "syncedAt": ""
-    },
-    {
       "id": "教你如何下载并安装-7-zipwindows-详细教程_muleu5li",
       "views": 4,
       "createdAt": "2026-09-28 04:36:31",
       "title": "教你如何下载并安装 7-Zip（Windows 详细教程）",
-      "category": "技术测试",
+      "category": "技术分享",
       "excerpt": "手把手教你下载安装免费开源的压缩软件 7-Zip，文末附官网原版安装包，点开附件即可直接下载。",
       "cover": "",
       "tags": [
@@ -73,58 +57,6 @@
       "status": "published",
       "date": "2026-09-28",
       "updatedAt": "2026-09-28 04:36:31",
-      "syncedAt": "2026-09-28 22:28:47"
-    },
-    {
-      "id": "hi_mtsol3i3",
-      "views": 14,
-      "createdAt": "2026-09-08 02:04:05",
-      "title": "hihy6h",
-      "category": "随笔",
-      "excerpt": "mfjeifjeoieif",
-      "cover": "/images/posts/mtsoknqu_Screenshot_2026-02-02_221628.png",
-      "tags": [],
-      "mood": "",
-      "markdown": "<video controls preload=\"metadata\" src=\"/videos/posts/mtstje86_1479156750-1-192.mp4\" data-w=\"94%\"></video>\n\n<div class=\"site-preview\" contenteditable=\"false\" data-src=\"/packages/pkg_mttvoonr/site/index.html\" data-zip=\"\" data-name=\"cropper__10___1_\" data-w=\"72%\"></div>\n\ndfdvdvvddf\n\n<img src=\"/images/posts/mtsojkvp_Screenshot_2026-09-07_162101.png\" alt=\"\" data-w=\"100%\">\n\nToday!\n\nI decide to make a new plan for the next two months\n\nI'll limit my device use and focus on EN\n\nTwo goals recently need to spend time on :\n\nOne is TAFE Skill-trade overseas\n\nThe other is finishing A-levels and getting IELTS 6.0 ~7.0 to apply for an overseas undergraduate university\n\nBro we haven't decided between two paths yet but we know we need to build a solid English base first\n\nso passing IELTS is our key question Miao~\n\nstart KET and PET as basic, people like to call it mini IELTS tests\n\nI can finish KET in two months, and PET will take 3~4 months maybe\n\nIn this period, I'll either prepare A-level subjects or work toward a TAFE trade, like a Certificate III in Elec\n\nI'm not sure witch subject should I choose ,It's depend on your future abroad college and your  job\n\nI wanna work abroad is Australia\n\nThe main reason is that my friend Tang is studying at Monash University\n\nOne of Australia's Group-of-Eight universities, which ranks 36th in the QS world rankings.\n\nMy choice:\n\nTAFE??Electricians ?? ?? ?? ?? ??\n\n??:\n\nTAFE skilled-trade pathway ??TAFE ???? / ??????(????????)\n\nCertificate III ????????(????????)\n\npermanent residency = PR ?????\n\nTRA Trades Recognition Australia:????????(????)\n\nIELTS ??:\n\nA???:????????\n\nG? ??:??  TAFE?? ?? ??\n\n?????????Ket Pet ?????,KET????1/2? ??????? ,PET???,????6.0~7.0 ??????5.5~6.0\n\nKET learning timeline:\n\ntake one unit per day\n\nwatching learning lesson & take note on teaching book/separate notebook\n\nread the teaching book/notebook\n\ndo the corresponding unit exercise(workbook)\n\nmark the wrong question & find the wrong reason(????????,??????????) review the related part in the textbook\n\nand add the correct rule to the wrong question in my note book\n\n1.redo all weekly question once\n\n2.every day review unit dialogues\n\n3.every day 20 Ket core word add 20 daily practical words matching the unit theme each day\n\n4.every grammar practise\n\n<div class=\"site-preview\" contenteditable=\"false\" data-src=\"/packages/pkg_mttr4s5j/site/index.html\" data-zip=\"\" data-name=\"cropper__10___1_\" data-w=\"72%\"></div>",
-      "status": "published",
-      "date": "2026-09-08",
-      "updatedAt": "2026-09-28 03:16:53",
-      "syncedAt": "2026-09-28 22:28:47",
-      "thumb": "https://example.com/thumb.jpg"
-    },
-    {
-      "id": "rfef_mtsttqkb",
-      "views": 7,
-      "createdAt": "2026-09-08 04:30:47",
-      "title": "rfef",
-      "category": "随笔",
-      "excerpt": "fefw",
-      "cover": "/images/posts/mtsttm2n_ChatGPT_Image_Sep_7__2026__06_37_54_PM.png",
-      "tags": [],
-      "mood": "",
-      "markdown": "fefefew",
-      "status": "published",
-      "date": "2026-09-08",
-      "updatedAt": "2026-09-08 04:31:05",
-      "syncedAt": "2026-09-28 22:28:47"
-    },
-    {
-      "id": "hello-world",
-      "title": "你好，Jerry CMS",
-      "date": "2026-09-07",
-      "category": "随笔",
-      "excerpt": "这是 Jerry CMS 本地管理的示例文章。你可以点击右下角进入控制台，新建一篇并发布，它会立刻出现在博客列表里。",
-      "cover": null,
-      "views": 2,
-      "tags": [
-        "示例",
-        "CMS"
-      ],
-      "mood": "",
-      "status": "published",
-      "markdown": "这是一篇由「Jerry CMS」本地生成的文章。\n\n## 它解决了什么\n\n原来博客内容托管在 Notion，本地无法直接管理。现在内容存到本地 `data/posts.json`，**双击启动即可管理**。\n\n## 怎么管理\n\n1. 进入控制台\n2. 点「新建文章」\n3. 写正文 → 存草稿 / 正式发布\n\n> 支持富文本工具栏、封面图、分类、标签、摘要。\n\n发布后回到 `blog.html` 就能看到这篇。",
-      "createdAt": "2026-09-07 12:00:00",
-      "updatedAt": "2026-09-07 12:00:00",
       "syncedAt": "2026-09-28 22:28:47"
     },
     {
