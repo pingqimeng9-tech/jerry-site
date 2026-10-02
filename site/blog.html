@@ -367,24 +367,51 @@
   .view-list .post-title::before { content: ""; display: none; }
 
   /* ================== Folder 文件夹视图（1:1 复刻 folder-back-panel lab） ================== */
-  #content-area.view-folder{ --f-shell:#06060b; }
-  .view-folder .post-grid{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px 22px; }
-  .view-folder .post-card{ display:block; padding:0; background:transparent !important; border:0; box-shadow:none !important; overflow:visible; height:auto;
-    backdrop-filter:none !important; -webkit-backdrop-filter:none !important; border-radius:0; transform:none !important; }
+  /* container-type 让列数/缩放只跟随内容容器宽度（侧栏折叠、窗口变化都自适应，不写一堆视口断点）；
+     overflow-anchor:none 关闭浏览器滚动锚定——展开会在行上方腾出空间，锚定会自动抵消位移、与“归正到正中”的主动滚动打架 */
+  #content-area.view-folder{ --f-shell:#06060b; container-type:inline-size; overflow-anchor:none; }
+  #content-area.view-folder *{ overflow-anchor:none; }
+  .view-folder .post-grid{
+    --cols:3;
+    --cg:clamp(6px,1.8cqw,20px);
+    display:grid; grid-template-columns:repeat(var(--cols),minmax(0,1fr));
+    gap:clamp(6px,1.4cqw,14px) var(--cg); padding:0;
+    /* 三列：把 3 个 280 宽舞台 + 2 个列间距塞进容器宽度，等比求缩放（上限 1，不超过原稿尺寸） */
+    --fs:clamp(.55, calc((100cqw - 2*var(--cg))/840px), 1);
+  }
+  /* 中窄容器（手机竖屏等）：两列 */
+  @container (max-width:559px){
+    .view-folder .post-grid{ --cols:2; --fs:clamp(.5, calc((100cqw - var(--cg))/560px), 1); }
+  }
+  /* 超窄容器（<320px）：单列 */
+  @container (max-width:319px){
+    .view-folder .post-grid{ --cols:1; --fs:clamp(.5, calc(100cqw/280px), 1); }
+  }
+  .view-folder .post-card{ display:flex; justify-content:center; align-items:flex-start; padding:0; background:transparent !important; border:0; box-shadow:none !important; overflow:visible; height:auto;
+    backdrop-filter:none !important; -webkit-backdrop-filter:none !important; border-radius:0; transform:none !important; transition:none !important; }
+  /* 展开项在网格行顶部腾出扇形卡片空间（post-card 不参与 scale，这里手动乘 fs 等比） */
+  .view-folder .post-card:has(.f-stage.open){ padding-top:calc(168px * var(--fs,1)); }
   .view-folder .post-card:hover{ background:transparent !important; box-shadow:none !important; transform:none !important; }
   .view-folder .post-preview, .view-folder .post-bottom{ display:none !important; }
-  /* 收起态零上方留白，网格紧凑；只有展开的那个文件夹临时在上方腾出卡片空间（:has） */
-  .f-slot{ display:flex; justify-content:center; padding:0 0 10px; transition:padding .35s cubic-bezier(.16,1,.3,1); }
-  .view-folder .f-slot:has(.f-stage.open){ padding-top:150px; }
-  .f-stage{ width:280px; height:296px; position:relative; perspective:1100px; cursor:pointer; outline:none;
+  /* 对称：图库/列表视图必须隐藏 folder 的 3D 结构（每张卡片 DOM 同时含两套结构，按视图显隐）。
+     桌面靠卡片 overflow:hidden 侥幸裁掉，手机卡片高度自适应时 280×296 的文件夹会从卡片底部露出来，必须显式隐藏 */
+  .view-gallery .f-slot, .view-list .f-slot{ display:none !important; }
+  /* slot/stage 固定基准 280×296，flex/grid 都不许压缩（flex:none + justify-self:center）；
+     只让 slot 整体 transform 等比缩放，内部固定坐标（封面/玻璃/章节卡）随之等比、永不拉伸变形 */
+  .f-slot{ width:280px; height:296px; flex:0 0 auto;
+    display:flex; align-items:flex-start; justify-content:center;
+    transform:scale(var(--fs,1)); transform-origin:top center;
+    /* 水平居中于卡片列；视觉高度=296*fs，负 margin 回收底部多占的 (1-fs)，行距贴合不留大缝 */
+    margin:0 auto calc(296px * (var(--fs,1) - 1)); }
+  .f-stage{ width:280px; height:296px; flex:0 0 auto; position:relative; perspective:1100px; cursor:pointer; outline:none;
     -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
-  .f-tilt{ position:absolute; inset:0; perspective:900px; transform:rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg)); transition:transform .8s cubic-bezier(.16,1,.3,1); }
+  .f-tilt{ position:absolute; inset:0; perspective:900px; transform:rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg)); transition:transform .5s cubic-bezier(.16,1,.3,1); }
   .f-stage.open .f-tilt{ transform:rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg)) scale(1.04) rotate(-1.5deg); }
   .view-folder .post-card:has(.f-stage.open){ position:relative; z-index:99990; }
 
   .f-shell{ position:absolute; inset:0; border-radius:30px; overflow:hidden; background:var(--f-shell);
     box-shadow:0 0 0 3px #12121a, 0 18px 40px rgba(10,15,40,.18); transform-origin:bottom center;
-    transition:transform .7s cubic-bezier(.16,1,.3,1), box-shadow .7s cubic-bezier(.16,1,.3,1); }
+    transition:transform .45s cubic-bezier(.16,1,.3,1), box-shadow .45s cubic-bezier(.16,1,.3,1); }
   .f-stage.open .f-shell{ transform:rotateX(14deg) scaleY(1.04); box-shadow:0 0 0 3px #12121a, 0 30px 60px rgba(40,70,200,.25); }
   .f-shell>*{ position:absolute; }
   .f-glow{ inset:0;
@@ -400,10 +427,10 @@
   .f-card{ position:absolute; left:50%; top:50%; width:156px; height:184px; margin:-92px 0 0 -78px; z-index:var(--z);
     opacity:0; pointer-events:none; cursor:pointer;
     transform:translate(var(--rx),var(--ry)) rotate(var(--rr)) scale(.9);
-    transition:transform .5s cubic-bezier(.16,1,.3,1) var(--out), opacity .25s ease var(--out); }
+    transition:transform .35s cubic-bezier(.16,1,.3,1) var(--out), opacity .2s ease var(--out); }
   .f-stage.open .f-card{ opacity:1; pointer-events:auto;
     transform:translate(var(--fx),var(--fy)) rotate(var(--fr)) scale(1);
-    transition:transform .85s cubic-bezier(.34,1.56,.64,1) var(--in), opacity .2s ease var(--in); }
+    transition:transform .55s cubic-bezier(.34,1.56,.64,1) var(--in), opacity .18s ease var(--in); }
   .f-stage.open .f-card:hover{ z-index:9; }
   .f-face{ position:relative; width:100%; height:100%; border-radius:15px; padding:15px 14px; box-sizing:border-box; overflow:hidden;
     box-shadow:0 8px 20px rgba(30,40,90,.10), 0 0 0 1px rgba(20,30,60,.04);
@@ -424,12 +451,13 @@
 
   /* 正面异形玻璃标题板（在外壳之外、tilt 之内，翻开时后仰） */
   .f-front{ position:absolute; left:9px; right:9px; bottom:9px; top:111px; z-index:4; color:#fff; padding:34px 20px 0; box-sizing:border-box;
-    transform-origin:bottom center; transition:transform .75s cubic-bezier(.16,1,.3,1); }
+    transform-origin:bottom center; transition:transform .45s cubic-bezier(.16,1,.3,1); }
   .f-stage.open .f-front{ transform:rotateX(-30deg) translateY(12px); }
   .f-glass{ position:absolute; inset:0;
     clip-path:path('M16 0H100C112 0 118 4 124 10C130 16 136 20 150 20H244Q262 20 262 38V156Q262 176 242 176H20Q0 176 0 156V16Q0 0 16 0Z');
-    background:linear-gradient(155deg,rgba(255,255,255,.26),rgba(255,255,255,.07) 42%,rgba(110,140,255,.12)),rgba(26,28,48,.46);
-    -webkit-backdrop-filter:blur(16px) saturate(1.6); backdrop-filter:blur(16px) saturate(1.6); }
+    /* 收起态不做毛玻璃模糊（64 个常驻 backdrop-filter 会拖垮滚动/展开），用稍实的静态渐变保证标题可读；仅展开的那一个启用 blur */
+    background:linear-gradient(155deg,rgba(255,255,255,.22),rgba(255,255,255,.06) 42%,rgba(110,140,255,.12)),rgba(26,28,48,.6); }
+  .f-stage.open .f-glass{ -webkit-backdrop-filter:blur(16px) saturate(1.6); backdrop-filter:blur(16px) saturate(1.6); }
   .f-rim{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; fill:none; stroke:url(#jerryFGrad); stroke-width:1.2; }
   .f-front h3{ position:relative; margin:0; font:700 14px/1.4 "Noto Serif SC","Songti SC",serif; text-shadow:0 1px 8px rgba(0,0,0,.35);
     display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
@@ -439,41 +467,20 @@
     font:400 10.5px/1 "IBM Plex Mono",ui-monospace,Menlo,monospace; color:#dfe2f2; white-space:nowrap; overflow:hidden; }
   .f-meta span:last-child{ font-family:"Noto Serif SC","Songti SC",serif; font-size:11px; overflow:hidden; text-overflow:ellipsis; }
 
-  /* 窄桌面 / 平板横屏：维持三列同构、卡片原尺寸，只收紧列间距与扇形水平位移（防边卡飞出屏） */
-  @media (max-width:1280px){
-    .view-folder .post-grid{ gap:10px 10px; }
-    .view-folder .f-slot:has(.f-stage.open){ padding-top:140px; }
-    .f-card.fc1{ --fx:-88px; }
-    .f-card.fc3{ --fx:88px; }
+  /* 扇形水平位移：宽容器三列用较大张开（±92，给 shell padding 留余量、不压侧栏）；
+     窄容器（手机竖屏两列 / 超窄单列）收紧到 ±56，整体等比缩放后最外侧章节卡绝不飞出屏幕。
+     列数与缩放全部由前面的容器查询决定，不再写任何视口缩放断点 */
+  .f-card.fc1{ --fx:-70px; }
+  .f-card.fc3{ --fx:70px; }
+  @container (max-width:559px){
+    .f-card.fc1{ --fx:-54px; }
+    .f-card.fc3{ --fx:54px; }
   }
-  /* 平板竖屏（761~1023）：横向两栏（窄左栏+主区），文件夹两列等比微缩，结构与桌面一致仅更紧凑；
-     ≥1024 平板横屏仍走上方 ≤1280 三列档 */
-  @media (min-width:761px) and (max-width:1023px){
-    .view-folder .post-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 8px; padding:0; }
-    .f-slot{ transform:scale(.88); transform-origin:top center; margin-bottom:-36px; padding-bottom:8px; }
-    .view-folder .f-slot:has(.f-stage.open){ padding-top:132px; margin-bottom:-58px; }
-    .f-card.fc1{ --fx:-62px; --fy:-128px; }
-    .f-card.fc2{ --fx:2px;  --fy:-160px; }
-    .f-card.fc3{ --fx:62px; --fy:-130px; }
-  }
-  /* 手机（≤767）：竖屏两列小卡，收起紧凑无大空行，仅展开项向上腾空间 */
-  @media (max-width:767px){
-    .view-folder .post-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 6px; padding:0; }
-    .f-slot{ transform:scale(.74); transform-origin:top center; margin-bottom:-79px; padding-bottom:8px; }
-    .view-folder .f-slot:has(.f-stage.open){ padding-top:118px; margin-bottom:-110px; }
-    .f-card{ width:124px; height:146px; margin:-73px 0 0 -62px; }
-    /* 两列窄屏：扇形横向位移收紧到 ±48，保证最外侧章节卡不飞出屏幕，竖向高差保留扇形层次 */
-    .f-card.fc1{ --fx:-48px; --fy:-112px; --fr:-9deg; }
-    .f-card.fc2{ --fx:2px;  --fy:-144px; --fr:2deg; }
-    .f-card.fc3{ --fx:48px;  --fy:-114px; --fr:11deg; }
+  /* 手机端只做文字密度微调（文件夹形状/列数/缩放与设备无关，统一走容器查询） */
+  @media (max-width:760px){
     .f-front h3{ font-size:13px; }
     .f-meta{ left:14px; right:14px; gap:8px; }
     .f-meta span:last-child{ display:none; }
-  }
-  @media (max-width:380px){
-    .view-folder .post-grid{ grid-template-columns:1fr; }
-    .f-slot{ transform:scale(.9); margin-bottom:-30px; }
-    .view-folder .f-slot:has(.f-stage.open){ padding-top:120px; margin-bottom:-52px; }
   }
   @media (prefers-reduced-motion:reduce){ .f-tilt,.f-shell,.f-card,.f-front{ transition-duration:.01ms!important; } }
 
@@ -602,19 +609,13 @@
     .view-switcher button{ flex:1 1 0; justify-content:center; gap:4px; padding:7px 2px; font-size:12px; line-height:1; }
     .view-switcher button svg{ width:15px; height:15px; }
 
-    /* 竖屏图库两列（与文件夹一致），卡片精简：封面变矮、隐藏摘要 */
-    .view-gallery .post-grid { grid-template-columns: repeat(2,1fr); gap:10px; }
-    .view-gallery .post-preview{ height:96px; }
-    .view-gallery .post-bottom{ padding:9px 10px 11px; gap:4px; }
-    .view-gallery .post-excerpt{ display:none; }
-    .view-gallery .post-title{ /* 长标题手机端两行 */
-      font-size:12.5px; white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
-      overflow:hidden; align-items:flex-start; line-height:1.4; min-height:0;
+    /* 图库/列表手机端保持官方原版排版（图库单列、长标题两行、摘要照常显示），不随 folder 改造 */
+    .view-gallery .post-grid { grid-template-columns: 1fr; }
+    .view-gallery .post-title{ /* 长标题手机端允许两行，不再单行省略号 */
+      white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+      overflow:hidden; align-items:flex-start; line-height:1.45; min-height:2.6em;
     }
-    .view-gallery .post-title::before{flex:none;margin-top:2px}
-    .view-gallery .post-meta{ font-size:10px; gap:8px; }
-    /* 列表视图在手机仍保持单列，便于阅读 */
-    .view-list .post-grid{ grid-template-columns:1fr; }
+    .view-gallery .post-title::before{flex:none;margin-top:3px}
 
     .sidebar{
       position:fixed; top:0; left:0; height:100%; width:82%; max-width:320px;
@@ -970,7 +971,8 @@ function setupViewSwitcher() {
       buttons.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       
-      // 切换容器 Class
+      // 切换容器 Class；先收起所有文件夹并清掉悬停展开态，避免从 folder 切走再切回时残留展开
+      document.querySelectorAll('.f-stage.open').forEach(o=>{ o.classList.remove('open'); o._hover=false; });
       contentArea.className = '';
       contentArea.classList.add(`view-${mode}`);
       try{ localStorage.setItem('blogViewMode', mode); }catch(e){}
@@ -1105,18 +1107,9 @@ setupViewSwitcher();
     st._chapReady=true;
   }
 
-  /* ---------- 懒加载章节 ---------- */
-  let io=null;
-  function ensureIO(){
-    if(io) return io;
-    io=new IntersectionObserver(es=>es.forEach(en=>{
-      if(!en.isIntersecting) return;
-      const st=en.target; io.unobserve(st); loadChap(st);
-    }),{rootMargin:'240px 0px'});
-    return io;
-  }
+  /* ---------- 章节懒加载：仅在用户主动展开某篇时请求一次；首屏零后台请求、不批量拉整篇 markdown，不抢网络与主线程 ---------- */
   async function loadChap(st){
-    if(st.dataset.chap) return; st.dataset.chap='loading';
+    if(!st||st.dataset.chap) return; st.dataset.chap='loading';
     try{
       const r=await fetch('/api/post?slug='+encodeURIComponent(st.dataset.slug));
       const d=await r.json();
@@ -1124,36 +1117,33 @@ setupViewSwitcher();
       st.dataset.chap='done';
     }catch(e){ st.dataset.chap='err'; }
   }
-  function observeAll(){
-    if(!isFolder()) return;
-    const obs=ensureIO(), vh=window.innerHeight||800;
-    area().querySelectorAll('.f-stage:not([data-chap])').forEach(st=>{
-      const r=st.getBoundingClientRect();
-      // 首屏及附近一屏内立即加载，避免依赖观察器触发时机导致空白卡；更下方的才懒加载
-      if(r.top < vh+320 && r.bottom > -320) loadChap(st);
-      else obs.observe(st);
-    });
-  }
 
-  /* ---------- 3D 交互（复刻 lab：鼠标悬停翻开 / 触屏点按翻开；点章节卡直达章节） ---------- */
+  /* ---------- 3D 交互：所有端统一【首次点击方框=翻开预览章节 / 再次点击=打开文章】；不再鼠标悬停自动翻开；点章节卡直达章节 ---------- */
   let interactBound=false;
-  const openTouch=st=>{
-    document.querySelectorAll('.f-stage.open').forEach(o=>{ if(o!==st) o.classList.remove('open'); });
-    st._hover=true; st.classList.add('open');
-    // 滚到视口偏下（约 72%），让扇形卡片完整落在搜索/分类栏下方，不被遮挡
-    setTimeout(()=>{
-      const r=st.getBoundingClientRect();
-      const dy=r.top + r.height/2 - window.innerHeight*0.72;
-      window.scrollBy({ top:dy, behavior:'smooth' });
-    },80);
-  };
   const resetTilt=st=>{ const t=st.querySelector('.f-tilt'); if(t){ t.style.setProperty('--ty','0deg'); t.style.setProperty('--tx','0deg'); } };
+  const closeAll=except=>{ document.querySelectorAll('.f-stage.open').forEach(o=>{ if(o!==except){ o.classList.remove('open'); o._hover=false; resetTilt(o); } }); };
+  /* 展开后把文件夹平滑归正到视口正中：等展开类的顶部腾挪 padding 完成 reflow 再测量，
+     否则会按收起位置计算、展开后整体偏下一个腾挪高度；强制同步布局拿到真实视觉矩形 */
+  const centerOn=st=>{
+    const slot=st.closest('.f-slot')||st;
+    /* 等展开类的顶部腾挪 padding 完成 reflow（约两帧）后，按视觉矩形中心精确滚动 documentElement 归中；
+       滚动锚定已在 CSS 里对 folder 关闭，故这里 dy 稳定、不会被浏览器自动抵消（本站滚动根即 <html>） */
+    setTimeout(()=>{
+      const r=slot.getBoundingClientRect();
+      const dy=r.top+r.height/2-window.innerHeight/2;
+      if(Math.abs(dy)>4) window.scrollBy({ top:dy, behavior:'smooth' });
+    },70);
+  };
+  const openTouch=st=>{
+    closeAll(st);
+    if(!st.dataset.chap || st.dataset.chap==='err') loadChap(st);  // 主动展开：立即取章节，不等空闲预取
+    st._hover=true; st.classList.add('open');
+    centerOn(st);
+  };
   function bindInteract(){
     if(interactBound) return; interactBound=true;
-    document.addEventListener('pointerover',e=>{
-      if(!isFolder()||e.pointerType!=='mouse') return;
-      const st=e.target.closest&&e.target.closest('.f-stage'); if(st){ st._hover=true; st.classList.add('open'); }
-    });
+    // 已取消“鼠标悬停自动翻开 / 移出自动关合”：开合一律由点击决定，避免划过一排文件夹全展开（又乱又卡）。
+    // 仅保留鼠标在文件夹上的轻微 3D 跟随倾斜（不触发展开）。
     document.addEventListener('pointermove',e=>{
       if(!isFolder()||e.pointerType!=='mouse') return;
       const st=e.target.closest&&e.target.closest('.f-stage'); if(!st) return;
@@ -1162,22 +1152,15 @@ setupViewSwitcher();
       const t=st.querySelector('.f-tilt');
       if(t){ t.style.setProperty('--ty',(x*12).toFixed(2)+'deg'); t.style.setProperty('--tx',(-y*10).toFixed(2)+'deg'); }
     });
-    document.addEventListener('pointerout',e=>{
-      if(e.pointerType!=='mouse') return; // 触摸/手写笔点按抬起后也会派 pointerout，绝不能用它关合（开合由 pointerup 管）
-      const st=e.target.closest&&e.target.closest('.f-stage');
-      if(!st) return;
-      const rel=e.relatedTarget; if(rel && st.contains(rel)) return;
-      st._hover=false;
-      if(!S.pin){ st.classList.remove('open'); resetTilt(st); }
-    });
     // ---- 统一用 pointerup 判定轻点：pointerup 必然派发，不依赖浏览器合成 click 的微妙时序 ----
     // （触屏展开后卡片布局/pointer-events 变化，第二次合成 click 可能被浏览器吞掉；pointerup 不会）
     let press=null;
     document.addEventListener('pointerdown',e=>{
       if(!isFolder()){ press=null; return; }
-      const cardA=e.target.closest&&e.target.closest('.view-folder .post-card');
-      // 只记录起点，【绝不 preventDefault】，保证触屏垂直滑动可以正常滚动页面
-      press=cardA?{x:e.clientX,y:e.clientY,t:Date.now(),swiped:false,ptype:e.pointerType}:null;
+      const inArea=e.target.closest&&e.target.closest('#content-area.view-folder');
+      // folder 主区内任意位置（含文件夹之间的网格留白）都记录起点，轻点留白才能在 pointerup 里收起；
+      // 【绝不 preventDefault】，保证触屏垂直滑动可以正常滚动页面
+      press=inArea?{x:e.clientX,y:e.clientY,t:Date.now(),swiped:false,ptype:e.pointerType}:null;
     },true);
     document.addEventListener('pointermove',e=>{
       if(!press) return;
@@ -1187,23 +1170,27 @@ setupViewSwitcher();
     document.addEventListener('pointerup',e=>{
       const p=press; press=null;
       if(!isFolder()||!p) return;
-      if(p.swiped || Date.now()-p.t>700) return;            // 滑动 / 长按：不展开、不跳转
+      if(p.swiped || Date.now()-p.t>700) return;            // 滑动 / 长按：不展开、不跳转、不收合
       const hit=(document.elementFromPoint&&document.elementFromPoint(e.clientX,e.clientY))||e.target;
       const st=hit.closest&&hit.closest('.f-stage');
-      if(!st) return;                                        // 松手在方框外留白/缝隙：不响应
+      if(!st){
+        // 轻点文件夹之外的网格空白：收起已展开项（只收合、不跳转）；滑动已在上面排除
+        if(hit.closest&&hit.closest('#content-area.view-folder')) closeAll(null);
+        return;
+      }
       const card=hit.closest&&hit.closest('.f-card');
       if(card && st.classList.contains('open') && card.dataset.anchor){
         location.href='/p/'+st.dataset.slug+'#'+card.dataset.anchor; return; } // 章节卡直达
       const body=hit.closest&&hit.closest('.f-shell,.f-front');
-      if(!body) return;                                      // 只有方框本体（外壳/正面玻璃）可点开
-      if(p.ptype==='mouse'){ location.href='/p/'+st.dataset.slug; return; }   // 鼠标：悬停已预览，单击打开
-      if(!st.classList.contains('open')){ openTouch(st); return; }            // 触屏首次轻点=展开
-      location.href='/p/'+st.dataset.slug;                                   // 触屏再次轻点=打开
+      if(!body) return;                                      // 方框内缝隙（非外壳/正面/卡片）：不响应
+      if(!st.classList.contains('open')){ openTouch(st); return; }            // 鼠标/触屏统一：首次轻点方框=展开
+      location.href='/p/'+st.dataset.slug;                                   // 再次轻点方框=打开文章
     },true);
     // folder 卡片内禁用 <a> 原生 click 跳转：导航全部由上面的 pointerup 手动控制，
     // 这样滑动、点留白、点缝隙都绝不会触发原生跳转
     document.addEventListener('click',e=>{
       if(!isFolder()) return;
+      if(e.detail===0) return;  // 键盘 Enter / 辅助技术触发的原生 click（detail=0）放行，允许直接打开文章
       const cardA=e.target.closest&&e.target.closest('.view-folder .post-card');
       if(cardA){ e.preventDefault(); e.stopPropagation(); }
     },true);
@@ -1211,7 +1198,12 @@ setupViewSwitcher();
 
   /* ---------- DOM 变化后自动给新文件夹补图案/懒加载 ---------- */
   function watchDom(){
-    const mo=new MutationObserver(()=>{ if(!isFolder())return; apply(); observeAll(); });
+    let t=null;
+    const mo=new MutationObserver(()=>{
+      if(!isFolder())return;
+      if(t) clearTimeout(t);
+      t=setTimeout(()=>{ t=null; apply(); },120);  /* 防抖：渲染/图片回调期间只在停顿时补一次，避免反复遍历 64 个文件夹强制重排 */
+    });
     mo.observe(area(),{childList:true,subtree:true});
   }
 
@@ -1322,7 +1314,7 @@ setupViewSwitcher();
     (document.body||document.documentElement).appendChild(d);
   }
   window.JerryFolder={
-    activate(){ injectGrad(); bindInteract(); apply(); observeAll(); ensureEntry(); },
+    activate(){ injectGrad(); bindInteract(); apply(); ensureEntry(); },
     apply, loadTheme
   };
   document.addEventListener('DOMContentLoaded',()=>{ injectGrad(); loadTheme(); watchDom(); bindInteract(); if(isFolder()) JerryFolder.activate(); ensureEntry(); });
