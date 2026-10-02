@@ -145,7 +145,34 @@
 
   /* ================= 右侧栏：打卡/积分/天气/公告 ================= */
   .widgets{ width:270px; flex-shrink:0; display:flex; flex-direction:column; gap:16px; position:sticky; top:88px; }
-  @media (max-width:1180px){ .widgets{ display:none; } } /* 空间不够时先隐藏，保证主内容区可读性 */
+  /* ===== 左右栏折叠/显示（桌面记忆式折叠；窄屏右栏变右侧抽屉，手机用底部 dock 呼出） ===== */
+  .rail-toggles{ display:flex; gap:6px; flex-shrink:0; }
+  .rail-btn{ width:34px; height:34px; border-radius:10px; border:1px solid var(--glass-border); background:var(--glass);
+    color:var(--muted); font-size:15px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:.2s; backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); }
+  .rail-btn:hover{ color:#fff; background:var(--glass-strong); }
+  .rail-btn.is-off{ color:#101028; background:linear-gradient(135deg,var(--aqua),var(--violet)); border-color:transparent; }
+  .main-controls .main-tabbar{ margin-right:auto; }
+  .widgets-close{ display:none; }
+  /* 桌面端折叠：body 类隐藏对应栏，主区自动变宽；只在该栏为静态布局的断点生效 */
+  @media (min-width:1181px){ body.hide-right .widgets{ display:none; } }
+  @media (min-width:761px){ body.hide-left #sidebar{ display:none; } }
+  /* ≤1180：右栏改为右侧滑出抽屉，默认收起，点 ◨ / 📣 呼出；与左栏共用遮罩 */
+  @media (max-width:1180px){
+    .widgets, body.hide-right .widgets{
+      display:flex; position:fixed; top:0; right:0; height:100dvh; width:82%; max-width:340px; z-index:200;
+      border-radius:0; padding:22px; box-sizing:border-box; overflow-y:auto;
+      background:rgba(22,18,48,.96); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+      box-shadow:-20px 0 50px -20px rgba(0,0,0,.6);
+      transform:translateX(106%); transition:transform .32s cubic-bezier(.22,1,.36,1);
+    }
+    .widgets.open{ transform:translateX(0); }
+    .widgets-close{ display:flex; align-items:center; justify-content:center; width:30px;height:30px;border-radius:50%;
+      background:var(--glass);border:1px solid var(--glass-border); color:#fff; font-size:15px; margin:0 0 14px auto; cursor:pointer; }
+    .sidebar-backdrop{ display:block; position:fixed; inset:0; z-index:190; background:rgba(8,6,20,.55);
+      backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px); opacity:0; pointer-events:none; transition:opacity .3s; }
+    .sidebar-backdrop.open{ opacity:1; pointer-events:auto; }
+  }
   .widget-card{
     background:var(--glass); border:1px solid var(--glass-border); backdrop-filter:blur(16px);
     border-radius:16px; padding:16px 18px;
@@ -346,10 +373,11 @@
     backdrop-filter:none !important; -webkit-backdrop-filter:none !important; border-radius:0; transform:none !important; }
   .view-folder .post-card:hover{ background:transparent !important; box-shadow:none !important; transform:none !important; }
   .view-folder .post-preview, .view-folder .post-bottom{ display:none !important; }
-  .f-slot{ display:flex; justify-content:center; padding:150px 0 14px; }
-  .f-stage{ width:280px; height:296px; position:relative; perspective:1100px; cursor:pointer; outline:none; -webkit-tap-highlight-color:transparent; }
-  /* 扩大悬停热区，鼠标移到飞出的卡片/上方间隙时不会误合上 */
-  .f-stage.open::before{ content:""; position:absolute; left:-80px; right:-80px; top:-150px; bottom:0; }
+  /* 收起态零上方留白，网格紧凑；只有展开的那个文件夹临时在上方腾出卡片空间（:has） */
+  .f-slot{ display:flex; justify-content:center; padding:0 0 10px; transition:padding .35s cubic-bezier(.16,1,.3,1); }
+  .view-folder .f-slot:has(.f-stage.open){ padding-top:150px; }
+  .f-stage{ width:280px; height:296px; position:relative; perspective:1100px; cursor:pointer; outline:none;
+    -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
   .f-tilt{ position:absolute; inset:0; perspective:900px; transform:rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg)); transition:transform .8s cubic-bezier(.16,1,.3,1); }
   .f-stage.open .f-tilt{ transform:rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg)) scale(1.04) rotate(-1.5deg); }
   .view-folder .post-card:has(.f-stage.open){ position:relative; z-index:99990; }
@@ -414,32 +442,38 @@
   /* 窄桌面 / 平板横屏：维持三列同构、卡片原尺寸，只收紧列间距与扇形水平位移（防边卡飞出屏） */
   @media (max-width:1280px){
     .view-folder .post-grid{ gap:10px 10px; }
+    .view-folder .f-slot:has(.f-stage.open){ padding-top:140px; }
     .f-card.fc1{ --fx:-88px; }
     .f-card.fc3{ --fx:88px; }
   }
-  /* 平板竖屏（768~900）：仍三列，整体等比微缩到刚好放下，扇形同步收紧，结构与桌面完全一致 */
-  @media (max-width:900px){
-    .view-folder .post-grid{ grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px 4px; padding:0 6px; }
-    .f-slot{ transform:scale(.86); transform-origin:top center; margin-bottom:-42px; padding:140px 0 8px; }
-    .f-card.fc1{ --fx:-74px; --fy:-128px; }
+  /* 平板竖屏（761~1023）：横向两栏（窄左栏+主区），文件夹两列等比微缩，结构与桌面一致仅更紧凑；
+     ≥1024 平板横屏仍走上方 ≤1280 三列档 */
+  @media (min-width:761px) and (max-width:1023px){
+    .view-folder .post-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 8px; padding:0; }
+    .f-slot{ transform:scale(.88); transform-origin:top center; margin-bottom:-36px; padding-bottom:8px; }
+    .view-folder .f-slot:has(.f-stage.open){ padding-top:132px; margin-bottom:-58px; }
+    .f-card.fc1{ --fx:-62px; --fy:-128px; }
     .f-card.fc2{ --fx:2px;  --fy:-160px; }
-    .f-card.fc3{ --fx:74px; --fy:-130px; }
+    .f-card.fc3{ --fx:62px; --fy:-130px; }
   }
-  /* 手机（≤767）：两列小卡，章节卡收紧，避免占满屏/飞出屏幕 */
+  /* 手机（≤767）：竖屏两列小卡，收起紧凑无大空行，仅展开项向上腾空间 */
   @media (max-width:767px){
-    .view-folder .post-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 6px; padding:0; }
-    .f-slot{ transform:scale(.74); transform-origin:top center; margin-bottom:-72px; padding:118px 0 10px; }
+    .view-folder .post-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 6px; padding:0; }
+    .f-slot{ transform:scale(.74); transform-origin:top center; margin-bottom:-79px; padding-bottom:8px; }
+    .view-folder .f-slot:has(.f-stage.open){ padding-top:118px; margin-bottom:-110px; }
     .f-card{ width:124px; height:146px; margin:-73px 0 0 -62px; }
-    .f-card.fc1{ --fx:-74px; --fy:-112px; --fr:-9deg; }
+    /* 两列窄屏：扇形横向位移收紧到 ±48，保证最外侧章节卡不飞出屏幕，竖向高差保留扇形层次 */
+    .f-card.fc1{ --fx:-48px; --fy:-112px; --fr:-9deg; }
     .f-card.fc2{ --fx:2px;  --fy:-144px; --fr:2deg; }
-    .f-card.fc3{ --fx:78px;  --fy:-114px; --fr:11deg; }
+    .f-card.fc3{ --fx:48px;  --fy:-114px; --fr:11deg; }
     .f-front h3{ font-size:13px; }
     .f-meta{ left:14px; right:14px; gap:8px; }
     .f-meta span:last-child{ display:none; }
   }
   @media (max-width:380px){
     .view-folder .post-grid{ grid-template-columns:1fr; }
-    .f-slot{ transform:scale(.9); margin-bottom:-26px; padding:140px 0 12px; }
+    .f-slot{ transform:scale(.9); margin-bottom:-30px; }
+    .view-folder .f-slot:has(.f-stage.open){ padding-top:120px; margin-bottom:-52px; }
   }
   @media (prefers-reduced-motion:reduce){ .f-tilt,.f-shell,.f-card,.f-front{ transition-duration:.01ms!important; } }
 
@@ -485,9 +519,15 @@
 
   mark{background:linear-gradient(120deg,var(--coral),var(--pink));color:#1a0f2b;padding:0 2px;border-radius:3px;}
 
-  @media (max-width:900px){
-    .shell{flex-direction:column;}
-    .sidebar{width:100%;position:static;}
+  /* 平板（761~1180）：与桌面保持一致的横向布局——左栏收窄后静态显示、右栏为滑出抽屉，
+     不再像旧版 ≤900 那样纵向堆叠把左栏整行顶到最上方；手机 ≤760 两栏均为抽屉（见下方手机断点） */
+  @media (min-width:761px) and (max-width:1180px){
+    .shell{ gap:14px; padding:0 16px; }
+    .sidebar{ width:196px; padding:18px; }
+  }
+  @media (min-width:761px) and (max-width:1023px){
+    .shell{ gap:12px; padding:0 12px; }
+    .sidebar{ width:170px; padding:15px; }
   }
 
   /* 手机端适配 */
@@ -542,7 +582,8 @@
 
   @media (max-width:760px){
     .shell{ z-index:auto; margin-top: 10px; } 
-    .main-controls { position:sticky; z-index:40; margin:0 -20px 18px; padding:10px 20px; background:rgba(20,16,45,.75); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); flex-wrap: nowrap; }
+    .main-controls { position:sticky; z-index:40; margin:0 -20px 18px; padding:10px 16px; background:rgba(20,16,45,.75); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); flex-wrap: nowrap; flex-direction:column; align-items:stretch; gap:8px; }
+    .rail-toggles{ display:none; } /* 手机端侧栏开关移到底部悬浮 dock（🔍 左栏 / 📣 右栏） */
     .tabbar{
       border:none; padding:0; background:transparent; width:100%;
       display:flex; gap:6px;
@@ -556,14 +597,24 @@
     .tabbar a.locked .cat-full-name{ display:none; }
     .tabbar a.locked .cat-short-name{ display:inline; } /* 手机端 Rumi英语技术 → 简称"英语技术"，省地方 */
     
-    .view-switcher { display: none; } /* 手机端空间有限，默认隐藏切换按钮，直接走响应式单列 */
+    /* 手机端同样可切换 图库/列表/文件夹：分段控件占满第二行 */
+    .view-switcher { display:flex; width:100%; justify-content:stretch; gap:4px; padding:4px; }
+    .view-switcher button{ flex:1 1 0; justify-content:center; gap:4px; padding:7px 2px; font-size:12px; line-height:1; }
+    .view-switcher button svg{ width:15px; height:15px; }
 
-    .view-gallery .post-grid { grid-template-columns: 1fr; } /* 手机端强制单列 */
-    .view-gallery .post-title{ /* 长标题手机端允许两行，不再单行省略号 */
-      white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
-      overflow:hidden; align-items:flex-start; line-height:1.45; min-height:2.6em;
+    /* 竖屏图库两列（与文件夹一致），卡片精简：封面变矮、隐藏摘要 */
+    .view-gallery .post-grid { grid-template-columns: repeat(2,1fr); gap:10px; }
+    .view-gallery .post-preview{ height:96px; }
+    .view-gallery .post-bottom{ padding:9px 10px 11px; gap:4px; }
+    .view-gallery .post-excerpt{ display:none; }
+    .view-gallery .post-title{ /* 长标题手机端两行 */
+      font-size:12.5px; white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+      overflow:hidden; align-items:flex-start; line-height:1.4; min-height:0;
     }
-    .view-gallery .post-title::before{flex:none;margin-top:3px}
+    .view-gallery .post-title::before{flex:none;margin-top:2px}
+    .view-gallery .post-meta{ font-size:10px; gap:8px; }
+    /* 列表视图在手机仍保持单列，便于阅读 */
+    .view-list .post-grid{ grid-template-columns:1fr; }
 
     .sidebar{
       position:fixed; top:0; left:0; height:100%; width:82%; max-width:320px;
@@ -703,7 +754,11 @@
 
   <main class="main">
     <div class="main-controls" data-module="b-bar">
-      <div class="tabbar mono" id="tabbar">
+      <div class="rail-toggles" id="railToggles">
+        <button type="button" id="leftRailBtn" class="rail-btn" title="折叠/显示左侧栏" aria-label="折叠或显示左侧栏">◧</button>
+        <button type="button" id="rightRailBtn" class="rail-btn" title="折叠/显示右侧栏" aria-label="折叠或显示右侧栏">◨</button>
+      </div>
+      <div class="tabbar main-tabbar mono" id="tabbar">
         <a href="#all" class="active" data-filter="all">全部</a>
       </div>
       
@@ -730,7 +785,8 @@
     </div>
   </main>
 
-  <aside class="widgets">
+  <aside class="widgets" id="widgets">
+    <div class="widgets-close" id="widgetsClose">✕</div>
     <div class="widget-card" data-module="w-points">
       <div class="widget-title">⚡ 桌宠积分</div>
       <div id="pointsWidgetBody"><div class="login-hint">积分可以在Zara小房间换喂养道具</div></div>
@@ -867,6 +923,7 @@
 
 <div id="mobile-action-dock">
   <button id="pet-menu-btn" type="button" class="dock-btn" aria-label="打开桌宠功能">📊</button>
+  <button class="mobile-fab dock-btn" id="widgetsFab" aria-label="打开积分与更新日志">📣</button>
   <button class="mobile-fab dock-btn" id="mobileFab" aria-label="打开搜索/导航">🔍</button>
 </div>
 
@@ -1106,35 +1163,49 @@ setupViewSwitcher();
       if(t){ t.style.setProperty('--ty',(x*12).toFixed(2)+'deg'); t.style.setProperty('--tx',(-y*10).toFixed(2)+'deg'); }
     });
     document.addEventListener('pointerout',e=>{
+      if(e.pointerType!=='mouse') return; // 触摸/手写笔点按抬起后也会派 pointerout，绝不能用它关合（开合由 pointerup 管）
       const st=e.target.closest&&e.target.closest('.f-stage');
       if(!st) return;
       const rel=e.relatedTarget; if(rel && st.contains(rel)) return;
       st._hover=false;
       if(!S.pin){ st.classList.remove('open'); resetTilt(st); }
     });
-    // pointerdown：记录指针类型；触屏首次点主体（未展开、未点卡片）拦截并展开，不跳转
+    // ---- 统一用 pointerup 判定轻点：pointerup 必然派发，不依赖浏览器合成 click 的微妙时序 ----
+    // （触屏展开后卡片布局/pointer-events 变化，第二次合成 click 可能被浏览器吞掉；pointerup 不会）
+    let press=null;
     document.addEventListener('pointerdown',e=>{
-      if(!isFolder()) return;
-      const st=e.target.closest&&e.target.closest('.f-stage'); if(!st) return;
-      st._ptype=e.pointerType;
-      if(e.pointerType==='touch' && !st.classList.contains('open') && !(e.target.closest&&e.target.closest('.f-card'))){
-        e.preventDefault(); st._tapOpened=true; openTouch(st);
-      }
+      if(!isFolder()){ press=null; return; }
+      const cardA=e.target.closest&&e.target.closest('.view-folder .post-card');
+      // 只记录起点，【绝不 preventDefault】，保证触屏垂直滑动可以正常滚动页面
+      press=cardA?{x:e.clientX,y:e.clientY,t:Date.now(),swiped:false,ptype:e.pointerType}:null;
     },true);
-    // click：① 点章节卡→直达该章节；② 首次展开的那一下→只展开；③ 其余点主体（鼠标单击/触屏第二次点）→打开文章
+    document.addEventListener('pointermove',e=>{
+      if(!press) return;
+      if(Math.abs(e.clientX-press.x)>10 || Math.abs(e.clientY-press.y)>10) press.swiped=true; // 位移超阈值=滑动
+    },true);
+    document.addEventListener('pointercancel',()=>{ if(press) press.swiped=true; },true);
+    document.addEventListener('pointerup',e=>{
+      const p=press; press=null;
+      if(!isFolder()||!p) return;
+      if(p.swiped || Date.now()-p.t>700) return;            // 滑动 / 长按：不展开、不跳转
+      const hit=(document.elementFromPoint&&document.elementFromPoint(e.clientX,e.clientY))||e.target;
+      const st=hit.closest&&hit.closest('.f-stage');
+      if(!st) return;                                        // 松手在方框外留白/缝隙：不响应
+      const card=hit.closest&&hit.closest('.f-card');
+      if(card && st.classList.contains('open') && card.dataset.anchor){
+        location.href='/p/'+st.dataset.slug+'#'+card.dataset.anchor; return; } // 章节卡直达
+      const body=hit.closest&&hit.closest('.f-shell,.f-front');
+      if(!body) return;                                      // 只有方框本体（外壳/正面玻璃）可点开
+      if(p.ptype==='mouse'){ location.href='/p/'+st.dataset.slug; return; }   // 鼠标：悬停已预览，单击打开
+      if(!st.classList.contains('open')){ openTouch(st); return; }            // 触屏首次轻点=展开
+      location.href='/p/'+st.dataset.slug;                                   // 触屏再次轻点=打开
+    },true);
+    // folder 卡片内禁用 <a> 原生 click 跳转：导航全部由上面的 pointerup 手动控制，
+    // 这样滑动、点留白、点缝隙都绝不会触发原生跳转
     document.addEventListener('click',e=>{
       if(!isFolder()) return;
-      const st=e.target.closest&&e.target.closest('.f-stage'); if(!st) return;
-      const card=e.target.closest&&e.target.closest('.f-card');
-      if(card && st.classList.contains('open') && card.dataset.anchor){
-        e.preventDefault(); e.stopPropagation();
-        location.href='/p/'+st.dataset.slug+'#'+card.dataset.anchor;
-        return;
-      }
-      if(st._tapOpened){ st._tapOpened=false; e.preventDefault(); e.stopPropagation(); return; }
-      // 点文件夹主体 → 打开文章（手动导航，避免触屏滚动/卡片层级导致 a 默认跳转失效）
-      e.preventDefault(); e.stopPropagation();
-      location.href='/p/'+st.dataset.slug;
+      const cardA=e.target.closest&&e.target.closest('.view-folder .post-card');
+      if(cardA){ e.preventDefault(); e.stopPropagation(); }
     },true);
   }
 
@@ -1285,6 +1356,52 @@ function setupMobileChrome(){
   window.addEventListener('resize', syncStickyTop);
 }
 
+/* ============ 左右侧栏 折叠/显示（全端） ============ */
+function setupRails(){
+  const body=document.body;
+  const sidebar=document.getElementById('sidebar');
+  const widgets=document.getElementById('widgets');
+  const backdrop=document.getElementById('sidebarBackdrop');
+  const leftBtn=document.getElementById('leftRailBtn');
+  const rightBtn=document.getElementById('rightRailBtn');
+  const wFab=document.getElementById('widgetsFab');
+  const wClose=document.getElementById('widgetsClose');
+  if(!sidebar||!widgets||!leftBtn||!rightBtn) return;
+  const deskR=window.matchMedia('(min-width:1181px)'); // 右栏静态布局断点
+  const wideL=window.matchMedia('(min-width:761px)');  // 左栏静态布局断点
+  try{
+    if(wideL.matches && localStorage.getItem('blogHideLeft')==='1') body.classList.add('hide-left');
+    if(deskR.matches && localStorage.getItem('blogHideRight')==='1') body.classList.add('hide-right');
+  }catch(e){}
+  const syncBtn=()=>{
+    leftBtn.classList.toggle('is-off', wideL.matches && body.classList.contains('hide-left'));
+    rightBtn.classList.toggle('is-off', deskR.matches && body.classList.contains('hide-right'));
+  };
+  const openRight=()=>{ widgets.classList.add('open'); backdrop&&backdrop.classList.add('open'); };
+  const closeRight=()=>{ widgets.classList.remove('open');
+    if(backdrop && !sidebar.classList.contains('open')) backdrop.classList.remove('open'); };
+  leftBtn.addEventListener('click',()=>{
+    if(!wideL.matches){ sidebar.classList.add('open'); backdrop&&backdrop.classList.add('open'); return; } // 兜底：窄屏呼出左抽屉
+    const off=body.classList.toggle('hide-left');
+    try{ localStorage.setItem('blogHideLeft', off?'1':'0'); }catch(e){}
+    syncBtn();
+  });
+  rightBtn.addEventListener('click',()=>{
+    if(!deskR.matches){ widgets.classList.contains('open')?closeRight():openRight(); return; } // 窄屏=右抽屉开关
+    const off=body.classList.toggle('hide-right');
+    try{ localStorage.setItem('blogHideRight', off?'1':'0'); }catch(e){}
+    syncBtn();
+  });
+  if(wFab) wFab.addEventListener('click',()=>{ widgets.classList.contains('open')?closeRight():openRight(); });
+  if(wClose) wClose.addEventListener('click',closeRight);
+  if(backdrop) backdrop.addEventListener('click',closeRight); // 左栏的关闭由 setupMobileChrome 处理
+  // 跨断点时清掉桌面折叠类，避免抽屉模式下栏被永久隐藏
+  const clear=()=>{ if(!deskR.matches) body.classList.remove('hide-right');
+    if(!wideL.matches) body.classList.remove('hide-left'); syncBtn(); };
+  deskR.addEventListener?.('change',clear); wideL.addEventListener?.('change',clear);
+  syncBtn();
+}
+
 // 预取站点公开配置（默认封面等），与文章列表并行
 const siteCfgPromise = fetch('/site.config.json', { cache: 'no-store' })
   .then(r => r.ok ? r.json() : null).catch(() => null);
@@ -1316,7 +1433,8 @@ async function loadPosts(){
     buildRecentList(allPosts);
     buildArchive(allPosts);
     setupMobileChrome();
-    
+    setupRails();
+
     renderMobilePaged(allPosts, 1);
 
   } catch (err) {

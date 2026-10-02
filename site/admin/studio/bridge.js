@@ -156,8 +156,8 @@
     var css = document.createElement('style');
     css.id = 'jerry-blog-enhance-css';
     css.textContent = [
-      /* 桌面/平板隐藏左侧栏（分类/最近/归档），主栏收窄居中；手机 ≤760px 保留抽屉 */
-      '@media (min-width:761px){ .sidebar{ display:none!important; } .shell{ max-width:1280px; } }',
+      /* 左右侧栏默认显示；显隐交给博客页 ◧/◨ 折叠按钮（body.hide-left / hide-right + localStorage 记忆），
+         不再在桌面强制隐藏左栏，也不限制 .shell 最大宽度，保证三列文件夹视图有足够空间 */
       /* 卡片悬停编辑钮 */
       '.post-card{ position:relative; }',
       '.jerry-edit-btn{ position:absolute; top:12px; right:12px; width:32px; height:32px; border-radius:50%;',
