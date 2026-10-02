@@ -101,7 +101,7 @@
         .then(function (d) { if (d && d.chatReady) initCat(); })
         .catch(function () {});
     }
-    if (CFG.music && CFG.music.enabled && (CFG.music.songIds || []).length) initMusic();
+    injectCapsulePlayer();
     injectFooter();
   }
 
@@ -323,7 +323,17 @@
     input.addEventListener('keydown', function (e) { if (e.key === 'Enter') send(); });
   }
 
-  /* ---------- 悬浮音乐播放器（网易云） ---------- */
+  /* ---------- 胶囊滚动条 + 网易云票据播放器（独立组件 capsule-player.js） ---------- */
+  function injectCapsulePlayer() {
+    if (window.__jerryCapsule || document.querySelector('script[data-jcap]')) return;
+    var s = document.createElement('script');
+    s.src = '/assets/capsule-player.js';
+    s.defer = true;
+    s.setAttribute('data-jcap', '1');
+    document.head.appendChild(s);
+  }
+
+  /* ---------- 旧版悬浮音乐播放器（已被 capsule-player.js 取代，不再调用，保留备查） ---------- */
   function initMusic() {
     var ids = (CFG.music.songIds || []).filter(Boolean);
     var idx = 0;

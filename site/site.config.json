@@ -70,9 +70,11 @@
     "apiBase": "https://7bu.top"
   },
   "music": {
-    "enabled": false,
+    "enabled": true,
     "playerTitle": "BGM",
-    "songIds": [],
+    "songIds": [
+      "3313898351"
+    ],
     "defaultVolume": 0.5
   },
   "footer": {
