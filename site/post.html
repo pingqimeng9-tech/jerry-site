@@ -812,6 +812,18 @@ function buildTOC(){
   }, { rootMargin: '-90px 0px -70% 0px' });
 
   headings.forEach(h => observer.observe(h));
+
+  // 外部带 #toc-heading-N 进入（如博客文件夹章节卡直达）：正文异步渲染，轮询定位
+  (function () {
+    const m = (location.hash || '').match(/^#(toc-heading-\d+)$/);
+    if (!m) return;
+    let n = 0;
+    const timer = setInterval(() => {
+      const el = document.getElementById(m[1]);
+      if (el) { el.scrollIntoView({ block: 'start' }); clearInterval(timer); }
+      else if (++n > 25) clearInterval(timer);
+    }, 120);
+  })();
 }
 
 // ===== frontmatter：解析 markdown 开头的 --- 元数据块（title/date/category/tags/cover/excerpt/mood 等）=====

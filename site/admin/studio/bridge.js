@@ -82,6 +82,7 @@
   }
 
   function inject() {
+    try { document.dispatchEvent(new CustomEvent('jerry:admin-ready')); } catch (e) {}
     injectNavLinks();
     injectPostPill();
     injectBlogEnhancements();
