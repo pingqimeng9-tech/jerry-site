@@ -14,6 +14,7 @@
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 <script src="/assets/pwa-install.js" defer></script>
 <script src="/assets/capsule-player.js" data-player-only defer></script>
+<script src="/assets/layout.js" defer></script>
 <script src="/assets/home-layout.js" defer></script>
 <!--
   创意网站模板库 v2 —— 照着 carterogunsola.com/lab 复刻
@@ -195,7 +196,7 @@ html.embed{--top:0px;--bot:0px}
 @media(max-width:560px){.mn-name{display:none}}
 </style>
 </head>
-<body>
+<body data-page="index">
 <div class="grain"></div><div class="dots"></div>
 
 <nav class="mnav" aria-label="主导航">
@@ -210,7 +211,7 @@ html.embed{--top:0px;--bot:0px}
   <div class="mn-cta" id="msw" role="group" aria-label="切换配色"></div>
 </nav>
 
-<header class="bar">
+<header class="bar" data-module="topbar">
   <nav class="nav" id="nav" aria-label="分类"></nav>
   <div class="tools">
     <div class="seg" role="group" aria-label="主题">
@@ -220,10 +221,10 @@ html.embed{--top:0px;--bot:0px}
   </div>
 </header>
 
-<main id="stage"></main>
+<main id="stage" data-module="template-stage"></main>
 <section class="gal" id="gal" hidden aria-label="模板画廊"></section>
 
-<div class="mdl" id="mdl" hidden>
+<div class="mdl" id="mdl" hidden data-module="template-dialog">
   <div class="mdl-box" role="dialog" aria-modal="true" aria-label="模板详情">
     <header><div><div class="mdl-cat"></div><h2 class="mdl-t"></h2></div><div class="mdl-r"><a class="mdl-src" id="msrc" target="_blank" rel="noopener noreferrer" hidden></a><button class="mdl-x" id="mx" aria-label="关闭">✕</button></div></header>
     <div class="mdl-main">
@@ -250,7 +251,7 @@ html.embed{--top:0px;--bot:0px}
   </div>
 </div>
 
-<div class="dock">
+<div class="dock" data-module="template-dock">
   <div class="hint" id="hint"></div>
   <div class="chips" id="chips" aria-label="模板"></div>
 </div>
@@ -3314,9 +3315,9 @@ function openPen(t,p){
 const ioG=new IntersectionObserver(es=>es.forEach(en=>{const f=en.target;if(en.isIntersecting&&!f._done){f._done=true;f.appendChild(mkFrame(f.dataset.id,true))}else if(!en.isIntersecting&&f._done){f._done=false;f.innerHTML=''}}),{root:gal,rootMargin:'60px'});
 const roG=new ResizeObserver(es=>es.forEach(en=>en.target.style.setProperty('--s',en.contentRect.width/FRAME_W)));
 function buildGal(){
-  gal.innerHTML=`<div class="gal-inner"><div class="gal-head"><h1>Templates</h1><p>${TPL.length} 个模板，每张卡都在实时运行。点开可以玩、调参数，并复制提示词、HTML、TSX。前 12 个复刻自 carterogunsola.com/lab，其余为原创实现（灵感来自 Design Spells、Skillry 等）。</p></div>
-  <label class="gal-search"><input id="gq" placeholder="What do you want to create?  搜名称 / 咒语 / 标签" autocomplete="off"><span>⌕</span></label>
-  <div class="gal-tagbar"><button class="gal-tgl" aria-expanded="false" aria-controls="gtw">标签 <i aria-hidden="true">▾</i></button><span class="gal-cur"></span></div><div class="gal-tagwrap" id="gtw"><div class="gal-tags"></div></div><div class="gal-grid"></div></div>`;
+  gal.innerHTML=`<div class="gal-inner"><div class="gal-head" data-module="gallery-heading"><h1>Templates</h1><p>${TPL.length} 个模板，每张卡都在实时运行。点开可以玩、调参数，并复制提示词、HTML、TSX。前 12 个复刻自 carterogunsola.com/lab，其余为原创实现（灵感来自 Design Spells、Skillry 等）。</p></div>
+  <label class="gal-search" data-module="gallery-search"><input id="gq" placeholder="What do you want to create?  搜名称 / 咒语 / 标签" autocomplete="off"><span>⌕</span></label>
+  <div class="gal-filters" data-module="gallery-filters"><div class="gal-tagbar"><button class="gal-tgl" aria-expanded="false" aria-controls="gtw">标签 <i aria-hidden="true">▾</i></button><span class="gal-cur"></span></div><div class="gal-tagwrap" id="gtw"><div class="gal-tags"></div></div></div><div class="gal-grid" data-module="gallery-grid"></div></div>`;
   const grid=$('.gal-grid',gal),tg=$('.gal-tags',gal),tw=$('.gal-tagwrap',gal),tgl=$('.gal-tgl',gal),cur=$('.gal-cur',gal);
   const setOpen=o=>{tw.classList.toggle('open',o);tgl.setAttribute('aria-expanded',o)};
   const paintCur=()=>{cur.classList.toggle('on',!!tagF);cur.innerHTML=tagF?`${esc(tagF)} <b role="button" aria-label="清除标签" title="清除">✕</b>`:'';const x=$('b',cur);if(x)x.onclick=()=>{tagF=null;tg.querySelectorAll('button').forEach(y=>y.setAttribute('aria-pressed',!y.dataset.tag));paintCur();applyFilter()}};
@@ -3441,5 +3442,6 @@ if(EMBED){
   hv>=0?showTemplate(hv,false):enterGallery();
 }
 </script>
+<script src="/admin/studio/bridge.js" defer></script>
 </body>
 </html>

@@ -51,34 +51,66 @@
     "index": {
       "modules": [
         {
-          "id": "hero",
-          "title": "首屏 Hero（打字机 + 名片卡）",
+          "id": "topbar",
+          "title": "顶部分类与主题栏",
           "hidden": false,
           "sortable": false
         },
         {
-          "id": "about",
-          "title": "01 我是谁",
+          "id": "template-stage",
+          "title": "模板演示画布",
+          "hidden": false,
+          "sortable": false
+        },
+        {
+          "id": "template-dialog",
+          "title": "模板详情与代码面板",
+          "hidden": false,
+          "sortable": false
+        },
+        {
+          "id": "gallery-heading",
+          "title": "画廊标题与介绍",
           "hidden": false,
           "sortable": true
         },
         {
-          "id": "timeline",
-          "title": "02 我的经历",
+          "id": "gallery-search",
+          "title": "模板搜索",
           "hidden": false,
           "sortable": true
         },
         {
-          "id": "reflect",
-          "title": "03 深层反思",
+          "id": "gallery-filters",
+          "title": "分类与标签筛选",
           "hidden": false,
           "sortable": true
         },
         {
-          "id": "links",
-          "title": "04 我的系统（博客/抖音/Notion 入口）",
+          "id": "gallery-grid",
+          "title": "模板卡片网格",
           "hidden": false,
           "sortable": true
+        },
+        {
+          "id": "template-dock",
+          "title": "底部模板导航",
+          "hidden": false,
+          "sortable": false
+        }
+      ],
+      "texts": [
+        {
+          "key": "index.gallery.title",
+          "label": "首页标题",
+          "selector": ".gal-head h1",
+          "default": "Templates"
+        },
+        {
+          "key": "index.gallery.description",
+          "label": "首页介绍",
+          "selector": ".gal-head p",
+          "default": "29 个模板，每张卡都在实时运行。点开可以玩、调参数，并复制提示词、HTML、TSX。前 12 个复刻自 carterogunsola.com/lab，其余为原创实现（灵感来自 Design Spells、Skillry 等）。"
         }
       ]
     },
