@@ -1,6 +1,7 @@
 /* ============================================================
    Jerry Capsule Player —— 胶囊滚动条 + 网易云票据播放器（全站组件）
    页面侧引入：<script src="/assets/capsule-player.js" defer></script>
+   仅启用播放器：<script src="/assets/capsule-player.js" data-player-only defer></script>
    ------------------------------------------------------------
    · 胶囊滚动条：跟随【原生滚动】（不锁 body、不用 transform 劫持），
      视觉/交互复刻 Capsule Scrollbar：静止细条 → 滚动/悬停/拖动时
@@ -12,10 +13,11 @@
    · 后台 /admin 与 packages 独立页不引入本文件。
    ============================================================ */
 (function () {
-  if (window.__jerryCapsule) return;
+  if (window.__EMBED || window.__jerryCapsule) return;
   window.__jerryCapsule = true;
 
   var SRC = (document.currentScript && document.currentScript.src) || '/assets/capsule-player.js';
+  var PLAYER_ONLY = !!(document.currentScript && document.currentScript.hasAttribute('data-player-only'));
   var DIR = SRC.replace(/[^/]*$/, '');                 // 通常是 /assets/
   var GSAp = DIR + 'vendor/gsap.min.js';
   var LS_KEY = 'jerry.music.v1';
@@ -124,7 +126,9 @@
     '#jm .mt-cover.has-img{color:transparent}',
     '@keyframes jm-spin{to{transform:rotate(360deg)}}',
     '@media (max-width:560px){#jm .jm-full{width:224px}}'
-  ].join('\n');
+  ].filter(function (rule) {
+    return !PLAYER_ONLY || (rule.indexOf('#jcap') < 0 && rule.indexOf('scrollbar') < 0);
+  }).join('\n');
 
   var gsap = null;
   var bottomPad = 12;   // 底部避让高度（本地编辑条 .jl-bar 出现时上抬播放器/滚动条）
@@ -613,7 +617,7 @@
     var st = document.createElement('style');
     st.textContent = css;
     document.head.appendChild(st);
-    mountCapsule();
+    if (!PLAYER_ONLY) mountCapsule();
     avoidEditBar();
     fetchMusicConfig().then(function (mc) {
       if (mc && mc.enabled && (mc.songIds || []).length) {

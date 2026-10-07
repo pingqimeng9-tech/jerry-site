@@ -13,6 +13,7 @@
 <link rel="icon" href="/icons/icon-192.png">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 <script src="/assets/pwa-install.js" defer></script>
+<script src="/assets/capsule-player.js" data-player-only defer></script>
 <!--
   创意网站模板库 v2 —— 照着 carterogunsola.com/lab 复刻
   SHELL（外壳） / 工具 / CONTENT（内容） / 模板（每个 registerTemplate 一块，自带 css、knobs、notes）
@@ -63,8 +64,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--fg);outline-off
 .nav button{padding:7px 13px;border-radius:7px;font-size:15px;white-space:nowrap;color:var(--mut)}
 .nav button[aria-pressed=true]{background:var(--line);color:var(--fg)}
 .tools{display:flex;gap:8px}
-.tools>button,.seg{height:42px;border:1px solid var(--line);background:var(--pill);border-radius:10px}
-.tools>button{min-width:46px;padding:0 12px;font-size:15px;text-align:center}
+.seg{height:42px;border:1px solid var(--line);background:var(--pill);border-radius:10px}
 .seg{display:flex;padding:4px;gap:2px}
 .seg button{width:34px;border-radius:7px;display:grid;place-items:center;color:var(--mut)}
 .seg button[aria-pressed=true]{background:var(--line);color:var(--fg)}
@@ -214,7 +214,6 @@ html.embed{--top:0px;--bot:0px}
 <header class="bar">
   <nav class="nav" id="nav" aria-label="分类"></nav>
   <div class="tools">
-    <button id="dbtn" aria-label="安装 / 下载 App">⤓</button>
     <div class="seg" role="group" aria-label="主题">
       <button id="tl" aria-label="浅色" aria-pressed="false">☀</button>
       <button id="td" aria-label="深色" aria-pressed="true">☾</button>
