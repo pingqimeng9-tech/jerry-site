@@ -84,6 +84,8 @@
   .home-preview-stage{flex:1;min-height:0;overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:12px;background:radial-gradient(ellipse at 50% 0%,rgba(177,140,255,.08),transparent 52%),#101014}
   .home-preview-stage iframe{width:100%;height:650px;flex:none;border:1px solid rgba(255,255,255,.12);border-radius:11px;background:#1b1b1b;transition:width .25s ease}
   .home-preview-stage.mobile iframe{width:390px}
+  .home-studio.page-mode{grid-template-columns:minmax(0,1fr)}
+  .home-studio.page-mode .home-inspector{display:none}
   .home-preview-foot{display:flex;align-items:center;gap:7px;padding:9px 12px;color:var(--muted);font-size:10px;border-top:1px solid var(--glass-border)}
   .home-preview-foot i{width:7px;height:7px;border-radius:50%;background:#5ce1e6;box-shadow:0 0 10px #5ce1e680}
   .home-preview-foot span{margin-left:auto}
@@ -481,7 +483,7 @@
             <div style="min-width:190px;flex:0 1 220px">内容最大宽度 <b id="lgWidthV">1000</b>px<input type="range" id="lgWidth" min="860" max="1280" step="20" value="1000" style="width:100%"></div>
           </div>
 
-          <div class="home-studio">
+          <div class="home-studio" id="lgStudio">
             <aside class="home-inspector">
               <div class="home-studio-head"><div class="eyebrow">JERRY / HOME STUDIO</div><h3>设计首页模板库</h3><p>像搭建网站一样编辑首页。所有调整实时预览，保存后发布到线上。</p></div>
               <div class="home-editor-tabs" role="tablist" aria-label="首页设计分类">
@@ -577,7 +579,7 @@
             </aside>
             <section class="home-preview-panel" aria-label="首页实时预览">
               <div class="home-preview-toolbar">
-                <div class="preview-title"><strong>实时画布</strong><small>首页模板库 · Live preview</small></div>
+                <div class="preview-title"><strong>实时画布</strong><small id="lgPreviewLabel">首页模板库 · Live preview</small></div>
                 <button type="button" class="mini-btn home-preview-mode active" data-home-preview="desktop" aria-pressed="true">▣ 桌面</button>
                 <button type="button" class="mini-btn home-preview-mode" data-home-preview="mobile" aria-pressed="false">▯ 手机</button>
                 <button type="button" class="mini-btn" onclick="window.open('/?layoutPreview=1','_blank')">↗ 新窗口</button>
@@ -588,10 +590,28 @@
           </div>
           <div class="home-work-actions">
             <button type="button" class="btn primary" onclick="lgSave()">💾 保存并立即生效</button>
-            <button type="button" class="btn ghost" onclick="lgResetHome()">↺ 重置首页设计</button>
+            <button type="button" class="btn ghost" id="lgResetHomeButton" onclick="lgResetHome()">↺ 重置首页设计</button>
           </div>
 
-                  <label class="dim mono" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin-top:18px;display:block">各页面模块（拖动 ☰ 排序，眼睛切换显隐；📌 为固定位置模块）</label>
+          <div id="lgPageAppearance" style="display:none;margin:18px 0;padding:16px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.035)">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+              <div><strong style="font-size:14px">当前页面外观</strong><div class="dim" style="font-size:11px;margin-top:3px">只影响所选页面，可在右侧画布即时预览</div></div>
+              <button type="button" class="mini-btn" onclick="lgResetPageAppearance()">↺ 重置此页外观</button>
+            </div>
+            <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+              <label class="home-control">背景色<input type="color" data-page-appearance="background"></label>
+              <label class="home-control">文字色<input type="color" data-page-appearance="foreground"></label>
+              <label class="home-control">辅助文字<input type="color" data-page-appearance="muted"></label>
+              <label class="home-control">强调色<input type="color" data-page-appearance="accent"></label>
+              <label class="home-control">卡片底色<input type="color" data-page-appearance="panel"></label>
+              <label class="home-control">字体<select data-page-appearance="font"><option value="system">系统现代</option><option value="sans">清爽无衬线</option><option value="serif">编辑衬线</option><option value="mono">技术等宽</option></select></label>
+              <label class="home-control" style="min-width:150px;flex:1">内容宽度 <b data-page-value="contentWidth"></b>px<input type="range" min="720" max="1800" step="20" data-page-appearance="contentWidth"></label>
+              <label class="home-control" style="min-width:140px;flex:1">卡片圆角 <b data-page-value="cardRadius"></b>px<input type="range" min="0" max="40" data-page-appearance="cardRadius"></label>
+              <label class="home-control" style="min-width:140px;flex:1">板块间距 <b data-page-value="sectionGap"></b>px<input type="range" min="8" max="100" data-page-appearance="sectionGap"></label>
+            </div>
+          </div>
+
+          <label class="dim mono" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin-top:18px;display:block">各页面模块（拖动 ☰ 排序，眼睛切换显隐；📌 为固定位置模块）</label>
           <div id="lgPageTabs" style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0"></div>
           <div id="lgModuleList" style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px"></div>
           <div id="lgTexts" style="display:flex;flex-direction:column;gap:9px;margin-bottom:14px"></div>
@@ -1184,13 +1204,19 @@ const LG_DEFAULT={
   }
 };
 let lgCfg=null, lgCur='index', lgDragIdx=-1;
+let lgPreviewPage=null, lgPreviewRequest=0;
 async function lgLoad(){
   const d=await api('/api/layout/config');
   lgCfg=(d&&d.config)?d.config:JSON.parse(JSON.stringify(LG_DEFAULT));
   if(!lgCfg.global) lgCfg.global={};
   lgCfg.home=Object.assign({},LG_DEFAULT.home,lgCfg.home||{});
   lgCfg.home.modules=Object.assign({},LG_DEFAULT.home.modules,lgCfg.home.modules||{});
-  lgRenderGlobal(); lgRenderHome(); lgRenderPageTabs(); lgRenderModules(); lgPreviewHome();
+  lgCfg.pages=lgCfg.pages||{};
+  Object.keys(LG_DEFAULT.pages).forEach(key=>{
+    lgCfg.pages[key]=Object.assign({},LG_DEFAULT.pages[key],lgCfg.pages[key]||{});
+    lgCfg.pages[key].modules=lgCfg.pages[key].modules||[];
+  });
+  lgRenderGlobal(); lgRenderHome(); lgRenderPageTabs(); lgRenderModules(); lgRenderPageAppearance(); lgSetPreviewPage();
   $('#lgStat').textContent='已载入当前布局';
 }
 function lgRenderHome(){
@@ -1221,9 +1247,24 @@ function lgRenderGlobal(){
   $('#lgWidth').value=g.contentWidth??1000; $('#lgWidthV').textContent=g.contentWidth??1000;
 }
 function lgBindGlobal(){
-  const bind=(id,key,labelId)=>{$(id).addEventListener('input',e=>{lgCfg.global[key]=isNaN(+e.target.value)?e.target.value:+e.target.value;if(labelId)$(labelId).textContent=e.target.value;});};
+  const bind=(id,key,labelId)=>{$(id).addEventListener('input',e=>{lgCfg.global[key]=isNaN(+e.target.value)?e.target.value:+e.target.value;if(labelId)$(labelId).textContent=e.target.value;lgPageChanged();});};
   bind('#lgViolet','violet');bind('#lgAqua','aqua');bind('#lgCoral','coral');bind('#lgPink','pink');
   bind('#lgRadius','cardRadius','#lgRadiusV');bind('#lgGap','sectionGap','#lgGapV');bind('#lgWidth','contentWidth','#lgWidthV');
+  $('#lgPageAppearance').addEventListener('input',e=>{
+    const input=e.target.closest('[data-page-appearance]');
+    if(!input)return;
+    const key=input.dataset.pageAppearance;
+    const pc=lgCfg.pages[lgCur];
+    pc.appearance=pc.appearance||{};
+    pc.appearance.enabled=true;
+    pc.appearance[key]=input.type==='range'?Number(input.value):input.value;
+    const value=$('[data-page-value="'+key+'"]');
+    if(value)value.textContent=input.value;
+    lgPageChanged();
+  });
+  $('#lgPageAppearance').addEventListener('change',e=>{
+    if(e.target.matches('[data-page-appearance]'))lgPageChanged();
+  });
   const colorFields=[['lgHomeBg','background'],['lgHomeFg','foreground'],['lgHomeMuted','muted'],['lgHomePanel','panel'],['lgHomeAccent','accent']];
   colorFields.forEach(([id,key])=>$(id).addEventListener('input',e=>{lgCfg.home[key]=e.target.value;lgHomeChanged();}));
   $('#lgHomeFont').addEventListener('change',e=>{lgCfg.home.font=e.target.value;lgHomeChanged();});
@@ -1270,7 +1311,7 @@ function lgBindGlobal(){
     document.querySelectorAll('[data-home-preview]').forEach(b=>{b.classList.toggle('active',b===button);b.setAttribute('aria-pressed',String(b===button));});
     $('.home-preview-stage').classList.toggle('mobile',mobile);
   }));
-  $('#lgHomePreview').addEventListener('load',lgPreviewHome);
+  $('#lgHomePreview').addEventListener('load',lgSyncPreview);
 }
 function lgHomeChanged(){
   $('#lgStat').textContent='✳ 有未保存的更改 · 正在实时预览';
@@ -1280,6 +1321,61 @@ function lgPreviewHome(){
   const frame=$('#lgHomePreview');
   if(lgCfg&&lgCfg.home&&frame&&frame.contentWindow)frame.contentWindow.postMessage({type:'jerry-home-layout-preview',home:lgCfg.home},location.origin);
 }
+function lgPageChanged(){
+  $('#lgStat').textContent='✳ 有未保存的更改 · 正在实时预览';
+  lgSyncPreview();
+}
+function lgRenderPageAppearance(){
+  const box=$('#lgPageAppearance');
+  const isHome=lgCur==='index';
+  $('#lgStudio').classList.toggle('page-mode',!isHome);
+  $('#lgResetHomeButton').style.display=isHome?'':'none';
+  box.style.display=isHome?'none':'block';
+  $('#lgPreviewLabel').textContent=isHome?'首页模板库 · Live preview':LG_PAGES.find(([key])=>key===lgCur)?.[1]+' · Live preview';
+  $('.home-preview-panel').setAttribute('aria-label',isHome?'首页实时预览':'当前页面实时预览');
+  if(isHome)return;
+  const appearance=lgCfg.pages[lgCur].appearance||{};
+  const defaults={background:'#1b1b1b',foreground:'#ececec',muted:'#a0a0a0',accent:(lgCfg.global&&lgCfg.global.violet)||'#B18CFF',panel:'#24242b',font:'system',contentWidth:1000,cardRadius:18,sectionGap:36};
+  box.querySelectorAll('[data-page-appearance]').forEach(input=>{
+    const key=input.dataset.pageAppearance;
+    input.value=appearance[key]??defaults[key];
+    const value=box.querySelector('[data-page-value="'+key+'"]');
+    if(value)value.textContent=input.value;
+  });
+}
+async function lgSetPreviewPage(){
+  const frame=$('#lgHomePreview');
+  if(!frame)return;
+  const request=++lgPreviewRequest;
+  let url=LG_URL[lgCur]||'/';
+  if(lgCur==='index')url='/?layoutPreview=1';
+  if(lgCur==='post'){
+    try{
+      const d=await api('/api/posts');
+      if(request!==lgPreviewRequest)return;
+      const post=(d.posts||[])[0];
+      url=post?('/post.html?id='+encodeURIComponent(post.id)):'/blog.html';
+    }catch(error){
+      if(request!==lgPreviewRequest)return;
+      url='/blog.html';
+      $('#lgStat').textContent='文章列表读取失败，暂用博客列表预览';
+    }
+  }
+  if(request!==lgPreviewRequest)return;
+  if(lgCur!=='index')url+=(url.includes('?')?'&':'?')+'layoutEdit=1';
+  lgPreviewPage=lgCur;
+  if(frame.getAttribute('src')!==url)frame.src=url;
+  else lgSyncPreview();
+}
+function lgSyncPreview(){
+  const frame=$('#lgHomePreview');
+  if(!frame||!frame.contentWindow||!lgCfg)return;
+  if(lgCur==='index'){
+    frame.contentWindow.postMessage({type:'jerry-home-layout-preview',home:lgCfg.home},location.origin);
+  }else{
+    frame.contentWindow.postMessage({type:'jerry-layout-preview',config:lgCfg},location.origin);
+  }
+}
 function lgResetHome(){
   if(!confirm('恢复首页模板库默认外观？其他页面布局不会改变。'))return;
   lgCfg.home=JSON.parse(JSON.stringify(LG_DEFAULT.home));
@@ -1287,7 +1383,7 @@ function lgResetHome(){
 }
 function lgRenderPageTabs(){
   $('#lgPageTabs').innerHTML=LG_PAGES.map(([k,n])=>'<button type="button" class="mini-btn '+(k===lgCur?'':'')+'" data-lgpage="'+k+'" style="'+(k===lgCur?'background:linear-gradient(120deg,#B18CFF,#5CE1E6);color:#151033;font-weight:700':'')+'">'+n+'</button>').join('');
-  $('#lgPageTabs').querySelectorAll('[data-lgpage]').forEach(b=>b.onclick=()=>{lgCur=b.dataset.lgpage;lgRenderPageTabs();lgRenderModules();});
+  $('#lgPageTabs').querySelectorAll('[data-lgpage]').forEach(b=>b.onclick=()=>{lgCur=b.dataset.lgpage;lgRenderPageTabs();lgRenderModules();lgRenderPageAppearance();lgSetPreviewPage();});
 }
 function lgRenderModules(){
   const pc=lgCfg.pages[lgCur]||{modules:[]};
@@ -1296,6 +1392,7 @@ function lgRenderModules(){
   if(lgCur==='index'){
     list.innerHTML='<p class="dim" style="font-size:12px;line-height:1.7">首页是交互式模板库，不是普通文章板块；请使用上方的首页外观编辑和桌面/手机实时预览。每个演示模板内部的动效参数仍在首页模板弹窗的 Tune 面板中调整。</p>';
     $('#lgTexts').innerHTML='';
+    lgSyncPreview();
     return;
   }
   pc.modules.forEach((m,i)=>{
@@ -1306,12 +1403,12 @@ function lgRenderModules(){
     row.innerHTML='<span style="width:18px;text-align:center;cursor:grab">'+(m.sortable===false?'📌':'☰')+'</span>'+
       '<span style="flex:1;font-size:13px">'+esc(m.title||m.id)+'</span>'+
       '<label class="switch" style="transform:scale(.8)"><input type="checkbox" '+(m.hidden?'':'checked')+'><i></i></label>';
-    row.querySelector('input').onchange=e=>{m.hidden=!e.target.checked;lgRenderModules();};
+    row.querySelector('input').onchange=e=>{m.hidden=!e.target.checked;lgRenderModules();lgPageChanged();};
     if(m.sortable!==false){
       row.addEventListener('dragstart',()=>{lgDragIdx=i;row.style.opacity='.4';});
       row.addEventListener('dragend',()=>{row.style.opacity='1';lgDragIdx=-1;});
       row.addEventListener('dragover',e=>{e.preventDefault();});
-      row.addEventListener('drop',e=>{e.preventDefault();if(lgDragIdx<0||lgDragIdx===i)return;const arr=pc.modules;const[mv]=arr.splice(lgDragIdx,1);arr.splice(i,0,mv);lgDragIdx=-1;lgRenderModules();});
+      row.addEventListener('drop',e=>{e.preventDefault();if(lgDragIdx<0||lgDragIdx===i)return;const arr=pc.modules;const[mv]=arr.splice(lgDragIdx,1);arr.splice(i,0,mv);lgDragIdx=-1;lgRenderModules();lgPageChanged();});
     }
     list.appendChild(row);
   });
@@ -1320,8 +1417,14 @@ function lgRenderModules(){
   if(pc.texts&&pc.texts.length){
     box.innerHTML='<label class="dim mono" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase">页面文案（留空则用默认）</label>'+
       pc.texts.map(t=>'<div style="display:flex;gap:10px;align-items:center"><span class="dim" style="width:96px;font-size:12px">'+esc(t.label)+'</span><input value="'+esc(t.value??'')+'" placeholder="'+esc(t.default||'')+'" data-lgtext="'+t.key+'" style="flex:1"></div>').join('');
-    box.querySelectorAll('[data-lgtext]').forEach(inp=>{const t=pc.texts.find(x=>x.key===inp.dataset.lgtext);inp.oninput=()=>{t.value=inp.value;};});
+    box.querySelectorAll('[data-lgtext]').forEach(inp=>{const t=pc.texts.find(x=>x.key===inp.dataset.lgtext);inp.oninput=()=>{t.value=inp.value;lgPageChanged();};});
   } else box.innerHTML='';
+  lgSyncPreview();
+}
+function lgResetPageAppearance(){
+  if(!confirm('恢复当前页面的外观默认值？模块和文案设置不会改变。'))return;
+  delete lgCfg.pages[lgCur].appearance;
+  lgRenderPageAppearance();lgPageChanged();toast('此页外观已重置（需点保存才会生效）');
 }
 async function lgSave(){
   if(lgCfg.format!=='jerry-layout/v1'){toast('❌ format 错误');return;}
@@ -1329,14 +1432,14 @@ async function lgSave(){
   if(d.ok){
     const local=window.JerryCmsAdapter&&window.JerryCmsAdapter.isLocal;
     $('#lgStat').textContent=local?'✅ 本地已保存，点「同步 Blog」发布上线':'✅ 已提交到 GitHub，部署约 1-2 分钟后生效';
-    toast(local?'🧩 布局已保存到本地':'🚀 首页模板外观已提交');
+    toast(local?'🧩 布局已保存到本地':'🚀 页面布局与外观已提交');
   }
   else {$('#lgStat').textContent='❌ '+(d.error||'保存失败');toast('保存失败');}
 }
 function lgReset(){
   if(!confirm('恢复为默认布局与外观？当前未保存的调整会丢失。'))return;
   lgCfg=JSON.parse(JSON.stringify(LG_DEFAULT));
-  lgRenderGlobal();lgRenderHome();lgRenderModules();lgPreviewHome();
+  lgRenderGlobal();lgRenderHome();lgRenderPageTabs();lgRenderModules();lgRenderPageAppearance();lgSetPreviewPage();
   toast('已恢复默认（需点保存才会生效）');
 }
 async function lgPreview(){

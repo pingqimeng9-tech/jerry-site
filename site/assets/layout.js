@@ -11,6 +11,8 @@
 
   var PAGE = document.body.dataset.page || '';
   var CFG = null;
+  var hasPreviewConfig = false;
+  var booted = false;
   var applying = false;
   var debounceTimer = null;
 
@@ -20,6 +22,7 @@
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (cfg) {
       if (!cfg || cfg.format !== 'jerry-layout/v1') return;
+      if (hasPreviewConfig) return;
       CFG = cfg;
       window.__layoutConfig = cfg;
       boot();
@@ -27,6 +30,11 @@
     .catch(function () { /* 配置拉取失败 = 保持页面原样 */ });
 
   function boot() {
+    if (booted) {
+      applyAll();
+      return;
+    }
+    booted = true;
     injectHiddenCss();
     if (/[?&]layoutEdit=1/.test(location.search)) injectEditCss();
     applyAll();
@@ -47,6 +55,7 @@
       applyGlobal(CFG.global || {});
       var pc = (CFG.pages && CFG.pages[PAGE]) || null;
       if (pc) {
+        applyPageAppearance(pc.appearance || {});
         applyModules(pc.modules || []);
         applyTexts(pc.texts || []);
       }
@@ -68,6 +77,7 @@
     if (g.cardRadius != null && g.cardRadius !== '') {
       rules.push('.glass-card,.widget-card,.side-card,.friend-card,.moment-card,.tl-card,.article-card,.proj-card,.album-card,.apply-card,.toc,.lock-modal{border-radius:var(--card-radius) !important}');
     }
+
     if (g.contentWidth != null && g.contentWidth !== '') {
       rules.push('.wrap{max-width:' + Number(g.contentWidth) + 'px}');
     }
@@ -78,6 +88,56 @@
     st.id = 'jerry-layout-vars';
     st.textContent = rules.join('\n');
     document.head.appendChild(st);
+  }
+
+  function applyPageAppearance(appearance) {
+    var style = document.getElementById('jerry-page-appearance') || document.createElement('style');
+    style.id = 'jerry-page-appearance';
+    if (!appearance || appearance.enabled !== true) {
+      style.textContent = '';
+      document.head.appendChild(style);
+      return;
+    }
+    var colors = {
+      background: '--bg',
+      foreground: '--fg',
+      muted: '--mut',
+      accent: '--violet',
+      panel: '--layout-panel'
+    };
+    var variables = [];
+    Object.keys(colors).forEach(function (key) {
+      var value = appearance[key];
+      if (typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value)) variables.push(colors[key] + ':' + value);
+    });
+    if (/^#[0-9a-f]{6}$/i.test(appearance.foreground || '')) variables.push('--ink:' + appearance.foreground);
+    if (/^#[0-9a-f]{6}$/i.test(appearance.muted || '')) variables.push('--muted:' + appearance.muted);
+    if (/^#[0-9a-f]{6}$/i.test(appearance.accent || '')) variables.push('--aqua:' + appearance.accent);
+    var fonts = {
+      system: '"Noto Sans SC",system-ui,-apple-system,sans-serif',
+      sans: 'Arial,"Noto Sans SC",sans-serif',
+      serif: 'Georgia,"Noto Serif SC",serif',
+      mono: 'ui-monospace,"SF Mono",Menlo,Consolas,monospace'
+    };
+    var rules = [];
+    if (variables.length) rules.push(':root{' + variables.join(';') + '}');
+    if (fonts[appearance.font]) rules.push('body{font-family:' + fonts[appearance.font] + ' !important}');
+    if (/^#[0-9a-f]{6}$/i.test(appearance.background || '')) rules.push('body{background-color:' + appearance.background + ' !important}');
+    if (/^#[0-9a-f]{6}$/i.test(appearance.foreground || '')) rules.push('body{color:' + appearance.foreground + ' !important}');
+    if (appearance.panel && /^#[0-9a-f]{6}$/i.test(appearance.panel)) {
+      rules.push('.glass-card,.widget-card,.side-card,.friend-card,.article-card,.proj-card,.apply-card,.toc,.glass,.card,.char-card,.level-card,.book-card,.review-card{background-color:var(--layout-panel) !important}');
+    }
+    if (Number.isFinite(Number(appearance.contentWidth)) && appearance.contentWidth !== '') {
+      rules.push('.wrap,.shell{max-width:' + Math.max(720, Math.min(1800, Number(appearance.contentWidth))) + 'px !important}');
+    }
+    if (Number.isFinite(Number(appearance.cardRadius)) && appearance.cardRadius !== '') {
+      rules.push('.glass-card,.widget-card,.side-card,.friend-card,.article-card,.proj-card,.apply-card,.toc,.glass,.card,.char-card,.level-card,.book-card,.review-card{border-radius:' + Math.max(0, Math.min(40, Number(appearance.cardRadius))) + 'px !important}');
+    }
+    if (Number.isFinite(Number(appearance.sectionGap)) && appearance.sectionGap !== '') {
+      rules.push('.main-content-centered,.shell{gap:' + Math.max(8, Math.min(100, Number(appearance.sectionGap))) + 'px !important}');
+    }
+    style.textContent = rules.join('\n');
+    document.head.appendChild(style);
   }
 
   /* ---------- 模块隐藏 + 同栏排序 ---------- */
@@ -155,7 +215,13 @@
   // 对外 API（供页面脚本/控制台/前台可视化编辑器使用）
   window.JerryLayout = {
     get: function () { return CFG; },
-    setConfig: function (c) { CFG = c; window.__layoutConfig = c; applyAll(); return CFG; },
+    setConfig: function (c) { CFG = c; window.__layoutConfig = c; if (!booted) boot(); else applyAll(); return CFG; },
     reapply: applyAll
   };
+  window.addEventListener('message', function (event) {
+    if (event.origin !== location.origin || event.source !== window.parent) return;
+    if (!event.data || event.data.type !== 'jerry-layout-preview' || !event.data.config) return;
+    hasPreviewConfig = true;
+    window.JerryLayout.setConfig(event.data.config);
+  });
 })();
