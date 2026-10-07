@@ -1,3 +1,18 @@
 {
-  "items": []
+  "items": [
+    {
+      "id": "alb_muy652yc",
+      "createdAt": "2026-10-07 13:54:04",
+      "title": "hhhh",
+      "date": "2026-10-07",
+      "photos": [
+        "/site/images/albums/muy64n59_1000007619.jpg",
+        "/site/images/albums/muy64qmm_1000007314.jpg",
+        "/site/images/albums/muy64ufa_1000007325.jpg",
+        "/site/images/albums/muy64xhv_1000007320.jpg",
+        "/site/images/albums/muy6507b_1000007321.jpg"
+      ],
+      "updatedAt": "2026-10-07 13:54:04"
+    }
+  ]
 }
