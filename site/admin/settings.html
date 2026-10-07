@@ -22,6 +22,74 @@
   .sec h2 .hint{font-size:11px;font-weight:400;color:var(--muted)}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  .home-layout-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px 16px}
+  .home-layout-grid label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted)}
+  .home-layout-grid label output{color:var(--ink);font-family:var(--mono);font-size:11px}
+  .home-layout-grid input[type=color]{width:100%;height:34px;border:1px solid var(--glass-border);border-radius:8px;background:var(--glass);padding:3px}
+  .home-layout-grid input[type=range]{width:100%;accent-color:var(--aqua)}
+  .home-layout-grid select{padding:8px 10px;border:1px solid var(--glass-border);border-radius:8px;background:#17142b;color:var(--ink);font:inherit}
+  .home-studio{display:grid;grid-template-columns:292px minmax(0,1fr);gap:14px;margin:16px 0 20px}
+  .home-inspector,.home-preview-panel{min-width:0;border:1px solid var(--glass-border);border-radius:18px;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018));overflow:hidden}
+  .home-inspector{display:flex;flex-direction:column;min-height:680px}
+  .home-studio-head{padding:18px 18px 14px;border-bottom:1px solid var(--glass-border)}
+  .home-studio-head .eyebrow{font:10px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--aqua)}
+  .home-studio-head h3{margin:7px 0 5px;font-size:17px}
+  .home-studio-head p{margin:0;color:var(--muted);font-size:11.5px;line-height:1.6}
+  .home-editor-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:12px;border-bottom:1px solid var(--glass-border)}
+  .home-editor-tabs button{display:flex;align-items:center;gap:7px;padding:9px 10px;border:1px solid transparent;border-radius:10px;background:transparent;color:var(--muted);font-family:inherit;font-size:11.5px;font-weight:600;text-align:left;cursor:pointer}
+  .home-editor-tabs button:hover{background:rgba(255,255,255,.045);color:var(--ink)}
+  .home-editor-tabs button.active{background:rgba(92,225,230,.10);border-color:rgba(92,225,230,.24);color:var(--aqua)}
+  .home-editor-tabs button span{font-size:14px}
+  .home-inspector-body{padding:14px;overflow:auto;max-height:610px}
+  .home-panel{display:none}
+  .home-panel.active{display:block;animation:home-panel-in .2s ease both}
+  @keyframes home-panel-in{from{opacity:.3;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .home-panel-title{display:flex;justify-content:space-between;align-items:center;margin:2px 0 12px}
+  .home-panel-title strong{font-size:12px}
+  .home-panel-title span{font:10px var(--mono);color:var(--muted)}
+  .home-control-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .home-control{min-width:0;padding:11px;border:1px solid rgba(255,255,255,.09);border-radius:12px;background:rgba(0,0,0,.12)}
+  .home-control.wide{grid-column:1/-1}
+  .home-control>label,.home-control .control-label{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:11px;color:var(--muted)}
+  .home-control output{font:10px var(--mono);color:var(--aqua)}
+  .home-control input[type=range]{width:100%;accent-color:var(--aqua)}
+  .home-control input[type=color]{width:100%;height:32px;padding:2px;border:1px solid var(--glass-border);border-radius:8px;background:#111}
+  .home-control select{width:100%;padding:8px 9px;border:1px solid var(--glass-border);border-radius:8px;background:#17142b;color:var(--ink);font-family:inherit;font-size:12px}
+  .home-choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .home-choice{display:flex;align-items:center;gap:8px;min-width:0;padding:8px;border:1px solid rgba(255,255,255,.10);border-radius:10px;background:rgba(0,0,0,.12);color:var(--muted);font-family:inherit;font-size:11px;text-align:left;cursor:pointer;transition:.18s}
+  .home-choice:hover{border-color:rgba(255,255,255,.3);color:var(--ink);transform:translateY(-1px)}
+  .home-choice.active{border-color:rgba(92,225,230,.52);background:rgba(92,225,230,.08);color:var(--ink);box-shadow:inset 0 0 0 1px rgba(92,225,230,.08)}
+  .home-choice i{width:30px;height:26px;flex:none;border-radius:7px;border:1px solid rgba(255,255,255,.15);background:#242331}
+  .home-choice i[data-swatch=aurora]{background:radial-gradient(circle at 20% 20%,#aa76d2,#242331 70%)}
+  .home-choice i[data-swatch=mesh]{background:radial-gradient(at 20% 20%,#5ce1e6,#2d2646 60%,#17142b)}
+  .home-choice i[data-swatch=grid]{background:radial-gradient(#a78bfa 1px,transparent 1.5px) 0 0/7px 7px,#17142b}
+  .home-choice i[data-swatch=solid]{background:#1b1b1b}
+  .home-choice i[data-swatch=rise]{background:linear-gradient(145deg,transparent 46%,#5ce1e6 47%,transparent 53%),#25243a}
+  .home-choice i[data-swatch=fade]{background:linear-gradient(90deg,transparent,#b18cff),#25243a}
+  .home-choice i[data-swatch=stagger]{background:linear-gradient(90deg,#5ce1e6 0 20%,transparent 20% 30%,#b18cff 30% 50%,transparent 50% 60%,#ff8cd9 60%),#25243a}
+  .home-choice i[data-swatch=none]{background:linear-gradient(135deg,#383838,#171717)}
+  .home-choice i[data-swatch=lift]{box-shadow:0 6px 0 -3px #5ce1e6}
+  .home-choice i[data-swatch=glow]{box-shadow:0 0 10px #b18cff}
+  .home-choice i[data-swatch=tilt]{transform:rotate(-8deg) scale(.8);background:#5ce1e6}
+  .home-toggle-list{display:grid;gap:6px}
+  .home-toggle{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(0,0,0,.10);font-size:11.5px;color:var(--ink);cursor:pointer}
+  .home-toggle input{accent-color:var(--aqua)}
+  .home-toggle small{margin-left:auto;color:var(--muted);font-size:10px}
+  .home-preview-panel{display:flex;flex-direction:column;min-height:680px}
+  .home-preview-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px;border-bottom:1px solid var(--glass-border);background:rgba(0,0,0,.12)}
+  .home-preview-toolbar .preview-title{flex:1;min-width:120px}
+  .home-preview-toolbar strong{display:block;font-size:12px}
+  .home-preview-toolbar small{display:block;margin-top:3px;color:var(--muted);font-size:10px}
+  .home-preview-mode.active{border-color:var(--aqua);color:var(--aqua);background:rgba(92,225,230,.08)}
+  .home-preview-stage{flex:1;min-height:0;overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:12px;background:radial-gradient(ellipse at 50% 0%,rgba(177,140,255,.08),transparent 52%),#101014}
+  .home-preview-stage iframe{width:100%;height:650px;flex:none;border:1px solid rgba(255,255,255,.12);border-radius:11px;background:#1b1b1b;transition:width .25s ease}
+  .home-preview-stage.mobile iframe{width:390px}
+  .home-preview-foot{display:flex;align-items:center;gap:7px;padding:9px 12px;color:var(--muted);font-size:10px;border-top:1px solid var(--glass-border)}
+  .home-preview-foot i{width:7px;height:7px;border-radius:50%;background:#5ce1e6;box-shadow:0 0 10px #5ce1e680}
+  .home-preview-foot span{margin-left:auto}
+  .home-work-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 18px}
+  @media(max-width:980px){.home-studio{grid-template-columns:260px minmax(0,1fr)}}
+  @media(max-width:760px){.home-studio{grid-template-columns:1fr}.home-inspector{min-height:0}.home-inspector-body{max-height:460px}.home-preview-panel{min-height:580px}.home-preview-stage iframe{height:540px}}
   @media(max-width:760px){.set-layout{flex-direction:column}.set-tabs{width:100%;flex-direction:row;flex-wrap:wrap;position:static}.grid2,.grid3{grid-template-columns:1fr}}
   .row-list{display:flex;flex-direction:column;gap:8px}
   .row-item{display:flex;gap:8px;align-items:center}
@@ -320,7 +388,117 @@
             <div style="min-width:190px;flex:0 1 220px">内容最大宽度 <b id="lgWidthV">1000</b>px<input type="range" id="lgWidth" min="860" max="1280" step="20" value="1000" style="width:100%"></div>
           </div>
 
-          <label class="dim mono" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin-top:18px;display:block">各页面模块（拖动 ☰ 排序，眼睛切换显隐；📌 为固定位置模块）</label>
+          <div class="home-studio">
+            <aside class="home-inspector">
+              <div class="home-studio-head"><div class="eyebrow">JERRY / HOME STUDIO</div><h3>设计首页模板库</h3><p>像搭建网站一样编辑首页。所有调整实时预览，保存后发布到线上。</p></div>
+              <div class="home-editor-tabs" role="tablist" aria-label="首页设计分类">
+                <button type="button" class="active" data-home-panel-target="canvas" role="tab" aria-selected="true"><span>◈</span>画布</button>
+                <button type="button" data-home-panel-target="components" role="tab" aria-selected="false"><span>▦</span>组件</button>
+                <button type="button" data-home-panel-target="layout" role="tab" aria-selected="false"><span>↔</span>布局</button>
+                <button type="button" data-home-panel-target="motion" role="tab" aria-selected="false"><span>✳</span>动效</button>
+              </div>
+              <div class="home-inspector-body">
+                <div class="home-panel active" data-home-panel="canvas" role="tabpanel">
+                  <div class="home-panel-title"><strong>画布与品牌</strong><span>CANVAS</span></div>
+                  <div class="home-control wide"><div class="control-label">背景氛围</div><div class="home-choice-grid">
+                    <button type="button" class="home-choice" data-home-choice="backgroundStyle" data-value="aurora"><i data-swatch="aurora"></i>极光渐层</button>
+                    <button type="button" class="home-choice" data-home-choice="backgroundStyle" data-value="mesh"><i data-swatch="mesh"></i>柔彩网格</button>
+                    <button type="button" class="home-choice" data-home-choice="backgroundStyle" data-value="grid"><i data-swatch="grid"></i>精密点阵</button>
+                    <button type="button" class="home-choice" data-home-choice="backgroundStyle" data-value="solid"><i data-swatch="solid"></i>纯色画布</button>
+                  </div></div>
+                  <div class="home-control-grid">
+                    <div class="home-control"><label for="lgHomeBg">背景底色</label><input type="color" id="lgHomeBg" value="#1b1b1b"></div>
+                    <div class="home-control"><label for="lgHomeAccent">品牌强调色</label><input type="color" id="lgHomeAccent" value="#c586c0"></div>
+                    <div class="home-control"><label for="lgHomeFg">主文字</label><input type="color" id="lgHomeFg" value="#ececec"></div>
+                    <div class="home-control"><label for="lgHomeMuted">辅助文字</label><input type="color" id="lgHomeMuted" value="#8b8b8b"></div>
+                    <div class="home-control"><label for="lgHomePanel">组件表面</label><input type="color" id="lgHomePanel" value="#1e1e1e"></div>
+                    <label class="home-control wide">全站字体<select id="lgHomeFont"><option value="system">系统现代</option><option value="sans">清爽无衬线</option><option value="serif">编辑衬线</option><option value="mono">技术等宽</option></select></label>
+                  </div>
+                </div>
+                <div class="home-panel" data-home-panel="components" role="tabpanel">
+                  <div class="home-panel-title"><strong>页面组件</strong><span>COMPONENTS</span></div>
+                  <div class="home-toggle-list">
+                    <label class="home-toggle"><input type="checkbox" data-home-toggle="modules.topbar">顶部分类与主题栏<small>导航</small></label>
+                    <label class="home-toggle"><input type="checkbox" data-home-toggle="modules.search">模板搜索框<small>搜索</small></label>
+                    <label class="home-toggle"><input type="checkbox" data-home-toggle="modules.filters">标签筛选组件<small>筛选</small></label>
+                    <label class="home-toggle"><input type="checkbox" data-home-toggle="modules.cardMeta">模板标题与信息<small>卡片</small></label>
+                    <label class="home-toggle"><input type="checkbox" data-home-toggle="modules.badges">分类材质徽标<small>徽标</small></label>
+                    <label class="home-toggle"><input type="checkbox" data-home-toggle="modules.live">LIVE 状态标记<small>状态</small></label>
+                    <label class="home-toggle"><input type="checkbox" data-home-toggle="modules.tags">模板标签<small>标签</small></label>
+                  </div>
+                  <div class="home-panel-title" style="margin-top:18px"><strong>组件样式</strong><span>STYLES</span></div>
+                  <div class="home-control-grid">
+                    <div class="home-control wide"><div class="control-label">顶部导航</div><div class="home-choice-grid">
+                      <button type="button" class="home-choice" data-home-choice="navStyle" data-value="glass"><i data-swatch="aurora"></i>磨砂玻璃</button>
+                      <button type="button" class="home-choice" data-home-choice="navStyle" data-value="pill"><i data-swatch="mesh"></i>悬浮胶囊</button>
+                      <button type="button" class="home-choice" data-home-choice="navStyle" data-value="minimal"><i data-swatch="solid"></i>极简线框</button>
+                    </div></div>
+                    <div class="home-control wide"><div class="control-label">搜索组件</div><div class="home-choice-grid">
+                      <button type="button" class="home-choice" data-home-choice="searchStyle" data-value="pill"><i data-swatch="mesh"></i>圆角胶囊</button>
+                      <button type="button" class="home-choice" data-home-choice="searchStyle" data-value="panel"><i data-swatch="aurora"></i>悬浮面板</button>
+                      <button type="button" class="home-choice" data-home-choice="searchStyle" data-value="line"><i data-swatch="grid"></i>极简下划线</button>
+                    </div></div>
+                    <div class="home-control wide"><div class="control-label">模板卡片</div><div class="home-choice-grid">
+                      <button type="button" class="home-choice" data-home-choice="cardStyle" data-value="soft"><i data-swatch="aurora"></i>柔和卡片</button>
+                      <button type="button" class="home-choice" data-home-choice="cardStyle" data-value="outline"><i data-swatch="grid"></i>描边画框</button>
+                      <button type="button" class="home-choice" data-home-choice="cardStyle" data-value="poster"><i data-swatch="stagger"></i>竖版海报</button>
+                    </div></div>
+                  </div>
+                </div>
+                <div class="home-panel" data-home-panel="layout" role="tabpanel">
+                  <div class="home-panel-title"><strong>尺寸与排版</strong><span>LAYOUT</span></div>
+                  <div class="home-control-grid">
+                    <label class="home-control">画廊列数 <output id="lgHomeColumnsV">4</output><input type="range" id="lgHomeColumns" min="2" max="5" step="1" value="4"></label>
+                    <label class="home-control">画廊宽度 <output id="lgHomeWidthV">1440</output>px<input type="range" id="lgHomeWidth" min="960" max="1800" step="40" value="1440"></label>
+                    <label class="home-control">卡片圆角 <output id="lgHomeRadiusV">22</output>px<input type="range" id="lgHomeRadius" min="8" max="36" value="22"></label>
+                    <label class="home-control">卡片间距 <output id="lgHomeGapV">26</output>px<input type="range" id="lgHomeGap" min="8" max="48" value="26"></label>
+                    <label class="home-control">导航间距 <output id="lgHomeNavGapV">2</output>px<input type="range" id="lgHomeNavGap" min="0" max="20" value="2"></label>
+                    <label class="home-control">筛选项间距 <output id="lgHomeChipGapV">6</output>px<input type="range" id="lgHomeChipGap" min="0" max="24" value="6"></label>
+                    <label class="home-control">画廊顶部（桌面）<output id="lgHomeTopV">148</output>px<input type="range" id="lgHomeTop" min="100" max="240" value="148"></label>
+                    <label class="home-control">画廊顶部（手机）<output id="lgHomeMobileTopV">192</output>px<input type="range" id="lgHomeMobileTop" min="120" max="300" value="192"></label>
+                    <label class="home-control">导航位置（桌面）<output id="lgHomeNavTopV">74</output>px<input type="range" id="lgHomeNavTop" min="40" max="160" value="74"></label>
+                    <label class="home-control">导航位置（手机）<output id="lgHomeMobileNavTopV">74</output>px<input type="range" id="lgHomeMobileNavTop" min="40" max="160" value="74"></label>
+                    <label class="home-control">舞台底部留白<output id="lgHomeBottomV">104</output>px<input type="range" id="lgHomeBottom" min="60" max="200" value="104"></label>
+                    <label class="home-control">底部模板栏留白<output id="lgHomeDockBottomV">12</output>px<input type="range" id="lgHomeDockBottom" min="0" max="48" value="12"></label>
+                  </div>
+                </div>
+                <div class="home-panel" data-home-panel="motion" role="tabpanel">
+                  <div class="home-panel-title"><strong>动效编排</strong><span>MOTION</span></div>
+                  <div class="home-control wide"><div class="control-label">卡片入场</div><div class="home-choice-grid">
+                    <button type="button" class="home-choice" data-home-choice="entrance" data-value="rise"><i data-swatch="rise"></i>上浮入场</button>
+                    <button type="button" class="home-choice" data-home-choice="entrance" data-value="fade"><i data-swatch="fade"></i>柔和淡入</button>
+                    <button type="button" class="home-choice" data-home-choice="entrance" data-value="stagger"><i data-swatch="stagger"></i>节奏渐显</button>
+                    <button type="button" class="home-choice" data-home-choice="entrance" data-value="none"><i data-swatch="none"></i>静态呈现</button>
+                  </div></div>
+                  <div class="home-control wide" style="margin-top:9px"><div class="control-label">悬停反馈</div><div class="home-choice-grid">
+                    <button type="button" class="home-choice" data-home-choice="hover" data-value="lift"><i data-swatch="lift"></i>轻盈抬升</button>
+                    <button type="button" class="home-choice" data-home-choice="hover" data-value="glow"><i data-swatch="glow"></i>柔光聚焦</button>
+                    <button type="button" class="home-choice" data-home-choice="hover" data-value="tilt"><i data-swatch="tilt"></i>微倾视差</button>
+                    <button type="button" class="home-choice" data-home-choice="hover" data-value="none"><i data-swatch="none"></i>无悬停动效</button>
+                  </div></div>
+                  <label class="home-control wide" style="margin-top:9px">动效节奏 <output id="lgHomeMotionSpeedV">1.0×</output><input type="range" id="lgHomeMotionSpeed" min="0.5" max="1.5" step="0.1" value="1"></label>
+                  <label class="home-toggle" style="margin-top:9px"><input type="checkbox" data-home-toggle="backgroundMotion">启用背景氛围缓动<small>柔和循环</small></label>
+                  <p class="dim" style="font-size:10.5px;line-height:1.65;margin-top:10px">动效只作用于画廊外壳与模板卡片；每个演示模板自己的交互和动画保持独立。访客开启“减少动态效果”时，动画会自动停用。</p>
+                </div>
+              </div>
+            </aside>
+            <section class="home-preview-panel" aria-label="首页实时预览">
+              <div class="home-preview-toolbar">
+                <div class="preview-title"><strong>实时画布</strong><small>首页模板库 · Live preview</small></div>
+                <button type="button" class="mini-btn home-preview-mode active" data-home-preview="desktop" aria-pressed="true">▣ 桌面</button>
+                <button type="button" class="mini-btn home-preview-mode" data-home-preview="mobile" aria-pressed="false">▯ 手机</button>
+                <button type="button" class="mini-btn" onclick="window.open('/?layoutPreview=1','_blank')">↗ 新窗口</button>
+              </div>
+              <div class="home-preview-stage"><iframe id="lgHomePreview" title="首页模板库实时预览" src="/?layoutPreview=1"></iframe></div>
+              <div class="home-preview-foot"><i></i>预览随调整即时更新<span>尚未保存的更改不会影响访客</span></div>
+            </section>
+          </div>
+          <div class="home-work-actions">
+            <button type="button" class="btn primary" onclick="lgSave()">💾 保存并立即生效</button>
+            <button type="button" class="btn ghost" onclick="lgResetHome()">↺ 重置首页设计</button>
+          </div>
+
+                  <label class="dim mono" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin-top:18px;display:block">各页面模块（拖动 ☰ 排序，眼睛切换显隐；📌 为固定位置模块）</label>
           <div id="lgPageTabs" style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0"></div>
           <div id="lgModuleList" style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px"></div>
           <div id="lgTexts" style="display:flex;flex-direction:column;gap:9px;margin-bottom:14px"></div>
@@ -332,7 +510,7 @@
             <button class="btn ghost" onclick="lgPreview()">👁 打开该页预览（带模块标记）</button>
             <span id="lgStat" class="dim mono" style="font-size:11.5px"></span>
           </div>
-          <p class="dim" style="font-size:11.5px;margin-top:10px">保存后刷新页面即可看到效果；要让线上访客看到，记得再点左侧「🚀 同步 Blog」发布。隐藏的模块不会删除，随时可再打开。</p>
+          <p class="dim" style="font-size:11.5px;margin-top:10px">本地模式下布局保存在本机，点「🚀 同步 Blog」后上线；线上管理员保存会直接提交到 GitHub 并触发 Vercel 部署。隐藏的模块不会删除，随时可再打开。</p>
         </div>
       </section>
 
@@ -612,6 +790,7 @@ const LG_URL={index:'/',friends:'/friends.html',projects:'/projects.html',rumi:'
 const LG_DEFAULT={
   format:'jerry-layout/v1',version:1,
   global:{violet:'#B18CFF',aqua:'#5CE1E6',coral:'#FF7A5C',pink:'#FF8CD9',cardRadius:18,sectionGap:36,contentWidth:1000},
+  home:{background:'',foreground:'',muted:'',panel:'',accent:'',font:'system',backgroundStyle:'aurora',backgroundMotion:false,navStyle:'glass',searchStyle:'pill',cardStyle:'soft',entrance:'rise',hover:'lift',motionSpeed:1,modules:{topbar:true,search:true,filters:true,cardMeta:true,badges:true,live:true,tags:true},cardRadius:22,cardGap:26,columns:4,contentWidth:1440,navGap:2,chipGap:6,top:148,mobileTop:192,navTop:74,mobileNavTop:74,bottom:104,dockBottom:12},
   pages:{
     index:{modules:[
       {id:'hero',title:'首屏 Hero（打字机 + 名片卡）',hidden:false,sortable:false},
@@ -665,8 +844,29 @@ async function lgLoad(){
   const d=await api('/api/layout/config');
   lgCfg=(d&&d.config)?d.config:JSON.parse(JSON.stringify(LG_DEFAULT));
   if(!lgCfg.global) lgCfg.global={};
-  lgRenderGlobal(); lgRenderPageTabs(); lgRenderModules();
+  lgCfg.home=Object.assign({},LG_DEFAULT.home,lgCfg.home||{});
+  lgCfg.home.modules=Object.assign({},LG_DEFAULT.home.modules,lgCfg.home.modules||{});
+  lgRenderGlobal(); lgRenderHome(); lgRenderPageTabs(); lgRenderModules(); lgPreviewHome();
   $('#lgStat').textContent='已载入当前布局';
+}
+function lgRenderHome(){
+  const h=lgCfg.home;
+  const colors={lgHomeBg:['background','#1b1b1b'],lgHomeFg:['foreground','#ececec'],lgHomeMuted:['muted','#8b8b8b'],lgHomePanel:['panel','#1e1e1e'],lgHomeAccent:['accent','#c586c0']};
+  Object.keys(colors).forEach(id=>{const [key,fallback]=colors[id];$('#'+id).value=h[key]||fallback;});
+  $('#lgHomeFont').value=h.font||'system';
+  const fields=[['lgHomeRadius','cardRadius',22],['lgHomeGap','cardGap',26],['lgHomeColumns','columns',4],
+    ['lgHomeWidth','contentWidth',1440],['lgHomeNavGap','navGap',2],['lgHomeChipGap','chipGap',6],
+    ['lgHomeTop','top',148],['lgHomeMobileTop','mobileTop',192],['lgHomeNavTop','navTop',74],
+    ['lgHomeMobileNavTop','mobileNavTop',74],['lgHomeBottom','bottom',104],['lgHomeDockBottom','dockBottom',12],
+    ['lgHomeMotionSpeed','motionSpeed',1]];
+  fields.forEach(([id,key,fallback])=>{const v=h[key]??fallback;$('#'+id).value=v;$('#'+id+'V').textContent=v;});
+  $('#lgHomeMotionSpeedV').textContent=Number(h.motionSpeed??1).toFixed(1)+'×';
+  document.querySelectorAll('[data-home-choice]').forEach(button=>button.classList.toggle('active',h[button.dataset.homeChoice]===button.dataset.value));
+  document.querySelectorAll('[data-home-toggle]').forEach(input=>{
+    const path=input.dataset.homeToggle.split('.');
+    const value=path.reduce((current,key)=>current&&current[key],h);
+    input.checked=!!value;
+  });
 }
 function lgRenderGlobal(){
   const g=lgCfg.global||{};
@@ -680,6 +880,66 @@ function lgBindGlobal(){
   const bind=(id,key,labelId)=>{$(id).addEventListener('input',e=>{lgCfg.global[key]=isNaN(+e.target.value)?e.target.value:+e.target.value;if(labelId)$(labelId).textContent=e.target.value;});};
   bind('#lgViolet','violet');bind('#lgAqua','aqua');bind('#lgCoral','coral');bind('#lgPink','pink');
   bind('#lgRadius','cardRadius','#lgRadiusV');bind('#lgGap','sectionGap','#lgGapV');bind('#lgWidth','contentWidth','#lgWidthV');
+  const colorFields=[['lgHomeBg','background'],['lgHomeFg','foreground'],['lgHomeMuted','muted'],['lgHomePanel','panel'],['lgHomeAccent','accent']];
+  colorFields.forEach(([id,key])=>$(id).addEventListener('input',e=>{lgCfg.home[key]=e.target.value;lgHomeChanged();}));
+  $('#lgHomeFont').addEventListener('change',e=>{lgCfg.home.font=e.target.value;lgHomeChanged();});
+  const homeFields=[['lgHomeRadius','cardRadius'],['lgHomeGap','cardGap'],['lgHomeColumns','columns'],
+    ['lgHomeWidth','contentWidth'],['lgHomeNavGap','navGap'],['lgHomeChipGap','chipGap'],
+    ['lgHomeTop','top'],['lgHomeMobileTop','mobileTop'],['lgHomeNavTop','navTop'],
+    ['lgHomeMobileNavTop','mobileNavTop'],['lgHomeBottom','bottom'],['lgHomeDockBottom','dockBottom']];
+  homeFields.forEach(([id,key])=>$(id).addEventListener('input',e=>{
+    lgCfg.home[key]=Number(e.target.value);$('#'+id+'V').textContent=e.target.value;lgHomeChanged();
+  }));
+  $('#lgHomeMotionSpeed').addEventListener('input',e=>{
+    lgCfg.home.motionSpeed=Number(e.target.value);
+    $('#lgHomeMotionSpeedV').textContent=Number(e.target.value).toFixed(1)+'×';
+    lgHomeChanged();
+  });
+  $('.home-editor-tabs').addEventListener('click',e=>{
+    const button=e.target.closest('[data-home-panel-target]');
+    if(!button)return;
+    const target=button.dataset.homePanelTarget;
+    document.querySelectorAll('[data-home-panel-target]').forEach(tab=>{
+      const active=tab===button;
+      tab.classList.toggle('active',active);tab.setAttribute('aria-selected',String(active));
+    });
+    document.querySelectorAll('[data-home-panel]').forEach(panel=>panel.classList.toggle('active',panel.dataset.homePanel===target));
+  });
+  $('.home-inspector').addEventListener('click',e=>{
+    const button=e.target.closest('[data-home-choice]');
+    if(!button)return;
+    lgCfg.home[button.dataset.homeChoice]=button.dataset.value;
+    document.querySelectorAll('[data-home-choice="'+button.dataset.homeChoice+'"]').forEach(option=>option.classList.toggle('active',option===button));
+    lgHomeChanged();
+  });
+  $('.home-inspector').addEventListener('change',e=>{
+    const input=e.target.closest('[data-home-toggle]');
+    if(!input)return;
+    const path=input.dataset.homeToggle.split('.');
+    let target=lgCfg.home;
+    path.slice(0,-1).forEach(key=>{target[key]=target[key]||{};target=target[key];});
+    target[path[path.length-1]]=input.checked;
+    lgHomeChanged();
+  });
+  document.querySelectorAll('[data-home-preview]').forEach(button=>button.addEventListener('click',()=>{
+    const mobile=button.dataset.homePreview==='mobile';
+    document.querySelectorAll('[data-home-preview]').forEach(b=>{b.classList.toggle('active',b===button);b.setAttribute('aria-pressed',String(b===button));});
+    $('.home-preview-stage').classList.toggle('mobile',mobile);
+  }));
+  $('#lgHomePreview').addEventListener('load',lgPreviewHome);
+}
+function lgHomeChanged(){
+  $('#lgStat').textContent='✳ 有未保存的更改 · 正在实时预览';
+  lgPreviewHome();
+}
+function lgPreviewHome(){
+  const frame=$('#lgHomePreview');
+  if(lgCfg&&lgCfg.home&&frame&&frame.contentWindow)frame.contentWindow.postMessage({type:'jerry-home-layout-preview',home:lgCfg.home},location.origin);
+}
+function lgResetHome(){
+  if(!confirm('恢复首页模板库默认外观？其他页面布局不会改变。'))return;
+  lgCfg.home=JSON.parse(JSON.stringify(LG_DEFAULT.home));
+  lgRenderHome();lgHomeChanged();toast('首页设计已恢复默认（需点保存才会生效）');
 }
 function lgRenderPageTabs(){
   $('#lgPageTabs').innerHTML=LG_PAGES.map(([k,n])=>'<button type="button" class="mini-btn '+(k===lgCur?'':'')+'" data-lgpage="'+k+'" style="'+(k===lgCur?'background:linear-gradient(120deg,#B18CFF,#5CE1E6);color:#151033;font-weight:700':'')+'">'+n+'</button>').join('');
@@ -689,6 +949,11 @@ function lgRenderModules(){
   const pc=lgCfg.pages[lgCur]||{modules:[]};
   const list=$('#lgModuleList');
   list.innerHTML='';
+  if(lgCur==='index'){
+    list.innerHTML='<p class="dim" style="font-size:12px;line-height:1.7">首页是交互式模板库，不是普通文章板块；请使用上方的首页外观编辑和桌面/手机实时预览。每个演示模板内部的动效参数仍在首页模板弹窗的 Tune 面板中调整。</p>';
+    $('#lgTexts').innerHTML='';
+    return;
+  }
   pc.modules.forEach((m,i)=>{
     const row=document.createElement('div');
     row.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.04)'+(m.hidden?';opacity:.5':'');
@@ -717,16 +982,21 @@ function lgRenderModules(){
 async function lgSave(){
   if(lgCfg.format!=='jerry-layout/v1'){toast('❌ format 错误');return;}
   const d=await api('/api/layout/config',lgCfg);
-  if(d.ok){$('#lgStat').textContent='✅ 已保存，刷新页面即生效（上线请点同步 Blog）';toast('🧩 布局已保存');}
+  if(d.ok){
+    const local=window.JerryCmsAdapter&&window.JerryCmsAdapter.isLocal;
+    $('#lgStat').textContent=local?'✅ 本地已保存，点「同步 Blog」发布上线':'✅ 已提交到 GitHub，部署约 1-2 分钟后生效';
+    toast(local?'🧩 布局已保存到本地':'🚀 首页模板外观已提交');
+  }
   else {$('#lgStat').textContent='❌ '+(d.error||'保存失败');toast('保存失败');}
 }
 function lgReset(){
   if(!confirm('恢复为默认布局与外观？当前未保存的调整会丢失。'))return;
   lgCfg=JSON.parse(JSON.stringify(LG_DEFAULT));
-  lgRenderGlobal();lgRenderModules();
+  lgRenderGlobal();lgRenderHome();lgRenderModules();lgPreviewHome();
   toast('已恢复默认（需点保存才会生效）');
 }
 async function lgPreview(){
+  if(lgCur==='index'){window.open('/?layoutPreview=1','_blank');return;}
   let url=LG_URL[lgCur];
   if(lgCur==='post'){
     try{const d=await api('/api/posts');const p=(d.posts||[])[0];url=p?('/post.html?id='+encodeURIComponent(p.id)):'/blog.html';}

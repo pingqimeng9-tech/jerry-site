@@ -14,6 +14,7 @@
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 <script src="/assets/pwa-install.js" defer></script>
 <script src="/assets/capsule-player.js" data-player-only defer></script>
+<script src="/assets/home-layout.js" defer></script>
 <!--
   创意网站模板库 v2 —— 照着 carterogunsola.com/lab 复刻
   SHELL（外壳） / 工具 / CONTENT（内容） / 模板（每个 registerTemplate 一块，自带 css、knobs、notes）
@@ -58,9 +59,9 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--fg);outline-off
 .grain{opacity:.16;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
 .dots{opacity:.5;background-image:radial-gradient(var(--line) 1px,transparent 1.4px);background-size:7px 7px}
 .nav::-webkit-scrollbar,.chips::-webkit-scrollbar{display:none}
-.bar{position:fixed;top:74px;left:0;right:0;z-index:6;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:8px 14px;pointer-events:none}
+.bar{position:fixed;top:var(--home-nav-top-current,74px);left:0;right:0;z-index:6;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:8px 14px;pointer-events:none}
 .bar>*{pointer-events:auto}
-.nav{display:flex;gap:2px;background:var(--pill);border:1px solid var(--line);border-radius:10px;padding:4px;overflow-x:auto;max-width:100%}
+.nav{display:flex;gap:var(--home-nav-gap,2px);background:var(--home-panel,var(--pill));border:1px solid var(--home-line,var(--line));border-radius:10px;padding:4px;overflow-x:auto;max-width:100%}
 .nav button{padding:7px 13px;border-radius:7px;font-size:15px;white-space:nowrap;color:var(--mut)}
 .nav button[aria-pressed=true]{background:var(--line);color:var(--fg)}
 .tools{display:flex;gap:8px}
@@ -69,11 +70,11 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--fg);outline-off
 .seg button{width:34px;border-radius:7px;display:grid;place-items:center;color:var(--mut)}
 .seg button[aria-pressed=true]{background:var(--line);color:var(--fg)}
 #stage{position:fixed;inset:0;z-index:2;overflow:hidden}
-.tpl{position:absolute;inset:var(--top) 14px var(--bot) 14px}
+.tpl{position:absolute;inset:var(--home-top-current,var(--top)) 14px var(--home-bottom,var(--bot)) 14px}
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:0 0 12px;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 .dock>*{pointer-events:auto}
 .hint{text-align:center;font:11px var(--mono);color:var(--mut);padding:0 14px}
-.chips{display:flex;gap:6px;padding:0 14px;overflow-x:auto}
+.chips{display:flex;gap:var(--home-chip-gap,6px);padding:0 14px;overflow-x:auto}
 .chips::before,.chips::after{content:"";margin:auto}
 .chips button{flex:none;padding:7px 12px;border:1px solid var(--line);background:var(--pill);border-radius:99px;font-size:13px;color:var(--mut);text-align:center}
 .chips button:hover,.chips button.on{color:var(--fg);border-color:var(--mut)}
@@ -86,7 +87,8 @@ html.embed .tpl .stg{border-radius:0;border:0}
 
 /* ───── 画廊 ───── */
 body.gal #stage,body.gal .dock{display:none}
-.gal{position:fixed;inset:0;z-index:4;background:var(--bg);overflow:auto;padding:var(--top) 4vw 80px}
+.gal{position:fixed;inset:0;z-index:4;background:var(--home-bg,var(--bg));overflow:auto;padding:var(--home-top-current,var(--top)) 4vw 80px}
+.gal-inner{max-width:var(--home-content-width,none);margin:0 auto}
 .gal[hidden]{display:none}
 .gal-head h1{font-size:36px;letter-spacing:-.03em;font-weight:600}
 .gal-head p{color:var(--mut);margin:6px 0 18px;font-size:15px}
@@ -109,11 +111,11 @@ body.gal #stage,body.gal .dock{display:none}
 .gal-tags{display:flex;gap:6px;flex-wrap:wrap}
 .gal-tags button{padding:6px 12px;border:1px solid var(--line);border-radius:99px;font-size:13px;color:var(--mut);text-align:center}
 .gal-tags button[aria-pressed=true]{color:var(--fg);border-color:var(--mut);background:var(--pill)}
-.gal-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:26px 20px;margin-top:12px}
+.gal-grid{display:grid;grid-template-columns:repeat(var(--home-columns-current,var(--home-columns,4)),minmax(0,1fr));gap:var(--home-card-gap,26px);margin-top:12px}
 .gal-empty{color:var(--mut);font:13px var(--mono);grid-column:1/-1}
 .gc{cursor:pointer;outline:none;min-width:0}
 .gc[hidden]{display:none}
-.gc-pv{position:relative;aspect-ratio:16/10;border-radius:22px;overflow:hidden;border:1px solid var(--line);background:var(--st-bg);transition:transform .35s var(--e),border-color .2s}
+.gc-pv{position:relative;aspect-ratio:16/10;border-radius:var(--home-card-radius,22px);overflow:hidden;border:1px solid var(--home-line,var(--line));background:var(--home-panel,var(--st-bg));transition:transform .35s var(--e),border-color .2s}
 .gc:hover .gc-pv,.gc:focus-visible .gc-pv{transform:translateY(-4px);border-color:var(--mut)}
 .gc-fr{position:absolute;inset:0;overflow:hidden}
 .gc-fr iframe{position:absolute;left:0;top:0;width:1000px;height:625px;border:0;transform-origin:0 0;transform:scale(var(--s,.4));pointer-events:none;background:var(--st-bg)}
@@ -165,12 +167,12 @@ body.gal #stage,body.gal .dock{display:none}
 .mdl-act button[data-a=open]{background:var(--fg);color:var(--bg);border-color:var(--fg);margin-left:auto}
 html.embed .mnav,html.embed .bar,html.embed .dock,html.embed #gal,html.embed #mdl{display:none!important}
 html.embed{--top:0px;--bot:0px}
-@media(max-width:1200px){.gal-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:1200px){:root{--home-columns-current:3}}
 @media(max-width:900px){.mdl-main{grid-template-columns:1fr}.mdl-side{max-height:none}}
-@media(max-width:860px){.gal-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.gc-tags{display:none}}
+@media(max-width:860px){:root{--home-columns-current:2}.gc-tags{display:none}}
 @media(max-width:640px){.mdl-src small,.mdl-src span{display:none}.mdl-src{padding:0 10px 0 5px}}
-@media(max-width:520px){.gal-grid{grid-template-columns:1fr}.mdl-box{padding:14px}.mdl-pv{height:46vh}.mdl-act button[data-a=open]{margin-left:0}}
-@media (max-width:760px){:root{--top:192px;--bot:100px}.bar .nav{order:3;width:100%}}
+@media(max-width:520px){:root{--home-columns-current:1}.mdl-box{padding:14px}.mdl-pv{height:46vh}.mdl-act button[data-a=open]{margin-left:0}}
+@media (max-width:760px){:root{--top:192px;--bot:100px;--home-top-current:var(--home-top-mobile,192px);--home-nav-top-current:var(--home-nav-top-mobile,74px)}.bar .nav{order:3;width:100%}}
 
 /* ───── 顶部栏目（参考 Meridian：分条纸片药丸）───── */
 :root{--mn-a:#343434;--mn-b:#1f1f1f;--mn-ink:#f2f2f2;--mn-mut:#a5a5a5;--mn-cta:#ececec;--mn-cta-ink:#151515;--mn-sh:#00000080}
@@ -2732,7 +2734,8 @@ function applyPal(id,save){
   document.querySelectorAll('#msw button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.p===p[0]));
   $('#tl').setAttribute('aria-pressed',p[2]==='light');$('#td').setAttribute('aria-pressed',p[2]==='dark');
   if(save){try{localStorage.setItem('jerry-pal',p[0])}catch(e){}}
-  if(!EMBED)refreshFrames();
+  if(save&&window.JerryHomeLayout)window.JerryHomeLayout.applyCurrentPalette();
+  else if(!EMBED)refreshFrames();
 }
 const setTheme=t=>applyPal(t==='light'?'cream':'ink',true);
 $('#tl').onclick=()=>setTheme('light');$('#td').onclick=()=>setTheme('dark');
@@ -2747,8 +2750,8 @@ if(!EMBED){
 const gal=$('#gal'),mdl=$('#mdl');
 let catF=null,tagF=null,qF='',mdlIdx=0,curParams={};
 const FRAME_W=1000;
-const frameDoc=(id,auto,params)=>SELF.replace('<html lang="zh" data-theme="dark">','<html lang="zh" data-theme="'+document.documentElement.dataset.theme+'" class="embed" style="'+document.documentElement.style.cssText.replace(/"/g,'&quot;')+'">').replace('<head>','<head><script>window.__EMBED='+JSON.stringify({id,auto,params:params||{}})+';<\/script>');
-const mkFrame=(id,auto,params)=>{const f=document.createElement('iframe');f.title=id;f.srcdoc=frameDoc(id,auto,params);return f};
+const frameDoc=(id,auto,params)=>SELF.replace('<html lang="zh" data-theme="dark">','<html lang="zh" data-theme="'+document.documentElement.dataset.theme+'" class="embed" style="'+document.documentElement.style.cssText.replace(/"/g,'&quot;')+'">').replace('<head>','<head><style>'+(document.getElementById('jerry-home-layout')?.textContent||'')+'</style><script>window.__EMBED='+JSON.stringify({id,auto,params:params||{}})+';<\/script>');
+const mkFrame=(id,auto,params)=>{const f=document.createElement('iframe');f.title=id;f.addEventListener('load',()=>syncEmbeddedFrame(f));f.srcdoc=frameDoc(id,auto,params);return f};
 const manifestOf=t=>({id:t.id,name:t.name,category:t.cat,material:t.mat,spell:t.spell,core:t.core,tags:t.tags,knobs:(t.knobs||[]).map(k=>({key:k.k,default:k.v,min:k.min,max:k.max})),credit:t.credit});
 const promptOf=(t,p)=>`请使用「创意网站模板库」里的 ${t.name} 模板（id: ${t.id}，分类 ${t.cat}）。
 咒语：${t.spell}
@@ -3311,9 +3314,9 @@ function openPen(t,p){
 const ioG=new IntersectionObserver(es=>es.forEach(en=>{const f=en.target;if(en.isIntersecting&&!f._done){f._done=true;f.appendChild(mkFrame(f.dataset.id,true))}else if(!en.isIntersecting&&f._done){f._done=false;f.innerHTML=''}}),{root:gal,rootMargin:'60px'});
 const roG=new ResizeObserver(es=>es.forEach(en=>en.target.style.setProperty('--s',en.contentRect.width/FRAME_W)));
 function buildGal(){
-  gal.innerHTML=`<div class="gal-head"><h1>Templates</h1><p>${TPL.length} 个模板，每张卡都在实时运行。点开可以玩、调参数，并复制提示词、HTML、TSX。前 12 个复刻自 carterogunsola.com/lab，其余为原创实现（灵感来自 Design Spells、Skillry 等）。</p></div>
+  gal.innerHTML=`<div class="gal-inner"><div class="gal-head"><h1>Templates</h1><p>${TPL.length} 个模板，每张卡都在实时运行。点开可以玩、调参数，并复制提示词、HTML、TSX。前 12 个复刻自 carterogunsola.com/lab，其余为原创实现（灵感来自 Design Spells、Skillry 等）。</p></div>
   <label class="gal-search"><input id="gq" placeholder="What do you want to create?  搜名称 / 咒语 / 标签" autocomplete="off"><span>⌕</span></label>
-  <div class="gal-tagbar"><button class="gal-tgl" aria-expanded="false" aria-controls="gtw">标签 <i aria-hidden="true">▾</i></button><span class="gal-cur"></span></div><div class="gal-tagwrap" id="gtw"><div class="gal-tags"></div></div><div class="gal-grid"></div>`;
+  <div class="gal-tagbar"><button class="gal-tgl" aria-expanded="false" aria-controls="gtw">标签 <i aria-hidden="true">▾</i></button><span class="gal-cur"></span></div><div class="gal-tagwrap" id="gtw"><div class="gal-tags"></div></div><div class="gal-grid"></div></div>`;
   const grid=$('.gal-grid',gal),tg=$('.gal-tags',gal),tw=$('.gal-tagwrap',gal),tgl=$('.gal-tgl',gal),cur=$('.gal-cur',gal);
   const setOpen=o=>{tw.classList.toggle('open',o);tgl.setAttribute('aria-expanded',o)};
   const paintCur=()=>{cur.classList.toggle('on',!!tagF);cur.innerHTML=tagF?`${esc(tagF)} <b role="button" aria-label="清除标签" title="清除">✕</b>`:'';const x=$('b',cur);if(x)x.onclick=()=>{tagF=null;tg.querySelectorAll('button').forEach(y=>y.setAttribute('aria-pressed',!y.dataset.tag));paintCur();applyFilter()}};
@@ -3321,6 +3324,7 @@ function buildGal(){
   [null,...[...new Set(TPL.flatMap(t=>t.tags))].sort()].forEach(tag=>{const b=el('button','',tag||'All');b.dataset.tag=tag||'';b.setAttribute('aria-pressed',tag===tagF);b.onclick=()=>{tagF=tag;tg.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',(x.dataset.tag||null)===tagF));paintCur();setOpen(false);applyFilter()};tg.appendChild(b)});
   TPL.forEach((t,i)=>{
     const c=el('article','gc',`<div class="gc-pv"><span class="gc-badge">${t.cat} · ${t.mat}</span><span class="gc-live">● LIVE</span><div class="gc-fr" data-id="${t.id}"></div></div><div class="gc-meta"><h3>${esc(t.name)}</h3><div class="gc-tags">${t.tags.slice(0,2).map(x=>`<i>${esc(x)}</i>`).join('')}</div></div>`);
+    c.style.setProperty('--home-stagger',Math.min(i,18)*38+'ms');
     c.tabIndex=0;c._i=i;c.setAttribute('role','button');c.setAttribute('aria-label',t.name);
     c.onclick=()=>openModal(i);c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openModal(i)}};
     grid.appendChild(c);const fr=$('.gc-fr',c);ioG.observe(fr);roG.observe(fr);
@@ -3336,7 +3340,14 @@ function applyFilter(){
   syncNav();
 }
 function syncNav(){document.querySelectorAll('#nav button').forEach(b=>b.setAttribute('aria-pressed',document.body.classList.contains('gal')?b.dataset.cat===catF:b.dataset.cat===(TPL[tIdx]||{}).cat))}
-function refreshFrames(){document.querySelectorAll('.gc-fr iframe').forEach(f=>{f.srcdoc=frameDoc(f.title,true)})}
+function syncEmbeddedFrame(frame){
+  const frameRoot=frame.contentDocument&&frame.contentDocument.documentElement;
+  if(!frameRoot)return;
+  frameRoot.style.cssText=document.documentElement.style.cssText;
+  frameRoot.dataset.theme=document.documentElement.dataset.theme;
+}
+function refreshFrames(){document.querySelectorAll('.gc-fr iframe').forEach(syncEmbeddedFrame)}
+addEventListener('jerry:home-layout-applied',refreshFrames);
 function enterGallery(){
   releaseTemplate();stage.innerHTML='';tIdx=-1;
   document.body.classList.add('gal');gal.hidden=false;

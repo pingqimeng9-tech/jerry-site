@@ -10,6 +10,43 @@
     "sectionGap": 36,
     "contentWidth": 1000
   },
+  "home": {
+    "background": "",
+    "foreground": "",
+    "muted": "",
+    "panel": "",
+    "accent": "",
+    "font": "system",
+    "backgroundStyle": "aurora",
+    "backgroundMotion": false,
+    "navStyle": "glass",
+    "searchStyle": "pill",
+    "cardStyle": "soft",
+    "entrance": "rise",
+    "hover": "lift",
+    "motionSpeed": 1,
+    "modules": {
+      "topbar": true,
+      "search": true,
+      "filters": true,
+      "cardMeta": true,
+      "badges": true,
+      "live": true,
+      "tags": true
+    },
+    "cardRadius": 22,
+    "cardGap": 26,
+    "columns": 4,
+    "contentWidth": 1440,
+    "navGap": 2,
+    "chipGap": 6,
+    "top": 148,
+    "mobileTop": 192,
+    "navTop": 74,
+    "mobileNavTop": 74,
+    "bottom": 104,
+    "dockBottom": 12
+  },
   "pages": {
     "index": {
       "modules": [
