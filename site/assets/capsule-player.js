@@ -338,6 +338,13 @@
     audio.addEventListener('pause', function () { st.playing = false; persist(); });
     audio.addEventListener('ended', function () { go(st.curIndex + 1, true); });
     audio.addEventListener('error', function () {
+      if (PLAYER_ONLY) {
+        st.playing = false;
+        var failedTrack = st.playlist[st.curIndex];
+        if (failedTrack) failedTrack.title = '歌曲暂不可播（版权/网络）';
+        persist({ playing: false });
+        return;
+      }
       failChain++;
       if (failChain >= ids.length) { st.playing = false; try { var tr = st.playlist[st.curIndex]; tr && (tr.title = '歌曲暂不可播（版权/网络）'); } catch (_) {} }
       else go(st.curIndex + 1, true);
@@ -345,7 +352,7 @@
 
     go(st.curIndex, false);
     // 跨页恢复：上次在播则尝试续播（被浏览器自动播放策略拦截则静默暂停，等用户点一下）
-    if (sameIds && saved.playing) {
+    if (!PLAYER_ONLY && sameIds && saved.playing) {
       if (saved.t > 1) { var once = function () { try { audio.currentTime = Math.min(saved.t, (audio.duration || 1e9) - 2); } catch (_) {} audio.removeEventListener('loadedmetadata', once); }; audio.addEventListener('loadedmetadata', once); }
       audio.play().then(function () {}).catch(function () {});
     }
