@@ -456,16 +456,19 @@
   .fc3{ --rx:6px;--ry:50px;--rr:1deg; --fx:130px;--fy:-152px;--fr:11deg; --z:3;--in:140ms;--out:0ms; --n:#b9cbe3; --face2:#d4e7fa; }
   .fc1 .f-face,.fc2 .f-face,.fc3 .f-face{ background:linear-gradient(165deg,#fff 35%,var(--face2)); }
 
-  /* 正面异形玻璃标题板（在外壳之外、tilt 之内，翻开时后仰） */
+  /* 正面异形玻璃标题板；展开时仅玻璃与描边向左右对称外扩，文字不缩放 */
   .f-front{ position:absolute; left:9px; right:9px; bottom:9px; top:111px; z-index:4; color:#fff; padding:34px 20px 0; box-sizing:border-box;
-    transform-origin:50% 100%; transition:transform .45s cubic-bezier(.16,1,.3,1); }
-  .f-stage.open .f-front{ transform:scaleX(1.08); }
+  }
   .f-glass{ position:absolute; inset:0;
     clip-path:path('M16 0H100C112 0 118 4 124 10C130 16 136 20 150 20H244Q262 20 262 38V156Q262 176 242 176H20Q0 176 0 156V16Q0 0 16 0Z');
     /* 收起态不做毛玻璃模糊（64 个常驻 backdrop-filter 会拖垮滚动/展开），用稍实的静态渐变保证标题可读；仅展开的那一个启用 blur */
-    background:linear-gradient(155deg,rgba(255,255,255,.22),rgba(255,255,255,.06) 42%,rgba(110,140,255,.12)),rgba(26,28,48,.6); }
+    background:linear-gradient(155deg,rgba(255,255,255,.22),rgba(255,255,255,.06) 42%,rgba(110,140,255,.12)),rgba(26,28,48,.6);
+    transform:scaleX(1); transform-origin:center; transition:transform .45s cubic-bezier(.16,1,.3,1); }
+  .f-stage.open .f-glass{ transform:scaleX(1.36); }
   .f-stage.open .f-glass{ -webkit-backdrop-filter:blur(16px) saturate(1.6); backdrop-filter:blur(16px) saturate(1.6); }
-  .f-rim{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; fill:none; stroke:url(#jerryFGrad); stroke-width:1.2; }
+  .f-rim{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; fill:none; stroke:url(#jerryFGrad); stroke-width:1.2;
+    transform:scaleX(1); transform-origin:center; transition:transform .45s cubic-bezier(.16,1,.3,1); }
+  .f-stage.open .f-rim{ transform:scaleX(1.36); }
   .f-front h3{ position:relative; margin:0; font:700 14px/1.4 "Noto Serif SC","Songti SC",serif; text-shadow:0 1px 8px rgba(0,0,0,.35);
     display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
   .f-front .f-fp{ position:relative; margin:7px 0 0; font:400 11.5px/1.55 "Noto Serif SC","Songti SC",serif; color:#d9dcf0;
@@ -489,7 +492,7 @@
     .f-meta{ left:14px; right:14px; gap:8px; }
     .f-meta span:last-child{ display:none; }
   }
-  @media (prefers-reduced-motion:reduce){ .f-tilt,.f-shell,.f-card,.f-front{ transition-duration:.01ms!important; } }
+  @media (prefers-reduced-motion:reduce){ .f-tilt,.f-shell,.f-card,.f-front,.f-glass,.f-rim{ transition-duration:.01ms!important; } }
 
   /* 文件夹外观调节面板（仅管理员） */
   .fp-entry-btn{ margin-left:6px; border-radius:100px; line-height:1; padding:0 10px; }
