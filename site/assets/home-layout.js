@@ -162,7 +162,8 @@
   }
 
   window.JerryHomeLayout = {
-    applyCurrentPalette: function () { apply(currentHome, false); }
+    applyCurrentPalette: function () { apply(currentHome, false); },
+    preview: function (home) { hasLivePreview = true; preview(home); }
   };
 
   fetch('/data/layout_config.json', { cache: 'no-store' })

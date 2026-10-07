@@ -90,6 +90,11 @@
   .home-preview-foot i{width:7px;height:7px;border-radius:50%;background:#5ce1e6;box-shadow:0 0 10px #5ce1e680}
   .home-preview-foot span{margin-left:auto}
   .home-work-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 18px}
+  .home-inspector,.home-work-actions,#lgGlobalAppearance,#lgPageAppearance,#lgModuleList,#lgTexts{display:none!important}
+  .home-studio{grid-template-columns:minmax(0,1fr)!important}
+  .home-preview-panel{min-height:520px}
+  .layout-edit-notice{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:14px 0;padding:16px 18px;border:1px solid rgba(92,225,230,.2);border-radius:15px;background:linear-gradient(120deg,rgba(92,225,230,.08),rgba(177,140,255,.08))}
+  .layout-edit-notice p{margin:4px 0 0;color:var(--muted);font-size:12px;line-height:1.65}
   @media(max-width:980px){.home-studio{grid-template-columns:260px minmax(0,1fr)}}
   @media(max-width:760px){.home-studio{grid-template-columns:1fr}.home-inspector{min-height:0}.home-inspector-body{max-height:460px}.home-preview-panel{min-height:580px}.home-preview-stage iframe{height:540px}}
   @media(max-width:760px){.set-layout{flex-direction:column}.set-tabs{width:100%;flex-direction:row;flex-wrap:wrap;position:static}.grid2,.grid3{grid-template-columns:1fr}}
@@ -469,9 +474,14 @@
       <!-- 页面布局 -->
       <section class="sec" data-sec="layout">
         <div class="glass">
-          <span class="kicker">Layout · Modules & Theme</span>
-          <h2>🧩 页面布局与外观 <span class="hint">模块隐藏 / 拖拽排序 / 页面标题 / 主题色 · 圆角 · 间距 · 宽度</span></h2>
+          <span class="kicker">Theme · Page Preview</span>
+          <h2>🎨 全站外观与页面预览 <span class="hint">全局主题色 · 圆角 · 间距 · 宽度</span></h2>
+          <div class="layout-edit-notice">
+            <div><strong>页面内容请直接在页面上编辑</strong><p>打开首页后启用可视化编辑，可在画布中选区块、改文字、调整区块顺序和样式；此处不再编辑页面模块。</p></div>
+            <a class="btn primary" href="/?editLayout=1">↗ 打开首页编辑器</a>
+          </div>
 
+          <div id="lgGlobalAppearance">
           <label class="dim mono" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase">全局外观（对所有页面生效）</label>
           <div style="display:flex;gap:18px;flex-wrap:wrap;margin:10px 0 6px;align-items:center">
             <div style="text-align:center"><input type="color" id="lgViolet" value="#B18CFF" style="width:46px;height:34px;border:none;background:none;cursor:pointer"><div class="dim" style="font-size:10.5px">主紫</div></div>
@@ -481,6 +491,7 @@
             <div style="min-width:190px;flex:0 1 220px">卡片圆角 <b id="lgRadiusV">18</b>px<input type="range" id="lgRadius" min="6" max="32" value="18" style="width:100%"></div>
             <div style="min-width:190px;flex:0 1 220px">首页板块间距 <b id="lgGapV">36</b>px<input type="range" id="lgGap" min="10" max="120" value="36" style="width:100%"></div>
             <div style="min-width:190px;flex:0 1 220px">内容最大宽度 <b id="lgWidthV">1000</b>px<input type="range" id="lgWidth" min="860" max="1280" step="20" value="1000" style="width:100%"></div>
+          </div>
           </div>
 
           <div class="home-studio" id="lgStudio">
@@ -611,19 +622,12 @@
             </div>
           </div>
 
-          <label class="dim mono" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin-top:18px;display:block">各页面模块（拖动 ☰ 排序，眼睛切换显隐；📌 为固定位置模块）</label>
+          <label class="dim mono" style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin-top:18px;display:block">选择页面预览（页面模块与文案请在对应页面内编辑）</label>
           <div id="lgPageTabs" style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0"></div>
           <div id="lgModuleList" style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px"></div>
           <div id="lgTexts" style="display:flex;flex-direction:column;gap:9px;margin-bottom:14px"></div>
 
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-            <button class="btn primary" onclick="lgSave()">💾 保存并立即生效</button>
-            <button class="btn ghost" onclick="lgLoad()">🔄 重新载入</button>
-            <button class="btn ghost" onclick="lgReset()">↺ 恢复默认布局</button>
-            <button class="btn ghost" onclick="lgPreview()">👁 打开该页预览（带模块标记）</button>
-            <span id="lgStat" class="dim mono" style="font-size:11.5px"></span>
-          </div>
-          <p class="dim" style="font-size:11.5px;margin-top:10px">本地模式下布局保存在本机，点「🚀 同步 Blog」后上线；线上管理员保存会直接提交到 GitHub 并触发 Vercel 部署。隐藏的模块不会删除，随时可再打开。</p>
+          <p id="lgStat" class="dim mono" style="font-size:11.5px;margin-top:10px">这里仅提供页面预览；布局、文字和外观请在对应页面内编辑。</p>
         </div>
       </section>
 
