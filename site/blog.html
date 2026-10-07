@@ -94,7 +94,8 @@
 
   /* 顶部大搜索框 */
   .hero-search-wrap {
-    max-width: 800px; margin: 40px auto 10px; padding: 0 20px; position: relative; z-index: 20;
+    max-width: 900px; margin: clamp(20px,3vw,40px) auto 8px;
+    padding: 0 clamp(16px,2.5vw,28px); position: relative; z-index: 20;
   }
   .hero-search-wrap input {
     width: 100%; background: rgba(0,0,0,0.35); border: 1px solid var(--glass-border);
@@ -113,7 +114,7 @@
   .search-count { text-align: center; font-size: 13px; color: var(--aqua); margin-top: 14px; font-family: 'JetBrains Mono', monospace; display: none; }
 
   /* 布局主体 */
-  .shell{ display:flex; max-width:1560px; margin: 20px auto 40px; gap:22px; padding:0 clamp(20px,3vw,40px); align-items:flex-start; position:relative; z-index:1; }
+  .shell{ display:flex; max-width:1480px; margin:12px auto 32px; gap:clamp(12px,1.5vw,22px); padding:0 clamp(14px,2vw,32px); align-items:flex-start; position:relative; z-index:1; }
 
   .sidebar{ width:250px; flex-shrink:0; background:var(--glass); border:1px solid var(--glass-border); backdrop-filter:blur(18px); border-radius:20px; padding:22px; position:sticky; top:88px; }
   .avatar-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
@@ -323,7 +324,7 @@
   .view-switcher button:hover { background: rgba(255,255,255,.08); color: #fff; }
   .view-switcher button.active { background: rgba(255,255,255,.2); color: #fff; font-weight: 700; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
 
-  .cat-section{margin-bottom:44px;scroll-margin-top:90px;}
+  .cat-section{margin-bottom:clamp(24px,3vw,44px);scroll-margin-top:90px;}
   .cat-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
   .cat-header .dot{width:8px;height:8px;border-radius:50%;background:linear-gradient(120deg,var(--coral),var(--pink));}
   .cat-header h2{font-family:'Noto Serif SC',serif;font-size:20px;font-weight:700;margin:0;}
@@ -338,8 +339,7 @@
   .post-meta{display:flex;gap:14px;font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
 
   /* ================= 🖼️ 图库视图 (Notion Gallery Style - 默认) ================= */
-  .view-gallery .post-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-  @media (max-width:1280px){ .view-gallery .post-grid { grid-template-columns: repeat(2, 1fr); } }
+  .view-gallery .post-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr)); gap:clamp(12px,1.5vw,20px); }
   /* 卡片纵向：封面（若有）→ 标题 → 摘要（始终在标题下）→ 元信息 */
   .post-card { flex-direction: column; padding: 0; }
   .post-card .post-preview { flex: none; }
@@ -593,8 +593,8 @@
   .pagination .ellipsis{color:var(--muted);padding:0 2px;}
 
   @media (max-width:760px){
-    .shell{ z-index:auto; margin-top: 10px; } 
-    .main-controls { position:sticky; z-index:40; margin:0 -20px 18px; padding:10px 16px; background:rgba(20,16,45,.75); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); flex-wrap: nowrap; flex-direction:column; align-items:stretch; gap:8px; }
+    .shell{ z-index:auto; margin:8px auto 24px; padding:0 14px; }
+    .main-controls { position:sticky; top:64px; z-index:40; margin:0 -14px 14px; padding:10px 14px; background:rgba(20,16,45,.82); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); flex-wrap:nowrap; flex-direction:column; align-items:stretch; gap:8px; }
     .rail-toggles{ display:none; } /* 手机端侧栏开关移到底部悬浮 dock（🔍 左栏 / 📣 右栏） */
     .tabbar{
       border:none; padding:0; background:transparent; width:100%;
@@ -615,7 +615,6 @@
     .view-switcher button svg{ width:15px; height:15px; }
 
     /* 图库/列表手机端保持官方原版排版（图库单列、长标题两行、摘要照常显示），不随 folder 改造 */
-    .view-gallery .post-grid { grid-template-columns: 1fr; }
     .view-gallery .post-title{ /* 长标题手机端允许两行，不再单行省略号 */
       white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
       overflow:hidden; align-items:flex-start; line-height:1.45; min-height:2.6em;

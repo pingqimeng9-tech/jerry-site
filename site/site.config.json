@@ -16,24 +16,12 @@
     },
     "navigation": [
       {
-        "label": "说说",
-        "href": "/moments.html"
-      },
-      {
-        "label": "时间线",
-        "href": "/timeline.html"
-      },
-      {
         "label": "友链",
         "href": "/friends.html"
       },
       {
         "label": "项目",
         "href": "/projects.html"
-      },
-      {
-        "label": "照片墙",
-        "href": "/photowall.html"
       }
     ]
   },

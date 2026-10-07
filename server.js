@@ -169,11 +169,8 @@ function defaultSiteConfig() {
       avatarUrl: '', defaultPostCover: '',
       social: { github: '', gitee: '', email: '', qq: '', wechat: '', bilibili: '' },
       navigation: [
-        { label: '说说', href: '/moments.html' },
-        { label: '时间线', href: '/timeline.html' },
         { label: '友链', href: '/friends.html' },
-        { label: '项目', href: '/projects.html' },
-        { label: '照片墙', href: '/photowall.html' }
+        { label: '项目', href: '/projects.html' }
       ]
     },
     background: { useGradient: true, bgImages: [], effect: 'none' }, // effect: none|sakura|snow|fireflies
@@ -860,6 +857,10 @@ const server = http.createServer((req, res) => {
   }
   // 短链 /p/<slug>：与 vercel.json rewrites 行为一致，静默返回 post.html（slug 由前端从路径解析）
   if (/^\/p\/[^/]+$/.test(u.pathname)) { serveStatic(req, res, '/post.html'); return; }
+  if (/^\/(?:moments|photowall|timeline)\.html$/.test(u.pathname)) {
+    res.writeHead(302, { Location: '/blog.html' });
+    return res.end();
+  }
   serveStatic(req, res, u.pathname);
 });
 

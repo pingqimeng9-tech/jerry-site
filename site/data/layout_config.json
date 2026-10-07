@@ -215,66 +215,6 @@
         }
       ]
     },
-    "moments": {
-      "modules": [
-        {
-          "id": "head",
-          "title": "页面标题区",
-          "hidden": false,
-          "sortable": false
-        },
-        {
-          "id": "list",
-          "title": "说说列表",
-          "hidden": false,
-          "sortable": false
-        }
-      ],
-      "texts": [
-        {
-          "key": "moments.title",
-          "label": "页面大标题",
-          "selector": ".page-title",
-          "default": "说说"
-        },
-        {
-          "key": "moments.sub",
-          "label": "页面副标题",
-          "selector": ".page-sub",
-          "default": "碎碎念、生活碎片与突然的想法"
-        }
-      ]
-    },
-    "photowall": {
-      "modules": [
-        {
-          "id": "head",
-          "title": "页面标题区",
-          "hidden": false,
-          "sortable": false
-        },
-        {
-          "id": "view",
-          "title": "相册/照片墙",
-          "hidden": false,
-          "sortable": false
-        }
-      ],
-      "texts": [
-        {
-          "key": "photowall.title",
-          "label": "页面大标题",
-          "selector": "#page-title",
-          "default": "照片墙"
-        },
-        {
-          "key": "photowall.sub",
-          "label": "页面副标题",
-          "selector": "#page-sub",
-          "default": "用镜头记录生活的碎片"
-        }
-      ]
-    },
     "projects": {
       "modules": [
         {
@@ -302,36 +242,6 @@
           "label": "页面副标题",
           "selector": ".page-sub",
           "default": "做过并愿意展示的东西"
-        }
-      ]
-    },
-    "timeline": {
-      "modules": [
-        {
-          "id": "head",
-          "title": "页面标题区",
-          "hidden": false,
-          "sortable": false
-        },
-        {
-          "id": "list",
-          "title": "时间线",
-          "hidden": false,
-          "sortable": false
-        }
-      ],
-      "texts": [
-        {
-          "key": "timeline.title",
-          "label": "页面大标题",
-          "selector": ".page-title",
-          "default": "时间线"
-        },
-        {
-          "key": "timeline.sub",
-          "label": "页面副标题",
-          "selector": ".page-sub",
-          "default": "文章与说说，按时间串起来的足迹"
         }
       ]
     },

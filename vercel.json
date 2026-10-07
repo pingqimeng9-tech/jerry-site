@@ -1,4 +1,21 @@
 {
+  "redirects": [
+    {
+      "source": "/moments.html",
+      "destination": "/blog.html",
+      "permanent": false
+    },
+    {
+      "source": "/photowall.html",
+      "destination": "/blog.html",
+      "permanent": false
+    },
+    {
+      "source": "/timeline.html",
+      "destination": "/blog.html",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/p/:slug",
