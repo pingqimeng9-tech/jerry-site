@@ -12,6 +12,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="icon" href="/icons/icon-192.png">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
+<script src="/assets/pwa-install.js" defer></script>
 <!--
   创意网站模板库 v2 —— 照着 carterogunsola.com/lab 复刻
   SHELL（外壳） / 工具 / CONTENT（内容） / 模板（每个 registerTemplate 一块，自带 css、knobs、notes）
@@ -76,18 +77,6 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--fg);outline-off
 .chips::before,.chips::after{content:"";margin:auto}
 .chips button{flex:none;padding:7px 12px;border:1px solid var(--line);background:var(--pill);border-radius:99px;font-size:13px;color:var(--mut);text-align:center}
 .chips button:hover,.chips button.on{color:var(--fg);border-color:var(--mut)}
-.dlg{position:fixed;inset:0;z-index:70;background:#000b;display:grid;place-items:center;padding:16px}
-.dlg[hidden]{display:none}
-.dlg-box{width:min(440px,100%);background:var(--bg);border:1px solid var(--line);border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:12px;max-height:92vh;overflow:auto}
-.dlg-box header{display:flex;justify-content:space-between;align-items:center}
-.dlg-box h2{font-size:22px;letter-spacing:-.03em;font-weight:600}
-.dlg-row{border:1px solid var(--line);background:var(--pill);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px}
-.dlg-row b{font-size:15px;font-weight:600}
-.dlg-row p{font-size:13px;line-height:1.6;color:var(--mut);user-select:text;-webkit-user-select:text}
-.dlg-row button{margin-top:4px;padding:11px 14px;border-radius:11px;background:var(--fg);color:var(--bg);font-size:14px;text-align:center}
-.dlg-row button[disabled]{opacity:.35;cursor:default}
-.dlg-st{font:11px var(--mono);color:var(--mut)}
-
 /* ───── 共用舞台 ───── */
 .stg{position:absolute;inset:0;overflow:hidden;background:var(--st-bg);color:var(--st-ink);user-select:none;-webkit-user-select:none}
 .tpl .stg{border-radius:22px;border:1px solid var(--line)}
@@ -266,16 +255,6 @@ html.embed{--top:0px;--bot:0px}
 <div class="dock">
   <div class="hint" id="hint"></div>
   <div class="chips" id="chips" aria-label="模板"></div>
-</div>
-
-<div class="dlg" id="dlg" hidden>
-  <div class="dlg-box" role="dialog" aria-modal="true" aria-label="安装与下载">
-    <header><h2>安装 / 下载</h2><button class="mdl-x" id="dx" aria-label="关闭">✕</button></header>
-    <div class="dlg-row"><b>安装为 App</b><p id="dI"></p><button id="dInstall">安装到设备</button></div>
-    <div class="dlg-row"><b>下载离线文件</b><p>把整个模板库保存成一个 .html 文件，双击就能用，不需要网络。</p><button id="dDown">下载 template-library.html</button></div>
-    <div class="dlg-row"><b>离线状态</b><p id="dO"></p></div>
-    <div class="dlg-st" id="dS"></div>
-  </div>
 </div>
 
 <script>
@@ -3404,7 +3383,6 @@ if(EMBED){addEventListener('message',e=>{const m=e.data;if(!m||m.type!=='tpl-par
 if(!EMBED){addEventListener('message',e=>{const m=e.data,f=$('.mdl-pv iframe',mdl);if(!m||m.type!=='tpl-set'||mdl.hidden||!f||e.source!==f.contentWindow)return;const t=TPL[mdlIdx];curParams[m.k]=m.v;PSTORE[t.id]=Object.assign({},curParams);const w=mdl.querySelector('.kn[data-k="'+m.k+'"]');if(w){$('input',w).value=m.v;$('b',w).textContent=m.v}scheduleCode()})}
 
 addEventListener('keydown',e=>{
-  if(!$('#dlg').hidden){if(e.key==='Escape')closeDlg();return}
   if(!mdl.hidden){if(e.key==='Escape')closeModal();return}
   if(e.target.tagName==='INPUT'||document.body.classList.contains('gal'))return;
   if(e.key==='PageDown')showTemplate(tIdx+1);
@@ -3413,32 +3391,6 @@ addEventListener('keydown',e=>{
 
 /* 屏幕宽度变化（旋转屏幕）时重新排布当前模板 */
 let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(Math.abs(innerWidth-lastW)>40){lastW=innerWidth;if(tIdx>=0&&!document.body.classList.contains('gal'))showTemplate(tIdx,false)}},250)});
-
-/* ════════════════ PWA：安装 / 下载 / 离线 ════════════════ */
-const dlg=$('#dlg');let deferred=null,swState='';
-const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
-const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-const isHTTP=/^https?:$/.test(location.protocol)&&(location.protocol==='https:'||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname));
-function drawDlg(){
-  const b=$('#dInstall'),p=$('#dI');b.hidden=false;b.disabled=false;
-  if(isStandalone()){p.textContent='已经是以 App 方式运行。';b.disabled=true;b.textContent='已安装'}
-  else if(deferred){p.textContent='点下面的按钮，系统会弹出安装确认。装好后桌面或主屏幕上会有图标，全屏打开、可离线。';b.textContent='安装到设备'}
-  else if(!isHTTP){p.textContent='当前是本地文件（file://），浏览器不允许安装。把文件夹部署到 https（GitHub Pages、Netlify、Vercel 都行）或用 localhost 打开后，这里就能安装。';b.disabled=true;b.textContent='需要先部署'}
-  else if(isIOS){p.textContent='iPhone / iPad：用 Safari 打开，点底部的分享按钮，选“添加到主屏幕”。';b.hidden=true}
-  else{p.textContent='浏览器暂未给出安装提示。Chrome / Edge：地址栏右侧的安装图标，或菜单里的“安装应用 / 添加到主屏幕”。';b.hidden=true}
-  $('#dO').textContent=swState==='ready'?'已缓存，断网也能打开。有新版本时会在下次联网访问后更新。':!isHTTP?'离线缓存需要 https 或 localhost。你可以先下载离线文件。':'正在准备离线缓存…';
-  $('#dS').textContent='DISPLAY::'+(isStandalone()?'standalone':'browser')+'  ·  SW::'+(swState||'none')+'  ·  '+location.protocol.replace(':','').toUpperCase();
-}
-function openDlg(){drawDlg();dlg.hidden=false}
-function closeDlg(){dlg.hidden=true}
-$('#dbtn').onclick=openDlg;$('#dx').onclick=closeDlg;dlg.addEventListener('click',e=>{if(e.target===dlg)closeDlg()});
-$('#dInstall').onclick=async()=>{if(!deferred)return;deferred.prompt();const r=await deferred.userChoice;deferred=null;$('#dS').textContent='USER::'+r.outcome;drawDlg()};
-$('#dDown').onclick=()=>{const blob=new Blob([SELF],{type:'text/html;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='template-library.html';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);$('#dDown').textContent='已开始下载 ✓';setTimeout(()=>{$('#dDown').textContent='下载 template-library.html'},1800)};
-if(!EMBED){
-  addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;if(!dlg.hidden)drawDlg();$('#dbtn').style.borderColor='var(--mut)'});
-  addEventListener('appinstalled',()=>{deferred=null;if(!dlg.hidden)drawDlg()});
-  if('serviceWorker' in navigator&&isHTTP)navigator.serviceWorker.register('/sw.js').then(()=>navigator.serviceWorker.ready).then(()=>{swState='ready';if(!dlg.hidden)drawDlg()}).catch(()=>{swState='error'});
-}
 
 if(!EMBED){$('#mhome').onclick=$('#mbrand').onclick=()=>{if(!document.body.classList.contains('gal'))enterGallery();scrollTo(0,0)}}
 if(EMBED){
