@@ -4,17 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex,nofollow">
-<!-- 老版内容管理台已废弃（说说/友链/相册等旧模块），统一收口到新版控制台 index.html -->
-<script>
-  (function () {
-    try {
-      var s = sessionStorage.getItem('cms_deprecated_content_seen');
-      if (!s) { sessionStorage.setItem('cms_deprecated_content_seen', '1'); }
-    } catch (e) {}
-    location.replace('./index.html');
-  })();
-</script>
-<title>Jerry CMS · 内容管理（已迁移）</title>
+<title>Jerry CMS · 内容管理</title>
 <link rel="stylesheet" href="./admin.css">
 <script src="/admin/studio/cms-adapter.js"></script>
 <script src="/admin/admin-auth.js"></script>
@@ -69,7 +59,7 @@
   </div>
 
   <!-- 说说 -->
-  <div class="c-pane" data-k="moments">
+  <div class="c-pane active" data-k="moments">
     <div class="glass form-glass">
       <h3 id="m-form-title">✏️ 发布新说说</h3>
       <input type="hidden" id="m-id">
@@ -85,7 +75,7 @@
       <div class="field" style="margin-top:14px"><label><i></i>内容</label><textarea id="m-text" rows="3" placeholder="想说的话…"></textarea></div>
       <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
         <button class="mini-btn" onclick="upMedia('m-imgs','image')">＋ 上传图片（可多选）</button>
-        <button class="mini-btn" onclick="upMedia('m-video','video')">＋ 上传视频</button>
+        <button class="mini-btn" onclick="upMedia('m-video','video','videos/posts')">＋ 上传视频</button>
       </div>
       <div class="media-row" id="m-media"></div>
     </div>
@@ -175,13 +165,13 @@
     <div id="cm-list"></div>
   </div>
 
-  <!-- 大文件上传（GitHub 网页拖拽，无大小限制） -->
+  <!-- 大文件上传（GitHub 网页拖拽） -->
   <div class="c-pane" data-k="bigfiles">
     <div class="glass form-glass">
-      <h3>📦 大文件 / 附件上传（无大小限制）</h3>
+      <h3>📦 大文件 / 附件上传</h3>
       <p class="dim" style="font-size:12.5px;line-height:1.8">
         编辑器里的直接上传适合 <b>4MB 以内</b>的图片和小附件；<b>zip、exe、安装包、视频、大图</b>等请走 GitHub 网页拖拽：
-        文件提交后 Vercel 会在 <b>1-2 分钟</b>内自动部署，部署完成即可在文章里引用下载，链接永久有效。
+        请遵守 GitHub 网页上传的文件大小限制。文件提交后 Vercel 会在 <b>1-2 分钟</b>内自动部署，部署完成即可在文章里引用下载。
       </p>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 6px">
         <a class="mini-btn" style="text-decoration:none;display:inline-block" target="_blank"
@@ -214,7 +204,8 @@ function toast(msg){ const el=document.getElementById('pic-toast'); el.textConte
 const BF_REPO = 'pingqimeng9-tech/jerry-site';
 const BF_DIRS = [
   { key: 'files/posts', label: '📎 附件（files/posts）', urlPrefix: '/files/posts/' },
-  { key: 'videos/posts', label: '🎬 视频（videos/posts）', urlPrefix: '/videos/posts/' }
+  { key: 'videos/posts', label: '🎬 视频（videos/posts）', urlPrefix: '/videos/posts/' },
+  { key: 'images/posts', label: '🖼 图片（images/posts）', urlPrefix: '/images/posts/' }
 ];
 function fmtSize(n){ n=+n||0; return n<1024?n+' B':n<1048576?(n/1024).toFixed(1)+' KB':(n/1048576).toFixed(1)+' MB'; }
 async function copyText(t){
@@ -255,6 +246,7 @@ async function api(p, body){
 $$('.c-tab').forEach(b=>b.addEventListener('click',()=>{
   $$('.c-tab').forEach(x=>x.classList.toggle('active',x===b));
   $$('.c-pane').forEach(x=>x.classList.toggle('active',x.dataset.k===b.dataset.k));
+  if(['moments','friends','projects','albums','comments'].includes(b.dataset.k)) loadList(b.dataset.k);
 }));
 
 /* 媒体上传：图片/视频 → chip 列表 */
@@ -266,6 +258,11 @@ function drawMedia(){
   $('#a-media').innerHTML = mediaDraft.a.photos.map((u,i)=>`<span class="mchip">🖼 ${esc(short(u))}<button onclick="mediaDraft.a.photos.splice(${i},1);drawMedia()">✕</button></span>`).join('');
 }
 function short(u){ return (u||'').split('/').pop().slice(0,22); }
+function savedMessage(label){
+  return window.JerryCmsAdapter && window.JerryCmsAdapter.isLocal
+    ? '✅ '+label+'（本地已保存；上线请点“同步 Blog”）'
+    : '🚀 '+label+' 已提交，Vercel 部署完成后生效';
+}
 async function upMedia(which, kind, dir){
   const inp=document.createElement('input');
   inp.type='file';
@@ -331,7 +328,7 @@ async function saveMoment(){
   };
   if(!item.text){ toast('说点什么再发～'); return; }
   const d=await api('/api/collection/save',{name:'moments',item});
-  if(d.ok){ toast('✅ 已保存（「同步 Blog」后上线）'); resetMomentForm(); loadMoments(); }
+  if(d.ok){ toast(savedMessage('说说')); resetMomentForm(); loadMoments(); }
   else toast(d.error||'保存失败');
 }
 function resetMomentForm(){
@@ -355,7 +352,7 @@ async function saveItem(kind){
   const need = kind==='friends' ? item.url : item.title;
   if(!need){ toast('名称/地址必填'); return; }
   const d=await api('/api/collection/save',{name:kind,item});
-  if(d.ok){ toast('✅ 已保存（「同步 Blog」后上线）'); resetForm(kind); loadList(kind); }
+  if(d.ok){ toast(savedMessage(kind==='friends'?'友链':'项目')); resetForm(kind); loadList(kind); }
   else toast(d.error||'保存失败');
 }
 function resetForm(kind){
@@ -426,7 +423,7 @@ async function saveAlbum(){
   };
   if(!item.title){ toast('给相册起个名字'); return; }
   const d=await api('/api/collection/save',{name:'albums',item});
-  if(d.ok){ toast('✅ 相册已保存'); resetAlbumForm(); loadAlbums(); }
+  if(d.ok){ toast(savedMessage('相册')); resetAlbumForm(); loadAlbums(); }
   else toast(d.error||'保存失败');
 }
 

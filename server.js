@@ -860,8 +860,6 @@ const server = http.createServer((req, res) => {
   }
   // 短链 /p/<slug>：与 vercel.json rewrites 行为一致，静默返回 post.html（slug 由前端从路径解析）
   if (/^\/p\/[^/]+$/.test(u.pathname)) { serveStatic(req, res, '/post.html'); return; }
-  // 老版内容管理台已废弃，收口到新版控制台
-  if (u.pathname === '/admin/content.html') { res.writeHead(302, { Location: '/admin/index.html' }); return res.end(); }
   serveStatic(req, res, u.pathname);
 });
 

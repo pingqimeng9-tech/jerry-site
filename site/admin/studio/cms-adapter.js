@@ -126,8 +126,13 @@
         if (p === '/api/pet/packs') return staticJson('/data/pet_packs.json', { format: 'jerry-pet-pack/v1', settings: { aiChat: false }, packs: [] });
         if (p === '/api/config') return staticJson('/site.config.json', {}, true);
         if (p === '/api/deploy/config') return jsonResp({ ok: true, config: { repoUrl: '', branch: 'main', siteUrl: location.origin, online: true } });
-        if (p === '/api/packages') { var pk = await cms('packages', {}, 'GET'); return jsonResp(pk); }
+        if (p === '/api/packages') { var pk = await cms('packages', {}); return jsonResp(pk); }
         if (p === '/api/comments/all') { var cc = await cms('admin-collection', { name: 'comments' }); return jsonResp({ ok: true, items: cc.items || [] }); }
+        var collectionMatch = /^\/api\/(moments|friends|projects|albums)$/.exec(p);
+        if (collectionMatch) {
+          var collection = await cms('admin-collection', { name: collectionMatch[1] });
+          return jsonResp({ ok: true, items: collection.items || [] });
+        }
         return origFetch(input, init); // posts/post/collections 等线上已有函数
       }
 

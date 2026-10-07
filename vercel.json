@@ -1,11 +1,4 @@
 {
-  "redirects": [
-    {
-      "source": "/admin/content.html",
-      "destination": "/admin/index.html",
-      "permanent": false
-    }
-  ],
   "rewrites": [
     {
       "source": "/p/:slug",
