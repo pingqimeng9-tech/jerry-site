@@ -581,9 +581,7 @@
       homeRange('columns','画廊列数',2,5,1,' 列') + homeRange('contentWidth','画廊宽度',960,1800,40,'px') +
       homeRange('cardRadius','卡片圆角',8,36,1,'px') + homeRange('cardGap','卡片间距',8,48,1,'px') +
       homeRange('navGap','导航间距',0,20,1,'px') + homeRange('chipGap','筛选项间距',0,24,1,'px') +
-      homeRange('top','画廊顶部（桌面）',100,240,1,'px') + homeRange('mobileTop','画廊顶部（手机）',120,300,1,'px') +
-      homeRange('navTop','导航位置（桌面）',40,160,1,'px') + homeRange('mobileNavTop','导航位置（手机）',40,160,1,'px') +
-      homeRange('bottom','舞台底部留白',60,200,1,'px') + homeRange('dockBottom','底部模板栏留白',0,48,1,'px') + '</div></div>' +
+      homeRange('dockBottom','模板栏下方留白',0,48,1,'px') + '</div></div>' +
       '<div class="jl-home-group"><h3>动效</h3>' +
       homeChoiceGroup('entrance','卡片入场',[['rise','上浮入场'],['fade','柔和淡入'],['stagger','节奏渐显'],['none','静态呈现']]) +
       homeChoiceGroup('hover','悬停反馈',[['lift','轻盈抬升'],['glow','柔光聚焦'],['tilt','微倾视差'],['none','无悬停动效']]) +

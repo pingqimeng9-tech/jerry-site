@@ -1,6 +1,7 @@
 // Jerry-site Service Worker
-// 策略：网络优先；只缓存页面（HTML）用于断网兜底；不碰 /api/ 和 /admin
+// 策略：页面与首页运行时资源网络优先；不碰 /api/ 和 /admin
 const CACHE = 'jerry-site-v1';
+const HOMEPAGE_ASSETS = new Set(['/assets/index.css', '/assets/index-runtime.js']);
 
 self.addEventListener('install', () => self.skipWaiting());
 
@@ -18,6 +19,28 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/admin')) return;
+
+  if (HOMEPAGE_ASSETS.has(url.pathname)) {
+    if (req.cache === 'force-cache') {
+      event.respondWith(caches.match(req).then((cached) => cached || fetch(req)));
+      return;
+    }
+    const network = fetch(req);
+    event.waitUntil(
+      network.then((res) => {
+        if (res.ok) return caches.open(CACHE).then((cache) => cache.put(req, res.clone()));
+      }).catch((error) => console.warn('Could not cache homepage asset:', req.url, error))
+    );
+    event.respondWith(
+      network.catch(async (error) => {
+        const cached = await caches.match(req);
+        if (cached) return cached;
+        console.error('Homepage asset unavailable:', req.url, error);
+        throw error;
+      })
+    );
+    return;
+  }
 
   if (req.mode === 'navigate') {
     event.respondWith(

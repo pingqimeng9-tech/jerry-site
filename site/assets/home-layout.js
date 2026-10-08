@@ -19,9 +19,8 @@
     '.nav button[aria-pressed=true],.chips button.on,.gal-tgl:hover,.gal-tgl[aria-expanded=true],.gal-tags button[aria-pressed=true],.gc:hover .gc-pv,.gc:focus-visible .gc-pv{color:var(--home-accent,var(--fg));border-color:var(--home-accent,var(--line))}',
     '.gal-grid{gap:var(--home-card-gap,26px)}',
     '.gal-tags{gap:var(--home-chip-gap,6px)}',
-    '.gal{padding-top:var(--home-top-current,var(--top))}',
-    '.bar{top:var(--home-nav-top-current,74px)}',
-    '.tpl{inset:var(--home-top-current,var(--top)) 14px var(--home-bottom,var(--bot)) 14px}',
+    '.gal{padding-top:24px}',
+    '.tpl{inset:12px 14px}',
     '.dock{padding-bottom:var(--home-dock-bottom,12px)}',
     ':root[data-home-background-style="mesh"] .gal{background-image:radial-gradient(ellipse at 12% 8%,color-mix(in srgb,var(--home-accent,var(--fg)) 24%,transparent),transparent 38%),radial-gradient(ellipse at 88% 18%,rgba(92,225,230,.10),transparent 34%),linear-gradient(155deg,var(--home-bg,var(--bg)),var(--bg2,var(--bg)))}',
     ':root[data-home-background-style="grid"] .gal{background-image:radial-gradient(var(--home-line,var(--line)) 1px,transparent 1.4px),linear-gradient(155deg,var(--home-bg,var(--bg)),var(--bg2,var(--bg)));background-size:22px 22px,auto}',
@@ -156,11 +155,6 @@
     var width = clampNumber(home.contentWidth, 960, 1800, 1440);
     var navGap = clampNumber(home.navGap, 0, 20, 2);
     var chipGap = clampNumber(home.chipGap, 0, 24, 6);
-    var top = clampNumber(home.top, 100, 240, 148);
-    var mobileTop = clampNumber(home.mobileTop, 120, 300, 192);
-    var navTop = clampNumber(home.navTop, 40, 160, 74);
-    var mobileNavTop = clampNumber(home.mobileNavTop, 40, 160, 74);
-    var bottom = clampNumber(home.bottom, 60, 200, 104);
     var dockBottom = clampNumber(home.dockBottom, 0, 48, 12);
     var motionSpeed = clampNumber(home.motionSpeed, 0.5, 1.5, 1);
 
@@ -170,11 +164,6 @@
     setVar('--home-content-width', width + 'px');
     setVar('--home-nav-gap', navGap + 'px');
     setVar('--home-chip-gap', chipGap + 'px');
-    setVar('--home-top', top + 'px');
-    setVar('--home-top-mobile', mobileTop + 'px');
-    setVar('--home-nav-top', navTop + 'px');
-    setVar('--home-nav-top-mobile', mobileNavTop + 'px');
-    setVar('--home-bottom', bottom + 'px');
     setVar('--home-dock-bottom', dockBottom + 'px');
     setVar('--home-motion-speed', String(motionSpeed));
     setVar('--home-motion-duration', Math.round(560 / motionSpeed) + 'ms');
