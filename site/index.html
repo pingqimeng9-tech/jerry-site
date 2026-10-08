@@ -65,19 +65,25 @@
           <hr>
           <button data-a="link" role="menuitem"><em>⛓</em><span>复制链接</span></button>
           <button data-a="pen" role="menuitem"><em>↗</em><span>在 CodePen 打开</span></button>
-          <button data-a="open" role="menuitem"><em>⤢</em><span>全屏打开</span></button>
+          <button data-a="open" role="menuitem"><em>⤢</em><span>放大预览</span></button>
         </div>
       </div>
     </div>
     <div class="mdl-view" data-v="preview">
-      <div class="mdl-pv"></div>
-      <p class="mdl-spell"></p>
-      <div class="mdl-tags"></div>
-      <section class="cz" aria-label="Customize">
-        <div class="cz-h"><b>Customize</b><button id="czr" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Reset</button></div>
-        <div class="mdl-tune"></div>
-      </section>
-      <details class="mdl-nt" open><summary>Notes</summary><div class="mdl-notes"></div></details>
+      <div class="mdl-main">
+        <div class="mdl-pv">
+          <button class="mdl-zoom" type="button" aria-label="放大预览" title="放大预览"><span aria-hidden="true">⤢</span></button>
+        </div>
+        <aside class="mdl-side">
+          <p class="mdl-spell"></p>
+          <div class="mdl-tags"></div>
+          <section class="cz" aria-label="Customize">
+            <div class="cz-h"><b>Customize</b><button id="czr" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Reset</button></div>
+            <div class="mdl-tune"></div>
+          </section>
+          <details class="mdl-nt" open><summary>Notes</summary><div class="mdl-notes"></div></details>
+        </aside>
+      </div>
     </div>
     <div class="mdl-view" data-v="code" hidden>
       <section class="cp" id="cp" aria-label="代码">

@@ -1907,23 +1907,28 @@ mount(h,ctx){
   const safeImg=u=>/^https?:\/\//.test(u||'')?('url("'+u.replace(/"/g,'%22')+'")'):'';
 
   /* ══ 一、网易云引擎（原 createMusicTerminal）══ */
-  const audio=new Audio();audio.preload='metadata';audio.volume=clamp(+P.VOL,0,1);
+  const previewOnly=!!ctx.auto;
+  const audio=new Audio();audio.preload=previewOnly?'none':'metadata';audio.volume=clamp(+P.VOL,0,1);
   const outer=id=>'https://music.163.com/song/media/outer/url?id='+id+'.mp3';
   const S={playing:false,curTime:0,totalTime:0,curIndex:0,playlist:ids.map(id=>({id,title:'加载中…',artist:CFG.playerTitle,cover:'',src:outer(id),duration:0}))};
-  let failChain=0,sim=false,want=false,dead=false;
+  let failChain=0,sim=previewOnly,want=false,dead=false;
   function applyMeta(list){
     const by={};(list||[]).forEach(s=>{by[String(s.id)]=s});
     S.playlist=ids.map(id=>{const s=by[id];
       return s?{id:String(s.id),title:s.name||('Track '+id),artist:s.artists||s.album||CFG.playerTitle||'网易云音乐',cover:s.pic||'',src:outer(id),duration:s.dt?s.dt/1000:0}
               :{id,title:'Track '+id,artist:CFG.playerTitle||'网易云音乐',cover:'',src:outer(id),duration:0}});
   }
-  try{fetch(CFG.api+encodeURIComponent(ids.join(','))).then(r=>r.ok?r.json():null)
-    .then(d=>{if(dead)return;if(d&&d.songs){applyMeta(d.songs);S.totalTime=S.playlist[S.curIndex].duration||0}else applyMeta([])}).catch(()=>{if(!dead)applyMeta([])})}catch(e){applyMeta([])}
+  if(!previewOnly){
+    fetch(CFG.api+encodeURIComponent(ids.join(','))).then(r=>r.ok?r.json():null)
+      .then(d=>{if(dead)return;if(d&&d.songs){applyMeta(d.songs);S.totalTime=S.playlist[S.curIndex].duration||0}else applyMeta([])}).catch(()=>{if(!dead)applyMeta([])});
+  }
   function go(i,autoplay){
     S.curIndex=mod(i,ids.length);S.curTime=0;const t=S.playlist[S.curIndex];
     if(sim){S.totalTime=t.duration||150;S.playing=!!autoplay;return}
+    S.playing=false;
+    if(!autoplay)return;
     audio.src=t.src;if(t.duration)S.totalTime=t.duration;
-    if(autoplay)audio.play().catch(()=>{});
+    audio.play().catch(()=>{});
   }
   audio.addEventListener('timeupdate',()=>{S.curTime=audio.currentTime});
   audio.addEventListener('loadedmetadata',()=>{S.totalTime=isFinite(audio.duration)?audio.duration:0;S.playlist[S.curIndex].duration=S.totalTime});
@@ -1933,6 +1938,7 @@ mount(h,ctx){
   audio.addEventListener('ended',()=>go(S.curIndex+1,true));
   audio.addEventListener('error',()=>{
     if(dead||sim)return;failChain++;
+    if(!want){S.playing=false;return}
     if(failChain>=ids.length){
       if(+P.SIM){sim=true;S.playing=want;S.curTime=0;S.totalTime=S.playlist[S.curIndex].duration||150;audio.removeAttribute('src')}
       else{S.playing=false;const tr=S.playlist[S.curIndex];if(tr)tr.title='歌曲暂不可播（版权/网络）'}
@@ -1940,11 +1946,11 @@ mount(h,ctx){
   });
   go(0,false);
   const MT={
-    play(){want=true;if(sim){S.playing=true;return}return audio.play().catch(()=>{})},
-    pause(){if(sim){S.playing=false;return}audio.pause()},
-    toggle(){want=true;if(sim){S.playing=!S.playing;return}return audio.paused?audio.play().catch(()=>{}):audio.pause()},
-    next(){go(S.curIndex+1,sim?S.playing:!audio.paused)},
-    prev(){go(S.curIndex-1,sim?S.playing:!audio.paused)},
+    play(){want=true;if(sim){S.playing=true;return}if(audio.src!==S.playlist[S.curIndex].src)audio.src=S.playlist[S.curIndex].src;return audio.play().catch(()=>{})},
+    pause(){want=false;if(sim){S.playing=false;return}audio.pause()},
+    toggle(){const playing=sim?S.playing:!audio.paused;want=!playing;if(sim){S.playing=!playing;return}if(playing)return audio.pause();if(audio.src!==S.playlist[S.curIndex].src)audio.src=S.playlist[S.curIndex].src;return audio.play().catch(()=>{})},
+    next(){const resume=sim?S.playing:!audio.paused;want=resume;go(S.curIndex+1,resume)},
+    prev(){const resume=sim?S.playing:!audio.paused;want=resume;go(S.curIndex-1,resume)},
     seek(x){if(sim){S.curTime=clamp(x,0,S.totalTime);return}if(isFinite(audio.duration)&&audio.duration>0)audio.currentTime=clamp(x,0,audio.duration)},
     getState(){return S}
   };
@@ -3282,22 +3288,33 @@ function openModal(i){
   const pv=$('.mdl-pv',mdl);pv.innerHTML='';pv.appendChild(mkFrame(t.id,false,curParams));
   mdl.hidden=false;
 }
-function setView(v){mdl.querySelectorAll('.mdl-seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));mdl.querySelectorAll('.mdl-view').forEach(x=>x.hidden=x.dataset.v!==v)}
+function setPreviewExpanded(expanded){
+  mdl.classList.toggle('expanded',expanded);
+  const button=$('.mdl-zoom',mdl);
+  button.setAttribute('aria-label',expanded?'还原预览':'放大预览');
+  button.title=expanded?'还原预览':'放大预览';
+  $('span',button).textContent=expanded?'⤡':'⤢';
+}
+$('.mdl-zoom',mdl).addEventListener('click',()=>setPreviewExpanded(!mdl.classList.contains('expanded')));
+function setView(v){
+  if(v!=='preview')setPreviewExpanded(false);
+  mdl.querySelectorAll('.mdl-seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));
+  mdl.querySelectorAll('.mdl-view').forEach(x=>x.hidden=x.dataset.v!==v)
+}
 mdl.querySelectorAll('.mdl-seg button').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.v)));
 const aiBtn=$('.ai-btn',mdl),aiMenu=$('.ai-menu',mdl);
 const setMenu=o=>{aiMenu.hidden=!o;aiBtn.setAttribute('aria-expanded',o)};
 aiBtn.addEventListener('click',()=>setMenu(aiMenu.hidden));
 mdl.addEventListener('click',e=>{if(!aiMenu.hidden&&!e.target.closest('.ai'))setMenu(false)});
-function closeModal(){setMenu(false);mdl.hidden=true;$('.mdl-pv',mdl).innerHTML='';$('.cp-code',cp).innerHTML=''}
+function closeModal(){setMenu(false);setPreviewExpanded(false);mdl.hidden=true;$('.mdl-pv',mdl).innerHTML='';$('.cp-code',cp).innerHTML=''}
 $('#mx').onclick=closeModal;
 mdl.addEventListener('click',e=>{if(e.target===mdl)closeModal()});
 aiMenu.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;const t=TPL[mdlIdx],a=b.dataset.a,lab=$('span',b);
   if(a==='open'){
-    const frame=$('.mdl-pv iframe',mdl);
     setMenu(false);
-    if(!frame?.requestFullscreen){console.error('Fullscreen preview is not supported in this browser.');return}
-    frame.requestFullscreen().catch(error=>console.error('Could not open fullscreen template preview:',error));
+    setView('preview');
+    setPreviewExpanded(true);
     return;
   }
   if(a==='pen'){setMenu(false);openPen(t,Object.assign({},curParams));return}
@@ -3332,7 +3349,7 @@ function shuffleTemplatesByAuthor(){
 }
 
 addEventListener('keydown',e=>{
-  if(!mdl.hidden){if(e.key==='Escape'){if(!aiMenu.hidden)setMenu(false);else closeModal()}return}
+  if(!mdl.hidden){if(e.key==='Escape'){if(mdl.classList.contains('expanded'))setPreviewExpanded(false);else if(!aiMenu.hidden)setMenu(false);else closeModal()}return}
   if(e.target.tagName==='INPUT'||document.body.classList.contains('gal'))return;
   if(e.key==='PageDown')showTemplate(tIdx+1);
   if(e.key==='PageUp')showTemplate(tIdx-1);
