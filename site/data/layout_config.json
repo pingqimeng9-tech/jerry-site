@@ -11,6 +11,7 @@
     "contentWidth": 1000
   },
   "home": {
+    "themePreset": "custom",
     "background": "",
     "foreground": "",
     "muted": "",

@@ -70,7 +70,7 @@
   nav .cta:hover{transform:translateY(-2px);}
   .mn-toggle{display:none}
   @media (max-width:820px){
-    nav{flex-wrap:wrap;padding:12px 16px;gap:10px}
+    nav{flex-wrap:wrap;padding:clamp(10px,3vw,12px) clamp(12px,4vw,16px);gap:clamp(6px,2.5vw,10px)}
     nav .links{order:3;flex-basis:100%;flex-direction:column;align-items:stretch;gap:2px;display:none;padding:6px 0 2px;border-top:1px solid var(--glass-border)}
     nav .links.open{display:flex}
     nav .links a{display:block!important;opacity:1!important;margin:0;padding:12px 14px;text-align:left;border-radius:12px}
@@ -399,7 +399,7 @@
     .view-folder .post-grid{ --cols:1; --fs:clamp(.5, calc(100cqw/280px), 1); }
   }
   .view-folder .post-card{ display:flex; justify-content:center; align-items:flex-start; padding:0; background:transparent !important; border:0; box-shadow:none !important; overflow:visible; height:auto;
-    backdrop-filter:none !important; -webkit-backdrop-filter:none !important; border-radius:0; transform:none !important; transition:none !important; }
+    min-width:0; backdrop-filter:none !important; -webkit-backdrop-filter:none !important; border-radius:0; transform:none !important; transition:none !important; }
   /* 展开只覆盖邻近留白，不改网格尺寸或滚动位置。 */
   .view-folder .post-card:hover{ background:transparent !important; box-shadow:none !important; transform:none !important; }
   .view-folder .post-preview, .view-folder .post-bottom{ display:none !important; }
@@ -456,19 +456,16 @@
   .fc3{ --rx:6px;--ry:50px;--rr:1deg; --fx:130px;--fy:-152px;--fr:11deg; --z:3;--in:140ms;--out:0ms; --n:#b9cbe3; --face2:#d4e7fa; }
   .fc1 .f-face,.fc2 .f-face,.fc3 .f-face{ background:linear-gradient(165deg,#fff 35%,var(--face2)); }
 
-  /* 正面异形玻璃标题板；展开时仅玻璃与描边向左右对称外扩，文字不缩放 */
+  /* 正面异形玻璃标题板（在外壳之外、tilt 之内，翻开时后仰） */
   .f-front{ position:absolute; left:9px; right:9px; bottom:9px; top:111px; z-index:4; color:#fff; padding:34px 20px 0; box-sizing:border-box;
-  }
+    transform-origin:50% 100%; transition:transform .45s cubic-bezier(.16,1,.3,1); }
+  .f-stage.open .f-front{ transform:scaleX(1.08); }
   .f-glass{ position:absolute; inset:0;
     clip-path:path('M16 0H100C112 0 118 4 124 10C130 16 136 20 150 20H244Q262 20 262 38V156Q262 176 242 176H20Q0 176 0 156V16Q0 0 16 0Z');
     /* 收起态不做毛玻璃模糊（64 个常驻 backdrop-filter 会拖垮滚动/展开），用稍实的静态渐变保证标题可读；仅展开的那一个启用 blur */
-    background:linear-gradient(155deg,rgba(255,255,255,.22),rgba(255,255,255,.06) 42%,rgba(110,140,255,.12)),rgba(26,28,48,.6);
-    transform:scaleX(1); transform-origin:center; transition:transform .45s cubic-bezier(.16,1,.3,1); }
-  .f-stage.open .f-glass{ transform:scaleX(1.36); }
+    background:linear-gradient(155deg,rgba(255,255,255,.22),rgba(255,255,255,.06) 42%,rgba(110,140,255,.12)),rgba(26,28,48,.6); }
   .f-stage.open .f-glass{ -webkit-backdrop-filter:blur(16px) saturate(1.6); backdrop-filter:blur(16px) saturate(1.6); }
-  .f-rim{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; fill:none; stroke:url(#jerryFGrad); stroke-width:1.2;
-    transform:scaleX(1); transform-origin:center; transition:transform .45s cubic-bezier(.16,1,.3,1); }
-  .f-stage.open .f-rim{ transform:scaleX(1.36); }
+  .f-rim{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; fill:none; stroke:url(#jerryFGrad); stroke-width:1.2; }
   .f-front h3{ position:relative; margin:0; font:700 14px/1.4 "Noto Serif SC","Songti SC",serif; text-shadow:0 1px 8px rgba(0,0,0,.35);
     display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
   .f-front .f-fp{ position:relative; margin:7px 0 0; font:400 11.5px/1.55 "Noto Serif SC","Songti SC",serif; color:#d9dcf0;
@@ -492,7 +489,7 @@
     .f-meta{ left:14px; right:14px; gap:8px; }
     .f-meta span:last-child{ display:none; }
   }
-  @media (prefers-reduced-motion:reduce){ .f-tilt,.f-shell,.f-card,.f-front,.f-glass,.f-rim{ transition-duration:.01ms!important; } }
+  @media (prefers-reduced-motion:reduce){ .f-tilt,.f-shell,.f-card,.f-front{ transition-duration:.01ms!important; } }
 
   /* 文件夹外观调节面板（仅管理员） */
   .fp-entry-btn{ margin-left:6px; border-radius:100px; line-height:1; padding:0 10px; }
@@ -598,33 +595,55 @@
   .pagination .ellipsis{color:var(--muted);padding:0 2px;}
 
   @media (max-width:760px){
-    .shell{ z-index:auto; margin:8px auto 24px; padding:0 14px; }
-    .main-controls { position:sticky; top:64px; z-index:40; margin:0 -14px 14px; padding:10px 14px; background:rgba(20,16,45,.82); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); flex-wrap:nowrap; flex-direction:column; align-items:stretch; gap:8px; }
+    :root{
+      --mobile-gutter:clamp(10px,3.8vw,16px);
+      --mobile-card-gap:clamp(10px,3vw,14px);
+      --mobile-control-gap:clamp(6px,2vw,9px);
+    }
+    nav .logo{font-size:clamp(13px,3.8vw,15px)}
+    #jerry-auth-slot{min-width:0;margin:0!important}
+    .hero-search-wrap{margin:clamp(16px,5vw,28px) auto 8px;padding-inline:var(--mobile-gutter)}
+    .hero-search-wrap input{padding:clamp(13px,3.8vw,17px) clamp(14px,4vw,20px) clamp(13px,3.8vw,17px) clamp(42px,13vw,50px);font-size:clamp(13px,4vw,15px)}
+    .hero-search-wrap input::placeholder{font-size:clamp(11px,3.4vw,13px)}
+    .hero-search-wrap .icon{left:clamp(25px,8vw,37px);font-size:clamp(15px,4.8vw,18px)}
+    .shell{width:100%;max-width:100%;min-width:0;z-index:auto;margin:8px auto 24px;padding:0 var(--mobile-gutter);gap:var(--mobile-card-gap)}
+    .main{width:100%;min-width:0}
+    .main-controls { position:sticky; top:64px; z-index:40; margin:0 calc(-1 * var(--mobile-gutter)) 14px; padding:10px var(--mobile-gutter); background:rgba(20,16,45,.82); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); flex-wrap:nowrap; flex-direction:column; align-items:stretch; gap:var(--mobile-control-gap); }
     .rail-toggles{ display:none; } /* 手机端侧栏开关移到底部悬浮 dock（🔍 左栏 / 📣 右栏） */
     .tabbar{
-      border:none; padding:0; background:transparent; width:100%;
-      display:flex; gap:6px;
-    } /* 手机端去掉横向滚动，分类栏用flex等分宽度，全部露在画面内，不管有几个分类都不会溢出 */
-    .tabbar a[data-filter="all"]{ display:none; } /* 手机端去掉"全部"这一档，剩下的分类栏刚好能在一屏内放下。
-      内容依然默认展示全部文章（mobileFilter初始值就是'all'），只是不再单独露出这个按钮 */
+      border:none; padding:0; background:transparent; width:100%; min-width:0;
+      display:flex; gap:clamp(4px,1.6vw,6px); flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none;
+      -webkit-overflow-scrolling:touch;
+    }
+    .tabbar::-webkit-scrollbar{display:none}
+    .tabbar a[data-filter="all"]{ display:none; } /* 手机端默认展示全部文章，分类栏可横向滑动查看 */
     .tabbar a{
-      flex:1 1 0; flex-shrink:1; text-align:center; padding:9px 4px; font-size:12px;
+      flex:0 0 auto; width:clamp(68px,19vw,108px); min-width:0; text-align:center;
+      padding:clamp(8px,2.4vw,9px) clamp(3px,1vw,5px); font-size:clamp(10px,3.2vw,12px);
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
     .tabbar a.locked .cat-full-name{ display:none; }
     .tabbar a.locked .cat-short-name{ display:inline; } /* 手机端 Rumi英语技术 → 简称"英语技术"，省地方 */
     
     /* 手机端同样可切换 图库/列表/文件夹：分段控件占满第二行 */
-    .view-switcher { display:flex; width:100%; justify-content:stretch; gap:4px; padding:4px; }
-    .view-switcher button{ flex:1 1 0; justify-content:center; gap:4px; padding:7px 2px; font-size:12px; line-height:1; }
-    .view-switcher button svg{ width:15px; height:15px; }
+    .view-switcher { display:flex; width:100%; min-width:0; justify-content:stretch; gap:clamp(3px,1vw,5px); padding:4px; }
+    .view-switcher button{ flex:1 1 0; min-width:0; justify-content:center; gap:clamp(3px,1vw,5px); padding:7px 2px; font-size:clamp(10px,3.2vw,12px); line-height:1; white-space:nowrap; }
+    .view-switcher button svg{ flex:none;width:clamp(13px,4vw,15px);height:clamp(13px,4vw,15px); }
 
     /* 图库/列表手机端保持官方原版排版（图库单列、长标题两行、摘要照常显示），不随 folder 改造 */
     .view-gallery .post-title{ /* 长标题手机端允许两行，不再单行省略号 */
       white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
-      overflow:hidden; align-items:flex-start; line-height:1.45; min-height:2.6em;
+      overflow:hidden; align-items:flex-start; line-height:1.45; min-height:2.6em;font-size:clamp(14px,4.2vw,16px);
     }
     .view-gallery .post-title::before{flex:none;margin-top:3px}
+    .view-gallery .post-grid,.view-list .post-grid{gap:var(--mobile-card-gap)}
+    .view-gallery .post-bottom{padding:clamp(12px,3.8vw,16px)}
+    .view-gallery .post-excerpt,.view-list .post-excerpt{font-size:clamp(12px,3.6vw,13.5px);line-height:1.7;overflow-wrap:anywhere}
+    .post-meta{gap:clamp(6px,2vw,10px);flex-wrap:wrap;font-size:clamp(9px,2.9vw,11px)}
+    .cat-header{gap:clamp(7px,2.4vw,10px);margin-bottom:clamp(10px,3vw,16px)}
+    .cat-header h2{font-size:clamp(16px,4.8vw,20px)}
+    .cat-header .cat-count{font-size:clamp(10px,3vw,11.5px)}
+    .state-box{padding:clamp(28px,9vw,48px) clamp(12px,4vw,20px);font-size:clamp(13px,3.8vw,15px)}
 
     .sidebar{
       position:fixed; top:0; left:0; height:100%; width:82%; max-width:320px;

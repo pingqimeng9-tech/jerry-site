@@ -2,8 +2,8 @@
    Jerry CMS · 前台可视化布局编辑器（inline-editor v1）
    ------------------------------------------------------------
    由 admin/bridge.js 在管理员验证后加载，访客不会运行。
-   在页面本体上直接：隐藏/显示模块、拖拽/按钮排序、改页面文案、
-   调主题色/圆角/间距/宽度（实时预览）、保存、一键发布。
+   在页面本体上直接：增删首页组件、拖拽排序、选风格包、改文案与布局，
+   实时预览后保存或发布。
    页面结构、文字和外观均在页面本体编辑，配置写入 /api/layout/config。
    ============================================================ */
 (function () {
@@ -209,6 +209,26 @@
       '.jl-panel .jl-home-choices button,.jl-panel .jl-home-toggles label{border-color:rgba(255,255,255,.07);border-radius:10px;background:rgba(255,255,255,.035);color:#c9c6e8;font-size:10.5px}',
       '.jl-panel .jl-home-choices button:hover,.jl-panel .jl-home-toggles label:hover{border-color:rgba(255,255,255,.16);background:rgba(255,255,255,.06)}',
       '.jl-panel .jl-home-choices button.active{border-color:rgba(92,225,230,.35);background:rgba(92,225,230,.09);color:#91eeee}',
+      '.jl-theme-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}',
+      '.jl-theme-card{position:relative;display:grid;gap:9px;min-height:96px;padding:10px;border:1px solid rgba(255,255,255,.09);border-radius:13px;background:rgba(255,255,255,.035);color:#e8e6fb;text-align:left;cursor:pointer;transition:transform .16s,border-color .16s,background .16s}',
+      '.jl-theme-card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.22)}',
+      '.jl-theme-card.active{border-color:rgba(92,225,230,.48);background:linear-gradient(135deg,rgba(92,225,230,.11),rgba(177,140,255,.09));box-shadow:inset 0 0 0 1px rgba(92,225,230,.12)}',
+      '.jl-theme-preview{height:38px;overflow:hidden;border-radius:8px;background:var(--preview-bg);border:1px solid var(--preview-line)}',
+      '.jl-theme-preview i{display:block;width:43%;height:7px;margin:8px 0 0 7px;border-radius:7px;background:var(--preview-accent);box-shadow:0 12px 0 2px var(--preview-panel),0 23px 0 4px var(--preview-line)}',
+      '.jl-theme-copy{display:flex;align-items:center;justify-content:space-between;gap:6px}',
+      '.jl-theme-copy strong{font-size:11px}.jl-theme-copy small{color:#9995b5;font-size:9px}',
+      '.jl-theme-card.active .jl-theme-copy small{color:#8fe7e2}',
+      '.jl-component-library{display:grid;gap:7px}',
+      '.jl-component-card{position:relative;display:grid;grid-template-columns:32px minmax(0,1fr) auto;align-items:center;gap:9px;padding:9px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:rgba(255,255,255,.025);cursor:pointer;transition:background .16s,border-color .16s}',
+      '.jl-component-card:hover{border-color:rgba(255,255,255,.17);background:rgba(255,255,255,.05)}',
+      '.jl-component-card.is-installed{border-color:rgba(92,225,230,.22);background:rgba(92,225,230,.045)}',
+      '.jl-component-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:rgba(177,140,255,.11);color:#c7adff;font-size:15px}',
+      '.jl-component-copy{display:grid;gap:3px;min-width:0}.jl-component-copy strong{font-size:10.5px;color:#e5e2f5}.jl-component-copy small{font-size:9px;color:#8985a6}',
+      '.jl-component-state{padding:5px 7px;border:1px solid rgba(255,255,255,.09);border-radius:8px;color:#aaa6c9;font-size:9px;white-space:nowrap}',
+      '.jl-component-card.is-installed .jl-component-state{border-color:rgba(92,225,230,.2);background:rgba(92,225,230,.08);color:#8fe7e2}',
+      '.jl-component-card input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}',
+      '.jl-component-card:focus-within{outline:2px solid #5ce1e6;outline-offset:2px}',
+      '.jl-canvas-help{margin:0 0 12px;padding:10px 11px;border:1px solid rgba(92,225,230,.14);border-radius:11px;background:rgba(92,225,230,.05);color:#a9a6c8;font-size:10px;line-height:1.6}',
       '.jl-panel .jl-home-font,.jl-panel .jl-page-font{border-color:rgba(255,255,255,.1);border-radius:10px;background:#171529;font-size:11px}',
       '.jl-panel .jl-panel-view[data-jl-panel-view="theme"]>.jl-appearance-card:first-child{margin-top:2px}',
       'body.jl-editing [data-module]{outline:0!important;outline-offset:0;transition:box-shadow .18s ease,filter .18s ease}',
@@ -267,11 +287,15 @@
     panel.innerHTML =
       '<div class="jl-panel-head"><strong>页面编辑</strong><button type="button" data-jl-close aria-label="收起编辑面板">收起</button></div>' +
       '<div class="jl-panel-context"><span>JERRY / VISUAL STUDIO</span><strong>' + escapeHtml(pageNames[PAGE] || '当前页面') + '</strong></div>' +
-      '<div class="jl-panel-tabs"><button type="button" class="jl-panel-tab active" data-jl-panel="blocks">区块</button><button type="button" class="jl-panel-tab" data-jl-panel="theme">页面外观</button>' +
-      (PAGE === 'index' ? '<button type="button" class="jl-panel-tab" data-jl-panel="home">首页设计</button>' : '') + '</div>' +
-      '<section class="jl-panel-view active" data-jl-panel-view="blocks"><p class="jl-editor-help">选中画布上的区块，或在结构树中定位。编辑时页面内容的点击、拖动等交互会暂停；底边高亮的文字可直接改写。</p>' +
+      '<div class="jl-panel-tabs"><button type="button" class="jl-panel-tab active" data-jl-panel="blocks">' + (PAGE === 'index' ? '画布布局' : '区块') + '</button><button type="button" class="jl-panel-tab" data-jl-panel="theme">页面外观</button>' +
+      (PAGE === 'index' ? '<button type="button" class="jl-panel-tab" data-jl-panel="home">风格与组件</button>' : '') + '</div>' +
+      '<section class="jl-panel-view active" data-jl-panel-view="blocks"><p class="jl-editor-help">' +
+      (PAGE === 'index'
+        ? '<span class="jl-canvas-help">直接点击画布上的区块选中，再拖动区块角上的手柄调整顺序；组件顺序仅在同一布局区域内调整。</span>'
+        : '选中画布上的区块，或在结构树中定位。编辑时页面内容的点击、拖动等交互会暂停；底边高亮的文字可直接改写。') +
+      '</p>' +
       '<div class="jl-selected-info" data-jl-selected-info><i class="jl-selected-dot"></i><span>选择一个区块以查看它的编辑状态。</span></div><div class="jl-block-list"></div></section>' +
-      '<section class="jl-panel-view" data-jl-panel-view="theme"><div class="jl-appearance-card"><h3>全站主题</h3><div class="row"><span style="font-size:12px;color:#c9c6e8;width:56px">主题色</span>' +
+      '<section class="jl-panel-view" data-jl-panel-view="theme"><div class="jl-appearance-card"><h3>全局基础视觉</h3><div class="row"><span style="font-size:12px;color:#c9c6e8;width:56px">主题色</span>' +
       '<label class="sw">主紫<input type="color" data-g="violet"></label>' +
       '<label class="sw">青<input type="color" data-g="aqua"></label>' +
       '<label class="sw">珊瑚<input type="color" data-g="coral"></label>' +
@@ -309,7 +333,9 @@
       if (select) { selectModule(select.dataset.jlSelect, false, true); return; }
       var homeChoice = e.target.closest('[data-home-key][data-home-value]');
       if (homeChoice) {
-        cfg.home[homeChoice.dataset.homeKey] = homeChoice.dataset.homeValue;
+        if (homeChoice.dataset.homeKey === 'themePreset' && window.JerryHomeLayout) {
+          JerryHomeLayout.selectPreset(cfg.home, homeChoice.dataset.homeValue);
+        } else cfg.home[homeChoice.dataset.homeKey] = homeChoice.dataset.homeValue;
         renderHomeEditor();
         liveHome();
         setDirty(true);
@@ -329,6 +355,7 @@
       var homeInput = e.target.closest('[data-home-key]');
       if (homeInput && homeInput.type !== 'checkbox') {
         setHomeValue(homeInput, homeInput.type === 'range' ? Number(homeInput.value) : homeInput.value);
+        syncComponentCard(homeInput);
         liveHome();
         setDirty(true);
         return;
@@ -345,6 +372,7 @@
       if (homeInput) {
         if (homeInput.type === 'checkbox') setHomeValue(homeInput, homeInput.checked);
         else if (homeInput.type !== 'range' && homeInput.type !== 'color') setHomeValue(homeInput, homeInput.value);
+        syncComponentCard(homeInput);
         liveHome();
         setDirty(true);
       }
@@ -380,7 +408,7 @@
           row.dataset.id === dragId || !sameGroup(dragId, row.dataset.id)) return;
       e.preventDefault();
       row.classList.remove('jl-dragover');
-      moveTo(dragId, row.dataset.id);
+      moveTo(dragId, row.dataset.id, e.clientY > row.getBoundingClientRect().top + row.getBoundingClientRect().height / 2);
       dragId = null;
     });
 
@@ -501,20 +529,51 @@
     var editor = document.querySelector('.jl-home-editor');
     if (!editor || !cfg.home) return;
     var home = cfg.home;
+    home.modules = home.modules || {};
+    var preset = window.JerryHomeLayout ? JerryHomeLayout.getPreset(home.themePreset || 'custom') : { colors:{}, font:'system' };
     var colors = [['background','画布底色','#1b1b1b'],['accent','强调色','#c586c0'],['foreground','主文字','#ececec'],['muted','辅助文字','#8b8b8b'],['panel','组件表面','#1e1e1e']];
-    var moduleLabels = [['topbar','顶部分类与主题栏'],['search','模板搜索框'],['filters','标签筛选组件'],['cardMeta','模板标题与信息'],['badges','分类材质徽标'],['live','LIVE 状态标记'],['tags','模板标签']];
+    var moduleLabels = [
+      ['topbar','顶部分类与主题栏','分类导航与主题切换','⌘'],
+      ['search','模板搜索框','快速查找模板','⌕'],
+      ['filters','分类与标签筛选','按类别过滤画廊','≡'],
+      ['cardMeta','模板标题与信息','显示名称与说明','T'],
+      ['badges','分类材质徽标','展示模板类别标识','◇'],
+      ['live','LIVE 状态标记','展示实时预览状态','●'],
+      ['tags','模板标签','展示模板关键词','＃']
+    ];
+    var themes = [
+      ['custom','沿用当前','保留现有站点外观','#1b1b1b','#292536','#b18cff','#5ce1e6'],
+      ['bamboo','竹叶清风','竹影、青绿与纸感','#e6ede2','#f4f6ef','#55845b','#9caf73'],
+      ['cyberpunk','霓虹赛博','暗夜、霓虹网格与光边','#0b1020','#101a2b','#00efff','#ff2db2'],
+      ['kraft','牛皮纸','暖纸纹理与编辑排版','#e8dcc2','#f3e8d1','#a85d31','#c69764']
+    ];
     editor.innerHTML =
-      '<div class="jl-home-group"><h3>画布与品牌</h3><div class="jl-home-colors">' +
+      '<div class="jl-home-group"><h3>选择首页风格包</h3><div class="jl-theme-cards">' +
+      themes.map(function (theme) {
+        var selected = (home.themePreset || 'custom') === theme[0];
+        return '<button type="button" class="jl-theme-card' + (selected ? ' active' : '') +
+          '" data-home-key="themePreset" data-home-value="' + theme[0] + '"' +
+          ' style="--preview-bg:' + theme[3] + ';--preview-panel:' + theme[4] + ';--preview-accent:' + theme[5] + ';--preview-line:' + theme[6] + '"' +
+          ' aria-pressed="' + selected + '"><span class="jl-theme-preview"><i></i></span>' +
+          '<span class="jl-theme-copy"><strong>' + theme[1] + '</strong><small>' + theme[2] + '</small></span></button>';
+      }).join('') + '</div></div>' +
+      '<div class="jl-home-group"><h3>首页组件库 · 已添加组件可随时移除</h3><div class="jl-component-library">' + moduleLabels.map(function (item) {
+        var installed = home.modules[item[0]] !== false;
+        return '<label class="jl-component-card' + (installed ? ' is-installed' : '') + '">' +
+          '<span class="jl-component-icon" aria-hidden="true">' + item[3] + '</span><span class="jl-component-copy"><strong>' + item[1] +
+          '</strong><small>' + item[2] + '</small></span><span class="jl-component-state">' + (installed ? '已添加 · 移除' : '添加到首页') + '</span>' +
+          '<input type="checkbox" data-home-key="modules.' + item[0] + '"' + (installed ? ' checked' : '') +
+          ' aria-label="' + (installed ? '移除' : '添加') + item[1] + '"></label>';
+      }).join('') + '</div></div>' +
+      '<div class="jl-home-group"><h3>微调主题色与背景</h3><div class="jl-home-colors">' +
       colors.map(function (field) { return '<label>' + field[1] + '<input type="color" data-home-key="' + field[0] + '" value="' +
-        escapeHtml(home[field[0]] || field[2]) + '"></label>'; }).join('') +
+        escapeHtml(home[field[0]] || preset.colors[field[0]] || field[2]) + '"></label>'; }).join('') +
       '</div><select class="jl-home-font" data-home-key="font"><option value="system">系统现代</option><option value="sans">清爽无衬线</option><option value="serif">编辑衬线</option><option value="mono">技术等宽</option></select>' +
-      '<div class="jl-home-choices">' + [['aurora','极光渐层'],['mesh','柔彩网格'],['grid','精密点阵'],['solid','纯色画布']].map(function (item) {
+      '<div class="jl-home-choices">' + [['aurora','极光'],['mesh','柔彩网格'],['grid','精密点阵'],['bamboo','竹影'],['cyberpunk','霓虹网格'],['kraft','纸纹'],['solid','纯色']].map(function (item) {
         return '<button type="button" data-home-key="backgroundStyle" data-home-value="' + item[0] +
           (home.backgroundStyle === item[0] ? '" class="active">' : '">' ) + item[1] + '</button>';
       }).join('') + '</div></div>' +
-      '<div class="jl-home-group"><h3>组件与样式</h3><div class="jl-home-toggles">' + moduleLabels.map(function (item) {
-        return '<label><input type="checkbox" data-home-key="modules.' + item[0] + '"' + (home.modules[item[0]] !== false ? ' checked' : '') + '>' + item[1] + '</label>';
-      }).join('') + '</div>' +
+      '<div class="jl-home-group"><h3>组件外观</h3>' +
       homeChoiceGroup('navStyle','顶部导航',[['glass','磨砂玻璃'],['pill','悬浮胶囊'],['minimal','极简线框']]) +
       homeChoiceGroup('searchStyle','搜索组件',[['pill','圆角胶囊'],['panel','悬浮面板'],['line','极简下划线']]) +
       homeChoiceGroup('cardStyle','模板卡片',[['soft','柔和卡片'],['outline','描边画框'],['poster','竖版海报']]) + '</div>' +
@@ -531,7 +590,7 @@
       '<div class="jl-home-toggles"><label><input type="checkbox" data-home-key="backgroundMotion"' +
       (home.backgroundMotion ? ' checked' : '') + '>启用背景氛围缓动</label></div>' +
       homeRange('motionSpeed','动效节奏',0.5,1.5,0.1,'×') + '</div>';
-    editor.querySelector('[data-home-key="font"]').value = home.font || 'system';
+    editor.querySelector('[data-home-key="font"]').value = home.font || preset.font || 'system';
   }
 
   function setHomeValue(input, value) {
@@ -541,6 +600,16 @@
     target[path[path.length - 1]] = value;
     var output = input.closest('label') && input.closest('label').querySelector('output');
     if (output) output.textContent = value + (input.dataset.homeUnit || '');
+  }
+
+  function syncComponentCard(input) {
+    if (!input || !input.matches('[data-home-key^="modules."]')) return;
+    var card = input.closest('.jl-component-card');
+    if (!card) return;
+    card.classList.toggle('is-installed', input.checked);
+    var state = card.querySelector('.jl-component-state');
+    if (state) state.textContent = input.checked ? '已添加 · 移除' : '添加到首页';
+    input.setAttribute('aria-label', (input.checked ? '移除' : '添加') + card.querySelector('strong').textContent);
   }
 
   function liveHome() {
@@ -739,11 +808,14 @@
       bar.addEventListener('click', function (e) { e.stopPropagation(); });
       var sortable = m.sortable !== false;
       bar.innerHTML =
-        (sortable ? '<button type="button" data-act="drag" draggable="true" title="拖动排序" aria-label="拖动排序">⠿</button><button type="button" data-act="up" title="上移">↑</button><button type="button" data-act="down" title="下移">↓</button>' : '') +
+        (sortable ? '<button type="button" data-act="drag" draggable="true" title="按住并拖动组件调整顺序" aria-label="按住并拖动组件调整顺序">⠿</button><button type="button" data-act="up" title="上移">↑</button><button type="button" data-act="down" title="下移">↓</button>' : '') +
         '<button type="button" data-act="hide" title="隐藏/显示">' + (m.hidden ? '🙈' : '👁') + '</button>' +
         '<span class="jl-name">' + escapeHtml(m.title || m.id) + '</span>';
       bar.querySelector('[data-act="hide"]').onclick = function () { m.hidden = !m.hidden; reapply(); setDirty(true); toast(m.hidden ? '已隐藏（保存后生效）' : '已显示'); };
       if (sortable) {
+        bar.querySelector('[data-act="drag"]').addEventListener('pointerdown', function (e) {
+          if (e.pointerType !== 'mouse') startCanvasPointerDrag(e, id);
+        });
         bar.querySelector('[data-act="up"]').onclick = function () { move(id, -1); };
         bar.querySelector('[data-act="down"]').onclick = function () { move(id, 1); };
         if (!el._jlDragBound) {
@@ -764,7 +836,7 @@
           el.addEventListener('dragleave', function () { el.classList.remove('jl-dragover'); });
           el.addEventListener('drop', function (e) {
             e.preventDefault(); e.stopPropagation(); el.classList.remove('jl-dragover');
-            if (editing && dragId && dragId !== id && sameGroup(dragId, id)) moveTo(dragId, id);
+            if (editing && dragId && dragId !== id && sameGroup(dragId, id)) moveTo(dragId, id, e.clientY > el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2);
           });
         }
       }
@@ -778,6 +850,53 @@
     var ea = document.querySelector('[data-module="' + a + '"]');
     var eb = document.querySelector('[data-module="' + b + '"]');
     return ea && eb && ea.parentNode === eb.parentNode;
+  }
+
+  function startCanvasPointerDrag(event, id) {
+    if (!editing || !document.querySelector('[data-module="' + id + '"]')) return;
+    event.preventDefault();
+    event.stopPropagation();
+    dragId = id;
+    var handle = event.currentTarget;
+    var pointerId = event.pointerId;
+    var targetId = null;
+    if (handle.setPointerCapture) handle.setPointerCapture(pointerId);
+
+    function updateTarget(e) {
+      if (e.pointerId !== pointerId) return;
+      var target = document.elementFromPoint(e.clientX, e.clientY);
+      var module = target && target.closest('[data-module]');
+      var nextId = module && module.getAttribute('data-module');
+      document.querySelectorAll('.jl-dragover').forEach(function (el) { el.classList.remove('jl-dragover'); });
+      targetId = nextId && nextId !== id && sameGroup(id, nextId) ? nextId : null;
+      if (targetId) module.classList.add('jl-dragover');
+    }
+
+    function finish(e) {
+      if (e.pointerId !== pointerId) return;
+      updateTarget(e);
+      var target = targetId && document.querySelector('[data-module="' + targetId + '"]');
+      var after = target && e.clientY > target.getBoundingClientRect().top + target.getBoundingClientRect().height / 2;
+      document.removeEventListener('pointermove', updateTarget, true);
+      document.removeEventListener('pointerup', finish, true);
+      document.removeEventListener('pointercancel', cancel, true);
+      document.querySelectorAll('.jl-dragover').forEach(function (el) { el.classList.remove('jl-dragover'); });
+      if (targetId) moveTo(id, targetId, after);
+      dragId = null;
+    }
+
+    function cancel(e) {
+      if (e.pointerId !== pointerId) return;
+      document.removeEventListener('pointermove', updateTarget, true);
+      document.removeEventListener('pointerup', finish, true);
+      document.removeEventListener('pointercancel', cancel, true);
+      document.querySelectorAll('.jl-dragover').forEach(function (el) { el.classList.remove('jl-dragover'); });
+      dragId = null;
+    }
+
+    document.addEventListener('pointermove', updateTarget, true);
+    document.addEventListener('pointerup', finish, true);
+    document.addEventListener('pointercancel', cancel, true);
   }
   function move(id, dir) {
     var arr = pc().modules;
@@ -796,13 +915,14 @@
     reapply();
     setDirty(true);
   }
-  function moveTo(srcId, targetId) {
+  function moveTo(srcId, targetId, after) {
     var arr = pc().modules;
     var si = arr.findIndex(function (m) { return m.id === srcId; });
     var ti = arr.findIndex(function (m) { return m.id === targetId; });
-    if (si < 0 || ti < 0) return;
+    if (si < 0 || ti < 0 || si === ti || !sameGroup(srcId, targetId)) return;
     var t = arr.splice(si, 1)[0];
-    if (si < ti) ti--;
+    ti = arr.findIndex(function (m) { return m.id === targetId; });
+    if (after) ti++;
     arr.splice(ti, 0, t);
     reapply();
     setDirty(true);
