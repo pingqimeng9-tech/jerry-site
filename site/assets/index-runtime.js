@@ -158,6 +158,12 @@ function applyPal(id,save){
   const p=PALS.find(x=>x[0]===id)||PALS[0],r=document.documentElement;
   r.dataset.theme=p[2];
   PK.forEach((k,i)=>r.style.setProperty('--'+k,p[4+i]));
+  const stageHex=p[10].slice(1),stageRGB=[0,2,4].map(i=>parseInt(stageHex.slice(i,i+2),16)/255);
+  const luminance=stageRGB.reduce((sum,value,i)=>{
+    const linear=value<=.04045?value/12.92:Math.pow((value+.055)/1.055,2.4);
+    return sum+linear*[.2126,.7152,.0722][i];
+  },0);
+  r.style.setProperty('--st-ink',(1.05/(luminance+.05))>=((luminance+.05)/.05)?'#fff':'#111');
   const m=document.querySelector('meta[name=theme-color]');if(m)m.content=p[4];
   document.querySelectorAll('#msw button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.p===p[0]));
   if(save){try{localStorage.setItem('jerry-pal',p[0])}catch(e){}}
@@ -173,6 +179,21 @@ if(!EMBED){
 
 /* ════════════════ 画廊 + 弹窗 ════════════════ */
 const gal=$('#gal'),mdl=$('#mdl');
+let modalScrollY=0;
+function lockPageScroll(){
+  if(document.body.classList.contains('modal-open'))return;
+  modalScrollY=window.scrollY;
+  document.body.style.top=`-${modalScrollY}px`;
+  document.documentElement.classList.add('modal-open');
+  document.body.classList.add('modal-open');
+}
+function unlockPageScroll(){
+  if(!document.body.classList.contains('modal-open'))return;
+  document.body.classList.remove('modal-open');
+  document.documentElement.classList.remove('modal-open');
+  document.body.style.removeProperty('top');
+  window.scrollTo(0,modalScrollY);
+}
 let catF=null,tagF=null,qF='',mdlIdx=0,curParams={};
 const FRAME_W=1000;
 const frameDoc=(id,auto,params)=>SELF.replace('<html lang="zh" data-theme="dark">','<html lang="zh" data-theme="'+document.documentElement.dataset.theme+'" class="embed" style="'+document.documentElement.style.cssText.replace(/"/g,'&quot;')+'">').replace('<head>','<head><style>'+(document.getElementById('jerry-home-layout')?.textContent||'')+'</style><script>window.__EMBED='+JSON.stringify({id,auto,params:params||{}})+';<\/script>');
@@ -822,6 +843,7 @@ function openModal(i){
   $('#czr').onclick=()=>{curParams={};delete PSTORE[t.id];openModal(i)};
   setView('preview');cpRender();
   const pv=$('.mdl-pv',mdl);pv.querySelectorAll('iframe').forEach(frame=>frame.remove());pv.appendChild(mkFrame(t.id,false,curParams));
+  lockPageScroll();
   mdl.hidden=false;
 }
 function setPreviewExpanded(expanded){
@@ -842,7 +864,7 @@ const aiBtn=$('.ai-btn',mdl),aiMenu=$('.ai-menu',mdl);
 const setMenu=o=>{aiMenu.hidden=!o;aiBtn.setAttribute('aria-expanded',o)};
 aiBtn.addEventListener('click',()=>setMenu(aiMenu.hidden));
 mdl.addEventListener('click',e=>{if(!aiMenu.hidden&&!e.target.closest('.ai'))setMenu(false)});
-function closeModal(){setMenu(false);setPreviewExpanded(false);mdl.hidden=true;$('.mdl-pv',mdl).querySelectorAll('iframe').forEach(frame=>frame.remove());$('.cp-code',cp).innerHTML=''}
+function closeModal(){setMenu(false);setPreviewExpanded(false);mdl.hidden=true;$('.mdl-pv',mdl).querySelectorAll('iframe').forEach(frame=>frame.remove());$('.cp-code',cp).innerHTML='';unlockPageScroll()}
 $('#mx').onclick=closeModal;
 mdl.addEventListener('click',e=>{if(e.target===mdl)closeModal()});
 aiMenu.addEventListener('click',e=>{

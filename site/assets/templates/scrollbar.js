@@ -6,10 +6,10 @@ notes:['同一个胶囊有三种状态：5×64 的细条、50×188 的时钟、2
 knobs:[{k:'MORPH_IN',label:'MORPH_IN 展开 s',v:.65,min:.2,max:1.4,step:.05},{k:'MORPH_OUT',label:'MORPH_OUT 收回 s',v:.6,min:.2,max:1.4,step:.05},{k:'REST_DELAY',label:'REST_DELAY ms',v:150,min:0,max:800,step:10},{k:'SCROLL_LAMBDA',label:'滚动阻尼 λ',v:9,min:3,max:25,step:1}],
 css:`.sb-view{position:absolute;inset:0;overflow:hidden}
 .sb-sec{position:absolute;left:0;right:0;padding:0 9% 0 6%;display:flex;flex-direction:column;justify-content:center;gap:14px}
-.sb-sec small{font:11px var(--mono);opacity:.55}
+.sb-sec small{font:11px var(--mono)}
 .sb-sec h2{font-size:clamp(30px,5.4vw,76px);letter-spacing:-.045em;line-height:1;font-weight:600;max-width:12em}
 .sb-sec p{font-size:15px;line-height:1.65;max-width:34em;opacity:.78}
-.sb-sec pre{font:11px/1.6 var(--mono);opacity:.55}
+.sb-sec pre{font:11px/1.6 var(--mono)}
 .sb-rail{position:absolute;right:10px;top:12px;bottom:12px;width:0}
 .sb-cap{position:absolute;right:0;top:0;width:5px;height:64px;border-radius:99px;background:#8d8d8c;overflow:hidden;touch-action:none;cursor:pointer;transition:background-color .8s}
 .sb-cap.s-clock,.sb-cap.s-player{background:#111}
@@ -17,7 +17,7 @@ css:`.sb-view{position:absolute;inset:0;overflow:hidden}
 .sb-p.on{opacity:1;filter:none;pointer-events:auto}
 .sb-clock{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
 .sb-clock canvas{width:38px;height:38px}
-.sb-clock span{font:8px var(--mono);letter-spacing:.1em;writing-mode:vertical-rl;opacity:.55}
+.sb-clock span{font:8px var(--mono);letter-spacing:.1em;writing-mode:vertical-rl}
 .sb-note{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);color:#ff4d00;font-size:18px;width:34px;height:34px;display:none;place-items:center}
 .sb-note.show{display:grid;animation:sbpop .5s var(--e)}
 @keyframes sbpop{from{transform:translateX(-50%) scale(.3)}to{transform:translateX(-50%) scale(1)}}
@@ -28,10 +28,10 @@ css:`.sb-view{position:absolute;inset:0;overflow:hidden}
 .sb-wave i:nth-child(2n){animation-duration:.7s}.sb-wave i:nth-child(3n){animation-duration:1.1s}.sb-wave i:nth-child(4){animation-delay:.2s}.sb-wave i:nth-child(5){animation-delay:.35s}
 .sb-player.playing .sb-wave i{animation-play-state:running}
 @keyframes sbw{from{height:12%}to{height:100%}}
-.sb-info b{display:block;font-size:15px}.sb-info small{font:10px var(--mono);opacity:.55}
+.sb-info b{display:block;font-size:15px}.sb-info small{font:10px var(--mono)}
 .sb-tl{height:4px;border-radius:2px;background:#ffffff33;cursor:pointer;position:relative;touch-action:none}
 .sb-tl i{position:absolute;left:0;top:0;bottom:0;width:0;background:#ff4d00;border-radius:2px}
-.sb-time{display:flex;justify-content:space-between;font:9px var(--mono);opacity:.55;margin-top:-6px}
+.sb-time{display:flex;justify-content:space-between;font:9px var(--mono);margin-top:-6px}
 .sb-ctl{display:flex;justify-content:center;gap:18px;align-items:center}
 .sb-ctl button{width:36px;height:36px;border-radius:50%;text-align:center;font-size:14px;color:#f3f3f1}
 .sb-ctl button[data-a=play]{background:#f3f3f1;color:#111;width:44px;height:44px}

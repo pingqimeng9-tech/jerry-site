@@ -97,9 +97,9 @@ body.gal #stage,body.gal .dock{display:none}
 .gc-meta h3{font-size:18px;font-weight:500;letter-spacing:-.01em;white-space:nowrap}
 .gc-tags{display:flex;gap:5px;overflow:hidden}
 .gc-tags i{font:10px var(--mono);font-style:normal;color:var(--mut);border:1px solid var(--line);border-radius:99px;padding:2px 8px;white-space:nowrap}
-.mdl{position:fixed;inset:0;z-index:50;background:#000e;display:grid;place-items:center;padding:16px}
+.mdl{position:fixed;inset:0;z-index:50;background:var(--bg);display:grid;place-items:center;padding:16px;overscroll-behavior:none}
 .mdl[hidden]{display:none}
-.mdl-box{width:min(1240px,100%);height:min(820px,94vh);max-height:96vh;overflow:auto;background:var(--bg);border:1px solid var(--line);border-radius:24px;padding:20px 22px;display:flex;flex-direction:column;gap:14px}
+.mdl-box{width:min(1240px,100%);height:min(820px,94vh);max-height:96vh;overflow:auto;overscroll-behavior:contain;background:var(--bg);border:1px solid var(--line);border-radius:24px;padding:20px 22px;display:flex;flex-direction:column;gap:14px}
 .mdl-box header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .mdl-cat{font:11px var(--mono);color:var(--mut);margin-bottom:4px}
 .mdl-t{font-size:28px;letter-spacing:-.03em;font-weight:600}
@@ -141,6 +141,8 @@ body.gal #stage,body.gal .dock{display:none}
 iframe:fullscreen{background:var(--st-bg)}
 .mdl-zoom{position:absolute;top:12px;right:12px;z-index:2;width:38px;height:38px;display:grid;place-items:center;border:1px solid #ffffff40;border-radius:8px;background:#171717;color:#fff;font-size:22px;box-shadow:0 3px 12px #0008}
 .mdl-zoom:hover{background:#303030}
+.modal-open,.modal-open body{overflow:hidden;overscroll-behavior:none}
+.modal-open body{position:fixed;left:0;right:0;width:100%}
 .mdl-side{min-width:0;max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:12px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--bg)}
 .mdl-side .mdl-spell{font-size:14px;line-height:1.6}
 .mdl-side .mdl-tags{gap:5px}

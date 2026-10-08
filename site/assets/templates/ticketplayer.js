@@ -15,7 +15,7 @@ z-index:30;cursor:grab;touch-action:none;color:#fff;will-change:transform,width,
 .tp-cap.grabbing{cursor:grabbing}
 .tp-cap .jcap-panel{position:absolute;inset:0;opacity:0;visibility:hidden;filter:blur(8px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px}
 .tp-cap .jcap-t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:10px;letter-spacing:0;opacity:.9;line-height:1}
-.tp-cap .jcap-pct{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:9px;letter-spacing:0;opacity:.55;line-height:1}
+.tp-cap .jcap-pct{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:9px;letter-spacing:0;line-height:1}
 .tp-cap .jcap-note{width:22px;height:22px;display:grid;place-items:center;border:0;background:none;color:#ff4d00;cursor:pointer;opacity:0;pointer-events:none;padding:0}
 .tp-cap.clock .jcap-note{opacity:1;pointer-events:auto}
 .tp-cap .jcap-note .eq{display:none;gap:2px;align-items:flex-end;height:14px}

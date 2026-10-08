@@ -1,6 +1,6 @@
 // Jerry-site Service Worker
 // 策略：首页运行时与模板资源网络优先；不碰 /api/ 和 /admin
-const CACHE = 'jerry-site-v1';
+const CACHE = 'jerry-site-v2';
 const HOMEPAGE_ASSETS = new Set(['/assets/index.css', '/assets/index-runtime.js', '/assets/template-registry.js']);
 
 self.addEventListener('install', () => self.skipWaiting());
