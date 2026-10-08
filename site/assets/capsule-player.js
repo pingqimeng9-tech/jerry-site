@@ -408,7 +408,7 @@
           '<div><div class="t-admit-text">Cover</div><div class="mt-cover" id="jmCpCover">COVER</div></div>' +
         '</div></div></div>' +
       '</div>';
-    document.documentElement.appendChild(root);
+    document.body.appendChild(root);
 
     var mini = root.querySelector('.jm-mini'), full = root.querySelector('.jm-full');
     var cpCover = root.querySelector('#jmCpCover'), mcCover = root.querySelector('#jmMcCover');
