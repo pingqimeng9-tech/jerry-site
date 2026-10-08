@@ -1,7 +1,7 @@
 // Jerry-site Service Worker
-// 策略：页面与首页运行时资源网络优先；不碰 /api/ 和 /admin
+// 策略：首页运行时与模板资源网络优先；不碰 /api/ 和 /admin
 const CACHE = 'jerry-site-v1';
-const HOMEPAGE_ASSETS = new Set(['/assets/index.css', '/assets/index-runtime.js']);
+const HOMEPAGE_ASSETS = new Set(['/assets/index.css', '/assets/index-runtime.js', '/assets/template-registry.js']);
 
 self.addEventListener('install', () => self.skipWaiting());
 
@@ -20,7 +20,7 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/admin')) return;
 
-  if (HOMEPAGE_ASSETS.has(url.pathname)) {
+  if (HOMEPAGE_ASSETS.has(url.pathname) || url.pathname.startsWith('/assets/templates/')) {
     if (req.cache === 'force-cache') {
       event.respondWith(caches.match(req).then((cached) => cached || fetch(req)));
       return;
