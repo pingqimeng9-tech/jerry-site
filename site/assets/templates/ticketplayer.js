@@ -108,10 +108,10 @@ box-shadow:0 20px 40px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.05);backgroun
 .tp-view{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;-ms-overflow-style:none}
 .tp-view::-webkit-scrollbar{width:0;height:0;display:none}
 .tp-sec{height:100%;box-sizing:border-box;padding:0 12% 0 8%;display:flex;flex-direction:column;justify-content:center;gap:14px}
-.tp-sec small{font:11px var(--mono);opacity:.55}
+.tp-sec small{font:11px var(--mono);color:#d4d6df}
 .tp-sec h2{font-size:clamp(30px,5vw,68px);letter-spacing:-.045em;line-height:1;font-weight:600;max-width:12em}
 .tp-sec p{font-size:15px;line-height:1.65;max-width:34em;opacity:.78}
-.tp-sec pre{font:11px/1.6 var(--mono);opacity:.55}
+.tp-sec pre{font:11px/1.6 var(--mono);color:#d4d6df}
 .tp-sec:last-child{padding-bottom:110px}`,
 mount(h,ctx){
   const P=ctx.P,doc=h.ownerDocument,win=doc.defaultView;

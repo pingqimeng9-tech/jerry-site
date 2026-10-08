@@ -15,13 +15,13 @@ const sourceMarkupReady=(()=>{
     const scriptTag=/<script\b(?=[^>]*\bsrc="[^"]*\/assets\/index-runtime\.js")[^>]*><\/script>/;
     if(!styleTag.test(SELF)||!scriptTag.test(SELF))throw new Error('Homepage source asset markers are missing.');
     const registrations=templateSources.map(source=>source.replace('window.__JERRY_REGISTER_TEMPLATE(', 'registerTemplate(')).join('\n');
-    const runtime=js.replace(/^const TPL=window\.__JERRY_TEMPLATES;$/m,`const TPL=[];\nconst registerTemplate=t=>TPL.push(t);\n${registrations}`);
+    const runtime=js.replace(/^const TPL=window\.__JERRY_TEMPLATES;$/m,()=>`const TPL=[];\nconst registerTemplate=t=>TPL.push(t);\n${registrations}`);
     if(runtime===js)throw new Error('Homepage template registry marker is missing.');
     SELF=SELF
       .replace(/<script\b(?=[^>]*\bsrc="[^"]*\/assets\/(?:template-registry|templates\/[^"]+)\.js")[^>]*><\/script>/g,'')
       .replace(/<script\b(?=[^>]*\bsrc="[^"]*\/admin\/studio\/bridge\.js")[^>]*><\/script>/g,'')
-      .replace(styleTag,`<style>${css}</style>`)
-      .replace(scriptTag,`<script>${runtime.replace(/<\/script/gi,'<\\/script')}</script>`);
+      .replace(styleTag,()=>`<style>${css}</style>`)
+      .replace(scriptTag,()=>`<script>${runtime.replace(/<\/script/gi,'<\\/script')}</script>`);
   });
 })();
 const selfSourceReady=sourceMarkupReady.then(()=>{
@@ -821,7 +821,7 @@ function openModal(i){
     tune.appendChild(w)});
   $('#czr').onclick=()=>{curParams={};delete PSTORE[t.id];openModal(i)};
   setView('preview');cpRender();
-  const pv=$('.mdl-pv',mdl);pv.innerHTML='';pv.appendChild(mkFrame(t.id,false,curParams));
+  const pv=$('.mdl-pv',mdl);pv.querySelectorAll('iframe').forEach(frame=>frame.remove());pv.appendChild(mkFrame(t.id,false,curParams));
   mdl.hidden=false;
 }
 function setPreviewExpanded(expanded){
@@ -842,7 +842,7 @@ const aiBtn=$('.ai-btn',mdl),aiMenu=$('.ai-menu',mdl);
 const setMenu=o=>{aiMenu.hidden=!o;aiBtn.setAttribute('aria-expanded',o)};
 aiBtn.addEventListener('click',()=>setMenu(aiMenu.hidden));
 mdl.addEventListener('click',e=>{if(!aiMenu.hidden&&!e.target.closest('.ai'))setMenu(false)});
-function closeModal(){setMenu(false);setPreviewExpanded(false);mdl.hidden=true;$('.mdl-pv',mdl).innerHTML='';$('.cp-code',cp).innerHTML=''}
+function closeModal(){setMenu(false);setPreviewExpanded(false);mdl.hidden=true;$('.mdl-pv',mdl).querySelectorAll('iframe').forEach(frame=>frame.remove());$('.cp-code',cp).innerHTML=''}
 $('#mx').onclick=closeModal;
 mdl.addEventListener('click',e=>{if(e.target===mdl)closeModal()});
 aiMenu.addEventListener('click',e=>{
