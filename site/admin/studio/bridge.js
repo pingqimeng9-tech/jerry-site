@@ -16,7 +16,7 @@
    线上访客：无本地服务 → 探测失败 → 全部静默，零干扰。
    ============================================================ */
 (function () {
-  if (window.__jerryCmsBridge) return;
+  if (window.__EMBED || window.__jerryCmsBridge) return;
   window.__jerryCmsBridge = true;
 
   /* ---------- 文章页媒体样式（视频/嵌入图在正文里的展示，无害） ---------- */

@@ -19,6 +19,7 @@ const sourceMarkupReady=(()=>{
     if(runtime===js)throw new Error('Homepage template registry marker is missing.');
     SELF=SELF
       .replace(/<script\b(?=[^>]*\bsrc="[^"]*\/assets\/(?:template-registry|templates\/[^"]+)\.js")[^>]*><\/script>/g,'')
+      .replace(/<script\b(?=[^>]*\bsrc="[^"]*\/admin\/studio\/bridge\.js")[^>]*><\/script>/g,'')
       .replace(styleTag,`<style>${css}</style>`)
       .replace(scriptTag,`<script>${runtime.replace(/<\/script/gi,'<\\/script')}</script>`);
   });
