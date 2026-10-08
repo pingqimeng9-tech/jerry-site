@@ -56,7 +56,7 @@
     '@keyframes jm-eqb{from{transform:scaleY(.25)}to{transform:scaleY(1)}}',
 
     '/* ============ 票据播放器（作用域全部锁在 #jm 内） ============ */',
-    '#jm{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:2147482005;width:0;height:0;',
+    '#jm{position:fixed;left:50%;bottom:calc(clamp(8px,2dvh,20px) + env(safe-area-inset-bottom,0px));z-index:2147482005;width:0;height:0;',
     '--ta:' + T_ACCENT + ';--tag:' + T_GLOW + ';font-family:' + FONT_SANS + '}',
     'body.jsk-admin-local #jm,body.local-admin #jm{bottom:calc(76px + env(safe-area-inset-bottom,0px))}',
     '#jm .jm-mini,#jm .jm-full{position:absolute;bottom:0;left:0;transform-origin:50% 100%}',
@@ -579,19 +579,38 @@
       .then(function (c) { return (c && c.music) || null; }).catch(function () { return null; });
   }
 
-  /* 本地/管理员编辑条 .jl-bar（z-index 最高）出现时，把播放器与滚动条上抬避让；访客无此条 */
+  /* Keep the fixed player clear of editor bars and within the visible viewport. */
   function avoidEditBar() {
+    var playerNode = null, playerBaseBottom = null;
     function tick() {
       var jm = document.getElementById('jm'), bar = document.querySelector('.jl-bar');
-      var raise = 20, visible = false;
-      if (bar) {
+      var raise = 12, visible = false, positionOverride = false;
+      if (jm) {
+        if (jm !== playerNode) { playerNode = jm; playerBaseBottom = null; }
+        var viewportHeight = window.innerHeight;
+        var mini = jm.querySelector('.jm-mini');
+        var miniHeight = mini ? mini.getBoundingClientRect().height : 56;
+        if (playerBaseBottom === null) playerBaseBottom = parseFloat(getComputedStyle(jm).bottom) || 0;
+        var maxBottom = Math.max(8, viewportHeight - miniHeight - 8);
+        raise = clamp(playerBaseBottom, 8, maxBottom);
+      }
+      if (bar && jm) {
         var r = bar.getBoundingClientRect();
-        visible = r.height > 0 && r.top >= 0 && r.bottom <= window.innerHeight + 6;
-        if (visible) raise = Math.round(window.innerHeight - r.top + 10);
+        var playerTop = viewportHeight - raise - miniHeight;
+        var overlapsPlayer = r.height > 0 && r.bottom > playerTop && r.top < viewportHeight - raise;
+        if (overlapsPlayer) {
+          positionOverride = true;
+          if (r.top + r.height / 2 < viewportHeight / 2) {
+            raise = Math.min(raise, Math.max(8, viewportHeight - miniHeight - r.bottom - 8));
+          } else {
+            visible = true;
+            raise = clamp(viewportHeight - r.top + 10, raise, maxBottom);
+          }
+        }
       }
       bottomPad = visible ? raise - 4 : 12;
       if (jm) {
-        jm.style.bottom = visible ? raise + 'px' : '';
+        jm.style.bottom = positionOverride ? raise + 'px' : '';
         // 给正文底部留出播放器高度，使最后一行能滚到悬浮播放器上方，不被永久遮挡
         document.body.style.paddingBottom = Math.round(raise + 64) + 'px';
         // 窄屏右下角有移动动作坞 #mobile-action-dock，播放器收窄并左对齐、右缘让开它
@@ -616,7 +635,17 @@
       }
     }
     setInterval(tick, 350);
-    window.addEventListener('resize', tick);
+    function refreshPosition() {
+      playerBaseBottom = null;
+      var jm = document.getElementById('jm');
+      if (jm) jm.style.bottom = '';
+      tick();
+    }
+    window.addEventListener('resize', refreshPosition);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', refreshPosition);
+      window.visualViewport.addEventListener('scroll', refreshPosition);
+    }
     tick();
   }
 
