@@ -387,16 +387,13 @@
     --cg:clamp(6px,1.8cqw,20px);
     display:grid; grid-template-columns:repeat(var(--cols),minmax(0,1fr));
     gap:clamp(6px,1.4cqw,14px) var(--cg); padding:0;
-    /* 三列：把 3 个 280 宽舞台 + 2 个列间距塞进容器宽度，等比求缩放（上限 1，不超过原稿尺寸） */
-    --fs:clamp(.55, calc((100cqw - 2*var(--cg))/840px), 1);
   }
-  /* 中窄容器（手机竖屏等）：两列 */
+  /* 列数由容器宽度控制；缩放比例由 ResizeObserver 计算，避免手机浏览器不支持 clamp 中的单位除法。 */
   @container (max-width:559px){
-    .view-folder .post-grid{ --cols:2; --fs:clamp(.5, calc((100cqw - var(--cg))/560px), 1); }
+    .view-folder .post-grid{ --cols:2; }
   }
-  /* 超窄容器（<320px）：单列 */
   @container (max-width:319px){
-    .view-folder .post-grid{ --cols:1; --fs:clamp(.5, calc(100cqw/280px), 1); }
+    .view-folder .post-grid{ --cols:1; }
   }
   .view-folder .post-card{ display:flex; justify-content:center; align-items:flex-start; padding:0; background:transparent !important; border:0; box-shadow:none !important; overflow:visible; height:auto;
     min-width:0; backdrop-filter:none !important; -webkit-backdrop-filter:none !important; border-radius:0; transform:none !important; transition:none !important; }
@@ -406,15 +403,12 @@
   /* 对称：图库/列表视图必须隐藏 folder 的 3D 结构（每张卡片 DOM 同时含两套结构，按视图显隐）。
      桌面靠卡片 overflow:hidden 侥幸裁掉，手机卡片高度自适应时 280×296 的文件夹会从卡片底部露出来，必须显式隐藏 */
   .view-gallery .f-slot, .view-list .f-slot{ display:none !important; }
-  /* slot/stage 固定基准 280×296，flex/grid 都不许压缩（flex:none + justify-self:center）；
-     只让 slot 整体 transform 等比缩放，内部固定坐标（封面/玻璃/章节卡）随之等比、永不拉伸变形 */
+  /* slot 尺寸由脚本按容器宽度同步缩放；stage 内部固定坐标只做等比视觉缩放 */
   .f-slot{ width:280px; height:296px; flex:0 0 auto;
-    display:flex; align-items:flex-start; justify-content:center;
-    transform:scale(var(--fs,1)); transform-origin:top center;
-    /* 水平居中于卡片列；视觉高度=296*fs，负 margin 回收底部多占的 (1-fs)，行距贴合不留大缝 */
-    margin:0 auto calc(296px * (var(--fs,1) - 1)); }
+    display:flex; align-items:flex-start; justify-content:flex-start;
+    margin:0 auto; }
   .f-stage{ width:280px; height:296px; flex:0 0 auto; position:relative; perspective:1100px; cursor:pointer; outline:none;
-    -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+    -webkit-tap-highlight-color:transparent; touch-action:manipulation; transform:scale(var(--folder-scale,1)); transform-origin:top left; }
   .f-tilt{ position:absolute; inset:0; perspective:900px; transform:rotateX(var(--tx,0deg)) rotateY(var(--ty,0deg)); transition:transform .5s cubic-bezier(.16,1,.3,1); }
   .view-folder .post-card:has(.f-stage.open){ position:relative; z-index:99990; }
 
@@ -985,6 +979,34 @@ let allPosts = [];
 const CATEGORY_ORDER = ['技术分享', '心情随笔', '思维日记'];
 let currentViewMode = 'gallery'; // 默认试图模式
 
+let folderLayoutFrame = 0;
+function layoutFolderSlots(){
+  const area=document.getElementById('content-area');
+  if(!area||!area.classList.contains('view-folder'))return;
+  area.querySelectorAll('.post-grid').forEach(grid=>{
+    const style=getComputedStyle(grid);
+    const columns=Math.max(1,parseInt(style.getPropertyValue('--cols'),10)||1);
+    const gap=parseFloat(style.columnGap)||0;
+    const width=grid.clientWidth;
+    if(!width)return;
+    const minScale=columns === 3 ? 0.55 : 0.5;
+    const scale=Math.max(minScale,Math.min(1,(width-gap*(columns-1))/(280*columns)));
+    grid.querySelectorAll('.f-slot').forEach(slot=>{
+      slot.style.width=(280*scale)+'px';
+      slot.style.height=(296*scale)+'px';
+      const stage=slot.querySelector('.f-stage');
+      if(stage)stage.style.setProperty('--folder-scale',String(scale));
+    });
+  });
+}
+function scheduleFolderLayout(){
+  if(folderLayoutFrame)return;
+  folderLayoutFrame=requestAnimationFrame(()=>{
+    folderLayoutFrame=0;
+    layoutFolderSlots();
+  });
+}
+
 /* ============ 试图切换逻辑 ============ */
 function setupViewSwitcher() {
   const buttons = document.querySelectorAll('#view-switcher button');
@@ -1003,6 +1025,7 @@ function setupViewSwitcher() {
       document.querySelectorAll('.f-stage.open').forEach(o=>{ o.classList.remove('open'); o._hover=false; });
       contentArea.className = '';
       contentArea.classList.add(`view-${mode}`);
+      scheduleFolderLayout();
       try{ localStorage.setItem('blogViewMode', mode); }catch(e){}
       if(mode === 'folder' && window.JerryFolder) JerryFolder.activate();
     });
@@ -1017,6 +1040,12 @@ function setupViewSwitcher() {
   }catch(e){}
 }
 setupViewSwitcher();
+const folderLayoutArea=document.getElementById('content-area');
+if(folderLayoutArea){
+  if(window.ResizeObserver)new window.ResizeObserver(scheduleFolderLayout).observe(folderLayoutArea);
+  new MutationObserver(scheduleFolderLayout).observe(folderLayoutArea,{childList:true,subtree:true});
+}
+window.addEventListener('resize',scheduleFolderLayout,{passive:true});
 
 /* ============ Folder 文件夹视图 ============ */
 (function(){
