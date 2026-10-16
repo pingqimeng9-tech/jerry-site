@@ -35,13 +35,7 @@
       radial-gradient(circle at 75% 80%, #5CE1E645, transparent 45%),
       radial-gradient(circle at 20% 85%, #FF7A5C45, transparent 45%),
       linear-gradient(135deg,#12102b,#1b1440,#0e1a3a,#1a1030);
-    background-size:200% 200%,200% 200%,200% 200%,200% 200%,400% 400%;
-    animation:bgshift 26s ease-in-out infinite;
-  }
-  @keyframes bgshift{
-    0%{background-position:0% 0%,100% 0%,100% 100%,0% 100%,0% 50%;}
-    50%{background-position:40% 60%,60% 40%,40% 60%,60% 40%,100% 50%;}
-    100%{background-position:0% 0%,100% 0%,100% 100%,0% 100%,0% 50%;}
+    background-size:cover;
   }
 
   /* ================= 背景图片轮播：多张图慢速交叉渐变 + 虚化 ================= */
@@ -1007,27 +1001,50 @@ async function initBgCarousel(){
   try {
     const res = await fetch('/images/bg/manifest.json');
     if(!res.ok) return;
-    const list = await res.json();
-    if(!Array.isArray(list) || list.length === 0) return;
-
-    document.body.style.animation = 'none'; // 有真实背景图时关掉原本的渐变呼吸动画，避免视觉打架
-
+    const list = (await res.json()).filter(name => typeof name === 'string' && name.trim());
+    if(list.length === 0) return;
     const layers = [document.getElementById('bgLayerA'), document.getElementById('bgLayerB')];
-    let showIdx = 0, listIdx = 0;
+    const imageUrl = name => '/images/bg/' + encodeURIComponent(name);
+    const imageReady = url => new Promise(resolve => {
+      const image = new Image();
+      image.onload = () => resolve(true);
+      image.onerror = () => resolve(false);
+      image.src = url;
+      if(image.complete) resolve(image.naturalWidth > 0);
+    });
+    let listIdx = -1;
+    for(let i=0;i<list.length;i++){
+      if(await imageReady(imageUrl(list[i]))){ listIdx=i; break; }
+    }
+    if(listIdx<0) return;
+    let showIdx = 0;
+    layers[showIdx].style.backgroundImage = `url('${imageUrl(list[listIdx])}')`;
+    requestAnimationFrame(() => layers[showIdx].classList.add('show'));
+    if(list.length === 1) return;
 
-    layers[0].style.backgroundImage = `url('/images/bg/${list[0]}')`;
-    layers[0].classList.add('show');
-
-    if(list.length === 1) return; // 只有一张图就不用轮播了
-
-    setInterval(() => {
-      listIdx = (listIdx + 1) % list.length;
-      const nextIdx = (showIdx + 1) % 2;
-      layers[nextIdx].style.backgroundImage = `url('/images/bg/${list[listIdx]}')`;
-      layers[nextIdx].classList.add('show');
-      layers[showIdx].classList.remove('show');
-      showIdx = nextIdx;
-    }, 10000); // 每10秒切一张，交叉渐变时长由CSS的transition控制（3.5秒）
+    let switching = false;
+    const rotate = async () => {
+      if(switching) return;
+      switching = true;
+      try{
+        for(let step=1;step<list.length;step++){
+          const nextListIdx=(listIdx+step)%list.length;
+          const url=imageUrl(list[nextListIdx]);
+          if(!await imageReady(url)) continue;
+          const nextIdx=(showIdx+1)%2;
+          layers[nextIdx].style.backgroundImage = `url('${url}')`;
+          await new Promise(resolve => requestAnimationFrame(resolve));
+          layers[nextIdx].classList.add('show');
+          layers[showIdx].classList.remove('show');
+          showIdx=nextIdx;
+          listIdx=nextListIdx;
+          return;
+        }
+      }finally{
+        switching=false;
+      }
+    };
+    setInterval(rotate, 10000);
 
   } catch (err) {
     // 清单不存在/网络问题：安静地保留CSS兜底渐变
