@@ -6,7 +6,7 @@
 //   POST /api/assist?do=verify-code {email,code}  校验并返回 magiclink token_hash
 //
 // 登录所需环境变量：SUPABASE_URL、SUPABASE_SERVICE_ROLE_KEY、RESEND_API_KEY
-// 管理员白名单：ADMIN_EMAIL（多个用逗号分隔；默认 zengaihua008@gmail.com）
+// 管理员白名单：必填环境变量 ADMIN_EMAIL（多个邮箱用逗号分隔）
 const { createClient } = require('@supabase/supabase-js');
 
 // 管理员白名单只从环境变量 ADMIN_EMAIL 读取（逗号分隔多个），代码库里不写死任何邮箱

@@ -7,7 +7,7 @@
 // 可选：
 //   GITHUB_REPO                  默认 pingqimeng9-tech/jerry-site
 //   GITHUB_BRANCH                默认 main
-//   ADMIN_EMAIL                  默认 zengaihua008@gmail.com（多个逗号分隔）
+//   ADMIN_EMAIL                  必填；允许的管理员邮箱，多个用逗号分隔
 //
 // 安全要点：
 //   1) 每个请求都用 auth.getUser(token) 向 Supabase 实时验票，不信任前端传来的任何身份信息
