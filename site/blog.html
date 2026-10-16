@@ -1177,11 +1177,24 @@ window.addEventListener('resize',scheduleFolderLayout,{passive:true});
 
   /* ---------- 文件夹交互：首次点击原位展开章节 / 再次点击打开文章；点章节卡直达章节 ---------- */
   let interactBound=false;
-  const closeAll=except=>{ document.querySelectorAll('.f-stage.open').forEach(o=>{ if(o!==except){ o.classList.remove('open'); o._hover=false; } }); };
-  const openTouch=st=>{
+  let touchCloseTimer=null;
+  const clearTouchClose=()=>{
+    if(touchCloseTimer){ clearTimeout(touchCloseTimer); touchCloseTimer=null; }
+  };
+  const closeAll=except=>{
+    clearTouchClose();
+    document.querySelectorAll('.f-stage.open').forEach(o=>{ if(o!==except){ o.classList.remove('open'); o._hover=false; } });
+  };
+  const openTouch=(st,autoClose)=>{
     closeAll(st);
     if(!st.dataset.chap || st.dataset.chap==='err') loadChap(st);  // 主动展开：立即取章节，不等空闲预取
     st._hover=true; st.classList.add('open');
+    if(autoClose&&!S.pin){
+      touchCloseTimer=setTimeout(()=>{
+        touchCloseTimer=null;
+        if(isFolder()&&st.isConnected){ st.classList.remove('open'); st._hover=false; }
+      },3000);
+    }
   };
   function bindInteract(){
     if(interactBound) return; interactBound=true;
@@ -1217,7 +1230,7 @@ window.addEventListener('resize',scheduleFolderLayout,{passive:true});
         location.href='/p/'+st.dataset.slug+'#'+card.dataset.anchor; return; } // 章节卡直达
       const body=hit.closest&&hit.closest('.f-shell,.f-front');
       if(!body) return;                                      // 方框内缝隙（非外壳/正面/卡片）：不响应
-      if(!st.classList.contains('open')){ openTouch(st); return; }            // 鼠标/触屏统一：首次轻点方框=展开
+      if(!st.classList.contains('open')){ openTouch(st,p.ptype==='touch'); return; } // 手机轻点展开 3 秒后自动收起
       location.href='/p/'+st.dataset.slug;                                   // 再次轻点方框=打开文章
     },true);
     // folder 卡片内禁用 <a> 原生 click 跳转：导航全部由上面的 pointerup 手动控制，
