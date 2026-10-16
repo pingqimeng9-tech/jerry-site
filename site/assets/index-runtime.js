@@ -196,7 +196,19 @@ function unlockPageScroll(){
 }
 let catF=null,tagF=null,qF='',mdlIdx=0,curParams={};
 const FRAME_W=1000;
-const frameDoc=(id,auto,params)=>SELF.replace('<html lang="zh" data-theme="dark">','<html lang="zh" data-theme="'+document.documentElement.dataset.theme+'" class="embed" style="'+document.documentElement.style.cssText.replace(/"/g,'&quot;')+'">').replace('<head>','<head><style>'+(document.getElementById('jerry-home-layout')?.textContent||'')+'</style><script>window.__EMBED='+JSON.stringify({id,auto,params:params||{}})+';<\/script>');
+function templatePreviewStyle(){
+  const style=document.documentElement.style,declarations=[];
+  for(let i=0;i<style.length;i++){
+    const name=style[i];
+    if(name.startsWith('--home-'))continue;
+    declarations.push(name+':'+style.getPropertyValue(name)+(style.getPropertyPriority(name)?' !important':''));
+  }
+  return declarations.join(';').replace(/"/g,'&quot;');
+}
+const frameDoc=(id,auto,params)=>SELF
+  .replace('<html lang="zh" data-theme="dark">','<html lang="zh" data-theme="'+document.documentElement.dataset.theme+'" class="embed" style="'+templatePreviewStyle()+'">')
+  .replace(/<script\b(?=[^>]*\bsrc="[^"]*\/assets\/home-layout\.js")[^>]*><\/script>/g,'')
+  .replace('<head>','<head><script>window.__EMBED='+JSON.stringify({id,auto,params:params||{}})+';<\/script>');
 const mkFrame=(id,auto,params)=>{const f=document.createElement('iframe');f.title=id;f.allow='fullscreen';f.allowFullscreen=true;f.addEventListener('load',()=>syncEmbeddedFrame(f));f.srcdoc=frameDoc(id,auto,params);return f};
 const manifestOf=t=>({id:t.id,name:t.name,category:t.cat,material:t.mat,spell:t.spell,core:t.core,tags:t.tags,knobs:(t.knobs||[]).map(k=>({key:k.k,default:k.v,min:k.min,max:k.max})),credit:t.credit});
 const promptOf=(t,p)=>`请使用「创意网站模板库」里的 ${t.name} 模板（id: ${t.id}，分类 ${t.cat}）。
@@ -799,7 +811,7 @@ function syncNav(){document.querySelectorAll('#nav button').forEach(b=>b.setAttr
 function syncEmbeddedFrame(frame){
   const frameRoot=frame.contentDocument&&frame.contentDocument.documentElement;
   if(!frameRoot)return;
-  frameRoot.style.cssText=document.documentElement.style.cssText;
+  frameRoot.style.cssText=templatePreviewStyle();
   frameRoot.dataset.theme=document.documentElement.dataset.theme;
 }
 function refreshFrames(){document.querySelectorAll('.gc-fr iframe').forEach(syncEmbeddedFrame)}

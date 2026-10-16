@@ -2,6 +2,7 @@
   'use strict';
 
   var root = document.documentElement;
+  if (root.classList.contains('embed') || window.__EMBED) return;
   var style = document.createElement('style');
   style.id = 'jerry-home-layout';
   style.textContent = [
@@ -124,7 +125,8 @@
     Object.keys(colorVars).forEach(function (key) {
       var color = home[key];
       var fallbackColor = theme.colors[key];
-      setVar(colorVars[key], !useSavedPalette && (color && /^#[0-9a-f]{6}$/i.test(color) ? color : fallbackColor || ''));
+      var usePaletteColor = useSavedPalette && key !== 'background';
+      setVar(colorVars[key], !usePaletteColor && (color && /^#[0-9a-f]{6}$/i.test(color) ? color : fallbackColor || ''));
     });
     var effectiveForeground = home.foreground || theme.colors.foreground || '';
     setVar('--home-line', useSavedPalette ? '' : rgba(effectiveForeground, 0.2));
