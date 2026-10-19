@@ -66,3 +66,17 @@ test('music page has no horizontal overflow', async ({ page }) => {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBe(0);
 });
+
+test('3D record shelf navigates with 3D transforms', async ({ page }) => {
+  await page.route(/https:\/\/p\d+\.music\.126\.net\/.*/, route => route.abort());
+  await page.goto('/music.html');
+  const cards = page.locator('.shelf-item');
+  expect(await cards.count()).toBeGreaterThanOrEqual(5);
+  const transform = await cards.first().evaluate(el => el.style.transform);
+  expect(transform).toContain('translateZ');
+  expect(transform).toContain('rotateY');
+
+  const before = await page.locator('#shelfPosition').innerText();
+  await page.locator('#shelfNext').click();
+  await expect(page.locator('#shelfPosition')).not.toHaveText(before);
+});
