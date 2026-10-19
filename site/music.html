@@ -341,12 +341,7 @@
   .mag-grain{
     position:fixed;inset:-20%;z-index:0;pointer-events:none;opacity:.055;mix-blend-mode:overlay;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-repeat:repeat;animation:grainShift .8s steps(8) infinite;
-  }
-  @keyframes grainShift{
-    0%{transform:translate(0,0)}12%{transform:translate(-3%,-4%)}25%{transform:translate(-8%,3%)}
-    38%{transform:translate(4%,-6%)}50%{transform:translate(-5%,7%)}62%{transform:translate(7%,0)}
-    75%{transform:translate(0,4%)}88%{transform:translate(5%,-3%)}100%{transform:translate(0,0)}
+    background-repeat:repeat;
   }
   .mag-scan{
     position:absolute;inset:0;z-index:0;pointer-events:none;mix-blend-mode:multiply;
@@ -683,6 +678,19 @@
     .page-wipe{display:none}
     .mag-meta,.masthead,.player-card,.shelf-section,.library-card{animation:none}
   }
+
+  /* ---- 3D face tilt + vinyl scratch ---- */
+  .disc{cursor:grab;touch-action:none}
+  .disc:active{cursor:grabbing}
+  .disc-inner{position:absolute;inset:0;border-radius:50%;transform:rotate(var(--scratch,0deg));transition:transform .08s linear;will-change:transform}
+  body.scratching .disc{animation-play-state:paused!important}
+  .shelf-item .shelf-face{position:absolute;inset:0;display:block;transform-style:preserve-3d;transition:transform .14s ease,box-shadow .2s ease;will-change:transform}
+  .shelf-item:hover .shelf-face{transform:rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg)) translateZ(18px);box-shadow:0 0 0 1px rgba(255,255,255,.25),0 18px 36px -18px rgba(255,77,157,.55)}
+  .shelf-face::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,transparent 34%,rgba(5,4,12,.94))}
+  .shelf-item::after{content:none}
+  .shelf-item .shelf-glare{background:radial-gradient(circle at var(--glare-x,30%) var(--glare-y,20%),rgba(255,255,255,.45),transparent 42%);opacity:.7;mix-blend-mode:screen;transition:background .1s linear,opacity .2s}
+  .shelf-item:hover .shelf-glare{opacity:1}
+  .shelf-item.active .shelf-glare{opacity:.28;display:block}
 </style>
 </head>
 <body data-page="music">
@@ -753,7 +761,7 @@
   <section class="player-card" aria-label="音乐播放器">
     <div class="cover-story">
       <div class="cover-frame" aria-hidden="true"></div>
-      <div class="disc" id="disc"><img id="cover" alt="" referrerpolicy="no-referrer"><div class="label">JERRY</div></div>
+      <div class="disc" id="disc" title="拖动唱片搓碟"><div class="disc-inner" id="discInner"><img id="cover" alt="" referrerpolicy="no-referrer"><div class="label">JERRY</div></div></div>
       <div class="tonearm" aria-hidden="true"></div>
       <div class="cover-ring" aria-hidden="true"></div>
       <span class="sticker sticker-now">NOW<br>PLAYING</span>
@@ -791,7 +799,7 @@
         </div>
       </div>
       <div class="player-status" id="playerStatus" role="status" aria-live="polite">点击歌单中的任意歌曲开始播放。</div>
-      <div class="kbd-strip"><span><kbd>Space</kbd> 播放 / 暂停</span><span><kbd>←</kbd><kbd>→</kbd> 快退 / 快进</span><span><kbd>↑</kbd><kbd>↓</kbd> 音量</span><span><kbd>拖动</kbd> 唱片架</span></div>
+      <div class="kbd-strip"><span><kbd>Space</kbd> 播放 / 暂停</span><span><kbd>←</kbd><kbd>→</kbd> 快退 / 快进</span><span><kbd>↑</kbd><kbd>↓</kbd> 音量</span><span><kbd>拖动</kbd> 唱片架</span><span><kbd>搓碟</kbd> 拖动黑胶</span></div>
     </div>
     <div class="swap-fx" id="swapFx" aria-hidden="true"><span id="swapText">LOADING TRACK</span><i></i></div>
   </section>
@@ -868,6 +876,10 @@
   var shelfPosition = document.getElementById('shelfPosition');
   var shelfFocus = 0;
   var shelfDrag = null;
+  var discEl = document.getElementById('disc');
+  var discInner = document.getElementById('discInner');
+  var scratch = null;
+  var scratchAngle = 0;
   var sfxOn = true, sfxCtx = null, lastVolume = 0.6;
   var lastPointer = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
   var burstLayer = document.getElementById('burstLayer');
@@ -1092,7 +1104,7 @@
         var btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'shelf-item';
-        btn.innerHTML = '<img alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'"><span class="shelf-no"></span><span class="shelf-now">NOW</span><span class="shelf-title"></span><span class="shelf-artist"></span><span class="shelf-glare"></span>';
+        btn.innerHTML = '<span class="shelf-face"><img alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'"><span class="shelf-no"></span><span class="shelf-now">NOW</span><span class="shelf-title"></span><span class="shelf-artist"></span><span class="shelf-glare"></span></span>';
         shelfTrack.appendChild(btn);
       }
     }
@@ -1203,6 +1215,8 @@
     if (!state.tracks.length) return;
     index = ((index % state.tracks.length) + state.tracks.length) % state.tracks.length;
     state.current = index;
+    scratchAngle = 0;
+    if (discInner) discInner.style.transform = 'rotate(0deg)';
     document.documentElement.style.setProperty('--music-p', '0');
     setSeekPct(0);
     var seekInput = document.getElementById('seek'); if (seekInput) seekInput.value = '0';
@@ -1529,6 +1543,15 @@
       shelfStage.style.setProperty('--shelf-rx', ((py - 0.5) * -6).toFixed(2) + 'deg');
       shelfStage.style.setProperty('--sx', (px * 100).toFixed(2) + '%');
       shelfStage.style.setProperty('--sy', (py * 100).toFixed(2) + '%');
+      shelfTrack.querySelectorAll('.shelf-item').forEach(function (card) {
+        var r = card.getBoundingClientRect();
+        var dx = Math.max(-1.2, Math.min(1.2, (e.clientX - (r.left + r.width / 2)) / r.width));
+        var dy = Math.max(-1.2, Math.min(1.2, (e.clientY - (r.top + r.height / 2)) / r.height));
+        card.style.setProperty('--tilt-x', (-dy * 11).toFixed(2) + 'deg');
+        card.style.setProperty('--tilt-y', (dx * 14).toFixed(2) + 'deg');
+        card.style.setProperty('--glare-x', ((dx + 0.5) * 100).toFixed(1) + '%');
+        card.style.setProperty('--glare-y', ((dy + 0.5) * 100).toFixed(1) + '%');
+      });
       if (shelfDrag) {
         if (Math.abs(e.clientX - shelfDrag.x) > 10) shelfDrag.moved = true;
       }
@@ -1547,6 +1570,10 @@
       shelfDrag = null;
       shelfStage.style.setProperty('--shelf-ry', '0deg');
       shelfStage.style.setProperty('--shelf-rx', '0deg');
+      shelfTrack.querySelectorAll('.shelf-item').forEach(function (card) {
+        card.style.setProperty('--tilt-x', '0deg');
+        card.style.setProperty('--tilt-y', '0deg');
+      });
     });
     shelfStage.addEventListener('wheel', function (e) {
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
@@ -1565,6 +1592,43 @@
     clearTimeout(shelfResizeTimer);
     shelfResizeTimer = setTimeout(function () { renderShelf(undefined, false); }, 180);
   });
+  if (discEl) {
+    discEl.addEventListener('pointerdown', function (e) {
+      if (e.button != null && e.button !== 0) return;
+      e.preventDefault();
+      scratch = { x: e.clientX, time: audio.currentTime, wasPlaying: !audio.paused };
+      bodyScratch(true);
+      try { discEl.setPointerCapture(e.pointerId); } catch (err) {}
+      if (!audio.paused) audio.pause();
+      sfxClick();
+    });
+    discEl.addEventListener('pointermove', function (e) {
+      if (!scratch) return;
+      e.preventDefault();
+      var dx = e.clientX - scratch.x;
+      scratchAngle = dx * 0.65;
+      if (discInner) discInner.style.transform = 'rotate(' + scratchAngle.toFixed(1) + 'deg)';
+      var duration = isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 0;
+      if (duration > 0) {
+        audio.currentTime = Math.max(0, Math.min(duration, scratch.time + dx * 0.015));
+        var pct = audio.currentTime / duration;
+        setSeekPct(pct);
+        document.documentElement.style.setProperty('--music-p', (pct * 100).toFixed(2));
+      }
+    });
+    function endScratch() {
+      if (!scratch) return;
+      var was = scratch.wasPlaying;
+      scratch = null;
+      bodyScratch(false);
+      if (was) audio.play().catch(function () {});
+    }
+    discEl.addEventListener('pointerup', endScratch);
+    discEl.addEventListener('pointercancel', endScratch);
+  }
+  function bodyScratch(on) {
+    document.body.classList.toggle('scratching', !!on);
+  }
   var playerCard = document.querySelector('.player-card');
   if (playerCard) {
     playerCard.addEventListener('pointermove', function (e) {
