@@ -406,3 +406,30 @@ input,select,textarea{font-family:inherit;color:var(--ink)}
 
 .kbd-hint{font-size:10px;color:var(--muted);opacity:.72;white-space:nowrap}
 @media(max-width:1100px){.kbd-hint{display:none}}
+
+/* —— 列表批量操作 / 快速编辑 —— */
+.pick,.pick-all{display:inline-flex;align-items:center;gap:7px;cursor:pointer;color:var(--muted);font-size:12px}
+.pick input,.pick-all input{width:16px;height:16px;accent-color:var(--aqua);cursor:pointer}
+.draft-card.picked{border-color:rgba(92,225,230,.55);background:rgba(92,225,230,.06)}
+.batch-bar{position:sticky;top:10px;z-index:35;display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:10px 14px;margin-bottom:14px;border:1px solid rgba(92,225,230,.35);border-radius:14px;background:rgba(16,13,38,.9);backdrop-filter:blur(16px);box-shadow:0 16px 40px -24px #000}
+.batch-bar[hidden]{display:none}
+.batch-count{font-family:var(--mono);font-size:11px;color:var(--aqua)}
+.batch-spacer{flex:1}
+.batch-bar .btn{padding:8px 13px;font-size:12px}
+.skel-card{height:132px;border-radius:20px;border:1px solid var(--glass-border);background:rgba(255,255,255,.05);padding:20px 22px;display:flex;flex-direction:column;gap:12px;overflow:hidden;position:relative}
+.skel-card::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.09),transparent);animation:skel 1.25s infinite}
+.skel-card i{display:block;height:12px;border-radius:999px;background:rgba(255,255,255,.08)}
+.skel-card i:nth-child(1){width:38%;height:14px}
+.skel-card i:nth-child(2){width:72%}
+.skel-card i:nth-child(3){width:55%}
+@keyframes skel{100%{transform:translateX(100%)}}
+.qe-mask{position:fixed;inset:0;z-index:400;background:rgba(8,6,20,.66);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:18px}
+.qe-mask[hidden]{display:none}
+.qe-box{width:min(560px,96vw);max-height:90vh;overflow:auto;background:rgba(20,17,44,.97);border:1px solid var(--glass-border);border-radius:20px;box-shadow:0 30px 90px rgba(0,0,0,.6);padding:22px}
+.qe-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;font-size:16px}
+.qe-x{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--glass);color:var(--muted);font-size:15px}
+.qe-x:hover{background:var(--coral);color:#fff;border-color:transparent}
+.qe-body{display:flex;flex-direction:column;gap:14px}
+.qe-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:640px){.qe-grid{grid-template-columns:1fr}.batch-bar{position:static}.batch-spacer{display:none}}
+.qe-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}

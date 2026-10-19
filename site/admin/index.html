@@ -76,6 +76,7 @@
     <div class="logo">Jerry <b>CMS</b> <span class="dim mono" style="font-size:12px;font-weight:400">/ 管理控制台</span></div>
     <div class="links">
       <a class="btn ghost" href="content.html">🗂 内容管理</a>
+      <a class="btn ghost" href="templates.html">🧩 模板库</a>
       <a class="btn ghost" href="../blog.html" target="_blank">↗ 查看博客</a>
       <a class="btn ghost" href="settings.html">⚙ 发布设置</a>
     </div>
@@ -127,19 +128,48 @@
     </select>
   </div>
 
+  <div class="batch-bar" id="batchBar" hidden>
+    <label class="pick-all"><input type="checkbox" id="pickAll" onchange="toggleAll(this.checked)"> 全选本页</label>
+    <span class="batch-count" id="pickCount">已选 0 项</span>
+    <span class="batch-spacer"></span>
+    <button class="btn ghost" onclick="batchStatus('published')">🚀 批量发布</button>
+    <button class="btn ghost" onclick="batchStatus('draft')">转为草稿</button>
+    <button class="btn danger" onclick="batchDelete()">删除</button>
+    <button class="btn ghost" onclick="clearPick()">取消选择</button>
+  </div>
+
   <div class="draft-list" id="list"></div>
   <div class="empty" id="empty" style="display:none">还没有草稿，点上面「✍️ 新建文章」开始创作。</div>
 </div>
 <button class="fab" title="新建文章" onclick="location.href='editor.html?id=new'">＋</button>
 <div class="pic-toast" id="pic-toast"></div>
 
+<div class="qe-mask" id="qeMask" hidden>
+  <div class="qe-box" role="dialog" aria-modal="true" aria-labelledby="qeTitleLabel">
+    <div class="qe-head"><b id="qeTitleLabel">⚡ 快速编辑</b><button type="button" class="qe-x" onclick="closeQuick()" aria-label="关闭">✕</button></div>
+    <div class="qe-body">
+      <div class="field"><label>标题</label><input id="qeTitle" maxlength="120"></div>
+      <div class="qe-grid">
+        <div class="field"><label>分类</label><input id="qeCategory" maxlength="40"></div>
+        <div class="field"><label>日期</label><input id="qeDate" type="date"></div>
+        <div class="field"><label>状态</label><select id="qeStatus"><option value="draft">草稿</option><option value="published">已发布</option></select></div>
+      </div>
+      <div class="field"><label>摘要</label><textarea id="qeExcerpt" rows="4" maxlength="300"></textarea></div>
+    </div>
+    <div class="qe-foot"><button type="button" class="btn ghost" onclick="closeQuick()">取消</button><button type="button" class="btn primary" id="qeSave" onclick="saveQuick()">保存修改</button></div>
+  </div>
+</div>
+
 <script>
-const state = { posts: [], filter: 'pending', q: '' };
+const state = { posts: [], view: [], filter: 'pending', q: '', selected: new Set() };
 
 async function load() {
+  const listEl = document.getElementById('list');
+  if(listEl && !state.posts.length) listEl.innerHTML = Array.from({length:3}).map(()=>'<div class="skel-card"><i></i><i></i><i></i></div>').join('');
   const res = await fetch('/api/admin/posts', { method: 'POST' });
   const data = await res.json();
   state.posts = data.posts || [];
+  state.selected.clear();
   render();
 }
 
@@ -162,6 +192,8 @@ function render() {
   const pc = document.getElementById('pubCount'); if(pc) pc.textContent = pubCount;
   const list = document.getElementById('list');
   const empty = document.getElementById('empty');
+  state.view = posts;
+  updateBatchBar();
   if (!posts.length) {
     list.innerHTML = '';
     empty.style.display = 'block';
@@ -179,12 +211,13 @@ function card(p){
   const st = p.status === 'published'
     ? '<span class="badge pub">● 已发布</span>'
     : '<span class="badge draft">● 草稿</span>';
-  return `<div class="glass draft-card">
-    <div class="row1">${st}<span class="cat">${esc(p.category||'未分类')}</span> ${statusLabel(p)}<span class="date">${esc(p.date||'')}</span><button class="del" title="删除" onclick="del('${esc(p.id)}')">✕</button></div>
+  return `<div class="glass draft-card${state.selected.has(p.id)?' picked':''}">
+    <div class="row1"><label class="pick" title="选择"><input type="checkbox" data-pick="${esc(p.id)}"${state.selected.has(p.id)?' checked':''} onchange="togglePick('${esc(p.id)}', this.checked)"></label>${st}<span class="cat">${esc(p.category||'未分类')}</span> ${statusLabel(p)}<span class="date">${esc(p.date||'')}</span><button class="del" title="删除" onclick="del('${esc(p.id)}')">✕</button></div>
     <div class="t">${esc(p.title || '无标题')}</div>
     <div class="ex">${esc(p.excerpt || (p.markdown||'').slice(0,90))}</div>
     <div class="acts">
       <a class="btn ghost" href="editor.html?id=${encodeURIComponent(p.id)}">✏️ 编辑</a>
+      <button class="btn ghost" onclick="quickEdit('${esc(p.id)}')">⚡ 快速编辑</button>
       <a class="btn ghost" href="../post.html?id=${encodeURIComponent(p.id)}" target="_blank">👁 预览</a>
       <button class="btn ${p.status==='published'?'danger':'primary'}" onclick="toggleStatus('${esc(p.id)}','${p.status==='published'?'draft':'published'}')">${p.status==='published'?'转为草稿':'🚀 发布'}</button>
       <span class="spacer"></span>
@@ -208,6 +241,95 @@ async function del(id){
   toast((await res.json()).ok ? '已删除' : '删除失败');
   load();
 }
+
+function updateBatchBar(){
+  const bar=document.getElementById('batchBar');
+  if(!bar) return;
+  const n=state.selected.size;
+  bar.hidden=n===0;
+  const count=document.getElementById('pickCount'); if(count) count.textContent='已选 '+n+' 项';
+  const all=document.getElementById('pickAll');
+  if(all){ all.checked=state.view.length>0 && state.view.every(p=>state.selected.has(p.id)); all.indeterminate=n>0 && !all.checked; }
+}
+function togglePick(id,on){ if(on) state.selected.add(id); else state.selected.delete(id); render(); }
+function toggleAll(on){ state.view.forEach(p=>{ if(on) state.selected.add(p.id); else state.selected.delete(p.id); }); render(); }
+function clearPick(){ state.selected.clear(); render(); }
+async function savePostPatch(p, patch){
+  return fetch('/api/post/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    id:p.id,title:p.title,category:p.category,excerpt:p.excerpt,cover:p.cover,date:p.date,tags:p.tags,mood:p.mood,markdown:p.markdown,status:p.status,...patch
+  })}).then(r=>r.json());
+}
+async function batchStatus(status){
+  const ids=[...state.selected];
+  if(!ids.length) return;
+  if(!confirm('将选中的 '+ids.length+' 篇文章'+(status==='published'?'发布上线':'转为草稿')+'？')) return;
+  const btn=document.getElementById('batchBar').querySelector('button');
+  let ok=0, fail=0;
+  for(let i=0;i<ids.length;i++){
+    const p=state.posts.find(x=>x.id===ids[i]);
+    if(!p) continue;
+    toast('批量处理 '+(i+1)+'/'+ids.length+'…');
+    const d=await savePostPatch(p,{status});
+    if(d.ok) ok++; else fail++;
+  }
+  state.selected.clear();
+  toast('批量完成：成功 '+ok+(fail?' · 失败 '+fail:''));
+  load();
+}
+async function batchDelete(){
+  const ids=[...state.selected];
+  if(!ids.length) return;
+  if(!confirm('确定删除选中的 '+ids.length+' 篇文章？此操作不可恢复。')) return;
+  let ok=0, fail=0;
+  for(let i=0;i<ids.length;i++){
+    toast('正在删除 '+(i+1)+'/'+ids.length+'…');
+    const d=await fetch('/api/post/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:ids[i]})}).then(r=>r.json());
+    if(d.ok) ok++; else fail++;
+  }
+  state.selected.clear();
+  toast('删除完成：成功 '+ok+(fail?' · 失败 '+fail:''));
+  load();
+}
+let qeId=null;
+function quickEdit(id){
+  const p=state.posts.find(x=>x.id===id); if(!p) return;
+  qeId=id;
+  document.getElementById('qeTitle').value=p.title||'';
+  document.getElementById('qeCategory').value=p.category||'';
+  document.getElementById('qeDate').value=(p.date||'').slice(0,10);
+  document.getElementById('qeStatus').value=p.status||'draft';
+  document.getElementById('qeExcerpt').value=p.excerpt||'';
+  document.getElementById('qeMask').hidden=false;
+  setTimeout(()=>document.getElementById('qeTitle').focus(),50);
+}
+function closeQuick(){ document.getElementById('qeMask').hidden=true; qeId=null; }
+async function saveQuick(){
+  if(!qeId) return;
+  const p=state.posts.find(x=>x.id===qeId); if(!p) return;
+  const title=document.getElementById('qeTitle').value.trim();
+  if(!title){ toast('标题不能为空'); return; }
+  const btn=document.getElementById('qeSave'); btn.disabled=true; btn.textContent='保存中…';
+  try{
+    const d=await savePostPatch(p,{
+      title,
+      category:document.getElementById('qeCategory').value.trim()||'未分类',
+      date:document.getElementById('qeDate').value||p.date,
+      status:document.getElementById('qeStatus').value,
+      excerpt:document.getElementById('qeExcerpt').value.trim()
+    });
+    if(!d.ok){ toast('保存失败：'+(d.error||'未知错误')); return; }
+    toast('⚡ 已保存修改');
+    closeQuick(); load();
+  }catch(e){ toast('保存失败：'+e.message); }
+  finally{ btn.disabled=false; btn.textContent='保存修改'; }
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape' && !document.getElementById('qeMask').hidden) closeQuick();
+  if(e.key==='/' && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)){
+    e.preventDefault(); const s=document.getElementById('search'); if(s) s.focus();
+  }
+});
+document.getElementById('qeMask').addEventListener('click',e=>{ if(e.target.id==='qeMask') closeQuick(); });
 
 function toast(msg){
   const el = document.getElementById('pic-toast');

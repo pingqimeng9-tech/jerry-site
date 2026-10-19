@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Jerry CMS · 模板库</title>
+<link rel="stylesheet" href="./admin.css">
+<script src="/admin/studio/cms-adapter.js"></script>
+<script src="/admin/admin-auth.js"></script>
+<style>
+  .tpl-hero{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+  .tpl-hero h1{font-size:30px;font-weight:800;display:flex;align-items:center;gap:10px}
+  .tpl-hero h1 .count{font-family:var(--mono);font-size:13px;padding:4px 11px;border-radius:999px;color:var(--aqua);border:1px solid rgba(92,225,230,.4);background:rgba(92,225,230,.08)}
+  .tpl-hero p{color:var(--muted);font-size:13px;margin:4px 0 0}
+  .tpl-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+  @media(max-width:720px){.tpl-stats{grid-template-columns:1fr 1fr}}
+  .tpl-stat{padding:12px 16px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+  .tpl-stat b{display:block;font-family:var(--mono);font-size:20px;color:#fff}
+  .tpl-stat span{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+  .tpl-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .tpl-search{display:flex;align-items:center;gap:8px;min-width:260px;flex:1;max-width:420px;padding:10px 15px;border:1px solid var(--glass-border);border-radius:999px;background:var(--glass)}
+  .tpl-search input{flex:1;background:none;border:none;outline:none;color:var(--ink);font:inherit;font-size:13px}
+  .tpl-toggle{padding:9px 16px;border-radius:999px;border:1px solid var(--glass-border);background:var(--glass);color:var(--muted);font:700 12px inherit;cursor:pointer;transition:.15s}
+  .tpl-toggle.on{background:rgba(255,201,60,.16);border-color:rgba(255,201,60,.45);color:#FFD166}
+  .tpl-chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+  .tpl-chip{padding:6px 13px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--muted);font:700 11.5px var(--mono);cursor:pointer;transition:.15s}
+  .tpl-chip:hover{color:#fff;border-color:rgba(92,225,230,.4)}
+  .tpl-chip.on{background:rgba(92,225,230,.14);border-color:rgba(92,225,230,.55);color:var(--aqua)}
+  .tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+  .tpl-card{position:relative;padding:18px 18px 15px;border:1px solid var(--glass-border);border-radius:18px;background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(255,255,255,.035));transition:transform .18s,border-color .18s,box-shadow .18s;display:flex;flex-direction:column;gap:9px}
+  .tpl-card:hover{transform:translateY(-3px);border-color:rgba(177,140,255,.55);box-shadow:0 20px 46px -28px #000}
+  .tpl-card .head{display:flex;align-items:flex-start;gap:8px}
+  .tpl-card .name{font-size:16px;font-weight:800;line-height:1.35;flex:1;min-width:0}
+  .tpl-star{flex:none;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--muted);font-size:15px;cursor:pointer;transition:.15s}
+  .tpl-star:hover{color:#FFD166;border-color:rgba(255,201,60,.5)}
+  .tpl-star.on{color:#FFD166;background:rgba(255,201,60,.13);border-color:rgba(255,201,60,.5)}
+  .tpl-meta{font-family:var(--mono);font-size:10.5px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
+  .tpl-tags{display:flex;gap:5px;flex-wrap:wrap}
+  .tpl-tags span{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:999px;color:var(--aqua);border:1px solid rgba(92,225,230,.28);background:rgba(92,225,230,.06)}
+  .tpl-spell{font-size:12.5px;color:#d8d4ec;line-height:1.65;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .tpl-knobs{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+  .tpl-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:auto;padding-top:6px}
+  .tpl-actions .btn{padding:7px 12px;font-size:11.5px}
+  .tpl-history{margin-top:24px;padding:18px 20px;border:1px solid var(--line);border-radius:18px;background:var(--panel)}
+  .tpl-history h3{font-size:14px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+  .hist-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed rgba(255,255,255,.1);font-size:12.5px}
+  .hist-row:last-child{border-bottom:0}
+  .hist-row .when{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+  .hist-row a{color:var(--aqua);text-decoration:none}
+  .tpl-empty{padding:50px 20px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="logo">Jerry <b>CMS</b> <span class="dim mono" style="font-size:12px;font-weight:400">/ 模板库</span></div>
+    <div class="links">
+      <a class="btn ghost" href="index.html">📝 控制台</a>
+      <a class="btn ghost" href="content.html">🗂 内容管理</a>
+      <a class="btn ghost" href="settings.html">⚙ 设置</a>
+    </div>
+  </div>
+
+  <div class="tpl-hero">
+    <div>
+      <h1>🧩 模板库 <span class="count" id="total">0</span></h1>
+      <p>首页 29 个效果模板的集中入口：分组、标签、搜索、收藏、使用历史、提示词和参数面板。</p>
+    </div>
+  </div>
+
+  <div class="tpl-stats">
+    <div class="tpl-stat"><b id="statTotal">0</b><span>模板总数</span></div>
+    <div class="tpl-stat"><b id="statGroups">0</b><span>分组</span></div>
+    <div class="tpl-stat"><b id="statFav">0</b><span>我的收藏</span></div>
+    <div class="tpl-stat"><b id="statHist">0</b><span>使用记录</span></div>
+  </div>
+
+  <div class="tpl-tools">
+    <label class="tpl-search">🔍<input id="search" placeholder="搜索名称 / 标签 / 咒语 / 核心"></label>
+    <button type="button" class="tpl-toggle" id="favOnly">★ 只看收藏</button>
+    <button type="button" class="tpl-toggle" id="clearHist">清除使用记录</button>
+  </div>
+
+  <div class="tpl-chips" id="cats"></div>
+  <div class="tpl-chips" id="tags"></div>
+  <div class="tpl-grid" id="grid"></div>
+  <div class="tpl-empty" id="empty" hidden>没有匹配的模板。</div>
+
+  <div class="tpl-history" id="historyBox" hidden>
+    <h3>🕘 最近使用 <span class="dim mono" style="font-size:10px;font-weight:400">点击预览会自动记录</span></h3>
+    <div id="historyList"></div>
+  </div>
+</div>
+<div class="pic-toast" id="toast"></div>
+
+<script>
+const FAV_KEY = 'cms_template_favorites';
+const HIST_KEY = 'cms_template_history';
+const state = { all: [], q: '', cat: 'all', tag: 'all', favOnly: false, favs: new Set(), history: [] };
+
+function loadLocal(){
+  try { state.favs = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]')); } catch(e) { state.favs = new Set(); }
+  try { state.history = JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); } catch(e) { state.history = []; }
+  if(!Array.isArray(state.history)) state.history = [];
+}
+function saveFavs(){ try { localStorage.setItem(FAV_KEY, JSON.stringify([...state.favs])); } catch(e) {} }
+function saveHistory(){ try { localStorage.setItem(HIST_KEY, JSON.stringify(state.history.slice(0,60))); } catch(e) {} }
+function esc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),1800); }
+
+function promptOf(t){
+  const knobs = (t.knobs || []).map(k => k.label + '=' + k.default).join('；');
+  return '请使用「创意网站模板库」里的 ' + t.name + ' 模板（id: ' + t.id + '，分类 ' + t.cat + '）。\n' +
+    '咒语：' + t.spell + '\n唯一反常规核心：' + t.core + '\n标签：' + (t.tags || []).join('、') +
+    (knobs ? '\n可调参数：' + knobs : '') +
+    '\n内容数据按 {title, kind, date, sum, body, code, hue} 提供；换成我的内容和视觉语言即可。' +
+    (t.credit && t.credit.n ? '\n' + (t.credit.own ? '灵感方向' : '原作参考') + '：' + t.credit.n + (t.credit.u ? '（' + t.credit.u + '）' : '') : '');
+}
+async function copyText(text){
+  try { await navigator.clipboard.writeText(text); toast('✅ 提示词已复制'); }
+  catch(e) {
+    const ta=document.createElement('textarea'); ta.value=text; ta.style.cssText='position:fixed;left:-9999px';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); toast('✅ 提示词已复制'); } catch(err) { toast('复制失败，请手动复制'); }
+    ta.remove();
+  }
+}
+function recordUse(id){
+  const now = Date.now();
+  state.history = [{ id, at: now }, ...state.history.filter(x => x.id !== id)].slice(0, 60);
+  saveHistory();
+  renderHistory();
+}
+function clearHistory(){ state.history = []; saveHistory(); renderHistory(); toast('已清除使用记录'); }
+function toggleFav(id){
+  if(state.favs.has(id)) state.favs.delete(id); else state.favs.add(id);
+  saveFavs();
+  render();
+}
+function setCat(cat){ state.cat = cat; render(); }
+function setTag(tag){ state.tag = tag; render(); }
+function filtered(){
+  const q = state.q.trim().toLowerCase();
+  return state.all.filter(t => {
+    if(state.favOnly && !state.favs.has(t.id)) return false;
+    if(state.cat !== 'all' && t.cat !== state.cat) return false;
+    if(state.tag !== 'all' && !(t.tags || []).includes(state.tag)) return false;
+    if(!q) return true;
+    return [t.name, t.cat, t.mat, t.spell, t.core, (t.tags || []).join(' ')].join(' ').toLowerCase().includes(q);
+  });
+}
+function renderChips(){
+  const cats = ['all', ...new Set(state.all.map(t => t.cat))];
+  document.getElementById('cats').innerHTML = cats.map(c => '<button type="button" class="tpl-chip' + (state.cat === c ? ' on' : '') + '" onclick="setCat(\'' + esc(c) + '\')">' + (c === 'all' ? '全部分组' : esc(c)) + '</button>').join('');
+  const tags = [...new Set(state.all.flatMap(t => t.tags || []))].sort();
+  document.getElementById('tags').innerHTML = ['all', ...tags].map(t => '<button type="button" class="tpl-chip' + (state.tag === t ? ' on' : '') + '" onclick="setTag(\'' + esc(t) + '\')">' + (t === 'all' ? '全部标签' : '#' + esc(t)) + '</button>').join('');
+}
+function render(){
+  renderChips();
+  const list = filtered();
+  document.getElementById('grid').innerHTML = list.map(t => {
+    const fav = state.favs.has(t.id);
+    const used = state.history.filter(h => h.id === t.id).length;
+    return '<article class="tpl-card">' +
+      '<div class="head"><div class="name">' + esc(t.name) + '</div>' +
+      '<button type="button" class="tpl-star' + (fav ? ' on' : '') + '" onclick="toggleFav(\'' + esc(t.id) + '\')" title="收藏">' + (fav ? '★' : '☆') + '</button></div>' +
+      '<div class="tpl-meta"><span>' + esc(t.cat) + ' · ' + esc(t.mat) + '</span><span>' + (t.knobs || []).length + ' 个参数</span>' + (used ? '<span>用过 ' + used + ' 次</span>' : '') + '</div>' +
+      '<div class="tpl-tags">' + (t.tags || []).map(x => '<span>' + esc(x) + '</span>').join('') + '</div>' +
+      '<div class="tpl-spell">' + esc(t.spell) + '</div>' +
+      '<div class="tpl-knobs">核心：' + esc(t.core) + '</div>' +
+      '<div class="tpl-actions">' +
+        '<a class="btn primary" href="/#' + esc(t.id) + '" target="_blank" rel="noopener" onclick="recordUse(\'' + esc(t.id) + '\')">👁 预览 / 调参数</a>' +
+        '<button type="button" class="btn ghost" onclick="copyText(promptOf(state.all.find(x=>x.id===\'' + esc(t.id) + '\')))">📋 复制提示词</button>' +
+        '<a class="btn ghost" href="' + esc(t.source) + '" target="_blank" rel="noopener">源码 ↗</a>' +
+      '</div></article>';
+  }).join('');
+  document.getElementById('empty').hidden = list.length > 0;
+  document.getElementById('total').textContent = state.all.length;
+  document.getElementById('statTotal').textContent = state.all.length;
+  document.getElementById('statGroups').textContent = new Set(state.all.map(t => t.cat)).size;
+  document.getElementById('statFav').textContent = state.favs.size;
+  document.getElementById('statHist').textContent = state.history.length;
+  const favBtn = document.getElementById('favOnly');
+  favBtn.classList.toggle('on', state.favOnly);
+  favBtn.setAttribute('aria-pressed', state.favOnly ? 'true' : 'false');
+}
+function renderHistory(){
+  const box = document.getElementById('historyBox');
+  const list = document.getElementById('historyList');
+  if(!state.history.length){ box.hidden = true; list.innerHTML = ''; return; }
+  box.hidden = false;
+  list.innerHTML = state.history.slice(0, 8).map(h => {
+    const t = state.all.find(x => x.id === h.id);
+    if(!t) return '';
+    const d = new Date(h.at);
+    return '<div class="hist-row"><a href="/#' + esc(t.id) + '" target="_blank" rel="noopener" onclick="recordUse(\'' + esc(t.id) + '\')">' + esc(t.name) + '</a><span class="dim">' + esc(t.cat) + '</span><span class="when">' + d.toLocaleString('zh-CN', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'}) + '</span></div>';
+  }).join('');
+}
+async function boot(){
+  loadLocal();
+  try {
+    const r = await fetch('/data/templates.json', { cache: 'no-store' });
+    const data = await r.json();
+    state.all = Array.isArray(data.templates) ? data.templates : [];
+  } catch(e) {
+    document.getElementById('grid').innerHTML = '<div class="tpl-empty">模板清单加载失败：' + esc(e.message) + '</div>';
+    return;
+  }
+  render();
+  renderHistory();
+}
+document.getElementById('search').addEventListener('input', e => { state.q = e.target.value; render(); });
+document.getElementById('favOnly').addEventListener('click', () => { state.favOnly = !state.favOnly; render(); });
+document.getElementById('clearHist').addEventListener('click', clearHistory);
+document.addEventListener('keydown', e => { if(e.key === '/' && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)){ e.preventDefault(); document.getElementById('search').focus(); } });
+boot();
+</script>
+</body>
+</html>
