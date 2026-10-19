@@ -39,26 +39,25 @@
 <div class="sub">适用站点：https://callmiruko.cc ｜ 管理员邮箱：仅你本人掌握，保存在服务端环境变量中，页面与代码库均不展示 ｜ 预计耗时 15-25 分钟</div>
 
 <div class="warn">
-<b>先说现状（代码已全部完成并上线）：</b><br>
+<b>先说现状（2026-10-19 更新，代码已上线）：</b><br>
 ① 线上后台 <code>/admin/</code> 已加上登录门，任何人打开都必须先过邮箱验证码，后台内容完全遮蔽；<br>
-② 安全测试已通过：非管理员邮箱发码直接 <b>403 拒绝</b>、不带登录凭证调用写接口 <b>401 拒绝</b>、伪造凭证 <b>401 拒绝</b>；<br>
-③ 但排查发现你原来的 <b>Supabase 项目已经失效</b>（域名在全球 DNS 都查不到，疑似免费项目长期闲置被回收），所以登录邮件暂时发不出来；<br>
-④ 线上保存功能还缺一个 <b>GitHub Token</b>。<br>
-按下面 7 步配完即可在任何电脑/手机上登录网站后台直接发文、改设置。
+② 非管理员邮箱发码直接 <b>403 拒绝</b>、不带登录凭证调用写接口 <b>401 拒绝</b>、伪造凭证 <b>401 拒绝</b>；<br>
+③ CMS 登录已改为<b>自包含验证码会话</b>，不再依赖 Supabase；Vercel 只需有 <code>ADMIN_EMAIL</code>、<code>RESEND_API_KEY</code> 和 <code>GITHUB_TOKEN</code>；<br>
+④ 下文第一～四步的 Supabase 配置只用于恢复前台读者账号/积分/Storage，<b>只想登录后台可以跳过</b>。
 </div>
 
 <h2>原理：为什么黑客进不来</h2>
 <div class="step">
 <ul>
   <li><b>唯一管理员</b>：管理员邮箱白名单保存在服务端环境变量里（前端页面和公开代码库都看不到它），其他邮箱在"发验证码"第一步就被拒绝，根本收不到码、建不了会话。</li>
-  <li><b>验证码</b>：6 位数字，10 分钟过期、5 次输错作废、60 秒只能发一次。</li>
-  <li><b>每次操作都验票</b>：后台每次保存都带登录票据，服务器实时向 Supabase 验票并核对邮箱，票据伪造/过期一律拒绝。</li>
-  <li><b>密钥永不进前端</b>：GitHub Token、Supabase 密钥只存在 Vercel 环境变量里，浏览器里看不到。</li>
+  <li><b>验证码</b>：8 位数字，10 分钟过期、5 次输错作废、60 秒只能发一次。</li>
+  <li><b>每次操作都验票</b>：后台每次保存都带登录票据，服务器校验签名会话并核对邮箱，票据伪造/过期一律拒绝。</li>
+  <li><b>密钥永不进前端</b>：GitHub Token 等密钥只存在 Vercel 环境变量里，浏览器里看不到。</li>
   <li><b>保存即发布</b>：线上每次保存都通过 GitHub API 提交回仓库，Vercel 自动重新部署，约 1-2 分钟生效。</li>
 </ul>
 </div>
 
-<h2>第一步：重建 Supabase 项目（约 5 分钟）</h2>
+<h2>第一步：重建 Supabase 项目（仅前台用户系统需要，约 5 分钟）</h2>
 <div class="step">
 <p><span class="num">1</span>打开 <code>https://supabase.com</code> 登录（国内网络打不开就挂梯子，只在配置时需要，以后用不到）。</p>
 <p><span class="num">2</span>点 <b>New project</b>：名字随意（如 <code>jerry-site</code>），区域选 <b>Southeast Asia (Singapore)</b>（离中国最近），设置并<b>牢记数据库密码</b>，等项目初始化完成（约 2 分钟）。</p>
@@ -101,6 +100,7 @@
 </div>
 
 <h2>第五步：在 Vercel 配置环境变量（约 5 分钟）</h2>
+<p class="small">只使用 CMS 登录时，必须配置：<code>ADMIN_EMAIL</code>、<code>RESEND_API_KEY</code>、<code>GITHUB_TOKEN</code>（以及可选的 <code>ADMIN_SESSION_SECRET</code>）。<code>SUPABASE_URL</code>、<code>SUPABASE_SERVICE_ROLE_KEY</code> 仅用于前台用户系统和 Storage。</p>
 <div class="step">
 <p>打开 <code>https://vercel.com</code> → 你的 <b>jerry-site</b> 项目 → <b>Settings → Environment Variables</b>。</p>
 <p>把里面<b>旧的</b> <code>SUPABASE_URL</code>、<code>SUPABASE_SERVICE_ROLE_KEY</code>（旧项目已失效）编辑更新；没有的就 New Add。逐条添加如下：</p>
