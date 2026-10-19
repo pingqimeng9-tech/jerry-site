@@ -398,9 +398,151 @@
     .mag-grain{animation:none}
     .on-air i{animation:none}
   }
+
+  /* ---- custom icon / control layer ---- */
+  .icon-sprite{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
+  .ico{width:18px;height:18px;display:block;flex:none;pointer-events:none}
+  .music-btn .ico{width:15px;height:15px}
+  .ctrl{position:relative;overflow:hidden}
+  .ctrl .ico{width:19px;height:19px}
+  .ctrl.play .ico{width:18px;height:18px}
+  .ctrl-label{font:800 9px 'JetBrains Mono',monospace;letter-spacing:.12em}
+  .ctrl .led,.sfx-toggle .led{position:absolute;right:5px;top:5px;width:4px;height:4px;border-radius:50%;background:transparent}
+  .ctrl.on .led,.sfx-toggle.on .led{background:var(--mag-acid);box-shadow:0 0 8px var(--mag-acid)}
+  .ctrl:active{transform:translateY(2px);box-shadow:1px 1px 0 #000}
+  .ctrl:hover .ico{transform:scale(1.08)}
+  .ctrl .ico{transition:transform .15s}
+  .sfx-toggle{
+    display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 9px;position:relative;
+    border:1px solid var(--mag-line);background:transparent;color:var(--mag-muted);
+    font:800 9px 'JetBrains Mono',monospace;letter-spacing:.1em;cursor:pointer;
+    box-shadow:2px 2px 0 rgba(0,0,0,.65);
+  }
+  .sfx-toggle .ico{width:16px;height:16px}
+  .sfx-toggle:hover{color:var(--mag-paper);border-color:var(--mag-paper);transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--mag-cyan)}
+  .sfx-toggle.on{color:var(--mag-acid);border-color:rgba(232,255,79,.5);background:rgba(232,255,79,.06)}
+  .volume-control{display:flex;align-items:center;gap:8px;margin-left:auto;color:var(--mag-muted)}
+  .vol-mute{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:1px solid var(--mag-line);background:transparent;color:var(--mag-paper);cursor:pointer;box-shadow:2px 2px 0 #000}
+  .vol-mute:hover{background:var(--mag-paper);color:var(--mag-ink);transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--mag-pink)}
+  .vol-mute.muted{color:var(--mag-pink);border-color:var(--mag-pink)}
+  .knob{
+    position:relative;width:52px;height:52px;border-radius:50%;cursor:grab;touch-action:none;
+    background:radial-gradient(circle at 34% 28%,#41414d,#111116 68%);
+    border:2px solid var(--mag-paper);
+    box-shadow:inset 0 0 0 4px #17171e,0 4px 0 #000,0 8px 18px -10px #000;
+  }
+  .knob:active{cursor:grabbing;transform:translateY(1px);box-shadow:inset 0 0 0 4px #17171e,0 2px 0 #000}
+  .knob::before{
+    content:"";position:absolute;inset:5px;border-radius:50%;
+    background:repeating-conic-gradient(from -135deg,rgba(255,255,255,.5) 0deg 1deg,transparent 1deg 13.5deg);
+    -webkit-mask:radial-gradient(circle closest-side,transparent calc(100% - 6px),#000 calc(100% - 5px));
+    mask:radial-gradient(circle closest-side,transparent calc(100% - 6px),#000 calc(100% - 5px));
+    opacity:.55;pointer-events:none;
+  }
+  .knob::after{
+    content:"";position:absolute;left:50%;top:8px;width:2px;height:14px;border-radius:1px;
+    background:var(--mag-acid);box-shadow:0 0 8px var(--mag-acid);
+    transform-origin:50% 18px;transform:translateX(-50%) rotate(var(--vol-angle,-45deg));
+    pointer-events:none;
+  }
+  .vol-read{font:700 9px 'JetBrains Mono',monospace;line-height:1.15;text-align:left;color:var(--mag-muted)}
+  .vol-read b{display:block;font-size:14px;color:var(--mag-acid)}
+  .vol-read small{font-size:8px;letter-spacing:.12em}
+
+  .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+
+  .seek-shell{position:relative;flex:1;height:20px;cursor:pointer;outline:none;min-width:0}
+  .seek-shell:focus-visible{outline:2px solid var(--mag-cyan);outline-offset:3px}
+  .seek-ticks{position:absolute;left:0;right:0;top:50%;height:8px;transform:translateY(-50%);background:repeating-linear-gradient(90deg,rgba(255,255,255,.22) 0 5px,transparent 5px 8px);opacity:.55}
+  .seek-shell::before{content:"";position:absolute;left:0;right:0;top:50%;height:2px;transform:translateY(-50%);background:rgba(255,255,255,.15)}
+  .seek-fill{position:absolute;left:0;top:50%;height:2px;transform:translateY(-50%);width:0;background:var(--mag-acid);box-shadow:0 0 8px var(--mag-acid);pointer-events:none}
+  .seek-head{position:absolute;left:0;top:50%;width:10px;height:14px;transform:translate(-50%,-50%);background:var(--mag-paper);border:2px solid var(--mag-ink);box-shadow:2px 2px 0 var(--mag-pink);pointer-events:none}
+  .seek-head::after{content:"";position:absolute;left:50%;top:50%;width:2px;height:6px;transform:translate(-50%,-50%);background:var(--mag-ink)}
+
+  .eq-mini{display:inline-flex;align-items:flex-end;gap:2px;height:14px}
+  .eq-mini i{width:3px;height:100%;background:var(--mag-acid);transform-origin:bottom;animation:eqMini .5s ease-in-out infinite alternate;animation-play-state:paused}
+  body.playing .eq-mini i{animation-play-state:running}
+  .eq-mini i:nth-child(2){height:66%;animation-delay:-.17s}
+  .eq-mini i:nth-child(3){height:82%;animation-delay:-.31s}
+  @keyframes eqMini{from{transform:scaleY(.2)}to{transform:scaleY(1)}}
+  .track-row .cover.drop .ico{width:15px;height:15px}
+
+  .track-row::before{content:"";position:absolute;left:0;top:8%;bottom:8%;width:3px;background:var(--mag-pink);transform:scaleY(0);transform-origin:center;transition:transform .18s}
+  .track-row:hover::before{transform:scaleY(1)}
+  .track-row.active::before{transform:scaleY(1);background:var(--mag-acid)}
+  .track-row:active{transform:translateY(1px)}
+  .track-row:hover .t b{text-shadow:1px 0 0 var(--mag-pink),-1px 0 0 var(--mag-cyan)}
+  .track-row.active .t b{text-shadow:none}
+
+  .swap-fx{position:absolute;inset:0;z-index:9;pointer-events:none;opacity:0;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(90deg,rgba(232,255,79,.05),rgba(255,77,157,.15));}
+  .swap-fx span{font:800 10px 'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--mag-acid);text-shadow:0 0 14px rgba(232,255,79,.65);transform:translateY(6px);z-index:2}
+  .swap-fx i{position:absolute;top:0;bottom:0;left:-45%;width:38%;background:linear-gradient(90deg,transparent,rgba(232,255,79,.5),transparent);transform:skewX(-12deg);filter:blur(5px)}
+  .player-card.switching .swap-fx{opacity:1;animation:swapFade .68s linear both}
+  .player-card.switching .swap-fx i{animation:swapSweep .68s ease both}
+  .player-card.switching .cover-story{animation:coverSwap .68s cubic-bezier(.2,.8,.2,1) both}
+  .player-card.switching .track-title{animation:titleGlitch .68s steps(2) both}
+  .player-card.switching .track-artist{animation:artistGlitch .68s steps(2) both}
+  @keyframes swapFade{0%{opacity:0}10%{opacity:1}88%{opacity:1}100%{opacity:0}}
+  @keyframes swapSweep{from{left:-45%}to{left:125%}}
+  @keyframes coverSwap{0%{transform:scale(1) rotate(0)}38%{transform:scale(.9) rotate(-4deg)}100%{transform:scale(1) rotate(0)}}
+  @keyframes titleGlitch{0%,100%{transform:translateX(0);opacity:1}18%{transform:translateX(-4px);opacity:.35}36%{transform:translateX(4px);opacity:1}54%{transform:translateX(-2px);opacity:.7}72%{transform:translateX(2px)}}
+  @keyframes artistGlitch{0%,100%{transform:translateX(0);opacity:1}24%{transform:translateX(3px);opacity:.2}48%{transform:translateX(-3px);opacity:.8}72%{transform:translateX(1px)}}
+  @media(max-width:900px){
+    .volume-control{margin-left:0;width:100%;justify-content:center;margin-top:6px}
+    .knob{width:46px;height:46px}
+    .knob::after{top:7px;height:12px;transform-origin:50% 16px}
+  }
+  @media(max-width:560px){
+    .sfx-toggle{padding:0 7px}
+    .sfx-toggle span{display:none}
+    .ctrl.play{min-width:100px}
+    .seek-row{gap:7px}
+    .seek-head{width:8px;height:12px}
+  }
+  @media(prefers-reduced-motion:reduce){
+    .player-card.switching .cover-story,.player-card.switching .track-title,.player-card.switching .track-artist,.player-card.switching .swap-fx,.player-card.switching .swap-fx i{animation:none!important}
+    .eq-mini i{animation:none;transform:scaleY(.5)}
+  }
+
+  body[data-page="music"] .mn-toggle{
+    border-radius:0;border:2px solid var(--mag-paper);background:rgba(8,8,13,.85);
+    box-shadow:3px 3px 0 var(--mag-pink);
+  }
+  body[data-page="music"] .mn-toggle span{background:var(--mag-acid);height:2px}
+  body[data-page="music"] .mn-toggle.is-open span{background:var(--mag-pink)}
+  @media(max-width:820px){
+    body[data-page="music"] nav .links{
+      background:var(--mag-ink);border:2px solid var(--mag-paper);
+      box-shadow:5px 5px 0 var(--mag-pink);padding:8px;
+    }
+    body[data-page="music"] nav .links a{
+      border-bottom:1px dashed rgba(255,255,255,.16);letter-spacing:.08em;
+    }
+    body[data-page="music"] nav .links a:last-child{border-bottom:0}
+  }
 </style>
 </head>
 <body data-page="music">
+<svg class="icon-sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.2 19 12 8 18.8Z" fill="currentColor"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6.5" y="5" width="4" height="14" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" fill="currentColor"/></symbol>
+  <symbol id="i-prev" viewBox="0 0 24 24"><path d="M5 5h2.5v14H5z" fill="currentColor"/><path d="M19 5 8.5 12 19 19Z" fill="currentColor"/></symbol>
+  <symbol id="i-next" viewBox="0 0 24 24"><path d="M16.5 5H19v14h-2.5z" fill="currentColor"/><path d="M5 5l10.5 7L5 19Z" fill="currentColor"/></symbol>
+  <symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M4 7h3c4 0 6 10 10 10h3M17 14l3 3-3 3M17 4l3 3-3 3M4 17h2.2c1.5 0 2.8-1.4 4-3.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></symbol>
+  <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M6 8a5 5 0 0 1 9-3l2 2M17 4v3h-3M18 16a5 5 0 0 1-9 3l-2-2M7 20v-3h3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></symbol>
+  <symbol id="i-volume" viewBox="0 0 24 24"><path d="M4 10h3l4-3v10l-4-3H4Z" fill="currentColor"/><path d="M14.5 9a4 4 0 0 1 0 6M17.5 6.5a8 8 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></symbol>
+  <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 10h3l4-3v10l-4-3H4Z" fill="currentColor"/><path d="m15 9 5 6M20 9l-5 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.3" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="6" cy="12" r="2.3" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="18" cy="19" r="2.3" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m8 10.8 8-4.4M8 13.2l8 4.4" fill="none" stroke="currentColor" stroke-width="1.7"/></symbol>
+  <symbol id="i-sync" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14-5L4 8M4 4v4h4M4 13a8 8 0 0 0 14 5l2-2M20 20v-4h-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></symbol>
+  <symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 4v6h6M4.7 10a8 8 0 1 1 1.6 6.1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></symbol>
+  <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M19 14v5H5V5h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m15 15 5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></symbol>
+  <symbol id="i-sfx" viewBox="0 0 24 24"><path d="M3 14V10h3l3-2.5v9L6 14H3Z" fill="currentColor"/><path d="M12 8v8M15.5 6v12M19 9v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></symbol>
+  <symbol id="i-disc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/></symbol>
+</svg>
+
 <div class="mag-decor" aria-hidden="true">
   <span class="halftone"></span><span class="stripes"></span><span class="kanji">音楽</span>
   <span class="spark s1">✦</span><span class="spark s2">✦</span><span class="spark s3">✚</span>
@@ -435,10 +577,10 @@
       </div>
     </div>
     <div class="head-actions">
-      <button type="button" class="music-btn primary" id="shareBtn">🔗 分享歌单</button>
-      <button type="button" class="music-btn" id="syncBtn">↻ 同步网易云</button>
-      <button type="button" class="music-btn" id="resetBtn">↺ 恢复默认</button>
-      <a class="music-btn" id="sourceLink" href="https://music.163.com/m/playlist?id=18489916586&creatorId=18038264467" target="_blank" rel="noopener">网易云原歌单 ↗</a>
+      <button type="button" class="music-btn primary" id="shareBtn"><svg class="ico"><use href="#i-share"></use></svg><span>分享歌单</span></button>
+      <button type="button" class="music-btn" id="syncBtn"><svg class="ico"><use href="#i-sync"></use></svg><span>同步网易云</span></button>
+      <button type="button" class="music-btn" id="resetBtn"><svg class="ico"><use href="#i-reset"></use></svg><span>恢复默认</span></button>
+      <a class="music-btn" id="sourceLink" href="https://music.163.com/m/playlist?id=18489916586&creatorId=18038264467" target="_blank" rel="noopener"><svg class="ico"><use href="#i-external"></use></svg><span>网易云原歌单</span></a>
     </div>
   </header>
 
@@ -460,17 +602,33 @@
       <h2 class="track-title" id="trackTitle">选择一首歌开始</h2>
       <p class="track-artist" id="trackArtist">歌单已准备好，点击下方任意歌曲。</p>
       <div class="viz" id="viz" aria-hidden="true"></div>
-      <div class="seek-row"><span id="curTime">00:00</span><input id="seek" type="range" min="0" max="1000" value="0" aria-label="播放进度"><span id="totalTime">00:00</span></div>
+      <div class="seek-row">
+        <span id="curTime">00:00</span>
+        <div class="seek-shell" id="seekShell" role="slider" tabindex="0" aria-label="播放进度" aria-valuemin="0" aria-valuemax="1000" aria-valuenow="0">
+          <div class="seek-ticks" aria-hidden="true"></div>
+          <div class="seek-fill" id="seekFill"></div>
+          <div class="seek-head" id="seekHead"></div>
+          <input id="seek" class="sr-only" type="range" min="0" max="1000" value="0" tabindex="-1" aria-hidden="true">
+        </div>
+        <span id="totalTime">00:00</span>
+      </div>
       <div class="controls">
-        <button type="button" class="ctrl" id="shuffleBtn" title="随机播放" aria-pressed="false">⤨</button>
-        <button type="button" class="ctrl" id="prevBtn" title="上一首">⏮</button>
-        <button type="button" class="ctrl play" id="playBtn" title="播放">▶</button>
-        <button type="button" class="ctrl" id="nextBtn" title="下一首">⏭</button>
-        <button type="button" class="ctrl" id="repeatBtn" title="单曲循环" aria-pressed="false">↻</button>
-        <label class="volume">🔊 <input id="volume" type="range" min="0" max="100" value="60" aria-label="音量"></label>
+        <button type="button" class="ctrl" id="shuffleBtn" title="随机播放" aria-pressed="false"><svg class="ico"><use href="#i-shuffle"></use></svg><i class="led"></i></button>
+        <button type="button" class="ctrl" id="prevBtn" title="上一首"><svg class="ico"><use href="#i-prev"></use></svg></button>
+        <button type="button" class="ctrl play" id="playBtn" title="播放"><svg class="ico ico-play"><use href="#i-play"></use></svg><span class="ctrl-label">PLAY</span></button>
+        <button type="button" class="ctrl" id="nextBtn" title="下一首"><svg class="ico"><use href="#i-next"></use></svg></button>
+        <button type="button" class="ctrl" id="repeatBtn" title="单曲循环" aria-pressed="false"><svg class="ico"><use href="#i-repeat"></use></svg><i class="led"></i></button>
+        <button type="button" class="sfx-toggle" id="sfxToggle" aria-pressed="true" title="界面音效"><svg class="ico"><use href="#i-sfx"></use></svg><span>SFX</span><i class="led"></i></button>
+        <div class="volume-control">
+          <button type="button" class="vol-mute" id="muteBtn" aria-label="静音"><svg class="ico"><use href="#i-volume"></use></svg></button>
+          <div class="knob" id="volumeKnob" role="slider" tabindex="0" aria-label="音量" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60"><span></span></div>
+          <div class="vol-read"><b id="volumeRead">60</b><small>VOL</small></div>
+          <input id="volume" class="sr-only" type="range" min="0" max="100" value="60" tabindex="-1" aria-hidden="true">
+        </div>
       </div>
       <div class="player-status" id="playerStatus" role="status" aria-live="polite">点击歌单中的任意歌曲开始播放。</div>
     </div>
+    <div class="swap-fx" id="swapFx" aria-hidden="true"><span id="swapText">LOADING TRACK</span><i></i></div>
   </section>
 
   <section class="library-card" aria-label="播放列表">
@@ -479,7 +637,7 @@
       <div><h2>TRACK LIST / 收录曲目</h2><span class="count" id="countLabel">0 首</span></div>
       <div class="lib-tools">
         <input id="filter" placeholder="筛选歌名 / 歌手" autocomplete="off">
-        <button type="button" class="music-btn" id="addToggle">＋ 添加歌曲</button>
+        <button type="button" class="music-btn" id="addToggle"><svg class="ico"><use href="#i-plus"></use></svg><span>添加歌曲</span></button>
       </div>
     </div>
     <div class="add-panel" id="addPanel" hidden>
@@ -489,11 +647,11 @@
       </div>
       <div class="add-pane" data-pane="search">
         <input id="searchInput" placeholder="搜索网易云歌曲、歌手…" autocomplete="off">
-        <button type="button" class="music-btn primary" id="searchBtn">搜索</button>
+        <button type="button" class="music-btn primary" id="searchBtn"><svg class="ico"><use href="#i-search"></use></svg><span>搜索</span></button>
       </div>
       <div class="add-pane" data-pane="id" hidden>
         <input id="idInput" placeholder="粘贴歌曲链接或歌曲 ID，例如 1442466883" autocomplete="off">
-        <button type="button" class="music-btn primary" id="addIdBtn">添加</button>
+        <button type="button" class="music-btn primary" id="addIdBtn"><svg class="ico"><use href="#i-plus"></use></svg><span>添加</span></button>
       </div>
       <div class="search-results" id="searchResults"></div>
     </div>
@@ -519,6 +677,76 @@
   var emptyEl = document.getElementById('empty');
   var coverEl = document.getElementById('cover');
   var vizEl = document.getElementById('viz');
+  var sfxOn = true, sfxCtx = null, lastVolume = 0.6;
+
+  function audioCtx() {
+    if (!sfxOn) return null;
+    try {
+      if (!sfxCtx) sfxCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (sfxCtx.state === 'suspended') sfxCtx.resume();
+      return sfxCtx;
+    } catch (e) { return null; }
+  }
+  function beep(freq, dur, type, vol) {
+    var ac = audioCtx(); if (!ac) return;
+    try {
+      var osc = ac.createOscillator(), gain = ac.createGain();
+      osc.type = type || 'square'; osc.frequency.value = freq || 440;
+      gain.gain.setValueAtTime(vol || 0.018, ac.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + (dur || 0.05));
+      osc.connect(gain); gain.connect(ac.destination);
+      osc.start(); osc.stop(ac.currentTime + (dur || 0.05) + 0.01);
+    } catch (e) {}
+  }
+  function sfxClick() { beep(180, 0.035, 'square', 0.014); }
+  function sfxTrack() { beep(320, 0.05, 'triangle', 0.018); setTimeout(function(){ beep(620, 0.07, 'triangle', 0.014); }, 45); }
+  function sfxConfirm() { beep(520, 0.055, 'square', 0.018); setTimeout(function(){ beep(880, 0.08, 'square', 0.014); }, 55); }
+  function sfxError() { beep(140, 0.1, 'sawtooth', 0.02); }
+
+  function setSeekPct(pct) {
+    pct = Math.max(0, Math.min(1, pct || 0));
+    var fill = document.getElementById('seekFill');
+    var head = document.getElementById('seekHead');
+    var shell = document.getElementById('seekShell');
+    if (fill) fill.style.width = (pct * 100).toFixed(2) + '%';
+    if (head) head.style.left = (pct * 100).toFixed(2) + '%';
+    if (shell) shell.setAttribute('aria-valuenow', String(Math.round(pct * 1000)));
+  }
+
+  function setVolume(value, silent) {
+    value = Math.max(0, Math.min(1, Number(value) || 0));
+    audio.volume = value;
+    if (value > 0) lastVolume = value;
+    var input = document.getElementById('volume');
+    var knob = document.getElementById('volumeKnob');
+    var read = document.getElementById('volumeRead');
+    var mute = document.getElementById('muteBtn');
+    if (input) input.value = String(Math.round(value * 100));
+    if (knob) {
+      knob.style.setProperty('--vol-angle', (-135 + value * 270).toFixed(1) + 'deg');
+      knob.setAttribute('aria-valuenow', String(Math.round(value * 100)));
+    }
+    if (read) read.textContent = String(Math.round(value * 100));
+    if (mute) {
+      mute.classList.toggle('muted', value <= 0.001);
+      var use = mute.querySelector('use');
+      if (use) use.setAttribute('href', value <= 0.001 ? '#i-mute' : '#i-volume');
+    }
+    saveVolume();
+    if (!silent) sfxClick();
+  }
+
+  function triggerSwap(index) {
+    var card = document.querySelector('.player-card');
+    var text = document.getElementById('swapText');
+    if (!card) return;
+    if (text) text.textContent = 'LOADING // TRACK ' + String(index + 1).padStart(2, '0');
+    card.classList.remove('switching');
+    void card.offsetWidth;
+    card.classList.add('switching');
+    clearTimeout(card._swapTimer);
+    card._swapTimer = setTimeout(function () { card.classList.remove('switching'); }, 680);
+  }
 
   function esc(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function mmss(seconds) { seconds = Math.max(0, Math.floor(seconds || 0)); return String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + String(seconds % 60).padStart(2, '0'); }
@@ -568,7 +796,7 @@
       return;
     }
     if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(url).then(function () { toast('🔗 分享链接已复制'); }).catch(function () { fallbackCopy(url); });
+      navigator.clipboard.writeText(url).then(function () { toast('分享链接已复制'); }).catch(function () { fallbackCopy(url); });
     } else fallbackCopy(url);
   }
   function fallbackCopy(text) {
@@ -576,7 +804,7 @@
     input.value = text;
     document.body.appendChild(input);
     input.select();
-    try { document.execCommand('copy'); toast('🔗 分享链接已复制'); } catch (e) { toast('复制失败，请手动复制地址栏'); }
+    try { document.execCommand('copy'); toast('分享链接已复制'); } catch (e) { toast('复制失败，请手动复制地址栏'); }
     input.remove();
   }
   function buildViz() {
@@ -598,12 +826,12 @@
     listEl.innerHTML = visible.map(function (x) {
       var t = x.t;
       return '<div class="track-row' + (x.i === state.current ? ' active' : '') + '" data-index="' + x.i + '" role="button" tabindex="0">' +
-        '<span class="idx">' + (x.i === state.current ? '▶' : String(x.i + 1).padStart(2, '0')) + '</span>' +
-        (t.cover ? '<img class="cover" src="' + esc(t.cover) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility=\'hidden\'">' : '<span class="cover drop">♪</span>') +
+        '<span class="idx">' + (x.i === state.current ? '<span class="eq-mini"><i></i><i></i><i></i></span>' : String(x.i + 1).padStart(2, '0')) + '</span>' +
+        (t.cover ? '<img class="cover" src="' + esc(t.cover) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility=\'hidden\'">' : '<span class="cover drop"><svg class="ico"><use href="#i-disc"></use></svg></span>') +
         '<div class="t"><b>' + esc(t.name) + '</b><span>' + esc(t.artists) + '</span></div>' +
         '<span class="al">' + esc(t.album || '') + '</span>' +
         '<span class="dur">' + mmss((t.duration || 0) / 1000) + '</span>' +
-        '<button type="button" class="rm" data-remove="' + x.i + '" title="从歌单移除" aria-label="移除">✕</button></div>';
+        '<button type="button" class="rm" data-remove="' + x.i + '" title="从歌单移除" aria-label="移除"><svg class="ico"><use href="#i-x"></use></svg></button></div>';
     }).join('');
     emptyEl.hidden = state.tracks.length > 0;
     updateMeta();
@@ -631,15 +859,17 @@
       var on = Number(row.dataset.index) === state.current;
       row.classList.toggle('active', on);
       var idx = row.querySelector('.idx');
-      if (idx) idx.textContent = on ? '▶' : String(Number(row.dataset.index) + 1).padStart(2, '0');
+      if (idx) idx.innerHTML = on ? '<span class="eq-mini"><i></i><i></i><i></i></span>' : String(Number(row.dataset.index) + 1).padStart(2, '0');
     });
   }
   function setPlayingUI(playing) {
     state.playing = playing;
     document.body.classList.toggle('playing', playing);
     var btn = document.getElementById('playBtn');
-    btn.textContent = playing ? '⏸' : '▶';
+    var icon = btn.querySelector('use'); if (icon) icon.setAttribute('href', playing ? '#i-pause' : '#i-play');
+    var label = btn.querySelector('.ctrl-label'); if (label) label.textContent = playing ? 'PAUSE' : 'PLAY';
     btn.title = playing ? '暂停' : '播放';
+    btn.classList.toggle('playing', playing);
     setStatus(playing ? ('正在播放：' + (state.tracks[state.current] ? state.tracks[state.current].name : '')) : '已暂停');
     if (state.current >= 0) setTrackUI(state.tracks[state.current]);
   }
@@ -648,6 +878,10 @@
     index = ((index % state.tracks.length) + state.tracks.length) % state.tracks.length;
     state.current = index;
     document.documentElement.style.setProperty('--music-p', '0');
+    setSeekPct(0);
+    var seekInput = document.getElementById('seek'); if (seekInput) seekInput.value = '0';
+    triggerSwap(index);
+    sfxTrack();
     var track = state.tracks[index];
     state.failStreak = 0;
     audio.src = track.url || outer(track.id);
@@ -701,9 +935,10 @@
   }
   function addTrack(track) {
     var normalized = normalize(track);
-    if (state.tracks.some(function (t) { return t.id === normalized.id; })) { toast('这首歌已经在歌单里了'); return false; }
+    if (state.tracks.some(function (t) { return t.id === normalized.id; })) { toast('这首歌已经在歌单里了'); sfxError(); return false; }
     state.tracks.push(normalized);
-    saveList(); renderList(); toast('✅ 已加入歌单：' + normalized.name);
+    saveList(); renderList(); toast('已加入歌单：' + normalized.name);
+    sfxConfirm();
     if (state.current < 0) { state.current = state.tracks.length - 1; setTrackUI(normalized); }
     return true;
   }
@@ -739,10 +974,10 @@
         var exists = state.tracks.some(function (t) { return t.id === s.id; });
         return '<div class="search-row" data-song="' + i + '">' + (s.cover ? '<img src="' + esc(s.cover) + '" alt="" referrerpolicy="no-referrer">' : '') +
           '<span class="meta"><b>' + esc(s.name) + '</b><span>' + esc(s.artists) + (s.album ? ' · ' + esc(s.album) : '') + '</span></span>' +
-          '<button type="button" class="music-btn' + (exists ? '' : ' primary') + '" data-add="' + i + '"' + (exists ? ' disabled' : '') + '>' + (exists ? '已在歌单' : '＋ 添加') + '</button></div>';
+          '<button type="button" class="music-btn' + (exists ? '' : ' primary') + '" data-add="' + i + '"' + (exists ? ' disabled' : '') + '>' + (exists ? '<span>已在歌单</span>' : '<svg class="ico"><use href="#i-plus"></use></svg><span>添加</span>') + '</button></div>';
       }).join('');
       box._songs = r.songs.map(normalize);
-    } catch (e) { box.innerHTML = '<div class="search-row"><span class="meta">搜索失败：' + esc(e.message) + '</span></div>'; }
+    } catch (e) { box.innerHTML = '<div class="search-row"><span class="meta">搜索失败：' + esc(e.message) + '</span></div>'; sfxError(); }
   }
   async function syncPlaylist() {
     toast('正在同步网易云歌单…');
@@ -752,8 +987,8 @@
       state.tracks = r.tracks.map(normalize);
       state.info = { id: r.playlist.id, name: r.playlist.name, userId: r.playlist.userId, cover: r.playlist.cover, url: DEFAULT_SOURCE.url };
       state.current = -1; state.shared = false;
-      saveList(); updateMeta(); renderList(); toast('✅ 已同步 ' + state.tracks.length + ' 首歌');
-    } catch (e) { toast('同步失败：' + e.message); }
+      saveList(); updateMeta(); renderList(); toast('已同步 ' + state.tracks.length + ' 首歌'); sfxConfirm();
+    } catch (e) { toast('同步失败：' + e.message); sfxError(); }
   }
   async function resetDefault() {
     if (!confirm('恢复默认歌单？当前自定义的增删会被覆盖。')) return;
@@ -798,8 +1033,7 @@
   async function boot() {
     buildViz();
     var savedVol = parseFloat(localStorage.getItem(VOL_KEY));
-    audio.volume = isFinite(savedVol) ? Math.max(0, Math.min(1, savedVol)) : 0.6;
-    document.getElementById('volume').value = Math.round(audio.volume * 100);
+    setVolume(isFinite(savedVol) ? Math.max(0, Math.min(1, savedVol)) : 0.6, true);
     var ids = new URLSearchParams(location.search).get('ids');
     if (ids) { await loadShared(ids); return; }
     var saved = null;
@@ -819,9 +1053,10 @@
     var duration = isFinite(audio.duration) && audio.duration > 0 ? audio.duration : ((state.tracks[state.current] || {}).duration || 0) / 1000;
     document.getElementById('curTime').textContent = mmss(audio.currentTime);
     document.getElementById('totalTime').textContent = mmss(duration);
-    var seek = document.getElementById('seek');
-    if (!seek._dragging) seek.value = duration > 0 ? Math.round(audio.currentTime / duration * 1000) : 0;
     var pct = duration > 0 ? Math.min(1, audio.currentTime / duration) : 0;
+    var seekInput = document.getElementById('seek');
+    if (seekInput && !seekInput._dragging) seekInput.value = String(Math.round(pct * 1000));
+    setSeekPct(pct);
     document.documentElement.style.setProperty('--music-p', (pct * 100).toFixed(2));
   });
   audio.addEventListener('loadedmetadata', function () {
@@ -859,16 +1094,84 @@
     this.setAttribute('aria-pressed', state.repeat ? 'true' : 'false');
   });
   document.getElementById('volume').addEventListener('input', function () {
-    audio.volume = Number(this.value) / 100;
-    saveVolume();
+    setVolume(Number(this.value) / 100, true);
   });
-  var seek = document.getElementById('seek');
-  seek.addEventListener('pointerdown', function () { seek._dragging = true; });
-  seek.addEventListener('pointerup', function () { seek._dragging = false; });
-  seek.addEventListener('change', function () {
+  var seekShell = document.getElementById('seekShell');
+  var seekInput = document.getElementById('seek');
+  var seekDragging = false;
+  function seekFromEvent(event) {
     var duration = isFinite(audio.duration) && audio.duration > 0 ? audio.duration : ((state.tracks[state.current] || {}).duration || 0) / 1000;
-    if (duration > 0) audio.currentTime = (Number(seek.value) / 1000) * duration;
+    if (duration <= 0) return;
+    var rect = seekShell.getBoundingClientRect();
+    var pct = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+    audio.currentTime = pct * duration;
+    if (seekInput) seekInput.value = String(Math.round(pct * 1000));
+    setSeekPct(pct);
+  }
+  if (seekShell) {
+    seekShell.addEventListener('pointerdown', function (e) {
+      e.preventDefault(); seekDragging = true;
+      try { seekShell.setPointerCapture(e.pointerId); } catch (err) {}
+      seekFromEvent(e);
+    });
+    seekShell.addEventListener('pointermove', function (e) { if (seekDragging) seekFromEvent(e); });
+    function endSeek() { seekDragging = false; }
+    seekShell.addEventListener('pointerup', endSeek);
+    seekShell.addEventListener('pointercancel', endSeek);
+    seekShell.addEventListener('keydown', function (e) {
+      if (!['ArrowLeft','ArrowRight','Home','End'].includes(e.key)) return;
+      e.preventDefault();
+      var duration = isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 0;
+      if (!duration) return;
+      if (e.key === 'Home') audio.currentTime = 0;
+      else if (e.key === 'End') audio.currentTime = duration;
+      else audio.currentTime = Math.max(0, Math.min(duration, audio.currentTime + (e.key === 'ArrowRight' ? 5 : -5)));
+      sfxClick();
+    });
+  }
+  var knob = document.getElementById('volumeKnob');
+  var volDrag = null;
+  if (knob) {
+    knob.addEventListener('pointerdown', function (e) {
+      e.preventDefault(); volDrag = { y: e.clientY, v: audio.volume };
+      try { knob.setPointerCapture(e.pointerId); } catch (err) {}
+      sfxClick();
+    });
+    knob.addEventListener('pointermove', function (e) {
+      if (!volDrag) return;
+      setVolume(volDrag.v + (volDrag.y - e.clientY) / 140, true);
+    });
+    function endVol() { volDrag = null; }
+    knob.addEventListener('pointerup', endVol);
+    knob.addEventListener('pointercancel', endVol);
+    knob.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      setVolume(audio.volume - Math.sign(e.deltaY) * 0.05, true);
+    }, { passive: false });
+    knob.addEventListener('keydown', function (e) {
+      if (!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) return;
+      e.preventDefault();
+      setVolume(audio.volume + ((e.key === 'ArrowUp' || e.key === 'ArrowRight') ? 0.05 : -0.05));
+    });
+  }
+  var muteBtn = document.getElementById('muteBtn');
+  if (muteBtn) muteBtn.addEventListener('click', function () {
+    if (audio.volume > 0.001) { lastVolume = audio.volume; setVolume(0); }
+    else setVolume(lastVolume || 0.6);
   });
+  var sfxToggle = document.getElementById('sfxToggle');
+  if (sfxToggle) {
+    sfxToggle.classList.toggle('on', sfxOn);
+    sfxToggle.addEventListener('click', function () {
+      sfxOn = !sfxOn;
+      this.classList.toggle('on', sfxOn);
+      this.setAttribute('aria-pressed', sfxOn ? 'true' : 'false');
+      if (sfxOn) sfxConfirm();
+    });
+  }
+  document.addEventListener('pointerdown', function (e) {
+    if (e.target.closest('.music-btn,.ctrl,.sfx-toggle,.vol-mute')) sfxClick();
+  }, true);
   listEl.addEventListener('click', function (event) {
     var remove = event.target.closest('[data-remove]');
     if (remove) { event.stopPropagation(); removeIndex(Number(remove.dataset.remove)); return; }
@@ -883,7 +1186,8 @@
   document.getElementById('addToggle').addEventListener('click', function () {
     var panel = document.getElementById('addPanel');
     panel.hidden = !panel.hidden;
-    this.textContent = panel.hidden ? '＋ 添加歌曲' : '收起添加面板';
+    var label = this.querySelector('span');
+    if (label) label.textContent = panel.hidden ? '添加歌曲' : '收起面板';
   });
   document.querySelectorAll('.add-tabs button').forEach(function (btn) {
     btn.addEventListener('click', function () {
@@ -910,8 +1214,8 @@
     if (event.code === 'Space') { event.preventDefault(); togglePlay(); }
     else if (event.key === 'ArrowRight') { audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 5); }
     else if (event.key === 'ArrowLeft') { audio.currentTime = Math.max(0, audio.currentTime - 5); }
-    else if (event.key === 'ArrowUp') { event.preventDefault(); audio.volume = Math.min(1, audio.volume + 0.05); document.getElementById('volume').value = Math.round(audio.volume * 100); saveVolume(); }
-    else if (event.key === 'ArrowDown') { event.preventDefault(); audio.volume = Math.max(0, audio.volume - 0.05); document.getElementById('volume').value = Math.round(audio.volume * 100); saveVolume(); }
+    else if (event.key === 'ArrowUp') { event.preventDefault(); setVolume(audio.volume + 0.05); }
+    else if (event.key === 'ArrowDown') { event.preventDefault(); setVolume(audio.volume - 0.05); }
   });
   boot();
 })();
