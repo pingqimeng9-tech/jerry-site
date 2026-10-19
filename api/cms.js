@@ -15,6 +15,7 @@
 //   3) GITHUB_TOKEN 只存在于环境变量，前端永远接触不到
 //   4) 写入路径全部白名单，防路径穿越；单文件 ≤ 4MB（Serverless 请求体限制）
 const { createClient } = require('@supabase/supabase-js');
+const { verifySession } = require('../lib/admin-auth');
 
 const REPO = process.env.GITHUB_REPO || 'pingqimeng9-tech/jerry-site';
 const BRANCH = process.env.GITHUB_BRANCH || 'main';
@@ -70,16 +71,29 @@ async function authenticate(req, res) {
   const auth = req.headers.authorization || '';
   const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
   if (!token) { res.status(401).json({ ok: false, error: '未登录或登录已过期' }); return null; }
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    res.status(503).json({ ok: false, error: '登录服务未配置' }); return null;
-  }
-  const admin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
-  const { data, error } = await admin.auth.getUser(token);
-  if (error || !data.user) { res.status(401).json({ ok: false, error: '登录无效，请重新登录' }); return null; }
   if (!ADMIN_EMAILS.length) { res.status(503).json({ ok: false, error: 'CMS 未配置 ADMIN_EMAIL' }); return null; }
-  const email = (data.user.email || '').toLowerCase();
-  if (!ADMIN_EMAILS.includes(email)) { res.status(403).json({ ok: false, error: '该账号没有管理权限' }); return null; }
-  return data.user;
+
+  const session = verifySession(token);
+  if (session) {
+    const email = (session.email || '').toLowerCase();
+    if (!ADMIN_EMAILS.includes(email)) { res.status(403).json({ ok: false, error: '该账号没有管理权限' }); return null; }
+    return { id: 'admin:' + email, email };
+  }
+
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    try {
+      const admin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+      const { data, error } = await admin.auth.getUser(token);
+      if (!error && data.user) {
+        const email = (data.user.email || '').toLowerCase();
+        if (!ADMIN_EMAILS.includes(email)) { res.status(403).json({ ok: false, error: '该账号没有管理权限' }); return null; }
+        return data.user;
+      }
+    } catch (e) {}
+  }
+
+  res.status(401).json({ ok: false, error: '登录无效，请重新登录' });
+  return null;
 }
 
 // ---------- GitHub 仓库即数据库 ----------

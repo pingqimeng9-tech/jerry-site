@@ -58,13 +58,19 @@
     // 访客（从未登录过后台）：localStorage 无会话痕迹 → 立即结束，不加载任何外部组件
     var trace = false;
     try {
-      trace = Object.keys(localStorage).some(function (k) {
-        return k.indexOf('sb-') === 0 && k.indexOf('auth-token') !== -1 &&
-          (localStorage.getItem(k) || '').indexOf('access_token') !== -1;
-      });
+      trace = !!localStorage.getItem('jerry_admin_session') ||
+        Object.keys(localStorage).some(function (k) {
+          return k.indexOf('sb-') === 0 && k.indexOf('auth-token') !== -1 &&
+            (localStorage.getItem(k) || '').indexOf('access_token') !== -1;
+        });
     } catch (e) {}
     if (!trace) return;
     loadAdapter().then(function (Adapter) {
+      if (Adapter.getToken && Adapter.getToken()) {
+        Adapter.install();
+        inject();
+        return;
+      }
       return Adapter.getClient().then(function (client) {
         return client.auth.getSession().then(function (r) {
           if (r.data.session) { Adapter.install(client); inject(); }

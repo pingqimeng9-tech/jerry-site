@@ -13,6 +13,17 @@
   var SUPABASE_ANON = 'sb_publishable_r1w5x_a8sCSolxBdfNghGQ_j3WYcDoT';
 
   var isLocal = /^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(location.hostname);
+  var TOKEN_KEY = 'jerry_admin_session';
+
+  function getToken() {
+    try { return localStorage.getItem(TOKEN_KEY) || ''; } catch (e) { return ''; }
+  }
+  function setToken(token) {
+    try { localStorage.setItem(TOKEN_KEY, token || ''); } catch (e) {}
+  }
+  function clearToken() {
+    try { localStorage.removeItem(TOKEN_KEY); } catch (e) {}
+  }
 
   function loadSdk() {
     return new Promise(function (resolve, reject) {
@@ -37,6 +48,7 @@
   // 仅看本地是否存在会话痕迹（不加载 SDK、不发网络请求），供前台访客页面零成本判断
   function hasSessionTrace() {
     try {
+      if (getToken()) return true;
       var key = Object.keys(localStorage).find(function (k) {
         return k.indexOf('sb-') === 0 && k.indexOf('auth-token') !== -1;
       });
@@ -53,6 +65,9 @@
     var stageQueue = []; // 设置页暂存队列（线上保存在页面内存）
 
     async function token() {
+      var own = getToken();
+      if (own) return own;
+      if (!client) return '';
       var s = await client.auth.getSession();
       return s.data.session ? s.data.session.access_token : '';
     }
@@ -63,7 +78,11 @@
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + t },
         body: JSON.stringify(payload || {})
       });
-      if (r.status === 401) { location.reload(); throw new Error('登录已过期，请重新登录'); }
+      if (r.status === 401) {
+        if (getToken()) clearToken();
+        location.reload();
+        throw new Error('登录已过期，请重新登录');
+      }
       var d = await r.json();
       if (!d.ok) throw new Error(d.error || '操作失败');
       return d;
@@ -181,7 +200,9 @@
     function mountBar() { if (!document.getElementById('aa-online-bar')) document.body.appendChild(bar); }
     if (document.body) mountBar(); else document.addEventListener('DOMContentLoaded', mountBar);
     bar.querySelector('#aa-logout').addEventListener('click', async function () {
-      await client.auth.signOut(); location.reload();
+      clearToken();
+      if (client) { try { await client.auth.signOut(); } catch (e) {} }
+      location.reload();
     });
   }
 
@@ -191,6 +212,9 @@
     isLocal: isLocal,
     loadSdk: loadSdk,
     getClient: getClient,
+    getToken: getToken,
+    setToken: setToken,
+    clearToken: clearToken,
     hasSessionTrace: hasSessionTrace,
     install: installAdapter
   };

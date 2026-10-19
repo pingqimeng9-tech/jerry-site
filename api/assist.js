@@ -3,18 +3,16 @@
 //   POST /api/assist?do=chat               AI 猫对话（GEMINI_API_KEY / OPENAI_API_KEY）
 //   GET  /api/assist?do=ping               能力探测
 //   POST /api/assist?do=send-code {email}  管理员邮箱登录发码（白名单）
-//   POST /api/assist?do=verify-code {email,code}  校验并返回 magiclink token_hash
+//   POST /api/assist?do=verify-code {email,code,token}  校验验证码并签发后台会话
 //
-// 登录所需环境变量：SUPABASE_URL、SUPABASE_SERVICE_ROLE_KEY、RESEND_API_KEY
-// 管理员白名单：必填环境变量 ADMIN_EMAIL（多个邮箱用逗号分隔）
-const { createClient } = require('@supabase/supabase-js');
+// 登录所需环境变量：RESEND_API_KEY、ADMIN_EMAIL
+// 可选：ADMIN_SESSION_SECRET（未配置时从 GITHUB_TOKEN / RESEND_API_KEY 派生）
+const { adminEmails, authSecret, authReady, issueOtp, readOtp, issueSession, isAdmin } = require('../lib/admin-auth');
 
-// 管理员白名单只从环境变量 ADMIN_EMAIL 读取（逗号分隔多个），代码库里不写死任何邮箱
-const ADMIN_EMAILS = (process.env.ADMIN_EMAIL || '')
-  .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-const CODE_TTL_MINUTES = 10;
 const RESEND_COOLDOWN_SECONDS = 60;
 const MAX_ATTEMPTS = 5;
+const lastSent = new Map();
+const failedAttempts = new Map();
 
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -31,10 +29,6 @@ function readBody(req) {
     req.on('error', () => resolve({}));
   });
 }
-function supabaseAdmin() {
-  return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
-}
-
 async function handleMusic(req, res) {
   res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate');
   const ids = ((req.query && req.query.ids) || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -93,86 +87,82 @@ async function handleChat(req, res) {
   res.status(200).json({ ok: true, reply });
 }
 
-// 管理员邮箱登录：发验证码（非白名单邮箱一律拒绝，不发信、不建会话）
 async function handleSendCode(req, res) {
   const body = await readBody(req);
   const email = (body.email || '').trim().toLowerCase();
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ ok: false, error: '邮箱格式不对' });
   }
-  if (!ADMIN_EMAILS.length) {
+  if (!adminEmails().length) {
     return res.status(503).json({ ok: false, error: '登录服务尚未配置完成（缺少 ADMIN_EMAIL）' });
   }
-  if (!ADMIN_EMAILS.includes(email)) {
+  if (!isAdmin(email)) {
     return res.status(403).json({ ok: false, error: '该邮箱没有管理员权限' });
   }
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY || !process.env.RESEND_API_KEY) {
-    return res.status(503).json({ ok: false, error: '登录服务尚未配置完成（缺少服务端环境变量）' });
+  if (!process.env.RESEND_API_KEY) {
+    return res.status(503).json({ ok: false, error: '登录服务尚未配置完成（缺少 RESEND_API_KEY）' });
   }
-  const admin = supabaseAdmin();
-
-  const { data: existing } = await admin.from('email_otp_codes').select('created_at').eq('email', email).maybeSingle();
-  if (existing) {
-    const sec = (Date.now() - new Date(existing.created_at).getTime()) / 1000;
-    if (sec < RESEND_COOLDOWN_SECONDS) {
-      return res.status(429).json({ ok: false, error: '请等 ' + Math.ceil(RESEND_COOLDOWN_SECONDS - sec) + ' 秒后再发送' });
-    }
+  if (!authSecret()) {
+    return res.status(503).json({ ok: false, error: '登录服务尚未配置完成（缺少会话密钥）' });
   }
+  const now = Date.now();
+  const prev = lastSent.get(email) || 0;
+  if (now - prev < RESEND_COOLDOWN_SECONDS * 1000) {
+    return res.status(429).json({ ok: false, error: '请等 ' + Math.ceil((RESEND_COOLDOWN_SECONDS * 1000 - (now - prev)) / 1000) + ' 秒后再发送' });
+  }
+  lastSent.set(email, now);
 
-  const code = String(Math.floor(100000 + Math.random() * 900000));
-  const expiresAt = new Date(Date.now() + CODE_TTL_MINUTES * 60 * 1000).toISOString();
-  const { error: dbError } = await admin.from('email_otp_codes')
-    .upsert({ email, code, expires_at: expiresAt, attempts: 0, created_at: new Date().toISOString() });
-  if (dbError) throw dbError;
-
-  const rr = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      from: process.env.MAIL_FROM || 'Jerry.dev <onboarding@resend.dev>',
-      to: [email],
-      subject: '你的 Jerry.dev 管理员登录验证码：' + code,
-      html: '<div style="font-family:sans-serif;padding:24px;"><h2 style="margin:0 0 12px;">Jerry.dev 管理员登录</h2>'
-        + '<p style="font-size:28px;font-weight:700;letter-spacing:6px;margin:16px 0;">' + code + '</p>'
-        + '<p style="color:#666;font-size:13px;">' + CODE_TTL_MINUTES + ' 分钟内有效。如果不是你本人操作，请忽略并尽快检查账号安全。</p></div>'
-    })
-  });
-  if (!rr.ok) throw new Error('Resend发送失败: ' + (await rr.text()).slice(0, 200));
-  res.status(200).json({ ok: true, ttl: CODE_TTL_MINUTES });
+  const otp = issueOtp(email);
+  let rr;
+  try {
+    rr = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: process.env.MAIL_FROM || 'Jerry.dev <onboarding@resend.dev>',
+        to: [email],
+        subject: '你的 Jerry.dev 管理员登录验证码：' + otp.code,
+        html: '<div style="font-family:sans-serif;padding:24px;"><h2 style="margin:0 0 12px;">Jerry.dev 管理员登录</h2>'
+          + '<p style="font-size:28px;font-weight:700;letter-spacing:6px;margin:16px 0;">' + otp.code + '</p>'
+          + '<p style="color:#666;font-size:13px;">' + otp.ttlMinutes + ' 分钟内有效。如果不是你本人操作，请忽略并尽快检查账号安全。</p></div>'
+      })
+    });
+  } catch (e) {
+    lastSent.delete(email);
+    throw new Error('无法连接 Resend 发信服务，请检查 RESEND_API_KEY 或网络');
+  }
+  if (!rr.ok) {
+    lastSent.delete(email);
+    throw new Error('Resend发送失败: ' + (await rr.text()).slice(0, 200));
+  }
+  res.status(200).json({ ok: true, ttl: otp.ttlMinutes, otp_token: otp.token });
 }
 
-// 校验验证码 → 返回 magiclink token_hash（前端 verifyOtp 兑换正式 session）
 async function handleVerifyCode(req, res) {
   const body = await readBody(req);
   const email = (body.email || '').trim().toLowerCase();
   const code = String(body.code || '').trim();
-  if (!email || !code) return res.status(400).json({ ok: false, error: '缺少邮箱或验证码' });
-  if (!ADMIN_EMAILS.length) return res.status(503).json({ ok: false, error: '登录服务尚未配置完成（缺少 ADMIN_EMAIL）' });
-  if (!ADMIN_EMAILS.includes(email)) return res.status(403).json({ ok: false, error: '该邮箱没有管理员权限' });
+  const token = String(body.token || body.otp_token || '').trim();
+  if (!email || !code || !token) return res.status(400).json({ ok: false, error: '缺少邮箱、验证码或校验令牌' });
+  if (!adminEmails().length) return res.status(503).json({ ok: false, error: '登录服务尚未配置完成（缺少 ADMIN_EMAIL）' });
+  if (!isAdmin(email)) return res.status(403).json({ ok: false, error: '该邮箱没有管理员权限' });
 
-  const admin = supabaseAdmin();
-  const { data: record, error: fetchErr } = await admin.from('email_otp_codes').select('*').eq('email', email).maybeSingle();
-  if (fetchErr) throw fetchErr;
-  if (!record) return res.status(400).json({ ok: false, error: '还没发送过验证码，或已经用过了' });
-  if (new Date(record.expires_at).getTime() < Date.now()) {
-    await admin.from('email_otp_codes').delete().eq('email', email);
-    return res.status(400).json({ ok: false, error: '验证码已过期，请重新发送' });
+  const attemptKey = email + '|' + token.slice(-24);
+  const attempts = failedAttempts.get(attemptKey) || 0;
+  if (attempts >= MAX_ATTEMPTS) {
+    return res.status(429).json({ ok: false, error: '尝试次数过多，请重新发送验证码' });
   }
-  if (record.attempts >= MAX_ATTEMPTS) {
-    await admin.from('email_otp_codes').delete().eq('email', email);
-    return res.status(400).json({ ok: false, error: '尝试次数过多，请重新发送验证码' });
+  const otp = readOtp(token);
+  if (!otp || otp.email !== email) {
+    return res.status(400).json({ ok: false, error: '验证码已失效，请重新发送' });
   }
-  if (record.code !== code) {
-    await admin.from('email_otp_codes').update({ attempts: record.attempts + 1 }).eq('email', email);
+  if (otp.code !== code) {
+    failedAttempts.set(attemptKey, attempts + 1);
     return res.status(400).json({ ok: false, error: '验证码不对' });
   }
-  await admin.from('email_otp_codes').delete().eq('email', email);
-
-  const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({ type: 'magiclink', email });
-  if (linkErr) throw linkErr;
-  const hashedToken = linkData && linkData.properties && linkData.properties.hashed_token;
-  if (!hashedToken) throw new Error('未能从 Supabase 拿到登录 token');
-  res.status(200).json({ ok: true, token_hash: hashedToken });
+  failedAttempts.delete(attemptKey);
+  lastSent.delete(email);
+  res.status(200).json({ ok: true, session: issueSession(email), email });
 }
 
 module.exports = async (req, res) => {
@@ -185,7 +175,7 @@ module.exports = async (req, res) => {
         ok: true,
         chatReady: !!(process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY),
         musicReady: true,
-        authReady: !!(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.RESEND_API_KEY)
+        authReady: authReady()
       });
     }
     if (doWhat === 'music' && req.method === 'GET') return await handleMusic(req, res);
