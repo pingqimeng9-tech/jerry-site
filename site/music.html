@@ -1050,6 +1050,7 @@
   audio.addEventListener('playing', function () { state.failStreak = 0; setPlayingUI(true); });
   audio.addEventListener('pause', function () { setPlayingUI(false); });
   audio.addEventListener('timeupdate', function () {
+    if (state.current >= 0 && state.playing !== !audio.paused) setPlayingUI(!audio.paused);
     var duration = isFinite(audio.duration) && audio.duration > 0 ? audio.duration : ((state.tracks[state.current] || {}).duration || 0) / 1000;
     document.getElementById('curTime').textContent = mmss(audio.currentTime);
     document.getElementById('totalTime').textContent = mmss(duration);
