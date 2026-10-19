@@ -31,11 +31,10 @@
       .catch(function () { return null; })
       .then(function (c) {
         CFG = deepMerge(JSON.parse(JSON.stringify(DEFAULTS)), c || {});
-        window.JERRY_SITE_CFG = CFG; // 供各页面渲染脚本读取（默认封面等）
-        // 探测本地 CMS（有则启用 AI / 评论等动态能力）
-        return fetch('/api/admin/posts', { method: 'POST' }).then(function (r) { return r.ok; }).catch(function () { return false; });
-      })
-      .then(function (local) { API_BASE = local ? '' : null; boot(local); });
+        window.JERRY_SITE_CFG = CFG;
+        API_BASE = '';
+        boot(false);
+      });
   }
   function deepMerge(base, over) {
     for (var k in over) {

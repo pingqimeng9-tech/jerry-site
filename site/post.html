@@ -599,7 +599,7 @@
     <!-- poster 这个div会被html2canvas整个截图保存，样式都得内联在它自己范围内，不要依赖外部才能渲染对 -->
     <div class="share-poster" id="sharePoster">
       <div class="poster-brand-row">
-        <img class="poster-brand-logo" src="/images/logo.png" onerror="this.style.display='none'" alt="">
+        <img class="poster-brand-logo" src="/icons/icon-192.png" onerror="this.style.display='none'" alt="">
         <span class="poster-brand-name">JERRY.DEV</span>
         <span class="poster-brand-tag">· 分享 ·</span>
       </div>
@@ -637,6 +637,21 @@ let currentPostId = null;
 // 短链：/p/<slug>，slug 取自定义值或文章 id 末段随机码
 function postSlugOf(p){ return (p && (p.slug || (String(p.id||'').split('_').pop()))) || ''; }
 function postHrefOf(p){ return '/p/' + postSlugOf(p); }
+
+function fixRelativeAssetUrls(root){
+  if(!root) return;
+  const absolute = v => /^(?:[a-z][a-z0-9+.-]*:|\/\/|\/|#)/i.test(v);
+  root.querySelectorAll('img[src],video[src],audio[src],source[src],a[href],[data-src]').forEach(el=>{
+    if(el.hasAttribute('data-src')){
+      const ds = el.getAttribute('data-src') || '';
+      if(ds && !absolute(ds)) el.setAttribute('data-src', '/' + ds.replace(/^\.\//,''));
+    }
+    const attr = el.tagName === 'A' ? 'href' : (el.hasAttribute('src') ? 'src' : '');
+    if(!attr) return;
+    const v = el.getAttribute(attr) || '';
+    if(v && !absolute(v)) el.setAttribute(attr, '/' + v.replace(/^\.\//,''));
+  });
+}
 
 async function loadPost(){
   const container = document.getElementById('article-container');
@@ -712,6 +727,7 @@ async function loadPost(){
     `;
 
     document.getElementById('a-body').innerHTML = marked.parse(bodyMd || '（正文为空）');
+    fixRelativeAssetUrls(document.getElementById('a-body'));
     /* 编辑器里设定的媒体宽度（data-w）在这里生效：视频/图片按设定宽度渲染，不再强制全宽 */
     document.querySelectorAll('#a-body video[data-w], #a-body img[data-w]').forEach(function (m) {
       m.style.width = m.getAttribute('data-w');
@@ -1513,7 +1529,7 @@ const MEMBERSHIP_CARD_HTML = `
     <div class="m-actions">
       <a class="twitter-follow-btn" href="https://x.com/zengaihua327711" target="_blank" rel="noopener">𝕏 关注 @zengaihua327711</a>
       <div class="wechat-group-hint">
-        <img class="qr-thumb" src="images/wechat-group-qr.jpg" alt="微信群二维码" onerror="this.style.display='none'">
+        <img class="qr-thumb" src="/images/wechat-group-qr.jpg" alt="微信群二维码" onerror="this.style.display='none'">
         <span>扫码加入微信交流群</span>
       </div>
     </div>
@@ -1810,7 +1826,7 @@ if(window.matchMedia && window.matchMedia('(pointer: fine)').matches){
     <div class="ps-sub">把桌宠拖到下面的场景里，陪她坐一会儿吧～</div>
     <div id="pocket-space-grid">
       <div class="pocket-space-entry" id="pocket-space-entry-1" data-space-id="cozy-room">
-        <img src="images/pocket-space/pocket-space-1-room.webp" alt="番茄钟小屋"/>
+        <img src="/images/pocket-space/pocket-space-1-room.webp" alt="番茄钟小屋"/>
         <img class="ps-resident-pet" id="ps-resident-pet-1" alt=""/>
         <span>番茄钟小屋</span>
       </div>
@@ -1878,7 +1894,7 @@ if(window.matchMedia && window.matchMedia('(pointer: fine)').matches){
   <div id="pomodoro-toast">完成一个番茄钟啦🍅</div>
 </div>
 
-<audio id="pomodoro-audio" src="images/pocket-space/pomodoro-bgm.mp3" loop preload="none"></audio>
+<audio id="pomodoro-audio" src="/images/pocket-space/pomodoro-bgm.mp3" loop preload="none"></audio>
 
 <div id="mobile-action-dock">
   <button id="pet-menu-btn" type="button" class="dock-btn" aria-label="打开桌宠功能">📊</button>
@@ -1888,7 +1904,7 @@ if(window.matchMedia && window.matchMedia('(pointer: fine)').matches){
 <div id="pet-wrap">
   <div id="pet-bubble"></div>
   <div id="pet-body">
-    <img id="pet-img" src="images/pet/normal1.png" alt="桌宠"/>
+    <img id="pet-img" src="/images/pet/normal1.png" alt="桌宠"/>
   </div>
   <div id="pet-headzone"></div>
 
@@ -1924,7 +1940,7 @@ if(window.matchMedia && window.matchMedia('(pointer: fine)').matches){
 
 <!-- ================= 通行证登录系统（与 index.html/blog.html 共用同一 Supabase 后端） ================= -->
 <!-- 引入 Supabase -->
-<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
 <!-- 合并：user-system.js -->
 <script>
@@ -1935,6 +1951,32 @@ const SUPABASE_URL = 'https://zwgfuvqeypzrqguphyzt.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_r1w5x_a8sCSolxBdfNghGQ_j3WYcDoT';
 
 const JerrySite = (function () {
+  if (!window.supabase || !window.supabase.createClient) {
+    const unavailable = () => Promise.reject(new Error('通行证服务暂不可用'));
+    return {
+      init: async () => null,
+      onAuthChange: function (fn) { try { fn(null); } catch (e) {} },
+      signInWithGoogle: unavailable,
+      sendEmailCode: unavailable,
+      verifyEmailCode: unavailable,
+      signOut: async () => {},
+      getUser: () => null,
+      isLoggedIn: () => false,
+      updateProfile: unavailable,
+      toggleFavorite: unavailable,
+      getMyLikedPosts: async () => [],
+      getMyFavoritedPosts: async () => [],
+      checkinToday: unavailable,
+      recordView: async () => {},
+      toggleLike: unavailable,
+      feedZara: unavailable,
+      getMyStatus: async () => ({ unlocked_categories: [], category_unlock_times: {} }),
+      unlockCategory: unavailable,
+      getComments: async () => [],
+      postComment: unavailable,
+      deleteComment: unavailable
+    };
+  }
   const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   let currentUser = null;
@@ -1955,8 +1997,12 @@ const JerrySite = (function () {
   });
 
   async function init() {
-    const { data: { session } } = await client.auth.getSession();
-    currentUser = session?.user || null;
+    try {
+      const { data: { session } } = await client.auth.getSession();
+      currentUser = session?.user || null;
+    } catch (e) {
+      currentUser = null;
+    }
     notify();
     return currentUser;
   }

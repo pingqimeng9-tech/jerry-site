@@ -7,22 +7,22 @@
   const affinityEl = document.getElementById('affinity');
 
   const IMG = {
-    normal1: 'images/pet/normal1.png',
-    normal2: 'images/pet/normal2.png',
-    blink: 'images/pet/normal-close_eye.png',
-    touch1: 'images/pet/touchhead1.png',
-    touch2: 'images/pet/touchhead2.png',
-    touch3: 'images/pet/touchhead3.png',
-    grab: 'images/pet/mouse_grab.png',
-    fall: 'images/pet/felldown.png',
-    eat1: 'images/pet/eat1.png',
-    eat2: 'images/pet/eat2.png',
-    eat3: 'images/pet/eat3.png',
-    eat4: 'images/pet/eat4.png',
-    eat5: 'images/pet/eat5.png',
-    eat6: 'images/pet/eat6.png',
-    eat7: 'images/pet/eat7.png',
-    eat8: 'images/pet/eat8.png'
+    normal1: '/images/pet/normal1.png',
+    normal2: '/images/pet/normal2.png',
+    blink: '/images/pet/normal-close_eye.png',
+    touch1: '/images/pet/touchhead1.png',
+    touch2: '/images/pet/touchhead2.png',
+    touch3: '/images/pet/touchhead3.png',
+    grab: '/images/pet/mouse_grab.png',
+    fall: '/images/pet/felldown.png',
+    eat1: '/images/pet/eat1.png',
+    eat2: '/images/pet/eat2.png',
+    eat3: '/images/pet/eat3.png',
+    eat4: '/images/pet/eat4.png',
+    eat5: '/images/pet/eat5.png',
+    eat6: '/images/pet/eat6.png',
+    eat7: '/images/pet/eat7.png',
+    eat8: '/images/pet/eat8.png'
   };
 
   // ============ 状态变量 ============
@@ -517,7 +517,7 @@
   const SMOKE_FRAME_COUNT = 39;
   const SMOKE_FRAMES = [];
   for(let i = 0; i < SMOKE_FRAME_COUNT; i++){
-    SMOKE_FRAMES.push('images/pocket-space/frames/smoke_' + String(i).padStart(3, '0') + '.webp');
+    SMOKE_FRAMES.push('/images/pocket-space/frames/smoke_' + String(i).padStart(3, '0') + '.webp');
   }
   const smokeImages = SMOKE_FRAMES.map((src) => { const im = new Image(); im.src = src; return im; });
 
@@ -779,7 +779,7 @@
     backpackMask.classList.remove('show');
     pocketSpaceMask.classList.remove('show');
 
-    psBg.style.backgroundImage = "url('images/pocket-space/pocket-space-1-room.jpg')";
+    psBg.style.backgroundImage = "url('/images/pocket-space/pocket-space-1-room.jpg')";
     pocketSpaceFullscreen.classList.add('show');
     startCanvasLoop();
     fadeInBgm();
@@ -930,7 +930,7 @@
 
   // 开场动画：先探测逐帧素材 pet-intro-sheet.png 是否存在，存在才播放（避免素材缺失时空等 4 秒）
   (function maybeIntro(){
-    const sheet = 'images/pet/pet-intro-sheet.png';
+    const sheet = '/images/pet/pet-intro-sheet.png';
     const probe = new Image();
     probe.onload = function(){
       wrap.style.opacity = '0'; // 素材就绪：藏起悬浮球，等开场动画播完

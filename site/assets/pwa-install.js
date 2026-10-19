@@ -6,16 +6,35 @@
   var standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
   var ios = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var DISMISS_KEY = 'jerry_pwa_dismissed_at';
+  var DISMISS_DAYS = 30;
+
+  function dismissedRecently() {
+    try {
+      var at = Number(localStorage.getItem(DISMISS_KEY) || 0);
+      return !!at && Date.now() - at < DISMISS_DAYS * 86400000;
+    } catch (e) { return false; }
+  }
+
+  function rememberDismiss() {
+    try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch (e) {}
+  }
+
+  function maybeAutoOpen(delay) {
+    if (standalone || dismissedRecently()) return;
+    window.setTimeout(open, delay || 1200);
+  }
 
   window.addEventListener('beforeinstallprompt', function (event) {
     event.preventDefault();
     deferredPrompt = event;
     render();
+    maybeAutoOpen(800);
   });
 
   window.addEventListener('appinstalled', function () {
     deferredPrompt = null;
-    close();
+    close(false);
   });
 
   function render() {
@@ -34,14 +53,17 @@
     }
   }
 
-  function close() {
+  function close(remember) {
     if (dialog) dialog.hidden = true;
+    if (remember !== false) rememberDismiss();
   }
 
   function open() {
     if (standalone || !dialog) return;
     render();
     dialog.hidden = false;
+    var x = dialog.querySelector('.pwa-install-close');
+    if (x) try { x.focus(); } catch (e) {}
   }
 
   var style = document.createElement('style');
@@ -75,13 +97,13 @@
     '</section>';
   document.body.appendChild(dialog);
 
-  dialog.querySelector('.pwa-install-close').addEventListener('click', close);
-  dialog.querySelector('.pwa-install-later').addEventListener('click', close);
+  dialog.querySelector('.pwa-install-close').addEventListener('click', function () { close(true); });
+  dialog.querySelector('.pwa-install-later').addEventListener('click', function () { close(true); });
   dialog.addEventListener('click', function (event) {
-    if (event.target === dialog) close();
+    if (event.target === dialog) close(true);
   });
   dialog.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape') close();
+    if (event.key === 'Escape') close(true);
   });
   dialog.querySelector('.pwa-install-action').addEventListener('click', async function () {
     if (!deferredPrompt) return;
@@ -108,5 +130,5 @@
     });
   }
 
-  if (!standalone) window.setTimeout(open, 800);
+  if (ios && !standalone) maybeAutoOpen(1200);
 })();

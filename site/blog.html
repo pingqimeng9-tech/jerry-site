@@ -2258,7 +2258,7 @@ window.addEventListener('DOMContentLoaded', initBgCarousel);
 
 <!-- ================= 通行证登录系统（与 index.html 共用同一 Supabase 后端） ================= -->
 <!-- 引入 Supabase -->
-<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
 <!-- 合并：user-system.js -->
 <script>
@@ -2269,6 +2269,32 @@ const SUPABASE_URL = 'https://zwgfuvqeypzrqguphyzt.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_r1w5x_a8sCSolxBdfNghGQ_j3WYcDoT';
 
 const JerrySite = (function () {
+  if (!window.supabase || !window.supabase.createClient) {
+    const unavailable = () => Promise.reject(new Error('通行证服务暂不可用'));
+    return {
+      init: async () => null,
+      onAuthChange: function (fn) { try { fn(null); } catch (e) {} },
+      signInWithGoogle: unavailable,
+      sendEmailCode: unavailable,
+      verifyEmailCode: unavailable,
+      signOut: async () => {},
+      getUser: () => null,
+      isLoggedIn: () => false,
+      updateProfile: unavailable,
+      toggleFavorite: unavailable,
+      getMyLikedPosts: async () => [],
+      getMyFavoritedPosts: async () => [],
+      checkinToday: unavailable,
+      recordView: async () => {},
+      toggleLike: unavailable,
+      feedZara: unavailable,
+      getMyStatus: async () => ({ unlocked_categories: [], category_unlock_times: {} }),
+      unlockCategory: unavailable,
+      getComments: async () => [],
+      postComment: unavailable,
+      deleteComment: unavailable
+    };
+  }
   const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   let currentUser = null;
@@ -2289,8 +2315,12 @@ const JerrySite = (function () {
   });
 
   async function init() {
-    const { data: { session } } = await client.auth.getSession();
-    currentUser = session?.user || null;
+    try {
+      const { data: { session } } = await client.auth.getSession();
+      currentUser = session?.user || null;
+    } catch (e) {
+      currentUser = null;
+    }
     notify();
     return currentUser;
   }

@@ -293,6 +293,8 @@
   .reel-video{aspect-ratio:9/16;max-height:340px;background:linear-gradient(160deg,#22223a,#3a2e5c);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12.5px;text-align:center;padding:16px;position:relative;}
   .reel-video img,.reel-video video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
   .reel-video .play{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.6);display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:16px;backdrop-filter:blur(4px);}
+  .reel-placeholder{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:linear-gradient(180deg,rgba(11,10,18,.12),rgba(11,10,18,.62));color:#fff;font-size:12.5px;pointer-events:none;}
+  .merch-note{position:relative;z-index:1;font-size:12px;color:var(--muted);}
   .reel-info{padding:14px 16px 18px;}
   .reel-info p{margin:0;font-size:13px;color:var(--muted);line-height:1.6;}
 
@@ -314,7 +316,16 @@
   footer a{text-decoration:none;color:var(--sky-deep);font-weight:600;}
 
   @media (max-width:940px){.char-grid,.level-row,.merch-grid{grid-template-columns:repeat(2,1fr);}.reel-row{grid-template-columns:1fr;}.book-section{grid-template-columns:1fr;}.book-stack{margin:0 auto 20px;max-width:320px;}}
-  @media (max-width:520px){.char-grid,.level-row,.merch-grid{grid-template-columns:1fr 1fr;}.contact-mini-grid{grid-template-columns:1fr;}}
+  @media (max-width:520px){
+    .char-grid,.level-row,.merch-grid{grid-template-columns:1fr 1fr;}
+    .contact-mini-grid{grid-template-columns:1fr;}
+    .book-stack{height:250px;max-width:100%;overflow:hidden;}
+    .book-mock{width:150px;height:210px;padding:14px;}
+    .book-mock b{font-size:17px;}
+    .book-mock.b1{left:0;top:18px;}
+    .book-mock.b2{left:56px;top:0;}
+    .book-mock.b3{left:112px;top:30px;}
+  }
 </style>
 <script src="/assets/layout.js" defer></script>
 </head>
@@ -420,18 +431,18 @@
   <section class="section tint" id="merch" data-module="merch" style="border-radius:40px;">
     <div class="section-head center"><div class="eyebrow-tag">🧸 周边好物</div><h2 class="kawaii">把 Rumi 带回家</h2></div>
     <div class="merch-grid">
-      <div class="merch-card"><div class="merch-thumb"><img src="images/rumi/merch-plush.jpg" onerror="this.style.display='none'"></div><div class="merch-info"><span class="pill">玩偶</span><h4>Rumi 公仔</h4></div></div>
-      <div class="merch-card"><div class="merch-thumb"><img src="images/rumi/merch-sticker.jpg" onerror="this.style.display='none'"></div><div class="merch-info"><span class="pill">贴纸</span><h4>贴纸套装</h4></div></div>
-      <div class="merch-card"><div class="merch-thumb"><img src="images/rumi/merch-stationery.jpg" onerror="this.style.display='none'"></div><div class="merch-info"><span class="pill">文具</span><h4>启蒙文具</h4></div></div>
-      <div class="merch-card"><div class="merch-thumb"><img src="images/rumi/merch-cards.jpg" onerror="this.style.display='none'"></div><div class="merch-info"><span class="pill">卡片</span><h4>词卡</h4></div></div>
+      <div class="merch-card"><div class="merch-thumb"><img src="images/rumi/merch-plush.jpg" onerror="this.style.display='none'"><span class="merch-note">图片即将上线</span></div><div class="merch-info"><span class="pill">玩偶</span><h4>Rumi 公仔</h4></div></div>
+      <div class="merch-card"><div class="merch-thumb"><img src="images/rumi/merch-sticker.jpg" onerror="this.style.display='none'"><span class="merch-note">图片即将上线</span></div><div class="merch-info"><span class="pill">贴纸</span><h4>贴纸套装</h4></div></div>
+      <div class="merch-card"><div class="merch-thumb"><img src="images/rumi/merch-stationery.jpg" onerror="this.style.display='none'"><span class="merch-note">图片即将上线</span></div><div class="merch-info"><span class="pill">文具</span><h4>启蒙文具</h4></div></div>
+      <div class="merch-card"><div class="merch-thumb"><img src="images/rumi/merch-cards.jpg" onerror="this.style.display='none'"><span class="merch-note">图片即将上线</span></div><div class="merch-info"><span class="pill">卡片</span><h4>词卡</h4></div></div>
     </div>
   </section>
   <section class="section" id="reviews" data-module="reviews">
     <div class="section-head center"><div class="eyebrow-tag">🎥 抖音精选</div><h2 class="kawaii">动画片段 &amp; 家长说</h2></div>
     <div class="reel-row">
-      <div class="reel-card"><div class="reel-video"><video loop playsinline><source src="videos/reel-1.mp4"></video></div></div>
-      <div class="reel-card"><div class="reel-video"><video loop playsinline><source src="videos/reel-2.mp4"></video></div></div>
-      <div class="reel-card"><div class="reel-video"><video loop playsinline><source src="videos/reel-3.mp4"></video></div></div>
+      <div class="reel-card"><div class="reel-video"><video loop playsinline muted preload="metadata" poster="images/rumi/hero-frames/frame_012.webp" onplay="this.nextElementSibling.style.display='none'"><source src="videos/reel-1.mp4"></video><div class="reel-placeholder"><div class="play">▶</div><span>动画片段即将上线</span></div></div></div>
+      <div class="reel-card"><div class="reel-video"><video loop playsinline muted preload="metadata" poster="images/rumi/hero-frames/frame_028.webp" onplay="this.nextElementSibling.style.display='none'"><source src="videos/reel-2.mp4"></video><div class="reel-placeholder"><div class="play">▶</div><span>动画片段即将上线</span></div></div></div>
+      <div class="reel-card"><div class="reel-video"><video loop playsinline muted preload="metadata" poster="images/rumi/hero-frames/frame_044.webp" onplay="this.nextElementSibling.style.display='none'"><source src="videos/reel-3.mp4"></video><div class="reel-placeholder"><div class="play">▶</div><span>动画片段即将上线</span></div></div></div>
     </div>
   </section>
   <section class="section" id="contact" data-module="contact">
@@ -517,14 +528,14 @@
   const video1 = initFrameScroller({
     canvasId: 'heroCanvas',
     frameCount: 60,
-    framePath: i => `images/rumi/hero-frames/frame_${String(i).padStart(3,'0')}.webp`,
+    framePath: i => `images/rumi/hero-frames/frame_${String(i + 1).padStart(3,'0')}.webp`,
     fit: 'cover'
   });
 
   const video2 = initFrameScroller({
     canvasId: 'logoCanvas',
     frameCount: 59,
-    framePath: i => `images/rumi/hero-frames-2/frame_${String(i).padStart(3,'0')}.webp`,
+    framePath: i => `images/rumi/hero-frames-2/frame_${String(i + 1).padStart(3,'0')}.webp`,
     fit: 'cover'
   });
 
