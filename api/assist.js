@@ -41,9 +41,65 @@ async function handleMusic(req, res) {
     artists: (s.artists || []).map(a => a.name).join(' / '),
     album: s.album && s.album.name || '',
     pic: (s.album && (s.album.blurPicUrl || s.album.picUrl)) || '',
+    duration: s.dt || s.duration || 0,
     url: 'https://music.163.com/song/media/outer/url?id=' + s.id + '.mp3'
   }));
   res.status(200).json({ ok: true, songs });
+}
+
+const NETEASE_HEADERS = { 'User-Agent': 'Mozilla/5.0', Referer: 'https://music.163.com/' };
+
+function mapSong(s) {
+  const artists = (s.artists || s.ar || []).map(a => a.name).join(' / ');
+  const album = s.album || s.al || {};
+  const duration = s.duration || s.dt || 0;
+  return {
+    id: String(s.id),
+    name: s.name || '',
+    artists: artists,
+    album: album.name || '',
+    cover: album.picUrl || '',
+    duration: duration,
+    url: 'https://music.163.com/song/media/outer/url?id=' + s.id + '.mp3'
+  };
+}
+
+async function handleSearch(req, res) {
+  const q = ((req.query && req.query.q) || '').trim();
+  if (!q) return res.status(400).json({ ok: false, error: '缺少搜索关键词' });
+  const url = 'https://music.163.com/api/search/get?s=' + encodeURIComponent(q) + '&type=1&limit=12&offset=0';
+  const r = await fetch(url, { headers: NETEASE_HEADERS });
+  const j = await r.json();
+  const songs = ((j.result && j.result.songs) || []).map(mapSong);
+  res.status(200).json({ ok: true, songs: songs });
+}
+
+async function handlePlaylist(req, res) {
+  const id = ((req.query && req.query.id) || '').trim();
+  if (!id) return res.status(400).json({ ok: false, error: '缺少歌单 ID' });
+  const detail = await fetch('https://music.163.com/api/v6/playlist/detail?id=' + encodeURIComponent(id), { headers: NETEASE_HEADERS }).then(r => r.json());
+  if (!detail.playlist) return res.status(404).json({ ok: false, error: '歌单不存在或不可访问' });
+  const playlist = detail.playlist;
+  const ids = (playlist.trackIds || []).map(x => x.id).filter(Boolean);
+  const tracks = [];
+  for (let i = 0; i < ids.length; i += 100) {
+    const chunk = ids.slice(i, i + 100);
+    const data = await fetch('https://music.163.com/api/song/detail/?ids=' + encodeURIComponent(JSON.stringify(chunk)), { headers: NETEASE_HEADERS }).then(r => r.json());
+    (data.songs || []).forEach(s => tracks.push(mapSong(s)));
+  }
+  const byId = new Map(tracks.map(t => [t.id, t]));
+  const ordered = ids.map(tid => byId.get(String(tid))).filter(Boolean);
+  res.status(200).json({
+    ok: true,
+    playlist: {
+      id: String(playlist.id),
+      name: playlist.name || '网易云歌单',
+      cover: playlist.coverImgUrl || '',
+      userId: String(playlist.userId || ''),
+      trackCount: ordered.length
+    },
+    tracks: ordered
+  });
 }
 
 async function handleChat(req, res) {
@@ -179,6 +235,8 @@ module.exports = async (req, res) => {
       });
     }
     if (doWhat === 'music' && req.method === 'GET') return await handleMusic(req, res);
+    if (doWhat === 'search' && req.method === 'GET') return await handleSearch(req, res);
+    if (doWhat === 'playlist' && req.method === 'GET') return await handlePlaylist(req, res);
     if (doWhat === 'chat' && req.method === 'POST') return await handleChat(req, res);
     if (doWhat === 'send-code' && req.method === 'POST') return await handleSendCode(req, res);
     if (doWhat === 'verify-code' && req.method === 'POST') return await handleVerifyCode(req, res);

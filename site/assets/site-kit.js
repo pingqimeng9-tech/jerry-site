@@ -343,6 +343,7 @@
 
   /* ---------- 胶囊滚动条 + 网易云票据播放器（独立组件 capsule-player.js） ---------- */
   function injectCapsulePlayer() {
+    if (document.body && document.body.dataset.page === 'music') return;
     if (window.__jerryCapsule || document.querySelector('script[data-jcap]')) return;
     var s = document.createElement('script');
     s.src = '/assets/capsule-player.js';

@@ -805,10 +805,55 @@ async function handleApi(req, res, pathname) {
       const songs = (j.songs || []).map(s => ({
         id: s.id, name: s.name, artists: (s.artists || []).map(a => a.name).join(' / '),
         album: s.album?.name || '', pic: s.album?.blurPicUrl || s.album?.picUrl || '',
+        duration: s.duration || s.dt || 0,
         url: 'https://music.163.com/song/media/outer/url?id=' + s.id + '.mp3'
       }));
       return send(res, 200, { ok: true, songs });
     } catch (e) { return send(res, 200, { ok: false, error: e.message, songs: [] }); }
+  }
+
+  // ==================== 网易云搜索 / 歌单 ====================
+  const NET_HEADERS = { 'User-Agent': 'Mozilla/5.0', Referer: 'https://music.163.com/' };
+  const mapNetSong = s => ({
+    id: String(s.id), name: s.name || '',
+    artists: (s.artists || s.ar || []).map(a => a.name).join(' / '),
+    album: (s.album && s.album.name) || (s.al && s.al.name) || '',
+    cover: (s.album && s.album.picUrl) || (s.al && s.al.picUrl) || '',
+    duration: s.duration || s.dt || 0,
+    url: 'https://music.163.com/song/media/outer/url?id=' + s.id + '.mp3'
+  });
+  if (req.method === 'GET' && pathname === '/api/assist' && assistDo === 'search') {
+    const q = new URL(req.url, 'http://x').searchParams.get('q') || '';
+    if (!q.trim()) return send(res, 400, { ok: false, error: '缺少搜索关键词' });
+    try {
+      const r = await httpsJson('GET', 'https://music.163.com/api/search/get?s=' + encodeURIComponent(q) + '&type=1&limit=12&offset=0', NET_HEADERS, null, 15000);
+      const j = JSON.parse(r.text || '{}');
+      return send(res, 200, { ok: true, songs: ((j.result && j.result.songs) || []).map(mapNetSong) });
+    } catch (e) { return send(res, 200, { ok: false, error: e.message, songs: [] }); }
+  }
+  if (req.method === 'GET' && pathname === '/api/assist' && assistDo === 'playlist') {
+    const id = new URL(req.url, 'http://x').searchParams.get('id') || '';
+    if (!id.trim()) return send(res, 400, { ok: false, error: '缺少歌单 ID' });
+    try {
+      const d = await httpsJson('GET', 'https://music.163.com/api/v6/playlist/detail?id=' + encodeURIComponent(id), NET_HEADERS, null, 15000);
+      const detail = JSON.parse(d.text || '{}');
+      if (!detail.playlist) return send(res, 404, { ok: false, error: '歌单不存在或不可访问' });
+      const pl = detail.playlist;
+      const ids = (pl.trackIds || []).map(x => x.id).filter(Boolean);
+      const tracks = [];
+      for (let i = 0; i < ids.length; i += 100) {
+        const chunk = ids.slice(i, i + 100);
+        const sr = await httpsJson('GET', 'https://music.163.com/api/song/detail/?ids=' + encodeURIComponent(JSON.stringify(chunk)), NET_HEADERS, null, 20000);
+        const sj = JSON.parse(sr.text || '{}');
+        (sj.songs || []).forEach(x => tracks.push(mapNetSong(x)));
+      }
+      const byId = new Map(tracks.map(t => [t.id, t]));
+      return send(res, 200, {
+        ok: true,
+        playlist: { id: String(pl.id), name: pl.name || '网易云歌单', cover: pl.coverImgUrl || '', userId: String(pl.userId || ''), trackCount: byId.size },
+        tracks: ids.map(tid => byId.get(String(tid))).filter(Boolean)
+      });
+    } catch (e) { return send(res, 200, { ok: false, error: e.message }); }
   }
 
   // 背景图上传后自动重建 manifest（站点背景轮播读这个文件）

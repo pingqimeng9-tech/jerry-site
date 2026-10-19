@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:e2e": "playwright test",
-    "gen:templates": "node scripts/gen-templates-manifest.js"
+    "gen:templates": "node scripts/gen-templates-manifest.js",
+    "sync:music": "node scripts/fetch-netease-playlist.mjs"
   },
   "keywords": [],
   "author": "",

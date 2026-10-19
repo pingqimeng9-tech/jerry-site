@@ -192,3 +192,22 @@ site/admin/studio/components/profile.js
 1. 在 `components/` 下新建文件并调用 `JerryComponents.register({...})`。
 2. 在 `studio.html` 引入该脚本。
 3. 组件定义包含 `id / name / icon / slot / schema / render / fromSection / toSection` 即可出现在工作台。
+
+## 音乐页与全站播放器
+
+- 新页面：`/music.html`
+  - 默认歌单来自网易云「我喜欢的音乐」，共 71 首。
+  - 支持搜索歌曲、粘贴链接/ID 添加、从歌单移除。
+  - 支持播放/暂停、上一首/下一首、随机、单曲循环、进度、音量、键盘快捷键。
+  - 分享按钮会把当前歌曲 ID 写入 `?ids=` 链接，打开即还原分享歌单。
+  - “同步网易云”和“恢复默认”按钮可刷新歌单。
+- 歌单数据：`site/data/music_playlist.json`
+  - 刷新命令：`npm run sync:music`（默认同步歌单 `18489916586`）。
+- 后端接口：
+  - `GET /api/assist?do=playlist&id=...` 抓取歌单和全部歌曲。
+  - `GET /api/assist?do=search&q=...` 搜索网易云歌曲。
+  - `GET /api/assist?do=music&ids=...` 获取歌曲元数据。
+- Studio 新增 `music` 组件：
+  - 配置全站播放器标题、默认音量、歌曲 ID 列表。
+  - 保存到 `site.config.json` 的 `music` 节点。
+- 已移除全站胶囊滚动条，恢复浏览器原生滚动条；底部音乐播放器保留。

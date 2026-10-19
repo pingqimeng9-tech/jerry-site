@@ -75,6 +75,27 @@
         input = document.createElement('input');
         input.type = 'color';
         input.value = /^#[0-9a-f]{6}$/i.test(value) ? value : '#0e0c22';
+      } else if (field.type === 'range') {
+        var rangeWrap = document.createElement('div');
+        rangeWrap.className = 'cms-range';
+        input = document.createElement('input');
+        input.type = 'range';
+        input.min = field.min != null ? field.min : 0;
+        input.max = field.max != null ? field.max : 1;
+        input.step = field.step != null ? field.step : 0.01;
+        input.value = value;
+        var rangeOut = document.createElement('span');
+        rangeOut.className = 'cms-range-value';
+        rangeOut.textContent = value;
+        rangeWrap.appendChild(input);
+        rangeWrap.appendChild(rangeOut);
+        row.appendChild(rangeWrap);
+        input.addEventListener('input', function () {
+          rangeOut.textContent = input.value;
+          onChange(field.key, Number(input.value));
+        });
+        box.appendChild(row);
+        return;
       } else if (field.type === 'image') {
         var media = document.createElement('div');
         media.className = 'cms-image-field';

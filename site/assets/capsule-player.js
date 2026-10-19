@@ -18,6 +18,7 @@
 
   var SRC = (document.currentScript && document.currentScript.src) || '/assets/capsule-player.js';
   var PLAYER_ONLY = !!(document.currentScript && document.currentScript.hasAttribute('data-player-only'));
+  var CAPSULE_SCROLLBAR = false;
   var DIR = SRC.replace(/[^/]*$/, '');                 // 通常是 /assets/
   var GSAp = DIR + 'vendor/gsap.min.js';
   var LS_KEY = 'jerry.music.v1';
@@ -127,7 +128,7 @@
     '@keyframes jm-spin{to{transform:rotate(360deg)}}',
     '@media (max-width:560px){#jm .jm-full{width:224px}}'
   ].filter(function (rule) {
-    return !PLAYER_ONLY || (rule.indexOf('#jcap') < 0 && rule.indexOf('scrollbar') < 0);
+    return rule.indexOf('#jcap') < 0 && rule.indexOf('scrollbar') < 0;
   }).join('\n');
 
   var gsap = null;
@@ -653,7 +654,7 @@
     var st = document.createElement('style');
     st.textContent = css;
     document.head.appendChild(st);
-    if (!PLAYER_ONLY) mountCapsule();
+    if (!PLAYER_ONLY && CAPSULE_SCROLLBAR) mountCapsule();
     avoidEditBar();
     fetchMusicConfig().then(function (mc) {
       if (mc && mc.enabled && (mc.songIds || []).length) {

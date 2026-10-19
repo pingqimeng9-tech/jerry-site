@@ -5,7 +5,7 @@ test('studio renders components and updates the live preview', async ({ page }) 
   await page.route('**/api/config/apply', route => route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true,"applied":["test"]}' }));
 
   await page.goto('/admin/studio.html');
-  await expect(page.locator('.comp-card')).toHaveCount(2);
+  await expect(page.locator('.comp-card')).toHaveCount(3);
   await expect(page.locator('#inspector .cms-field')).toHaveCount(6);
 
   const bgStyle = page.locator('.cms-field[data-field="style"] select');
@@ -16,6 +16,8 @@ test('studio renders components and updates the live preview', async ({ page }) 
   await page.locator('.cms-field[data-field="authorName"] input').fill('Studio 测试');
   await expect(page.locator('.sp-profile-name')).toHaveText('Studio 测试');
 
+  await page.locator('.comp-card[data-id="music"]').click();
+  await expect(page.locator('.cms-field[data-field="playerTitle"] input')).toBeVisible();
   await page.locator('#btnSave').click();
   await expect(page.locator('#saveState')).toHaveText('已保存');
   await expect(page.locator('#toast')).toContainText('已保存');

@@ -12,6 +12,7 @@
 <script src="/admin/studio/component-runtime.js"></script>
 <script src="/admin/studio/components/background.js"></script>
 <script src="/admin/studio/components/profile.js"></script>
+<script src="/admin/studio/components/music.js"></script>
 <style>
   .studio-shell{display:grid;grid-template-columns:236px minmax(0,1fr) 330px;gap:14px;height:100vh;padding:14px;overflow:hidden}
   .studio-left,.studio-right{display:flex;flex-direction:column;min-height:0;border:1px solid var(--glass-border);border-radius:18px;background:rgba(16,13,38,.7);backdrop-filter:blur(18px);overflow:hidden}
@@ -84,6 +85,15 @@
   .cms-field input[type=text]:focus,.cms-field textarea:focus,.cms-field select:focus{border-color:var(--aqua);box-shadow:0 0 0 3px rgba(92,225,230,.12)}
   .cms-field textarea{resize:vertical;line-height:1.65}
   .cms-field input[type=color]{width:100%;height:38px;border:1px solid var(--line);border-radius:10px;background:rgba(0,0,0,.26);padding:4px;cursor:pointer}
+  .cms-range{display:flex;align-items:center;gap:9px}
+  .cms-range input{flex:1;accent-color:var(--aqua)}
+  .cms-range-value{font-family:var(--mono);font-size:10.5px;color:var(--aqua);min-width:34px;text-align:right}
+  .studio-music-card{display:flex;align-items:center;gap:9px;margin-top:12px;padding:11px;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:rgba(255,255,255,.06);backdrop-filter:blur(10px);text-align:left}
+  .studio-music-card .sm-cover{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:conic-gradient(from 200deg,#2b2b36,#B18CFF,#2b2b36);border:1px solid rgba(255,255,255,.25);font-size:14px;flex:none}
+  .studio-music-card .sm-meta{min-width:0;flex:1}
+  .studio-music-card .sm-meta b{display:block;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .studio-music-card .sm-meta span{display:block;font-size:9.5px;color:#d5d1e8;margin-top:2px}
+  .studio-music-card .sm-play{font-size:11px;color:#9cf3ff;font-weight:800}
   .cms-field-switch{flex-direction:row;align-items:center;justify-content:space-between}
   .cms-switch{position:relative;width:42px;height:24px;display:inline-flex;align-items:center;border-radius:999px;background:rgba(255,255,255,.12);transition:.2s}
   .cms-switch input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;margin:0}
@@ -136,7 +146,7 @@
         <div class="studio-page">
           <div class="studio-nav"><b id="previewSite">JERRY.DEV</b><span>首页</span><span>博客</span><span>项目</span><span>友链</span></div>
           <div class="studio-body">
-            <aside class="studio-profile" id="studioProfile"></aside>
+            <aside class="studio-profile" id="studioProfile"><div id="studioMusic"></div></aside>
             <section class="studio-content">
               <div class="studio-kicker">JERRY / STUDIO PREVIEW</div>
               <h2 id="previewHero">用组件搭建你的站点</h2>
@@ -163,6 +173,7 @@
     full: {},
     bg: null,
     profile: null,
+    music: null,
     layout: { format: 'jerry-studio/v1', components: [] },
     selected: 'background',
     device: 'desktop',
@@ -171,6 +182,7 @@
   };
   const bgComp = window.JerryComponents.get('background');
   const profileComp = window.JerryComponents.get('profile');
+  const musicComp = window.JerryComponents.get('music');
 
   function toast(msg) {
     const el = document.getElementById('toast');
@@ -227,6 +239,11 @@
     const profileEl = document.getElementById('studioProfile');
     if (isEnabled('profile')) profileComp.render(profileEl, state.profile);
     else profileEl.innerHTML = '';
+    const musicEl = document.getElementById('studioMusic');
+    if (musicEl) {
+      if (isEnabled('music')) musicComp.render(musicEl, state.music);
+      else musicEl.innerHTML = '';
+    }
     document.getElementById('previewSite').textContent = state.profile.siteName || 'JERRY.DEV';
     document.getElementById('previewHero').textContent = state.profile.bio ? state.profile.bio : '用组件搭建你的站点';
     document.getElementById('previewSub').textContent = (state.profile.authorName || 'Jerry') + ' · 这是 Studio 的实时预览，保存后会同步到站点配置。';
@@ -263,7 +280,7 @@
     const comp = window.JerryComponents.get(state.selected);
     const box = document.getElementById('inspector');
     if (!comp) { box.innerHTML = '<div class="studio-note">没有选中组件。</div>'; return; }
-    const configMap = { background: state.bg, profile: state.profile };
+    const configMap = { background: state.bg, profile: state.profile, music: state.music };
     const config = configMap[state.selected];
     window.JerryComponents.renderInspector(box, comp, config, function (key, value) {
       window.JerryComponents.setPath(config, key, value);
@@ -288,17 +305,19 @@
       state.full = cfg;
       state.bg = bgComp.fromSection(cfg.background || {});
       state.profile = profileComp.fromSection(cfg.profile || {});
+      state.music = musicComp.fromSection(cfg.music || {});
       const studio = cfg.studio && cfg.studio.format === 'jerry-studio/v1' ? cfg.studio : null;
       state.layout = studio ? { format: 'jerry-studio/v1', components: Array.isArray(studio.components) ? studio.components.slice() : [] } : {
         format: 'jerry-studio/v1',
         components: [
           { id: 'background', slot: 'page', enabled: true },
-          { id: 'profile', slot: 'sidebar', enabled: true }
+          { id: 'profile', slot: 'sidebar', enabled: true },
+          { id: 'music', slot: 'floating', enabled: true }
         ]
       };
-      ['background', 'profile'].forEach(function (id) {
+      ['background', 'profile', 'music'].forEach(function (id) {
         if (!state.layout.components.some(function (c) { return c.id === id; })) {
-          state.layout.components.push({ id: id, slot: id === 'profile' ? 'sidebar' : 'page', enabled: true });
+          state.layout.components.push({ id: id, slot: id === 'profile' ? 'sidebar' : (id === 'music' ? 'floating' : 'page'), enabled: true });
         }
       });
       state.dirty = false;
@@ -318,6 +337,7 @@
       const ops = [
         { section: 'background', label: '背景', data: bgComp.toSection(state.bg, state.full.background || {}) },
         { section: 'profile', label: '站点资料', data: profileComp.toSection(state.profile, state.full.profile || {}) },
+        { section: 'music', label: '全站音乐', data: musicComp.toSection(state.music, state.full.music || {}) },
         { section: 'studio', label: 'Studio 布局', data: { format: 'jerry-studio/v1', updatedAt: new Date().toISOString(), components: state.layout.components } }
       ];
       for (const op of ops) {
@@ -333,7 +353,8 @@
       if (!result.ok) throw new Error(result.error || '保存失败');
       state.full.background = ops[0].data;
       state.full.profile = ops[1].data;
-      state.full.studio = ops[2].data;
+      state.full.music = ops[2].data;
+      state.full.studio = ops[3].data;
       state.dirty = false;
       setSaveState('已保存', false);
       toast('✅ 已保存并发布，约 1-2 分钟线上生效');

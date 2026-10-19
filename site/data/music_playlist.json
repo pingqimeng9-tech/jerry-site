@@ -1,0 +1,652 @@
+{
+  "format": "jerry-music-playlist/v1",
+  "fetchedAt": "2026-10-19T14:02:32.089Z",
+  "source": {
+    "id": "18489916586",
+    "name": "我喜欢的音乐",
+    "cover": "https://p1.music.126.net/ZpugNT_r6lnTZp6TPZnmwA==/109951165450999761.jpg",
+    "userId": "18038264467",
+    "trackCount": 71
+  },
+  "tracks": [
+    {
+      "id": "1442466883",
+      "name": "花に亡霊",
+      "artists": "ヨルシカ",
+      "album": "花に亡霊",
+      "cover": "https://p1.music.126.net/_Os98d4NSKf-vLo_93QoEg==/109951164927614269.jpg",
+      "duration": 239932,
+      "url": "https://music.163.com/song/media/outer/url?id=1442466883.mp3"
+    },
+    {
+      "id": "3340112782",
+      "name": "星降る海",
+      "artists": "Aqu3ra / 月見ヤチヨ(cv.早見沙織) / 超かぐや姫！",
+      "album": "超かぐや姫！",
+      "cover": "https://p1.music.126.net/rwWOrSz65eAdnQsHy9Vghw==/109951172602675059.jpg",
+      "duration": 253441,
+      "url": "https://music.163.com/song/media/outer/url?id=3340112782.mp3"
+    },
+    {
+      "id": "1466303986",
+      "name": "第六感",
+      "artists": "Reol",
+      "album": "第六感",
+      "cover": "https://p1.music.126.net/rk7FQkUt_n99I7dOUG50iA==/109951166726790783.jpg",
+      "duration": 191624,
+      "url": "https://music.163.com/song/media/outer/url?id=1466303986.mp3"
+    },
+    {
+      "id": "432486474",
+      "name": "妄想感傷代償連盟",
+      "artists": "DECO*27 / 初音ミク",
+      "album": "GHOST",
+      "cover": "https://p1.music.126.net/S8Fw1AOhq45Obb_YyThviw==/18495984602893574.jpg",
+      "duration": 270000,
+      "url": "https://music.163.com/song/media/outer/url?id=432486474.mp3"
+    },
+    {
+      "id": "1838743757",
+      "name": "Oracle (feat. nayuta)",
+      "artists": "Room97 / nayuta",
+      "album": "LOVE MUSIC+",
+      "cover": "https://p1.music.126.net/Qk39x33pwWGqYYVnAwpKTA==/109951165907226992.jpg",
+      "duration": 224000,
+      "url": "https://music.163.com/song/media/outer/url?id=1838743757.mp3"
+    },
+    {
+      "id": "2088204761",
+      "name": "Chronicle A",
+      "artists": "Empty old City",
+      "album": "Chronicle A",
+      "cover": "https://p1.music.126.net/DZSpM9FMu-T-wZSJfwCBpg==/109951168965918871.jpg",
+      "duration": 182702,
+      "url": "https://music.163.com/song/media/outer/url?id=2088204761.mp3"
+    },
+    {
+      "id": "2155423468",
+      "name": "希望有羽毛和翅膀",
+      "artists": "知更鸟 / HOYO-MiX / Chevy",
+      "album": "崩坏星穹铁道-空气蛹 INSIDE",
+      "cover": "https://p1.music.126.net/aR4BlDNkA84tFbg8bBpriA==/109951169585655912.jpg",
+      "duration": 229994,
+      "url": "https://music.163.com/song/media/outer/url?id=2155423468.mp3"
+    },
+    {
+      "id": "2040876720",
+      "name": "フローリア",
+      "artists": "ヒバナ",
+      "album": "フローリア",
+      "cover": "https://p1.music.126.net/jYarj31y1IWQvw_Ggud7Fw==/109951168556904429.jpg",
+      "duration": 185625,
+      "url": "https://music.163.com/song/media/outer/url?id=2040876720.mp3"
+    },
+    {
+      "id": "2065281614",
+      "name": "風のたより",
+      "artists": "tayori",
+      "album": "風のたより",
+      "cover": "https://p1.music.126.net/ffdLPYP6MkLUJ3OfuwuSSA==/109951171422548740.jpg",
+      "duration": 240346,
+      "url": "https://music.163.com/song/media/outer/url?id=2065281614.mp3"
+    },
+    {
+      "id": "3381504830",
+      "name": "感官过载",
+      "artists": "残像音阶 / M3mo",
+      "album": "感官过载",
+      "cover": "https://p1.music.126.net/qGLgEziAdCXsk9SbhiYjbw==/109951173214324887.jpg",
+      "duration": 116165,
+      "url": "https://music.163.com/song/media/outer/url?id=3381504830.mp3"
+    },
+    {
+      "id": "1853327677",
+      "name": "In My Room (feat. KMNZ LIZ)",
+      "artists": "キツネDJ / KMNZ",
+      "album": "In My Room (feat. KMNZ LIZ)",
+      "cover": "https://p1.music.126.net/HZc9yCujjkCMiYiwhFVrvg==/109951173520113208.jpg",
+      "duration": 168000,
+      "url": "https://music.163.com/song/media/outer/url?id=1853327677.mp3"
+    },
+    {
+      "id": "3407372478",
+      "name": "ダミーロマンス",
+      "artists": "DECO*27 / 初音ミク",
+      "album": "ダミーロマンス",
+      "cover": "https://p1.music.126.net/h40G9RF8fjfZbwadU56Y5Q==/109951173569598316.jpg",
+      "duration": 157413,
+      "url": "https://music.163.com/song/media/outer/url?id=3407372478.mp3"
+    },
+    {
+      "id": "3326907142",
+      "name": "I Can't Wait (feat. GUMI)",
+      "artists": "d0tc0mmie / GUMI",
+      "album": "I Can't Wait (feat. GUMI)",
+      "cover": "https://p1.music.126.net/0GEf5ziQ8mG0HfRY8djyvg==/109951172408103691.jpg",
+      "duration": 95576,
+      "url": "https://music.163.com/song/media/outer/url?id=3326907142.mp3"
+    },
+    {
+      "id": "3340105621",
+      "name": "ワールドイズマイン (かぐや&月見ヤチヨ ver.) [CPK! Remix]",
+      "artists": "ryo (supercell) / 夏吉ゆうこ / 早見沙織",
+      "album": "Ex-Otogibanashi",
+      "cover": "https://p1.music.126.net/otpQWO3_SYzNe7F7wLwbdA==/109951172602512218.jpg",
+      "duration": 226000,
+      "url": "https://music.163.com/song/media/outer/url?id=3340105621.mp3"
+    },
+    {
+      "id": "1856722728",
+      "name": "好きだから。",
+      "artists": "『ユイカ』",
+      "album": "好きだから。",
+      "cover": "https://p1.music.126.net/ozNsc3XPpvMQlHYyU9LVAg==/109951166125448895.jpg",
+      "duration": 298663,
+      "url": "https://music.163.com/song/media/outer/url?id=1856722728.mp3"
+    },
+    {
+      "id": "2033878965",
+      "name": "花曇り",
+      "artists": "佐藤千亜妃",
+      "album": "花曇り",
+      "cover": "https://p1.music.126.net/yj_DnxNZIaFSAoxQoHHRRQ==/109951168500729936.jpg",
+      "duration": 242633,
+      "url": "https://music.163.com/song/media/outer/url?id=2033878965.mp3"
+    },
+    {
+      "id": "1813849601",
+      "name": "ANEMONE",
+      "artists": "吐息 / LUMi",
+      "album": "ひとえに",
+      "cover": "https://p1.music.126.net/GyxUk69XSr4_C4a_5DqJxQ==/109951165646990771.jpg",
+      "duration": 140155,
+      "url": "https://music.163.com/song/media/outer/url?id=1813849601.mp3"
+    },
+    {
+      "id": "2160017684",
+      "name": "カーテンコール (feat. CONA)",
+      "artists": "CONA / 吐息",
+      "album": "カーテンコール (feat. CONA)",
+      "cover": "https://p1.music.126.net/ryLcgR2-gPMVHimsPl1grA==/109951169626608995.jpg",
+      "duration": 141904,
+      "url": "https://music.163.com/song/media/outer/url?id=2160017684.mp3"
+    },
+    {
+      "id": "440208643",
+      "name": "Psycho, Pt. 2",
+      "artists": "Russ",
+      "album": "Psycho, Pt. 2",
+      "cover": "https://p1.music.126.net/Z8q0skkFiyZUxzJK2uCYcg==/109951164939830012.jpg",
+      "duration": 161985,
+      "url": "https://music.163.com/song/media/outer/url?id=440208643.mp3"
+    },
+    {
+      "id": "3341026792",
+      "name": "月が綺麗ねと言われたい！",
+      "artists": "柿崎ユウタ",
+      "album": "月が綺麗ねと言われたい！",
+      "cover": "https://p1.music.126.net/Q8U0jJHtO4QQ6dDatmOUdw==/109951172617879525.jpg",
+      "duration": 147187,
+      "url": "https://music.163.com/song/media/outer/url?id=3341026792.mp3"
+    },
+    {
+      "id": "2123277426",
+      "name": "遠く、遠く、遠く。",
+      "artists": "中瀬ミル / 初音ミク",
+      "album": "遠く、遠く、遠く。",
+      "cover": "https://p1.music.126.net/Za8_4MD6vCQ8tglcawuS5g==/109951169306354686.jpg",
+      "duration": 210793,
+      "url": "https://music.163.com/song/media/outer/url?id=2123277426.mp3"
+    },
+    {
+      "id": "1895145666",
+      "name": "紅い呪い",
+      "artists": "吐息 / aruma",
+      "album": "紅い呪い",
+      "cover": "https://p1.music.126.net/_QXN9Dr1DCjer5lclY_1Vw==/109951166623697126.jpg",
+      "duration": 173205,
+      "url": "https://music.163.com/song/media/outer/url?id=1895145666.mp3"
+    },
+    {
+      "id": "2085790747",
+      "name": "So Addictive",
+      "artists": "鷲尾伶菜",
+      "album": "For My Dear",
+      "cover": "https://p1.music.126.net/kD5gk8FWwxjWBLcijo1X2Q==/109951168944662004.jpg",
+      "duration": 249869,
+      "url": "https://music.163.com/song/media/outer/url?id=2085790747.mp3"
+    },
+    {
+      "id": "3446591581",
+      "name": "归宗",
+      "artists": "Lethe",
+      "album": "狐妖小红娘",
+      "cover": "https://p1.music.126.net/iS3jmjj3S38Oc-7zPSXBlg==/109951173817502015.jpg",
+      "duration": 220841,
+      "url": "https://music.163.com/song/media/outer/url?id=3446591581.mp3"
+    },
+    {
+      "id": "2061829828",
+      "name": "归宗（狐妖小红娘 无暮篇 OP）",
+      "artists": "Kyle Xian",
+      "album": "2023七月动漫新番歌曲合集Vol.1",
+      "cover": "https://p1.music.126.net/gTNsgkjyG5l6kjQRGhXDrw==/109951168711761327.jpg",
+      "duration": 174001,
+      "url": "https://music.163.com/song/media/outer/url?id=2061829828.mp3"
+    },
+    {
+      "id": "3425804120",
+      "name": "众生",
+      "artists": "Lethe",
+      "album": "狐妖小红娘",
+      "cover": "https://p1.music.126.net/iS3jmjj3S38Oc-7zPSXBlg==/109951173817502015.jpg",
+      "duration": 233682,
+      "url": "https://music.163.com/song/media/outer/url?id=3425804120.mp3"
+    },
+    {
+      "id": "470736250",
+      "name": "爱YOU READY , 爱我READY(OP)",
+      "artists": "旅行团乐队- 孔阳",
+      "album": "狐妖小红娘 动画原声带",
+      "cover": "https://p1.music.126.net/1QSIjG47zPCZf2pwI2J2YQ==/19025949207041612.jpg",
+      "duration": 75340,
+      "url": "https://music.163.com/song/media/outer/url?id=470736250.mp3"
+    },
+    {
+      "id": "405253632",
+      "name": "梦回还 (TV size)",
+      "artists": "呦猫UNEKO",
+      "album": "梦回还",
+      "cover": "https://p1.music.126.net/hAfIXJP_ZBRQKd1VE_Hqbg==/16625715324173485.jpg",
+      "duration": 72456,
+      "url": "https://music.163.com/song/media/outer/url?id=405253632.mp3"
+    },
+    {
+      "id": "421885538",
+      "name": "未闻花名-慢版的八音盒",
+      "artists": "尘埃意识Luka",
+      "album": "未闻花名-Windows+八音盒",
+      "cover": "https://p1.music.126.net/jtlOuvazU5UdIs_gRoz4Zg==/17807690323776699.jpg",
+      "duration": 334525,
+      "url": "https://music.163.com/song/media/outer/url?id=421885538.mp3"
+    },
+    {
+      "id": "3411912161",
+      "name": "一百年不许变",
+      "artists": "Ciyo",
+      "album": "一百年不许变",
+      "cover": "https://p1.music.126.net/5ot5bCyv9jxK9HfOerLGAg==/109951173644549407.jpg",
+      "duration": 158028,
+      "url": "https://music.163.com/song/media/outer/url?id=3411912161.mp3"
+    },
+    {
+      "id": "2658277057",
+      "name": "Trash Can Song (feat. Elsie Lovelock, Michael Kovach & Kathy-Chan)",
+      "artists": "The Chalkeaters / Elsie Lovelock / Michael Kovach / Kathy-chan",
+      "album": "Trash Can Song",
+      "cover": "https://p1.music.126.net/bC_1o6eHQZywsb483nJmPA==/109951170289592102.jpg",
+      "duration": 174000,
+      "url": "https://music.163.com/song/media/outer/url?id=2658277057.mp3"
+    },
+    {
+      "id": "26201885",
+      "name": "Don't say \"lazy\"",
+      "artists": "桜高軽音部",
+      "album": "K-ON! Music History's Box",
+      "cover": "https://p2.music.126.net/B_sCLXthAHgoVEMIRNU1hw==/109951163559682176.jpg",
+      "duration": 263000,
+      "url": "https://music.163.com/song/media/outer/url?id=26201885.mp3"
+    },
+    {
+      "id": "30512539",
+      "name": "最后的旅行",
+      "artists": "Rainton桐",
+      "album": "热门华语259",
+      "cover": "https://p2.music.126.net/cpoUinrExafBHL5Nv5iDHQ==/109951166361218466.jpg",
+      "duration": 291000,
+      "url": "https://music.163.com/song/media/outer/url?id=30512539.mp3"
+    },
+    {
+      "id": "2617935584",
+      "name": "IVORY TOWER (龙族动画OP)",
+      "artists": "如释鸟Birdiee",
+      "album": "【龙族】IVORY TOWER -Birdiee翻唱",
+      "cover": "https://p2.music.126.net/FfkVifa6XobziJWXOD5bDA==/109951169877611941.jpg",
+      "duration": 177802,
+      "url": "https://music.163.com/song/media/outer/url?id=2617935584.mp3"
+    },
+    {
+      "id": "2722510685",
+      "name": "耀斑",
+      "artists": "HOYO-MiX / YMIR",
+      "album": "崩坏星穹铁道-耀斑 Flares of the Blazing Sun",
+      "cover": "https://p2.music.126.net/DYDACa_8zB5irAOrasVgnQ==/109951171396677694.jpg",
+      "duration": 213691,
+      "url": "https://music.163.com/song/media/outer/url?id=2722510685.mp3"
+    },
+    {
+      "id": "2123158258",
+      "name": "下一个远方",
+      "artists": "喵☆酱 / 爆裂菊是也 / 花玲 / 彭博 / 钱琛 / 苏逸_Suyi",
+      "album": "下一个远方",
+      "cover": "https://p2.music.126.net/Yq6yZck4iSAqVLoISXMPYA==/109951169305472447.jpg",
+      "duration": 228939,
+      "url": "https://music.163.com/song/media/outer/url?id=2123158258.mp3"
+    },
+    {
+      "id": "1818031620",
+      "name": "让风告诉你",
+      "artists": "花玲 / 喵☆酱 / 宴宁 / kinsen",
+      "album": "让风告诉你",
+      "cover": "https://p2.music.126.net/pYKBjkB6FoNh5Yxkb9uCbw==/109951165698369632.jpg",
+      "duration": 226858,
+      "url": "https://music.163.com/song/media/outer/url?id=1818031620.mp3"
+    },
+    {
+      "id": "2750140001",
+      "name": "提瓦特民谣",
+      "artists": "宴宁 / XY大甘蔗 / 柳知萧 / 闫夜桥 / 陶典 / 孙晔",
+      "album": "提瓦特民谣",
+      "cover": "https://p2.music.126.net/tY3kQom9zTUwux6PUZ6r0Q==/109951172068985822.jpg",
+      "duration": 217466,
+      "url": "https://music.163.com/song/media/outer/url?id=2750140001.mp3"
+    },
+    {
+      "id": "2124731026",
+      "name": "5:20AM",
+      "artists": "刀酱",
+      "album": "5:20AM",
+      "cover": "https://p2.music.126.net/RjiI9yP2Fnxx5cxiTVCIrQ==/109951169318905148.jpg",
+      "duration": 161280,
+      "url": "https://music.163.com/song/media/outer/url?id=2124731026.mp3"
+    },
+    {
+      "id": "2071452224",
+      "name": "Take Me Hand",
+      "artists": "DAISHI DANCE / Cécile Corbel",
+      "album": "Take Me Hand",
+      "cover": "https://p2.music.126.net/q_ZSJmVQ_NlLXq7UNAYK3g==/109951168826077552.jpg",
+      "duration": 259480,
+      "url": "https://music.163.com/song/media/outer/url?id=2071452224.mp3"
+    },
+    {
+      "id": "2671812705",
+      "name": "反乌托邦",
+      "artists": "乌托邦P",
+      "album": "反乌托邦",
+      "cover": "https://p2.music.126.net/jn43eEp6_DbdC6bjmregvg==/109951170450400298.jpg",
+      "duration": 152000,
+      "url": "https://music.163.com/song/media/outer/url?id=2671812705.mp3"
+    },
+    {
+      "id": "2711834126",
+      "name": "莫愁乡",
+      "artists": "亞細亞曠世奇才",
+      "album": "莫愁乡",
+      "cover": "https://p2.music.126.net/DVi9B70oYVFtDxVqZf_56g==/109951171264259694.jpg",
+      "duration": 136241,
+      "url": "https://music.163.com/song/media/outer/url?id=2711834126.mp3"
+    },
+    {
+      "id": "1964850580",
+      "name": "我本将心向明月",
+      "artists": "王朝1982 / 朱旭BooBoo",
+      "album": "我本将心向明月",
+      "cover": "https://p2.music.126.net/iEOD7-UHTtkyurXeFndBrg==/109951172856631446.jpg",
+      "duration": 221333,
+      "url": "https://music.163.com/song/media/outer/url?id=1964850580.mp3"
+    },
+    {
+      "id": "3398249541",
+      "name": "反乌托邦×拼接遗憾×Sinos De Natal",
+      "artists": "Vince丷 / 见过夏天P / Ciyo",
+      "album": "红石音乐",
+      "cover": "https://p2.music.126.net/Kk5YxGO0qB_KQx8-uEOL6g==/109951173459347365.jpg",
+      "duration": 113673,
+      "url": "https://music.163.com/song/media/outer/url?id=3398249541.mp3"
+    },
+    {
+      "id": "3379996850",
+      "name": "拼接乌托邦",
+      "artists": "Ciyo / 见过夏天P / 乌托邦P",
+      "album": "反乌托邦·拼接版",
+      "cover": "https://p2.music.126.net/1ZerYYDkvYpaBz4HeRUqRw==/109951173194079293.jpg",
+      "duration": 114928,
+      "url": "https://music.163.com/song/media/outer/url?id=3379996850.mp3"
+    },
+    {
+      "id": "2608813264",
+      "name": "准备出发！",
+      "artists": "安雪璃 / 小敢 / MACE / 曹雅雯 / Z君",
+      "album": "准备出发！",
+      "cover": "https://p2.music.126.net/2yP7UZMH-NzXO6DVfFlurA==/109951169790359497.jpg",
+      "duration": 91001,
+      "url": "https://music.163.com/song/media/outer/url?id=2608813264.mp3"
+    },
+    {
+      "id": "1295009639",
+      "name": "Again",
+      "artists": "王极",
+      "album": "Again",
+      "cover": "https://p2.music.126.net/-gqv2SAG4MMD2ZE-hj53yg==/109951163415566764.jpg",
+      "duration": 122207,
+      "url": "https://music.163.com/song/media/outer/url?id=1295009639.mp3"
+    },
+    {
+      "id": "737955",
+      "name": "Thank you for dears.",
+      "artists": "GET IN THE RING",
+      "album": "AQ -永久-",
+      "cover": "https://p2.music.126.net/NFPqcHhAuqf99whTDCLJdw==/920291232448746.jpg",
+      "duration": 326293,
+      "url": "https://music.163.com/song/media/outer/url?id=737955.mp3"
+    },
+    {
+      "id": "426881487",
+      "name": "前前前世 (movie ver.)",
+      "artists": "RADWIMPS",
+      "album": "君の名は。",
+      "cover": "https://p2.music.126.net/UoHin_i29CVJr4gKPEY1kQ==/109951171836647530.jpg",
+      "duration": 284405,
+      "url": "https://music.163.com/song/media/outer/url?id=426881487.mp3"
+    },
+    {
+      "id": "426881480",
+      "name": "夢灯籠",
+      "artists": "RADWIMPS",
+      "album": "君の名は。",
+      "cover": "https://p2.music.126.net/UoHin_i29CVJr4gKPEY1kQ==/109951171836647530.jpg",
+      "duration": 128360,
+      "url": "https://music.163.com/song/media/outer/url?id=426881480.mp3"
+    },
+    {
+      "id": "1824020871",
+      "name": "One Last Kiss",
+      "artists": "宇多田ヒカル",
+      "album": "One Last Kiss",
+      "cover": "https://p2.music.126.net/l3G4LigZnOxFE9lB4bz_LQ==/109951165791860501.jpg",
+      "duration": 252026,
+      "url": "https://music.163.com/song/media/outer/url?id=1824020871.mp3"
+    },
+    {
+      "id": "579954",
+      "name": "恋愛サーキュレーション",
+      "artists": "花澤香菜",
+      "album": "恋愛サーキュレーション & あとがたり",
+      "cover": "https://p2.music.126.net/wImDxYDsJcWDIH9znDhEPA==/109951165561008752.jpg",
+      "duration": 253880,
+      "url": "https://music.163.com/song/media/outer/url?id=579954.mp3"
+    },
+    {
+      "id": "496869422",
+      "name": "打上花火",
+      "artists": "Daoko / 米津玄師",
+      "album": "打上花火",
+      "cover": "https://p2.music.126.net/ZUCE_1Tl_hkbtamKmSNXEg==/109951163009282836.jpg",
+      "duration": 289334,
+      "url": "https://music.163.com/song/media/outer/url?id=496869422.mp3"
+    },
+    {
+      "id": "556491664",
+      "name": "Sincerely（Cover TRUE）",
+      "artists": "祈Inory",
+      "album": "Sincerely （《紫罗兰永恒花园》OP）",
+      "cover": "https://p2.music.126.net/F_T7vq8OAI84U7_yHLj8Hw==/109951163273843536.jpg",
+      "duration": 274833,
+      "url": "https://music.163.com/song/media/outer/url?id=556491664.mp3"
+    },
+    {
+      "id": "2141327428",
+      "name": "GA-TAN GO-TON",
+      "artists": "中島怜",
+      "album": "GA-TAN GO-TON",
+      "cover": "https://p2.music.126.net/a_1yJ5ilABolc-xVSgffVg==/109951169459827641.jpg",
+      "duration": 261333,
+      "url": "https://music.163.com/song/media/outer/url?id=2141327428.mp3"
+    },
+    {
+      "id": "2666861867",
+      "name": "朗朗",
+      "artists": "さとう。",
+      "album": "朗朗",
+      "cover": "https://p2.music.126.net/BkGXuz72kPdnA02mQFefvA==/109951170386081488.jpg",
+      "duration": 213191,
+      "url": "https://music.163.com/song/media/outer/url?id=2666861867.mp3"
+    },
+    {
+      "id": "2065132039",
+      "name": "reversal",
+      "artists": "Anna",
+      "album": "reversal",
+      "cover": "https://p2.music.126.net/RpddtCaZ4AJ0ntpO9qEueg==/109951168747798981.jpg",
+      "duration": 222258,
+      "url": "https://music.163.com/song/media/outer/url?id=2065132039.mp3"
+    },
+    {
+      "id": "2687744739",
+      "name": "恋のレトロニム",
+      "artists": "mekakushe",
+      "album": "恋のレトロニム",
+      "cover": "https://p2.music.126.net/9_qQjYu4GRTknVVNkfoMGA==/109951170643656198.jpg",
+      "duration": 227929,
+      "url": "https://music.163.com/song/media/outer/url?id=2687744739.mp3"
+    },
+    {
+      "id": "2630740062",
+      "name": "Amen, I'm Going Somewhere（水金地火木土天アーメン）",
+      "artists": "牛尾憲輔",
+      "album": "The Colors Within (Original Motion Picture Soundtrack)",
+      "cover": "https://p2.music.126.net/Pux_hPbX0WTCmsTQ6B0FCA==/109951169990897893.jpg",
+      "duration": 234057,
+      "url": "https://music.163.com/song/media/outer/url?id=2630740062.mp3"
+    },
+    {
+      "id": "534065323",
+      "name": "Sincerely",
+      "artists": "TRUE",
+      "album": "Sincerely",
+      "cover": "https://p2.music.126.net/hG0w6oJIf-ybewGk3wcuOg==/109951168980496900.jpg",
+      "duration": 275080,
+      "url": "https://music.163.com/song/media/outer/url?id=534065323.mp3"
+    },
+    {
+      "id": "28718313",
+      "name": "The Way I Still Love You",
+      "artists": "Reynard Silva",
+      "album": "Reynard Silva",
+      "cover": "https://p2.music.126.net/JyPsd_g00M-4mqXLLtHncw==/5984641790343690.jpg",
+      "duration": 228080,
+      "url": "https://music.163.com/song/media/outer/url?id=28718313.mp3"
+    },
+    {
+      "id": "3378915545",
+      "name": "Bang Bang Bang - Silly Funk",
+      "artists": "Zachz Winner",
+      "album": "Bang Bang Bang - Silly Funk",
+      "cover": "https://p2.music.126.net/b7TPspO1AUdBT6F2iyTXFA==/109951173180845674.jpg",
+      "duration": 104666,
+      "url": "https://music.163.com/song/media/outer/url?id=3378915545.mp3"
+    },
+    {
+      "id": "1874120860",
+      "name": "The 90's Decision",
+      "artists": "MYUKKE.",
+      "album": "The 90's Decision",
+      "cover": "https://p2.music.126.net/2w230J_iS1hcLOWwlQB5uw==/109951166337984666.jpg",
+      "duration": 134062,
+      "url": "https://music.163.com/song/media/outer/url?id=1874120860.mp3"
+    },
+    {
+      "id": "441120471",
+      "name": "That's What I Like",
+      "artists": "Bruno Mars",
+      "album": "24K Magic",
+      "cover": "https://p2.music.126.net/O0rmDv7U7uhLpyPs7YPp-w==/109951166232338422.jpg",
+      "duration": 206693,
+      "url": "https://music.163.com/song/media/outer/url?id=441120471.mp3"
+    },
+    {
+      "id": "423703395",
+      "name": "最后的旅行（纯歌版）",
+      "artists": "Rainton桐",
+      "album": "最后的旅行——记《龙族》绘梨衣",
+      "cover": "https://p2.music.126.net/8qhWDWoNejyMcAAwAm2pNA==/17752714742397400.jpg",
+      "duration": 273267,
+      "url": "https://music.163.com/song/media/outer/url?id=423703395.mp3"
+    },
+    {
+      "id": "1920447137",
+      "name": "Your Majesty Spare Your Life",
+      "artists": "Asa Aza",
+      "album": "Your Majesty Spare Your Life",
+      "cover": "https://p2.music.126.net/SIdVckws60UUdJPiDMpevA==/109951167051939498.jpg",
+      "duration": 91791,
+      "url": "https://music.163.com/song/media/outer/url?id=1920447137.mp3"
+    },
+    {
+      "id": "2014336709",
+      "name": "我不曾忘记",
+      "artists": "花玲 / 张安琪 / 沐霏",
+      "album": "我不曾忘记",
+      "cover": "https://p2.music.126.net/dM_2lEqG7ZP7l0NjoApPFg==/109951168232666774.jpg",
+      "duration": 230514,
+      "url": "https://music.163.com/song/media/outer/url?id=2014336709.mp3"
+    },
+    {
+      "id": "1396945046",
+      "name": "Calvin Harris-Outside（Eal7 NS / DruGTRaffickerS / BLACK DUBLISS remix）",
+      "artists": "Eal7 NS / DruGTRaffickerS / ₲ucci Muz",
+      "album": "Outside",
+      "cover": "https://p2.music.126.net/pQPxxocfezqc3gyabaK67g==/109951164427289240.jpg",
+      "duration": 140134,
+      "url": "https://music.163.com/song/media/outer/url?id=1396945046.mp3"
+    },
+    {
+      "id": "1380022214",
+      "name": "Count The Hours",
+      "artists": "BEAUZ / Nevve / Kastilione",
+      "album": "Count The Hours",
+      "cover": "https://p2.music.126.net/EqNfr7omiUwTxZjfxmzCJw==/109951164315683664.jpg",
+      "duration": 150441,
+      "url": "https://music.163.com/song/media/outer/url?id=1380022214.mp3"
+    },
+    {
+      "id": "25704014",
+      "name": "Die Young",
+      "artists": "Kesha",
+      "album": "Die Young",
+      "cover": "https://p2.music.126.net/nr6eb2f3m95iCEYQU__cKw==/109951165967530324.jpg",
+      "duration": 211920,
+      "url": "https://music.163.com/song/media/outer/url?id=25704014.mp3"
+    },
+    {
+      "id": "17706562",
+      "name": "Good Time",
+      "artists": "Owl City / Carly Rae Jepsen",
+      "album": "Good Time",
+      "cover": "https://p2.music.126.net/c5NVKUIAUcyN4BQUDbGnEg==/109951163221157827.jpg",
+      "duration": 205933,
+      "url": "https://music.163.com/song/media/outer/url?id=17706562.mp3"
+    }
+  ]
+}
