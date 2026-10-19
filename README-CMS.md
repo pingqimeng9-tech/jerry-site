@@ -129,3 +129,22 @@ node server.js                   # 或双击 start-jerry-cms.bat
 
 - `post.html` 渲染依赖 CDN 的 `marked.min.js`，离线打开文章页需联网加载该脚本（正文数据本身在本地）。完全离线也可在 `server.js` 挂一个本地 `marked`，需要的话说一声。
 - 图片以 base64 上传到本地 `images/posts/`，适合个人博客规模。
+
+## 视频链接卡片（自媒体视频）
+
+编辑器工具栏点 `🎬`，或在「媒体工作台 → 视频」里粘贴自媒体链接，即可插入视频卡片：
+
+- 支持 B站、YouTube、腾讯视频、优酷等可站内播放的平台，读者点击卡片直接播放。
+- 抖音、小红书、微博、西瓜视频等不支持 iframe 的平台，点击卡片会打开原视频。
+- 视频仍存放在原平台，站点只保存链接，不占仓库体积。
+- 线上交互演示：`https://callmiruko.cc/video-demo.html`
+
+## 前端 E2E 测试
+
+```bash
+npm ci
+npx playwright install chromium
+npm run test:e2e
+```
+
+测试覆盖视频卡片插入、Markdown 往返、线上演示页播放和移动端横向溢出。
