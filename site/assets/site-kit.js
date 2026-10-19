@@ -106,6 +106,7 @@
 
   /* ---------- 背景：背景图轮播 + 渐变开关 ---------- */
   function applyBackground() {
+    if (document.body && document.body.dataset.page === 'music') return;
     var bg = CFG.background || {};
     if (bg.useGradient === false) document.body.classList.add('jsk-no-gradient');
     if (bg.style || bg.color || bg.accent) {
