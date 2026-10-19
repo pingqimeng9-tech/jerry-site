@@ -301,8 +301,9 @@
   function setTrackUI(track) {
     document.getElementById('trackTitle').textContent = track ? track.name : '选择一首歌开始';
     document.getElementById('trackArtist').textContent = track ? (track.artists + (track.album ? ' · ' + track.album : '')) : '歌单已准备好，点击下方任意歌曲。';
-    if (track && track.cover) {
-      coverEl.src = track.cover;
+    var cover = (track && track.cover) || (!track && state.info && state.info.cover) || '';
+    if (cover) {
+      coverEl.src = cover;
       coverEl.style.display = '';
     } else {
       coverEl.removeAttribute('src');
