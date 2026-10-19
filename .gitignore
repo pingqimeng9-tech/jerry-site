@@ -40,3 +40,7 @@ style-compare.html
 site/videos/posts/muogm3zk_ssstwitter.com_1790782314500.mp4
 .vercel
 .env*
+
+# Playwright
+test-results/
+playwright-report/

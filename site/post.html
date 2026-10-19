@@ -474,6 +474,8 @@
 
 <!-- ================= 独立注入的桌宠 CSS（从 blog.html 1:1 搬来，自包含，不依赖博客页面专属样式） ================= -->
 <link rel="stylesheet" href="/assets/pet.css">
+<link rel="stylesheet" href="/assets/video-embed.css">
+<script src="/assets/video-embed.js"></script>
 
 <script src="/assets/lib/html2canvas.min.js"></script>
 <script src="/assets/lib/qrcode.min.js"></script>
@@ -725,6 +727,7 @@ async function loadPost(){
 
     document.getElementById('a-body').innerHTML = marked.parse(bodyMd || '（正文为空）');
     fixRelativeAssetUrls(document.getElementById('a-body'));
+    if(window.JerryVideo) JerryVideo.enhance(document.getElementById('a-body'));
     /* 编辑器里设定的媒体宽度（data-w）在这里生效：视频/图片按设定宽度渲染，不再强制全宽 */
     document.querySelectorAll('#a-body video[data-w], #a-body img[data-w]').forEach(function (m) {
       m.style.width = m.getAttribute('data-w');

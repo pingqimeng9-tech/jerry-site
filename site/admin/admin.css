@@ -375,3 +375,34 @@ input,select,textarea{font-family:inherit;color:var(--ink)}
   .pic-panel{max-height:96dvh}
   .ne-anno-bar{padding:6px 10px}
 }
+
+/* —— 视频链接卡片 / 编辑器增强 —— */
+.tb-btn.tb-wide{width:auto;padding:0 10px;gap:5px;font-size:12px}
+.tb-btn.tb-video{color:var(--coral);border:1px solid rgba(255,122,92,.28);background:rgba(255,122,92,.08)}
+.tb-btn.tb-video:hover{background:rgba(255,122,92,.18);color:#fff}
+.video-link-panel{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:9px}
+.vlp-head{display:flex;flex-direction:column;gap:2px}
+.vlp-head b{font-size:13px}
+.vlp-head span{font-size:11px;color:var(--muted);line-height:1.6}
+.vlp-input{width:100%;background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:11px;padding:11px 13px;font-size:12.5px;outline:none;transition:border-color .15s,box-shadow .15s}
+.vlp-input:focus{border-color:var(--aqua);box-shadow:0 0 0 3px rgba(92,225,230,.13)}
+.vlp-hint{font-size:11.5px;line-height:1.6;color:var(--muted);min-height:18px}
+.vlp-hint.ok{color:#7CFFB2}
+.vlp-hint.err{color:var(--coral)}
+.editor-body .video-link-card{max-width:100%;caret-color:transparent}
+.editor-body .video-link-card .vl-thumb{cursor:pointer}
+.editor-body .video-link-card .vl-link{position:relative;z-index:2}
+.btn:focus-visible,.tb-btn:focus-visible,.c-tab:focus-visible,.set-tab:focus-visible,.pic-tabs button:focus-visible{outline:2px solid var(--aqua);outline-offset:2px}
+.draft-card,.it-card,.post-card{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.draft-card:hover,.it-card:hover{transform:translateY(-2px);border-color:rgba(92,225,230,.38);box-shadow:0 18px 44px -26px rgba(0,0,0,.8)}
+.toolbar .tb-btn{min-width:34px}
+@media(max-width:720px){.editor-body .video-link-card{max-width:100%}}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+}
+
+.vlp-demo{float:right;color:var(--aqua);font-size:11px;font-weight:700;text-decoration:none}
+.vlp-demo:hover{text-decoration:underline}
+
+.kbd-hint{font-size:10px;color:var(--muted);opacity:.72;white-space:nowrap}
+@media(max-width:1100px){.kbd-hint{display:none}}

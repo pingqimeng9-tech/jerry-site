@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>视频链接组件演示 · Jerry CMS</title>
+<link rel="stylesheet" href="/assets/video-embed.css">
+<script src="/assets/video-embed.js"></script>
+<style>
+  :root{--ink:#fff;--muted:#c9c6e8;--violet:#B18CFF;--aqua:#5CE1E6;--coral:#FF7A5C;--pink:#FF8CD9;--line:rgba(255,255,255,.16)}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;color:var(--ink);font-family:'Noto Sans SC',system-ui,sans-serif;background:radial-gradient(circle at 20% 0%,#6A5CFF55,transparent 42%),radial-gradient(circle at 80% 20%,#FF8CD955,transparent 42%),linear-gradient(135deg,#0e0c22,#151033,#0e1a3a,#130e28)}
+  .wrap{max-width:860px;margin:0 auto;padding:44px 20px 80px}
+  .top{display:flex;align-items:center;gap:14px;margin-bottom:26px;flex-wrap:wrap}
+  .brand{font-family:'JetBrains Mono',monospace;font-weight:700;letter-spacing:.02em}
+  .brand b{color:var(--aqua)}
+  .top a{margin-left:auto;color:var(--muted);text-decoration:none;font-size:13px;border:1px solid var(--line);border-radius:999px;padding:8px 14px}
+  .top a:hover{color:#fff;background:rgba(255,255,255,.08)}
+  .card{background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:22px;padding:24px;backdrop-filter:blur(16px);box-shadow:0 24px 70px -30px #000}
+  h1{font-size:clamp(24px,4vw,34px);margin:0 0 8px}
+  .sub{color:var(--muted);font-size:13.5px;line-height:1.8;margin:0 0 20px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+  input{width:100%;background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:#fff;font:inherit;font-size:13px;outline:none}
+  input:focus{border-color:var(--aqua);box-shadow:0 0 0 3px rgba(92,225,230,.13)}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+  .btn{border:0;border-radius:12px;padding:11px 20px;font:700 13px 'Noto Sans SC',system-ui,sans-serif;cursor:pointer;background:linear-gradient(120deg,var(--coral),var(--pink));color:#fff}
+  .btn.ghost{background:rgba(255,255,255,.08);color:#fff;border:1px solid var(--line)}
+  .hint{font-size:12px;color:var(--muted);line-height:1.7;min-height:18px}
+  .hint.ok{color:#7CFFB2}.hint.err{color:var(--coral)}
+  #preview{margin-top:18px}
+  .empty{border:1px dashed var(--line);border-radius:16px;padding:40px 20px;text-align:center;color:var(--muted);font-size:13px}
+  .tips{margin-top:22px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  @media(max-width:640px){.tips{grid-template-columns:1fr}}
+  .tip{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:14px;padding:13px 15px;font-size:12px;line-height:1.7;color:var(--muted)}
+  .tip b{display:block;color:#fff;margin-bottom:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">Jerry <b>CMS</b> / 视频链接组件</div>
+    <a href="/admin/editor.html?id=new">打开编辑器官 ↗</a>
+  </div>
+  <div class="card">
+    <h1>粘贴链接，生成视频卡片</h1>
+    <p class="sub">支持 B站、YouTube、腾讯视频、优酷、抖音、小红书、微博、西瓜视频等。可站内播放的平台会直接展开播放器，其他平台点击后打开原视频。</p>
+    <div class="grid">
+      <input id="url" placeholder="粘贴自媒体视频链接，例如 https://www.bilibili.com/video/BV...">
+      <input id="title" placeholder="可选：卡片标题">
+    </div>
+    <div class="row">
+      <button class="btn" id="make">生成视频卡片</button>
+      <button class="btn ghost" id="clear">清空</button>
+      <span class="hint" id="hint">链接只保存在当前页面，不会上传。</span>
+    </div>
+    <div id="preview"><div class="empty">还没有视频卡片，粘贴链接后点“生成视频卡片”。</div></div>
+    <div class="tips">
+      <div class="tip"><b>管理员编辑</b>编辑器工具栏点 🎬，或在媒体工作台「视频」里粘贴链接。</div>
+      <div class="tip"><b>读者体验</b>文章里显示封面卡片，点击后 B站/YouTube 等直接播放。</div>
+      <div class="tip"><b>素材零上传</b>视频放在原平台，站点只保存链接，不占仓库体积。</div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var url=document.getElementById('url'), title=document.getElementById('title'), hint=document.getElementById('hint'), preview=document.getElementById('preview');
+  function update(){
+    var v=url.value.trim();
+    if(!v){ hint.textContent='链接只保存在当前页面，不会上传。'; hint.className='hint'; return; }
+    var meta=JerryVideo.parse(v);
+    if(!meta){ hint.textContent='请输入以 http:// 或 https:// 开头的链接'; hint.className='hint err'; return; }
+    hint.textContent='已识别：'+meta.label+(meta.embed?' · 支持站内播放':' · 点击后打开原视频'); hint.className='hint ok';
+  }
+  function make(){
+    var v=url.value.trim(); var meta=JerryVideo.parse(v);
+    if(!meta){ update(); return; }
+    preview.innerHTML=JerryVideo.cardHtml(v, title.value.trim());
+    JerryVideo.enhance(preview);
+  }
+  url.addEventListener('input', update);
+  document.getElementById('make').addEventListener('click', make);
+  document.getElementById('clear').addEventListener('click', function(){ url.value=''; title.value=''; preview.innerHTML='<div class="empty">还没有视频卡片，粘贴链接后点“生成视频卡片”。</div>'; update(); url.focus(); });
+  url.addEventListener('keydown', function(e){ if(e.key==='Enter') make(); });
+})();
+</script>
+</body>
+</html>

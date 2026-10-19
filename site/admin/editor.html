@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jerry CMS · 编辑器</title>
 <link rel="stylesheet" href="./admin.css">
+<link rel="stylesheet" href="/assets/video-embed.css">
+<script src="/assets/video-embed.js"></script>
 <script src="/admin/studio/cms-adapter.js"></script>
 <script src="/admin/admin-auth.js"></script>
 <script src="/assets/site-embed.js" defer></script>
@@ -16,7 +18,9 @@
     <button type="button" class="btn ghost ne-aside-toggle" id="asideToggle" onclick="document.body.classList.add('aside-open')">⚙️ 属性</button>
     <h1><span class="kicker" style="margin:0">Editor</span><span id="topTitle" class="dim" style="font-weight:600;font-size:13px">新建文章</span></h1>
     <div class="right">
+      <span class="kbd-hint mono">Ctrl+S 草稿 · Ctrl+Enter 发布</span>
       <span class="dim mono" style="font-size:11px" id="saveState"></span>
+      <button class="btn ghost" id="btnPreview">👁 预览</button>
       <button class="btn ghost" id="btnDraft">💾 存为草稿</button>
       <button class="btn primary" id="btnPublish">🚀 发布并上线</button>
     </div>
@@ -129,6 +133,13 @@
     <div id="picVideoBox" style="display:none">
       <div class="pic-drop" id="videoDrop"><div class="big">🎬</div><div>点击或拖拽视频到此处</div><div class="dim" style="font-size:11px">mp4 / webm / mov · 上传到 videos/posts/</div></div>
       <input type="file" id="videoFile" accept="video/*" style="display:none">
+      <div class="video-link-panel">
+        <div class="vlp-head"><b>或粘贴自媒体视频链接 <a href="/video-demo.html" target="_blank" rel="noopener" class="vlp-demo">在线演示 ↗</a></b><span>B站 / 抖音 / 视频号 / YouTube / 腾讯视频 / 优酷</span></div>
+        <input id="videoUrlInput" class="vlp-input" placeholder="https://www.bilibili.com/video/BV...">
+        <input id="videoTitleInput" class="vlp-input" placeholder="可选：卡片标题（留空自动使用平台名）">
+        <div id="videoUrlHint" class="vlp-hint">粘贴链接后会自动识别平台；发布后读者点击卡片即可播放。</div>
+        <button type="button" class="btn primary" id="videoUrlInsert" onclick="insertVideoLink()">插入视频卡片</button>
+      </div>
     </div>
     <div id="picPkgBox" style="display:none">
       <div class="pic-drop" id="pkgDrop"><div class="big">📦</div><div>选择 zip 网站包 或 单个 .html 文件</div><div class="dim" style="font-size:11px">解压后在文章内实时预览（默认不加载，右上 ⋯ 可下载/全屏）</div></div>
@@ -169,7 +180,7 @@ const T = [
   {t:'B',a:'bold',cls:'tb-h'},{t:'I',a:'italic',cls:'tb-h'},{t:'U',a:'underline',cls:'tb-h'},{t:'S',a:'strikeThrough',cls:'tb-h'},{t:'</>',a:'formatBlock',v:'pre',cls:'tb-h'},'|',
   {t:'≡',a:'justifyLeft'},{t:'↔',a:'justifyCenter'},{t:'≣',a:'justifyRight'},'|',
   {t:'•',a:'insertUnorderedList'},{t:'1.',a:'insertOrderedList',cls:'tb-h'},{t:'☑',a:'task'},{t:'❝',a:'formatBlock',v:'blockquote'},'|',
-  {t:'x²',a:'superscript',cls:'tb-h'},{t:'x₂',a:'subscript',cls:'tb-h'},{t:'🔗',a:'link',cb:doLink},{t:'🖼',a:'image',cb:openPicEditor},{t:'📎',a:'attach',cb:openAttach},{t:'—',a:'hr'},'|',
+  {t:'x²',a:'superscript',cls:'tb-h'},{t:'x₂',a:'subscript',cls:'tb-h'},{t:'🔗',a:'link',cb:doLink},{t:'🖼',a:'image',cb:openPicEditor},{t:'🎬',a:'videoLink',title:'插入自媒体视频链接',cls:'tb-wide tb-video'},{t:'📎',a:'attach',cb:openAttach},{t:'—',a:'hr'},'|',
   {t:'A',color:'text',cls:'tb-h'},{t:'🖍',color:'hl'}
 ];
 function buildToolbar(){
@@ -196,7 +207,7 @@ function buildToolbar(){
         wrap.appendChild(p); };
       render(); tb.appendChild(wrap); return;
     }
-    const b=document.createElement('button'); b.type='button'; b.title=x.t; b.className='tb-btn'+(x.cls?' '+x.cls:'');
+    const b=document.createElement('button'); b.type='button'; b.title=x.title||x.t; b.className='tb-btn'+(x.cls?' '+x.cls:'');
     b.innerHTML = x.t;
     b.onmousedown = e=>e.preventDefault();
     b.onclick = ()=>runCmd(x);
@@ -207,6 +218,7 @@ function buildToolbar(){
 function runCmd(x){
   if (x.a==='link'){ doLink(); return; }
   if (x.a==='image'){ openPicEditor(); return; }
+  if (x.a==='videoLink'){ openVideoLink(); return; }
   if (x.a==='task'){ insertTask(); return; }
   document.execCommand(x.a, false, x.v||null);
   markDirty(); body.focus(); refreshToolbar();
@@ -252,6 +264,38 @@ function doLink(){
   markDirty(); refreshToolbar();
 }
 function openPicEditor(){ openPic('editor'); }
+function openVideoLink(){
+  openPic('editor');
+  picTab('video');
+  setTimeout(()=>{ const el=document.getElementById('videoUrlInput'); if(el){ el.focus(); el.select(); } }, 60);
+}
+function updateVideoUrlHint(){
+  const input=document.getElementById('videoUrlInput');
+  const hint=document.getElementById('videoUrlHint');
+  if(!input || !hint || !window.JerryVideo) return;
+  const url=input.value.trim();
+  if(!url){ hint.textContent='粘贴链接后会自动识别平台；发布后读者点击卡片即可播放。'; hint.className='vlp-hint'; return; }
+  const meta=JerryVideo.parse(url);
+  if(!meta){ hint.textContent='请输入以 http:// 或 https:// 开头的链接'; hint.className='vlp-hint err'; return; }
+  hint.textContent='已识别：'+meta.label+(meta.embed?' · 支持站内直接播放':' · 将以原链接打开'); hint.className='vlp-hint ok';
+}
+function insertVideoLink(){
+  const input=document.getElementById('videoUrlInput');
+  const titleInput=document.getElementById('videoTitleInput');
+  if(!input || !window.JerryVideo) return;
+  const url=input.value.trim();
+  const meta=JerryVideo.parse(url);
+  if(!meta){ toast('请输入有效的 http(s) 视频链接'); input.focus(); return; }
+  const html=JerryVideo.cardHtml(url, titleInput ? titleInput.value.trim() : '');
+  body.focus();
+  document.execCommand('insertHTML', false, '<p><br></p>'+html+'<p><br></p>');
+  JerryVideo.enhance(body, { editor:true });
+  if(input) input.value='';
+  if(titleInput) titleInput.value='';
+  updateVideoUrlHint();
+  markDirty(); closePic();
+  toast('🎬 视频卡片已插入，发布后读者点击即可播放');
+}
 const body = document.getElementById('body');
 document.execCommand('styleWithCSS', false, true);
 document.execCommand('defaultParagraphSeparator', false, 'p');
@@ -611,6 +655,13 @@ function htmlToMd(root){
     if(t==='br') return;
     if(t==='hr'){ push('---'); return; }
     if(/^h[1-6]$/.test(t)){ push('#'.repeat(+t[1])+' '+inlineText(el)); return; }
+    if(t==='div' && el.className && /video-link-card/.test(el.className)){
+      const clone=el.cloneNode(true);
+      clone.removeAttribute('data-vl-bound');
+      clone.querySelectorAll('[data-vl-bound]').forEach(x=>x.removeAttribute('data-vl-bound'));
+      push(clone.outerHTML.replace(/\s+contenteditable="[^"]*"/g,''));
+      return;
+    }
     if(t==='div' && el.className && /site-preview/.test(el.className)){
       if(el.dataset && el.dataset.src){
         push(previewBlockHtml({ entry: el.dataset.src, zip: el.dataset.zip||'', name: el.dataset.name||'网站预览', w: el.getAttribute('data-w')||'', ratio: el.getAttribute('data-ratio')||'' }));
@@ -743,6 +794,7 @@ async function load(){
     if(window.__ne && window.__ne.setAnnotations) window.__ne.setAnnotations(p.annotations || []);
     renderTags(); syncCover(false); setMode(); clean();
     if(window.__jerrySiteEmbedScan) window.__jerrySiteEmbedScan();
+    if(window.JerryVideo) JerryVideo.enhance(body, { editor:true });
   }catch(e){ toast('加载失败：'+e.message); }
 }
 function setMode(){
@@ -861,6 +913,8 @@ videoDrop.ondragover=e=>{e.preventDefault();videoDrop.classList.add('drag');};
 videoDrop.ondragleave=()=>videoDrop.classList.remove('drag');
 videoDrop.ondrop=e=>{e.preventDefault();videoDrop.classList.remove('drag'); if(e.dataTransfer.files[0])doUploadVideo(e.dataTransfer.files[0]);};
 videoFile.onchange=()=>{if(videoFile.files[0])doUploadVideo(videoFile.files[0]);};
+const videoUrlInput=document.getElementById('videoUrlInput');
+if(videoUrlInput) videoUrlInput.addEventListener('input', updateVideoUrlHint);
 const pkgDrop=document.getElementById('pkgDrop'), pkgFile=document.getElementById('pkgFile');
 pkgDrop.onclick=()=>pkgFile.click();
 pkgDrop.ondragover=e=>{e.preventDefault();pkgDrop.classList.add('drag');};
@@ -1008,15 +1062,26 @@ setInterval(()=>{
           document.getElementById('date').value = doc.date||'';
           syncCover();
           if(doc.markdown) document.getElementById('body').innerHTML = doc.markdown;
+          if(window.JerryVideo) JerryVideo.enhance(document.getElementById('body'), { editor:true });
         }
       }
     }
   } catch(e){}
 })();
+document.getElementById('btnPreview').onclick=()=>{
+  if(!doc.id || doc.id==='new'){ toast('先点「存为草稿」再预览'); return; }
+  window.open('/post.html?id='+encodeURIComponent(doc.id), '_blank', 'noopener');
+};
 document.getElementById('btnDraft').onclick=()=>save('draft');
 document.getElementById('btnDraft2').onclick=()=>save('draft');
 document.getElementById('btnPublish').onclick=()=>save('published');
 document.getElementById('btnPublish2').onclick=()=>save('published');
+
+document.addEventListener('keydown', (e)=>{
+  if(!(e.ctrlKey || e.metaKey)) return;
+  if(e.key.toLowerCase()==='s'){ e.preventDefault(); save('draft', true); }
+  if(e.key==='Enter'){ e.preventDefault(); save('published'); }
+});
 
 buildToolbar();
 load();
