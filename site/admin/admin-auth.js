@@ -98,10 +98,14 @@
     });
   }
 
-  if (Adapter.getToken()) {
-    Adapter.install();
-    return;
+  function boot() {
+    if (Adapter.getToken()) {
+      Adapter.install();
+      return;
+    }
+    showGate(function () { Adapter.install(); });
   }
 
-  showGate(function () { Adapter.install(); });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
 })();
