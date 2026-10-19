@@ -52,16 +52,16 @@
 var grid = document.getElementById('friend-grid');
 fetch('/api/friends').then(r=>r.json()).then(d=>{
   var items = (d.items||[]).filter(f=>f.url);
-  if(!items.length){ grid.innerHTML = '<div class="empty-tip">还没有友链～（本地启动 CMS 后，在 内容管理 里添加）</div>'; return; }
+  if(!items.length){ grid.innerHTML = '<div class="empty-tip">还没有友链，欢迎来申请～</div>'; return; }
   grid.innerHTML = items.map(function(f){
     var av = f.avatar
-      ? '<img class="friend-avatar" src="'+esc(f.avatar)+'" alt="'+esc(f.name)+'" onerror="this.replaceWith(document.createTextNode(\'🌐\'))">'
+      ? '<img class="friend-avatar" loading="lazy" decoding="async" src="'+esc(f.avatar)+'" alt="'+esc(f.name)+'" onerror="this.replaceWith(document.createTextNode(\'🌐\'))">'
       : '<div class="friend-avatar">🌐</div>';
     return '<a class="friend-card" href="'+esc(f.url)+'" target="_blank" rel="noopener noreferrer">' + av +
       '<div><div class="friend-name">'+esc(f.name||'未命名')+'</div>' +
       '<div class="friend-desc">'+esc(f.desc||'')+'</div></div></a>';
   }).join('');
-}).catch(function(){ grid.innerHTML = '<div class="empty-tip">加载失败：需要本地 CMS 服务</div>'; });
+}).catch(function(){ grid.innerHTML = '<div class="empty-tip">友链加载失败，请稍后重试</div>'; });
 
 function esc(s){ var d=document.createElement('div'); d.textContent=s==null?'':String(s); return d.innerHTML; }
 </script>
