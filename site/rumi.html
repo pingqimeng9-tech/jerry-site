@@ -454,9 +454,9 @@
   <section class="section" id="reviews" data-module="reviews">
     <div class="section-head center"><div class="eyebrow-tag">🎥 抖音精选</div><h2 class="kawaii">动画片段 &amp; 家长说</h2></div>
     <div class="reel-row">
-      <div class="reel-card"><div class="reel-video"><video loop playsinline muted preload="metadata" poster="images/rumi/hero-frames/frame_012.webp" onplay="this.nextElementSibling.style.display='none'"><source src="videos/reel-1.mp4"></video><div class="reel-placeholder"><div class="play">▶</div><span>动画片段即将上线</span></div></div></div>
-      <div class="reel-card"><div class="reel-video"><video loop playsinline muted preload="metadata" poster="images/rumi/hero-frames/frame_028.webp" onplay="this.nextElementSibling.style.display='none'"><source src="videos/reel-2.mp4"></video><div class="reel-placeholder"><div class="play">▶</div><span>动画片段即将上线</span></div></div></div>
-      <div class="reel-card"><div class="reel-video"><video loop playsinline muted preload="metadata" poster="images/rumi/hero-frames/frame_044.webp" onplay="this.nextElementSibling.style.display='none'"><source src="videos/reel-3.mp4"></video><div class="reel-placeholder"><div class="play">▶</div><span>动画片段即将上线</span></div></div></div>
+      <div class="reel-card"><div class="reel-video"><video loop playsinline muted preload="none" poster="images/rumi/hero-frames/frame_012.webp" data-src="videos/reel-1.mp4" onplay="this.nextElementSibling.style.display='none'"></video><div class="reel-placeholder"><div class="play">▶</div><span>动画片段即将上线</span></div></div></div>
+      <div class="reel-card"><div class="reel-video"><video loop playsinline muted preload="none" poster="images/rumi/hero-frames/frame_028.webp" data-src="videos/reel-2.mp4" onplay="this.nextElementSibling.style.display='none'"></video><div class="reel-placeholder"><div class="play">▶</div><span>动画片段即将上线</span></div></div></div>
+      <div class="reel-card"><div class="reel-video"><video loop playsinline muted preload="none" poster="images/rumi/hero-frames/frame_044.webp" data-src="videos/reel-3.mp4" onplay="this.nextElementSibling.style.display='none'"></video><div class="reel-placeholder"><div class="play">▶</div><span>动画片段即将上线</span></div></div></div>
     </div>
   </section>
   <section class="section" id="contact" data-module="contact">
@@ -700,15 +700,42 @@
     document.documentElement.style.setProperty('--mx', e.clientX + 'px');
     document.documentElement.style.setProperty('--my', e.clientY + 'px');
   });
+
+  document.querySelectorAll('.reel-video').forEach((box) => {
+    const video = box.querySelector('video');
+    const note = box.querySelector('.reel-placeholder');
+    if (!video) return;
+    video.addEventListener('error', () => {
+      if (!note) return;
+      note.style.display = 'flex';
+      note.innerHTML = '<span>视频即将上线</span>';
+    });
+    box.addEventListener('click', () => {
+      if (note) note.style.display = 'none';
+      if (!video.getAttribute('src') && video.dataset.src) video.src = video.dataset.src;
+      video.play().catch(() => {});
+    });
+  });
 })();
 
 function copyText(id, btn){
   const text = document.getElementById(id).textContent;
-  navigator.clipboard.writeText(text).then(()=>{
+  const done = () => {
     const original = btn.textContent;
     btn.textContent = '已复制';
-    setTimeout(()=>{ btn.textContent = original; }, 1600);
-  });
+    btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent = original; btn.classList.remove('copied'); }, 1600);
+  };
+  const fallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.cssText = 'position:fixed;left:-9999px;top:0;';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); }
+    catch(e) { btn.textContent = '复制失败'; setTimeout(()=>{ btn.textContent = '复制'; }, 1600); }
+    ta.remove();
+  };
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done).catch(fallback);
+  else fallback();
 }
 </script>
 
