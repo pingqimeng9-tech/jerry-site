@@ -165,3 +165,30 @@ npm run gen:templates
 ```
 
 修改 `site/assets/templates/*.js` 后运行一次即可更新 `site/data/templates.json`。
+
+## Studio 组件工作台
+
+入口：`/admin/studio.html`
+
+- 左侧组件库：背景、站点资料卡；支持启用/停用和选中编辑。
+- 中间实时画布：桌面/手机预览，背景和资料卡即时更新。
+- 右侧属性检查器：由组件 `schema` 自动生成，不手写表单。
+- 保存后写入 `site.config.json`：
+  - `background`：背景风格、底色、强调色、氛围特效、背景图。
+  - `profile`：站点名、作者、简介、头像、GitHub。
+  - `studio`：组件布局（启用状态、槽位、版本）。
+- 背景配置会被 `site-kit.js` 应用到博客、友链、项目等页面。
+
+组件文件：
+
+```text
+site/admin/studio/component-runtime.js   组件注册 / schema 检查器
+site/admin/studio/components/background.js
+site/admin/studio/components/profile.js
+```
+
+新增组件只要：
+
+1. 在 `components/` 下新建文件并调用 `JerryComponents.register({...})`。
+2. 在 `studio.html` 引入该脚本。
+3. 组件定义包含 `id / name / icon / slot / schema / render / fromSection / toSection` 即可出现在工作台。

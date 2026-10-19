@@ -108,6 +108,25 @@
   function applyBackground() {
     var bg = CFG.background || {};
     if (bg.useGradient === false) document.body.classList.add('jsk-no-gradient');
+    if (bg.style || bg.color || bg.accent) {
+      var safe = function (v, fallback) { return /^#[0-9a-f]{6}$/i.test(String(v || '')) ? v : fallback; };
+      var color = safe(bg.color, '#0e0c22');
+      var accent = safe(bg.accent, '#6A5CFF');
+      var css = '';
+      if (bg.useGradient === false || bg.style === 'solid') {
+        css = 'body,body.jsk-no-gradient{background:' + color + ' !important}';
+      } else if (bg.style === 'mesh') {
+        css = 'body,body.jsk-no-gradient{background:radial-gradient(circle at 18% 22%,' + accent + '88,transparent 42%),radial-gradient(circle at 82% 18%,#FF8CD955,transparent 45%),radial-gradient(circle at 70% 80%,#5CE1E655,transparent 45%),' + color + ' !important;background-attachment:fixed !important}';
+      } else if (bg.style === 'grid') {
+        css = 'body,body.jsk-no-gradient{background-color:' + color + ' !important;background-image:radial-gradient(' + accent + '66 1px,transparent 1.5px) !important;background-size:18px 18px !important}';
+      } else {
+        css = 'body,body.jsk-no-gradient{background:radial-gradient(circle at 50% 28%,' + accent + '66,transparent 55%),radial-gradient(circle at 14% 82%,#5CE1E644,transparent 45%),radial-gradient(circle at 86% 72%,#FF8CD933,transparent 48%),' + color + ' !important;background-attachment:fixed !important}';
+      }
+      var st = document.getElementById('jsk-bg-style') || document.createElement('style');
+      st.id = 'jsk-bg-style';
+      st.textContent = css;
+      document.head.appendChild(st);
+    }
     var imgs = (bg.bgImages || []).filter(Boolean);
     if (!imgs.length) return;
     var layer = document.createElement('div');
