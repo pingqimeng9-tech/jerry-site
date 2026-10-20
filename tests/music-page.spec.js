@@ -1,5 +1,12 @@
 const { test, expect } = require('@playwright/test');
 
+async function ensurePlaylistOpen(page) {
+  if (!(await page.locator('#trackList').isVisible())) {
+    await page.locator('#mobileListBtn').click();
+    await expect(page.locator('.library-card')).toBeVisible();
+  }
+}
+
 test('music page loads the default playlist and supports add/remove', async ({ page }) => {
   test.setTimeout(60000);
   await page.route(/https:\/\/p\d+\.music\.126\.net\/.*/, route => route.abort());
@@ -21,6 +28,7 @@ test('music page loads the default playlist and supports add/remove', async ({ p
   }));
 
   await page.goto('/music.html');
+  await ensurePlaylistOpen(page);
   await expect(page.locator('.track-row')).toHaveCount(71);
   await expect(page.locator('#playlistName')).toContainText('我喜欢的音乐');
   await expect(page.locator('#jcap')).toHaveCount(0);
@@ -71,6 +79,10 @@ test('music page has no horizontal overflow', async ({ page }) => {
 test('3D record shelf navigates with 3D transforms', async ({ page }) => {
   await page.route(/https:\/\/p\d+\.music\.126\.net\/.*/, route => route.abort());
   await page.goto('/music.html');
+  if (!(await page.locator('#shelfStage').isVisible())) {
+    await page.locator('#mobileShelfBtn').click();
+    await expect(page.locator('.shelf-section')).toBeVisible();
+  }
   const cards = page.locator('.shelf-item');
   expect(await cards.count()).toBeGreaterThanOrEqual(5);
   const transform = await cards.first().evaluate(el => el.style.transform);
@@ -104,7 +116,9 @@ test('immersive lyrics centers the active line and exits with Escape', async ({ 
   }));
 
   await page.goto('/music.html');
+  await ensurePlaylistOpen(page);
   await page.locator('.track-row').first().click();
+  await expect(page.locator('#immersiveBtn')).toBeVisible();
   await page.locator('#immersiveBtn').click();
 
   const overlay = page.locator('#immersive');
@@ -123,4 +137,33 @@ test('immersive lyrics centers the active line and exits with Escape', async ({ 
 
   await page.keyboard.press('Escape');
   await expect(overlay).not.toHaveClass(/open/);
+});
+
+test('mobile player is one screen and opens playlist/shelf as panels', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile', 'mobile layout only');
+  await page.goto('/music.html');
+  await expect(page.locator('.player-card')).toBeVisible();
+  await expect(page.locator('#mobileListBtn')).toBeVisible();
+
+  const layout = await page.evaluate(() => ({
+    viewport: window.innerHeight,
+    scrollHeight: document.documentElement.scrollHeight,
+    bodyOverflow: getComputedStyle(document.body).overflow
+  }));
+  expect(layout.bodyOverflow).toBe('hidden');
+  expect(layout.scrollHeight).toBeLessThanOrEqual(layout.viewport + 1);
+
+  await page.locator('#mobileListBtn').click();
+  await expect(page.locator('body')).toHaveClass(/mobile-list-open/);
+  await expect(page.locator('.library-card')).toBeVisible();
+  await expect(page.locator('.track-row')).toHaveCount(71);
+  await page.locator('#mobileListClose').click();
+  await expect(page.locator('body')).not.toHaveClass(/mobile-list-open/);
+
+  await page.locator('#mobileShelfBtn').click();
+  await expect(page.locator('body')).toHaveClass(/mobile-shelf-open/);
+  await expect(page.locator('.shelf-section')).toBeVisible();
+  await expect(page.locator('#shelfStage')).toBeVisible();
+  await page.locator('#mobileShelfClose').click();
+  await expect(page.locator('body')).not.toHaveClass(/mobile-shelf-open/);
 });

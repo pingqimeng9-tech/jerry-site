@@ -415,6 +415,7 @@
       setFocus: setFocus,
       setCurrent: setCurrent,
       setPlaying: setPlaying,
+      resize: resize,
       dispose: function () {
         cancelAnimationFrame(raf);
         ro.disconnect();
