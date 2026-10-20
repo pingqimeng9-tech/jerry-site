@@ -1,1 +1,0 @@
-import{Ns as e}from"../lucide-icons-NImRAyZZ.js";var t={name:`clock-12`,size:24,node:[[`circle`,{cx:`12`,cy:`12`,r:`10`,key:`1mglay`}],[`path`,{d:`M12 6v6`,key:`1ipuwl`}]]};t.node;var n=e(t);export{t as __iconData,n as default};

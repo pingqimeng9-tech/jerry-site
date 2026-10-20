@@ -12,7 +12,7 @@
     var p = section || {};
     var social = p.social || {};
     return {
-      siteName: p.siteName || 'JERRY.DEV',
+      siteName: p.siteName || 'callmiruko.cc',
       authorName: p.authorName || 'Jerry',
       bio: p.bio || '思维输出 · 长期记录',
       avatarUrl: p.avatarUrl || '',
@@ -22,7 +22,7 @@
 
   function toSection(config, current) {
     var next = Object.assign({}, current || {});
-    next.siteName = config.siteName || 'JERRY.DEV';
+    next.siteName = config.siteName || 'callmiruko.cc';
     next.authorName = config.authorName || 'Jerry';
     next.bio = config.bio || '';
     next.avatarUrl = config.avatarUrl || '';
@@ -51,7 +51,7 @@
     slot: 'sidebar',
     defaults: fromSection({}),
     schema: [
-      { key: 'siteName', label: '站点名称', type: 'text', placeholder: 'JERRY.DEV' },
+      { key: 'siteName', label: '站点名称', type: 'text', placeholder: 'callmiruko.cc' },
       { key: 'authorName', label: '作者昵称', type: 'text', placeholder: 'Jerry' },
       { key: 'bio', label: '个人简介', type: 'textarea', rows: 3 },
       { key: 'avatarUrl', label: '头像', type: 'image', placeholder: '头像 URL 或上传' },

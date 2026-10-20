@@ -1,0 +1,1 @@
+{"name":"Folia Music","short_name":"Folia","description":"A beautiful AI-themed music player","start_url":"/player/","display":"standalone","background_color":"#09090b","theme_color":"#09090b","lang":"en","scope":"/player/","icons":[{"src":"icon.svg","sizes":"512x512","type":"image/svg+xml","purpose":"any maskable"}]}

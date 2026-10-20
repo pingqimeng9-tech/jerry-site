@@ -144,7 +144,7 @@
       <div class="studio-canvas" id="studioPreview">
         <div id="studioBg"></div>
         <div class="studio-page">
-          <div class="studio-nav"><b id="previewSite">JERRY.DEV</b><span>首页</span><span>博客</span><span>项目</span><span>友链</span></div>
+          <div class="studio-nav"><b id="previewSite">callmiruko.cc</b><span>首页</span><span>博客</span><span>项目</span><span>友链</span></div>
           <div class="studio-body">
             <aside class="studio-profile" id="studioProfile"><div id="studioMusic"></div></aside>
             <section class="studio-content">
@@ -244,7 +244,7 @@
       if (isEnabled('music')) musicComp.render(musicEl, state.music);
       else musicEl.innerHTML = '';
     }
-    document.getElementById('previewSite').textContent = state.profile.siteName || 'JERRY.DEV';
+    document.getElementById('previewSite').textContent = state.profile.siteName || 'callmiruko.cc';
     document.getElementById('previewHero').textContent = state.profile.bio ? state.profile.bio : '用组件搭建你的站点';
     document.getElementById('previewSub').textContent = (state.profile.authorName || 'Jerry') + ' · 这是 Studio 的实时预览，保存后会同步到站点配置。';
   }
@@ -287,7 +287,7 @@
       markDirty();
       renderPreview();
       if (state.selected === 'profile') {
-        document.getElementById('previewSite').textContent = state.profile.siteName || 'JERRY.DEV';
+        document.getElementById('previewSite').textContent = state.profile.siteName || 'callmiruko.cc';
       }
     });
   }

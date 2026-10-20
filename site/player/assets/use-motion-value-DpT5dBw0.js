@@ -1,0 +1,1 @@
+import{i as e}from"./preload-helper-DOwwPQP2.js";import{Ps as t}from"./lucide-icons-DMzZ2iDi.js";import{Ii as n}from"./noLyricLines-BoR3KOzV.js";import{W as r,n as i}from"./proxy-DWhXMlk2.js";var a=e(t(),1);function o(e){let t=r(()=>n(e)),{isStatic:o}=(0,a.useContext)(i);if(o){let[,n]=(0,a.useState)(e);(0,a.useEffect)(()=>t.on(`change`,n),[])}return t}export{o as t};

@@ -1,1 +1,0 @@
-import{fr as e,vr as t}from"./bootstrap-fAWdfNzT.js";export{e as getNavidromeConfig,t as navidromeApi};

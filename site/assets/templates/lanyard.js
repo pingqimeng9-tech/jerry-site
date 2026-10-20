@@ -88,7 +88,7 @@ mount(h,ctx){
     }else{
       c.fillStyle='#151515';c.textAlign='center';c.textBaseline='middle';c.font=`700 ${cw*.34}px Helvetica,Arial,sans-serif`;c.fillText('J',0,cardH*.3);
       c.fillStyle='rgba(21,21,21,.6)';c.font=`${cw*.062}px ui-monospace,Menlo,monospace`;
-      ['JERRY-SITE','模板库 / TEMPLATES','ID 0001 · VALID'].forEach((s,i)=>c.fillText(s,0,cardH*.52+i*cw*.12));
+      ['CALLMIRUKO.CC','模板库 / TEMPLATES','ID 0001 · VALID'].forEach((s,i)=>c.fillText(s,0,cardH*.52+i*cw*.12));
       c.fillStyle='#151515';for(let i=0;i<26;i++)c.fillRect(x0+m+i*((cw-m*2)/26),cardH*.78,(i%3?1.1:2.4)*U,cw*.18);
     }
     if(P.GLOSS>0){

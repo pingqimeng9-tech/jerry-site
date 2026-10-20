@@ -5,7 +5,7 @@ test('site keeps the music player but removes the capsule scrollbar', async ({ p
   await page.goto('/blog.html');
   await expect(page.locator('#jm')).toHaveCount(1);
   await expect(page.locator('#jcap')).toHaveCount(0);
-  await expect(page.locator('nav .links a[href="/folia/"]')).toHaveCount(1);
+  await expect(page.locator('nav .links a[href="/player/"]')).toHaveCount(1);
   const scrollbarWidth = await page.evaluate(() => getComputedStyle(document.documentElement).scrollbarWidth);
   expect(scrollbarWidth).not.toBe('none');
 });

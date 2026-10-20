@@ -391,7 +391,7 @@
         '<div class="jm-hd" id="jmFullHd" title="收起"><span class="d"><i></i><i></i><i></i></span><span>Music Terminal</span><span class="st" id="jmCpSt">○ Paused</span>' +
         '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>' +
         '<div class="ticket-canvas"><div class="ticket-wrapper"><div class="ticket"><div class="t-main"><div class="t-content">' +
-          '<div class="t-header"><div class="t-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>CLOUD</div><div class="t-type">Now Playing</div></div>' +
+          '<div class="t-header"><a class="t-logo" href="/music.html" title="在 Folia 中打开" style="text-decoration:none;color:#fff"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>callmiruko.cc</a><div class="t-type">Now Playing</div></div>' +
           '<div class="t-title" id="jmCpTitle">—</div>' +
           '<div class="t-subtitle" id="jmCpArtist">&nbsp;</div>' +
           '<div class="t-details">' +
@@ -405,7 +405,7 @@
             '<button class="mt-btn" id="jmCpPrev" aria-label="上一首"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM20 5v14l-11-7z"/></svg></button>' +
             '<button class="mt-btn play" id="jmCpPlay" aria-label="播放/暂停"><svg viewBox="0 0 24 24" fill="currentColor" id="jmCpPlayIcon"><path d="M8 5v14l11-7z"/></svg></button>' +
             '<button class="mt-btn" id="jmCpNext" aria-label="下一首"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>' +
-          '</div><div class="t-barcode-id">CLOUD MUSIC · LIVE</div></div>' +
+          '</div><div class="t-barcode-id">CALLMIRUKO.CC · FOLIA</div></div>' +
           '<div><div class="t-admit-text">Cover</div><div class="mt-cover" id="jmCpCover">COVER</div></div>' +
         '</div></div></div>' +
       '</div>';

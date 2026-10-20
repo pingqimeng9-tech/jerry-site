@@ -15,7 +15,7 @@
   var API_BASE = ''; // 本地 CMS 存在时可用 /api/*；线上为静态站，AI/音乐元数据自动降级
 
   var DEFAULTS = {
-    profile: { siteName: 'JERRY.DEV', authorName: 'Jerry', bio: '', avatarUrl: '', defaultPostCover: '', social: {}, navigation: [] },
+    profile: { siteName: 'callmiruko.cc', authorName: 'Jerry', bio: '', avatarUrl: '', defaultPostCover: '', social: {}, navigation: [] },
     background: { useGradient: true, bgImages: [], effect: 'none' },
     danmaku: { enabled: false, texts: [], speed: 12, opacity: 0.5 },
     aiCat: { enabled: false, name: '小猫', greeting: '喵？' },
@@ -404,7 +404,7 @@
       .map(function (l) { return '<a href="' + esc(l.href) + '" target="_blank" rel="noopener">' + esc(l.label) + '</a>'; }).join('');
     el.innerHTML =
       (links ? '<div class="jsk-footer-links">' + links + '</div>' : '') +
-      esc(f.text || '© ' + (CFG.profile.siteName || 'JERRY.DEV')) +
+      esc(f.text || '© ' + (CFG.profile.siteName || 'callmiruko.cc')) +
       (f.beian ? ' · <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener" style="color:inherit">' + esc(f.beian) + '</a>' : '');
     document.body.appendChild(el);
   }

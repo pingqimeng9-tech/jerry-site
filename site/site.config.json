@@ -1,6 +1,6 @@
 {
   "profile": {
-    "siteName": "JERRY.DEV",
+    "siteName": "callmiruko.cc",
     "navAfter": "",
     "authorName": "Jerry",
     "bio": "",
@@ -25,7 +25,7 @@
       },
       {
         "label": "音乐",
-        "href": "/folia/"
+        "href": "/player/"
       }
     ]
   },
@@ -140,7 +140,7 @@
     "defaultVolume": 0.5
   },
   "footer": {
-    "text": "© JERRY.DEV · 用热爱发电",
+    "text": "© callmiruko.cc · 用热爱发电",
     "links": [],
     "beian": ""
   },
