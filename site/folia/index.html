@@ -13,10 +13,34 @@
           f.setItem('playback_entry_view','player');
           f.setItem('playback_entry_view_chosen','true');
         }
+        var mobileView = Math.min(window.innerWidth || 9999, (window.screen && window.screen.width) || 9999) <= 640 || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+        if(mobileView) {
+          if(!f.getItem('visualizer_frame_rate')) f.setItem('visualizer_frame_rate','60');
+          if(!f.getItem('visualizer_background_mode')) f.setItem('visualizer_background_mode','common');
+          if(!f.getItem('background_opacity')) f.setItem('background_opacity','0.45');
+          var low = (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4 || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          if(low && !f.getItem('visualizer_mode')) f.setItem('visualizer_mode','still');
+        }
+        if('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(rs) {
+            rs.forEach(function(r) { if(r.scope.indexOf('/folia/') !== -1) r.unregister(); });
+          }).catch(function() {});
+        }
       } catch (e) {}
     </script>
+    <style>
+      html, body, #root { height: 100dvh; min-height: 100dvh; }
+      body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+      @media (max-width: 640px) {
+        html, body, #root { height: 100dvh !important; min-height: 100dvh !important; }
+        .h-screen { height: 100dvh !important; }
+        .min-h-screen { min-height: 100dvh !important; }
+        [class*="backdrop-blur"] { --tw-backdrop-blur: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important; backdrop-filter: blur(8px) !important; }
+        body { overflow-x: hidden; }
+      }
+    </style>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="referrer" content="no-referrer" />
     <meta name="description" content="一个动态歌词播放器，支持 AI 主题生成" />
     <meta name="theme-color" content="#09090b" />
@@ -51,7 +75,7 @@
   <link rel="modulepreload" crossorigin href="/folia/assets/preload-helper-CfzIVnTy.js">
   <link rel="modulepreload" crossorigin href="/folia/assets/modulepreload-polyfill-P2Xu9kJm.js">
   <link rel="modulepreload" crossorigin href="/folia/assets/frameRateLimiter-DYVxXwkE.js">
-<link rel="manifest" href="/folia/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/folia/registerSW.js"></script></head>
+<link rel="manifest" href="/folia/manifest.webmanifest"></head>
   <body>
     <div id="app-splash" role="status" aria-live="polite" aria-label="Loading Folia">
       <div class="app-splash-inner">

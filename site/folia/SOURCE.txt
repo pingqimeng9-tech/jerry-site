@@ -10,3 +10,7 @@ https://github.com/chthollyphile/folia-major
 
 Local modification: site/folia/index.html pre-seeds Folia's one-time 0.7.21 onboarding flags
 so the player opens directly; it does not alter Folia's source or subsequent user choices.
+
+Local modifications: /folia/index.html sets viewport-fit=cover, mobile 100dvh/backdrop-blur
+performance overrides, mobile visualizer defaults, skips onboarding, and unregisters Folia's
+service worker to avoid a 15MB mobile precache. Folia's source is otherwise unmodified.
