@@ -8,12 +8,12 @@
         if(!f.getItem('folia_last_seen_guide_version')) f.setItem('folia_last_seen_guide_version','0.7.21');
         if(!f.getItem('folia_last_seen_ponder_onboarding_version')) f.setItem('folia_last_seen_ponder_onboarding_version','0.7.21');
         if(!f.getItem('library_suite_prompt_seen')) f.setItem('library_suite_prompt_seen','true');
-        if(!f.getItem('library_suite')) f.setItem('library_suite','grid');
         if(!f.getItem('playback_entry_view_chosen')) {
           f.setItem('playback_entry_view','player');
           f.setItem('playback_entry_view_chosen','true');
         }
         var mobileView = Math.min(window.innerWidth || 9999, (window.screen && window.screen.width) || 9999) <= 640 || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+        if(!f.getItem('library_suite')) f.setItem('library_suite', mobileView ? 'bravais' : 'grid');
         var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
         var slowNet = !!conn && (conn.saveData === true || /(^|-)2g$|(^|-)3g$|slow-2g/i.test(conn.effectiveType || '') || (typeof conn.downlink === 'number' && conn.downlink > 0 && conn.downlink < 1.5));
         if(mobileView) {
@@ -22,6 +22,7 @@
           if(!f.getItem('background_opacity')) f.setItem('background_opacity', slowNet ? '0.35' : '0.45');
           var low = slowNet || (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4 || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
           if(low && !f.getItem('visualizer_mode')) f.setItem('visualizer_mode','still');
+          if(low || slowNet) document.documentElement.classList.add('folia-perf-low');
         }
         if('serviceWorker' in navigator) {
           navigator.serviceWorker.getRegistrations().then(function(rs) {
@@ -40,6 +41,48 @@
         [class*="backdrop-blur"] { --tw-backdrop-blur: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important; backdrop-filter: blur(8px) !important; }
         body { overflow-x: hidden; }
       }
+      @media (max-width: 768px) {
+        .bravais-field { touch-action: pan-y; }
+        .bravais-root::after { display: none !important; }
+        .bravais-seam { box-shadow: none !important; }
+        .bravais-seam:has(.bravais-seam-home) {
+          left: 0 !important;
+          transform: none !important;
+          width: 78px !important;
+          visibility: visible !important;
+          -webkit-backdrop-filter: none !important;
+          backdrop-filter: none !important;
+        }
+        .bravais-seam:has(.bravais-seam-home) .bravais-seam-content {
+          left: 0 !important;
+          margin-left: 0 !important;
+          transform: none !important;
+          width: 78px !important;
+        }
+        .bravais-seam:has(.bravais-seam-home) .bravais-seam-home {
+          width: 78px !important;
+          padding: calc(14px + env(safe-area-inset-top, 0px)) 10px 0 !important;
+        }
+        .bravais-seam:has(.bravais-seam-home) .bravais-seam-home-head,
+        .bravais-seam:has(.bravais-seam-home) .bravais-seam-home-side,
+        .bravais-seam:has(.bravais-seam-home) .bravais-seam-home-measure,
+        .bravais-seam:has(.bravais-seam-home) .bravais-seam-dock {
+          width: 58px !important;
+        }
+        .bravais-seam:has(.bravais-seam-home) .bravais-seam-tabs { width: 100% !important; }
+        .bravais-seam:has(.bravais-seam-home) .bravais-seam-tabs button {
+          min-height: 42px;
+          padding: 9px 5px !important;
+          font-size: 12.5px !important;
+          letter-spacing: .08em !important;
+        }
+        .bravais-seam:has(.bravais-seam-home) .bravais-seam-icon,
+        .bravais-seam:has(.bravais-seam-home) .bravais-seam-back { width: 40px; height: 40px; }
+        html.folia-perf-low .bravais-seam { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+      }
+      .jerry-suite-switch{position:absolute;left:50%;bottom:calc(3px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;align-items:center;justify-content:center;width:26px;height:26px;padding:0;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.04);color:rgba(255,255,255,.36);cursor:pointer;z-index:8;opacity:.55;transition:opacity .18s,background .18s,color .18s}
+      .jerry-suite-switch:hover,.jerry-suite-switch:active{opacity:1;color:#fff;background:rgba(255,255,255,.14)}
+      .jerry-suite-switch svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.5}
 
       /* Mobile-only persistent transport + layout guard. */
       #folia-mobile-transport{display:none;position:fixed;left:0;right:0;bottom:0;z-index:120;color:#fff;background:linear-gradient(180deg,rgba(10,10,14,.72),rgba(8,8,12,.94));border-top:1px solid rgba(255,255,255,.14);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:0 -14px 40px rgba(0,0,0,.28);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -380,6 +423,28 @@
         setInterval(sync, 500);
         setTimeout(sync, 1200);
         window.addEventListener('resize', sync, { passive: true });
+
+        function ensureSuiteSwitch() {
+          var home = document.querySelector('.bravais-seam-home');
+          if (!home || home.querySelector('.jerry-suite-switch')) return;
+          var switchButton = document.createElement('button');
+          switchButton.type = 'button';
+          switchButton.className = 'jerry-suite-switch';
+          switchButton.title = '切换经典模式';
+          switchButton.setAttribute('aria-label', '切换经典模式');
+          switchButton.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="5" height="5"/><rect x="9" y="2" width="5" height="5"/><rect x="2" y="9" width="5" height="5"/><rect x="9" y="9" width="5" height="5"/></svg>';
+          switchButton.addEventListener('click', function (event) {
+            event.stopPropagation();
+            try {
+              localStorage.setItem('library_suite', 'grid');
+              localStorage.setItem('jerry_mobile_suite_choice', 'grid');
+            } catch (e) {}
+            location.reload();
+          });
+          home.appendChild(switchButton);
+        }
+        setInterval(ensureSuiteSwitch, 800);
+        setTimeout(ensureSuiteSwitch, 1200);
 
         if (!navigator.webdriver && !sessionStorage.getItem('folia_auto_degraded')) {
           var frames = 0;

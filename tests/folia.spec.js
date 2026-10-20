@@ -24,6 +24,7 @@ test('Folia opens directly on the grid search home', async ({ page }, testInfo) 
 test('Folia mobile portrait fits the viewport', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile', 'mobile portrait only');
   test.setTimeout(120000);
+  await page.addInitScript(() => localStorage.setItem('library_suite', 'grid'));
   await page.goto('/folia/');
   await expect(page).toHaveTitle('Folia', { timeout: 30000 });
   await page.waitForTimeout(6500);
@@ -41,6 +42,7 @@ test('Folia mobile portrait fits the viewport', async ({ page }, testInfo) => {
 test('Folia mobile player exposes a persistent transport without overlap', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile', 'mobile player only');
   test.setTimeout(120000);
+  await page.addInitScript(() => localStorage.setItem('library_suite', 'grid'));
   await page.route('**/api/netease/song/url/v1*', route => route.fulfill({
     status: 200,
     contentType: 'application/json',
@@ -62,4 +64,19 @@ test('Folia mobile player exposes a persistent transport without overlap', async
   await expect(page.locator('.fmt-original-card')).toBeHidden();
   const rect = await bar.boundingBox();
   expect(rect.y + rect.height).toBeLessThanOrEqual(845);
+});
+
+
+test('Folia mobile Bravais keeps its nav pinned left and can switch to Grid', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile', 'mobile Bravais only');
+  test.setTimeout(120000);
+  await page.goto('/folia/');
+  await page.waitForTimeout(6500);
+  const seam = await page.locator('.bravais-seam').boundingBox();
+  expect(seam.x).toBe(0);
+  await expect(page.locator('.jerry-suite-switch')).toBeVisible();
+  await page.locator('.jerry-suite-switch').click({ force: true });
+  await page.waitForTimeout(6500);
+  await expect(page.locator('input[placeholder*="SEARCH"], input[placeholder*="搜索"]')).toHaveCount(1);
+  expect(await page.evaluate(() => localStorage.getItem('library_suite'))).toBe('grid');
 });

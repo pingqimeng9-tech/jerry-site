@@ -19,3 +19,7 @@ Additional local adaptation: /folia/index.html injects a mobile persistent trans
 (play/pause, seek, cover/title, panel button), a desktop persistent play/pause control, and an
 automatic low-performance fallback (network type/device memory + runtime FPS) that switches to
 Folia's lightweight visualizer mode once.
+
+Bravais mobile: the seam is pinned to the left edge, its navigation is always visible with
+larger touch targets, and a subtle grid icon at the bottom switches to the classic Grid library.
+Mobile Bravais also drops the grain overlay and seam shadow for smoother scrolling.
