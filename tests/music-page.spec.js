@@ -1,5 +1,9 @@
 const { test, expect } = require('@playwright/test');
 
+test.beforeEach(async ({ page }) => {
+  await page.route(/https:\/\/p\d+\.music\.126\.net\/.*/, route => route.abort());
+});
+
 async function ensurePlaylistOpen(page) {
   if (!(await page.locator('#trackList').isVisible())) {
     await page.locator('#mobileListBtn').click();
@@ -141,6 +145,7 @@ test('immersive lyrics centers the active line and exits with Escape', async ({ 
 
 test('mobile player is one screen and opens playlist/shelf as panels', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile', 'mobile layout only');
+  await page.route(/https:\/\/p\d+\.music\.126\.net\/.*/, route => route.abort());
   await page.goto('/music.html');
   await expect(page.locator('.player-card')).toBeVisible();
   await expect(page.locator('#mobileListBtn')).toBeVisible();
@@ -189,7 +194,71 @@ test('shelf selection transitions the record into the player', async ({ page }) 
   }
   const box = await page.locator('#shelfStage').boundingBox();
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-  await expect.poll(() => page.locator('#recordTransition').evaluate(el => Number(getComputedStyle(el).opacity))).toBeGreaterThan(0.3);
+  await expect.poll(() => page.locator('.shelf-flight').count(), { timeout: 3000 }).toBeGreaterThan(0);
   await expect(page.locator('#trackTitle')).toHaveText('花に亡霊', { timeout: 6000 });
-  await expect.poll(() => page.locator('#recordTransition').evaluate(el => Number(getComputedStyle(el).opacity)), { timeout: 6000 }).toBeLessThan(0.05);
+  await expect.poll(() => page.locator('.shelf-flight').count(), { timeout: 6000 }).toBe(0);
+});
+
+test('sync dialog loads a playlist from a pasted link and defaults to Jerry playlist', async ({ page }, testInfo) => {
+  test.setTimeout(60000);
+  let requestedId = '';
+  await page.route('**/api/assist?do=playlist&id=*', route => {
+    const url = new URL(route.request().url());
+    requestedId = url.searchParams.get('id');
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: true,
+        playlist: { id: requestedId, name: requestedId === '18489916586' ? '我喜欢的音乐' : '我的测试歌单', userId: '1', cover: '' },
+        tracks: [
+          { id: '101', name: '同步歌曲 1', artists: '同步歌手', album: '同步专辑', duration: 120000, url: 'https://music.163.com/song/media/outer/url?id=101.mp3' },
+          { id: '102', name: '同步歌曲 2', artists: '同步歌手', album: '同步专辑', duration: 130000, url: 'https://music.163.com/song/media/outer/url?id=102.mp3' }
+        ]
+      })
+    });
+  });
+  await page.route(/https:\/\/p\d+\.music\.126\.net\/.*/, route => route.abort());
+  await page.goto('/music.html');
+  await page.locator('#mobileMoreBtn').click();
+  await page.locator('[data-mobile-action="sync"]').click();
+  await expect(page.locator('#syncModal')).toHaveClass(/open/);
+  await expect(page.locator('#syncPreview')).toContainText('我喜欢的音乐');
+  await page.locator('#syncInput').fill('https://music.163.com/#/playlist?id=123456');
+  await page.locator('#syncConfirm').click();
+  await expect(page.locator('#playlistName')).toHaveText('我的测试歌单');
+  await expect(page.locator('.track-row')).toHaveCount(2);
+  expect(requestedId).toBe('123456');
+
+  await page.locator('#syncBtn').evaluate(el => el.click());
+  await expect(page.locator('#syncModal')).toHaveClass(/open/);
+  await page.locator('#syncConfirm').click();
+  await expect(page.locator('#playlistName')).toHaveText('我喜欢的音乐');
+  expect(requestedId).toBe('18489916586');
+});
+
+
+test('desktop layout is a one-screen player with playlist, player and shelf', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'desktop layout only');
+  await page.route(/https:\/\/p\d+\.music\.126\.net\/.*/, route => route.abort());
+  await page.goto('/music.html');
+  await expect(page.locator('.player-card')).toBeVisible();
+  await expect(page.locator('.library-card')).toBeVisible();
+  await expect(page.locator('.shelf-section')).toBeVisible();
+  await expect(page.locator('#mobileListBtn')).toBeHidden();
+
+  const layout = await page.evaluate(() => ({
+    viewport: window.innerHeight,
+    scrollHeight: document.documentElement.scrollHeight,
+    bodyOverflow: getComputedStyle(document.body).overflow,
+    columns: getComputedStyle(document.querySelector('.music-wrap')).gridTemplateColumns
+  }));
+  expect(layout.bodyOverflow).toBe('hidden');
+  expect(layout.scrollHeight).toBeLessThanOrEqual(layout.viewport + 1);
+  expect(layout.columns.split(' ')).toHaveLength(3);
+
+  await page.locator('#mobileMoreBtn').click();
+  await expect(page.locator('#mobileMore')).toBeVisible();
+  await page.locator('#mobileMoreClose').click();
+  await expect(page.locator('#mobileMore')).toBeHidden();
 });

@@ -303,7 +303,8 @@
       last = now;
       layout(dt, false);
       var mobile = container.clientWidth < 640;
-      var targetZ = mobile ? 8.7 : 7.7;
+      var sidebar = container.clientWidth < 500 && container.clientHeight > 520 && window.innerWidth >= 1024;
+      var targetZ = sidebar ? 13.8 : (mobile ? 8.7 : 7.7);
       camera.position.x = damp(camera.position.x, pointerX * 0.38, 4, dt);
       camera.position.y = damp(camera.position.y, 0.78 + pointerY * 0.18, 4, dt);
       camera.position.z = damp(camera.position.z, targetZ, 4, dt);

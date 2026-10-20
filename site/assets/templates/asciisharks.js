@@ -9,7 +9,7 @@ knobs:[
 {k:'GLASS',label:'GLASS 玻璃浓度',v:1,min:.3,max:1.8,step:.1}],
 css:`.as{background:#03090f;color:#eefbff;font-family:Inter,"PingFang SC","Noto Sans SC","Helvetica Neue",Arial,sans-serif;overflow:hidden;cursor:crosshair;--gl:1}
 .as canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-.as-vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 52% 46%,transparent 28%,rgba(0,4,10,.52) 78%,rgba(0,2,6,.86)),linear-gradient(180deg,rgba(0,8,16,.32),transparent 45%,rgba(0,4,9,.52))}
+.as-vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 52% 46%,transparent 28%,rgba(0,4,10,.52) 78%,rgba(0,2,6,.86)),linear-gradient(180deg,rgba(0,8,16,.32),transparent 45%,rgba(0,4,9,.52)),repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 4px)}
 .as-top{position:absolute;left:38px;top:32px;z-index:5;display:flex;flex-direction:column;gap:5px;pointer-events:none;text-shadow:0 2px 16px rgba(0,0,0,.5)}
 .as-top span{font:700 9px ui-monospace,Menlo,monospace;letter-spacing:.28em;color:rgba(153,235,255,.72)}
 .as-top b{font-size:24px;letter-spacing:-.03em;font-weight:900}.as-top em{font:600 10px ui-monospace,Menlo,monospace;font-style:normal;letter-spacing:.18em;color:rgba(255,255,255,.48)}
@@ -31,6 +31,7 @@ css:`.as{background:#03090f;color:#eefbff;font-family:Inter,"PingFang SC","Noto 
 .as-msg.user{flex-direction:row-reverse}.as-msg.user .bub{border-radius:14px 4px 14px 14px;background:rgba(95,225,230,.24);border-color:rgba(170,250,255,.4)}
 .as-msg.user .av{background:rgba(255,255,255,.24);font-size:10px;font-weight:800}
 @keyframes asMsg{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+.as-typing .bub{display:flex;align-items:center;gap:3px;padding:11px 13px}.as-typing .bub i{width:4px;height:4px;border-radius:50%;background:#d8fbff;animation:asType 1s ease-in-out infinite}.as-typing .bub i:nth-child(2){animation-delay:.15s}.as-typing .bub i:nth-child(3){animation-delay:.3s}@keyframes asType{50%{opacity:.25;transform:translateY(-2px)}}
 .as-chips{display:flex;gap:5px;flex-wrap:wrap}
 .as-chips button{border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.08);color:rgba(255,255,255,.78);border-radius:20px;padding:5px 9px;font:600 9px ui-monospace,Menlo,monospace;cursor:pointer;transition:.16s}
 .as-chips button:hover{background:rgba(255,255,255,.24);color:#fff;border-color:rgba(255,255,255,.45)}
@@ -93,14 +94,24 @@ mount(h,ctx){
   ];
   let factI=0;
   function reply(text){
-    addMsg(text, 'shark', 420);
-    setTimeout(()=>{ctx.status && ctx.status('DEEP CHAT · SHARK ONLINE');}, 430);
+    const tip=document.createElement('div');
+    tip.className='as-msg shark as-typing';
+    tip.innerHTML='<span class="av">鲨</span><div class="bub"><i></i><i></i><i></i></div>';
+    log.appendChild(tip);log.scrollTo({top:log.scrollHeight,behavior:'smooth'});
+    setTimeout(()=>{
+      tip.remove();
+      const row=document.createElement('div');row.className='as-msg shark';
+      row.innerHTML='<span class="av">鲨</span><div class="bub"></div>';
+      row.querySelector('.bub').textContent=text;log.appendChild(row);
+      log.scrollTo({top:log.scrollHeight,behavior:'smooth'});
+      ctx.status && ctx.status('DEEP CHAT · SHARK ONLINE');
+    }, 520);
   }
   function send(text){
     const msg=String(text||'').trim();if(!msg)return;
     addMsg(msg,'user');
     input.value='';
-    setTimeout(()=>reply(facts[factI++%facts.length]),620);
+    setTimeout(()=>reply(facts[factI++%facts.length]),420);
     for(let i=0;i<7;i++)splash(pointer.x||W*.6,pointer.y||H*.7,false);
   }
   form.addEventListener('submit',e=>{e.preventDefault();send(input.value)});
