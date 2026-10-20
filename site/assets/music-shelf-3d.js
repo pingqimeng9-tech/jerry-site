@@ -367,6 +367,18 @@
         targetFocus = dragging.start - dx / (spacing * 62);
       }
     });
+    function screenRect(card) {
+      if (!card) return null;
+      var r = renderer.domElement.getBoundingClientRect();
+      var v = new THREE.Vector3();
+      card.getWorldPosition(v);
+      v.project(camera);
+      var x = (v.x * 0.5 + 0.5) * r.width + r.left;
+      var y = (-v.y * 0.5 + 0.5) * r.height + r.top;
+      var size = Math.min(200, Math.max(96, r.width * 0.15));
+      return { x: x - size / 2, y: y - size / 2, width: size, height: size };
+    }
+
     function endDrag(e) {
       if (!dragging) return;
       var dx = e.clientX - dragging.x;
@@ -386,7 +398,7 @@
             var index = card.userData.index;
             if (index === focus) {
               selectedLift = performance.now();
-              if (callbacks.onSelect) callbacks.onSelect(index);
+              if (callbacks.onSelect) callbacks.onSelect(index, { rect: screenRect(card) });
             } else if (callbacks.onFocus) callbacks.onFocus(index);
           }
         }

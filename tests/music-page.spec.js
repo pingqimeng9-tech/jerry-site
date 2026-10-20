@@ -167,3 +167,29 @@ test('mobile player is one screen and opens playlist/shelf as panels', async ({ 
   await page.locator('#mobileShelfClose').click();
   await expect(page.locator('body')).not.toHaveClass(/mobile-shelf-open/);
 });
+
+test('shelf selection transitions the record into the player', async ({ page }) => {
+  test.setTimeout(60000);
+  await page.addInitScript(() => {
+    HTMLMediaElement.prototype.load = function () {};
+    HTMLMediaElement.prototype.play = function () { return Promise.resolve(); };
+    Object.defineProperty(HTMLMediaElement.prototype, 'src', {
+      configurable: true,
+      get() { return this.getAttribute('data-src') || ''; },
+      set(value) { this.setAttribute('data-src', value); }
+    });
+  });
+  await page.route(/https:\/\/p\d+\.music\.126\.net\/.*/, route => route.abort());
+  await page.goto('/music.html');
+  if (!(await page.locator('#shelfStage').isVisible())) {
+    await page.locator('#mobileShelfBtn').click();
+    await expect(page.locator('.shelf-section')).toBeVisible();
+  } else {
+    await page.locator('#shelfStage').scrollIntoViewIfNeeded();
+  }
+  const box = await page.locator('#shelfStage').boundingBox();
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await expect.poll(() => page.locator('#recordTransition').evaluate(el => Number(getComputedStyle(el).opacity))).toBeGreaterThan(0.3);
+  await expect(page.locator('#trackTitle')).toHaveText('花に亡霊', { timeout: 6000 });
+  await expect.poll(() => page.locator('#recordTransition').evaluate(el => Number(getComputedStyle(el).opacity)), { timeout: 6000 }).toBeLessThan(0.05);
+});
