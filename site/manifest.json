@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "Jerry-site",
-  "short_name": "Jerry-site",
-  "description": "Jerry 的个人主页与博客",
+  "name": "callmiruko.cc",
+  "short_name": "callmiruko.cc",
+  "description": "callmiruko.cc · Jerry 的个人主页与博客",
   "lang": "zh-CN",
   "start_url": "/",
   "scope": "/",

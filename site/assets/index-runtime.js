@@ -1,6 +1,6 @@
 
 let SELF='<!doctype html>\n'+document.documentElement.outerHTML;
-let selfReady=!document.currentScript?.src,selfSourceError=null;
+let selfReady=!document.currentScript?.src,selfSourceError=null,frameRuntimeFor=null;
 const sourceMarkupReady=(()=>{
   const script=document.currentScript;
   if(window.__EMBED||!script?.src)return Promise.resolve();
@@ -17,11 +17,24 @@ const sourceMarkupReady=(()=>{
     const registrations=templateSources.map(source=>source.replace('window.__JERRY_REGISTER_TEMPLATE(', 'registerTemplate(')).join('\n');
     const runtime=js.replace(/^const TPL=window\.__JERRY_TEMPLATES;$/m,()=>`const TPL=[];\nconst registerTemplate=t=>TPL.push(t);\n${registrations}`);
     if(runtime===js)throw new Error('Homepage template registry marker is missing.');
+    const byId=new Map(),miniCache=new Map();
+    templateSources.forEach(source=>{
+      const id=(source.match(/__JERRY_REGISTER_TEMPLATE\(\{id:'([^']+)'/)||[])[1];
+      if(id)byId.set(id,source);
+    });
+    /* 预览 iframe 只带当前模板，避免每张卡都解析全部 30 个模板 */
+    frameRuntimeFor=id=>{
+      if(miniCache.has(id))return miniCache.get(id);
+      const source=byId.get(id);
+      if(!source)return runtime;
+      const mini=js.replace(/^const TPL=window\.__JERRY_TEMPLATES;$/m,()=>`const TPL=[];\nconst registerTemplate=t=>TPL.push(t);\n${source.replace('window.__JERRY_REGISTER_TEMPLATE(', 'registerTemplate(')}`);
+      miniCache.set(id,mini);return mini;
+    };
     SELF=SELF
       .replace(/<script\b(?=[^>]*\bsrc="[^"]*\/assets\/(?:template-registry|templates\/[^"]+)\.js")[^>]*><\/script>/g,'')
       .replace(/<script\b(?=[^>]*\bsrc="[^"]*\/admin\/studio\/bridge\.js")[^>]*><\/script>/g,'')
       .replace(styleTag,()=>`<style>${css}</style>`)
-      .replace(scriptTag,()=>`<script>${runtime.replace(/<\/script/gi,'<\\/script')}</script>`);
+      .replace(scriptTag,()=>`<script data-jerry-runtime>${runtime.replace(/<\/script/gi,'<\\/script')}</script>`);
   });
 })();
 const selfSourceReady=sourceMarkupReady.then(()=>{
@@ -205,11 +218,25 @@ function templatePreviewStyle(){
   }
   return declarations.join(';').replace(/"/g,'&quot;');
 }
-const frameDoc=(id,auto,params)=>SELF
-  .replace('<html lang="zh" data-theme="dark">','<html lang="zh" data-theme="'+document.documentElement.dataset.theme+'" class="embed" style="'+templatePreviewStyle()+'">')
-  .replace(/<script\b(?=[^>]*\bsrc="[^"]*\/assets\/home-layout\.js")[^>]*><\/script>/g,'')
-  .replace('<head>','<head><script>window.__EMBED='+JSON.stringify({id,auto,params:params||{}})+';<\/script>');
-const mkFrame=(id,auto,params)=>{const f=document.createElement('iframe');f.title=id;f.allow='fullscreen';f.allowFullscreen=true;f.addEventListener('load',()=>syncEmbeddedFrame(f));f.srcdoc=frameDoc(id,auto,params);return f};
+const frameDoc=(id,auto,params)=>{
+  let doc=SELF;
+  if(frameRuntimeFor){
+    const mini=frameRuntimeFor(id);
+    doc=doc.replace(/(<script\b[^>]*\bdata-jerry-runtime\b[^>]*>)[\s\S]*?<\/script>/,(m,open)=>open+mini.replace(/<\/script/gi,'<\\/script')+'</script>');
+  }
+  if(frameRuntimeFor)doc=doc.replace(/<script\b(?=[^>]*\bsrc="[^"]*\/(?:assets\/(?:pwa-install|layout|home-layout|capsule-player|template-registry)\.js|assets\/templates\/[^"]+\.js|admin\/studio\/bridge\.js)")[^>]*><\/script>/g,'');
+  return doc
+    .replace('<html lang="zh" data-theme="dark">','<html lang="zh" data-theme="'+document.documentElement.dataset.theme+'" class="embed" style="'+templatePreviewStyle()+'">')
+    .replace('<head>','<head><script>window.__EMBED='+JSON.stringify({id,auto,params:params||{}})+';<\/script>');
+};
+const mkFrame=(id,auto,params)=>{
+  const f=document.createElement('iframe');f.title=id;f.allow='fullscreen';f.allowFullscreen=true;
+  f.addEventListener('load',()=>syncEmbeddedFrame(f));
+  const load=()=>{f.srcdoc=frameDoc(id,auto,params)};
+  /* 画廊可能在源码就绪前就开始挂载，等源码齐了再写 srcdoc，避免空白卡 */
+  if(selfReady)load();else sourceMarkupReady.then(load,load);
+  return f;
+};
 const manifestOf=t=>({id:t.id,name:t.name,category:t.cat,material:t.mat,spell:t.spell,core:t.core,tags:t.tags,knobs:(t.knobs||[]).map(k=>({key:k.k,default:k.v,min:k.min,max:k.max})),credit:t.credit});
 const promptOf=(t,p)=>`请使用「创意网站模板库」里的 ${t.name} 模板（id: ${t.id}，分类 ${t.cat}）。
 咒语：${t.spell}

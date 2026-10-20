@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>文章 · Jerry</title>
+<title>文章 · callmiruko.cc</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/icons/icon-192.png">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
@@ -680,7 +680,7 @@ async function loadPost(){
     const postId = post.id;
     // 旧长链 ?id= 打开后，地址栏静默替换为短链 /p/<slug>（复制地址/转发即短链）
     if(!slug && postSlugOf(post)){ try{ history.replaceState(null, '', postHrefOf(post)); }catch(e){} }
-    document.title = (post.title || '文章') + ' · Jerry';
+    document.title = (post.title || '文章') + ' · callmiruko.cc';
 
     const locked = isLockedCategory(post.category);
 

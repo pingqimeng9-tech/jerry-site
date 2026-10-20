@@ -99,6 +99,11 @@ body.gal #stage,body.gal .dock{display:none}
 .gc-tags i{font:10px var(--mono);font-style:normal;color:var(--mut);border:1px solid var(--line);border-radius:99px;padding:2px 8px;white-space:nowrap}
 .mdl{position:fixed;inset:0;z-index:50;background:var(--bg);display:grid;place-items:center;padding:16px;overscroll-behavior:none}
 .mdl[hidden]{display:none}
+/* 模板预览期间收起全站悬浮组件，避免播放器/编辑条盖住画布或串音 */
+body.modal-open #jm,body.modal-open #jcap,body.modal-open .jsk-music,
+body.modal-open .jsk-cat-btn,body.modal-open .jsk-chat,
+body.modal-open .jl-bar,body.modal-open .jl-panel,body.modal-open .jl-hint,
+body.modal-open .jl-modbar,body.modal-open .jl-selection-tag{display:none!important}
 .mdl-box{width:min(1240px,100%);height:min(820px,94vh);max-height:96vh;overflow:auto;overscroll-behavior:contain;background:var(--bg);border:1px solid var(--line);border-radius:24px;padding:20px 22px;display:flex;flex-direction:column;gap:14px}
 .mdl-box header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .mdl-cat{font:11px var(--mono);color:var(--mut);margin-bottom:4px}

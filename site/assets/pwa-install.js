@@ -42,10 +42,10 @@
     var text = dialog.querySelector('.pwa-install-copy');
     var button = dialog.querySelector('.pwa-install-action');
     if (deferredPrompt) {
-      text.textContent = '安装 Jerry-site 到设备后，可以从主屏幕直接打开。';
+      text.textContent = '安装 callmiruko.cc 到设备后，可以从主屏幕直接打开。';
       button.hidden = false;
     } else if (ios) {
-      text.textContent = '请在 Safari 中点“分享”，再选择“添加到主屏幕”，即可安装 Jerry-site。';
+      text.textContent = '请在 Safari 中点“分享”，再选择“添加到主屏幕”，即可安装 callmiruko.cc。';
       button.hidden = true;
     } else {
       text.textContent = '如果没有出现一键安装按钮，请打开浏览器菜单，选择“安装应用”或“添加到主屏幕”。';
@@ -89,8 +89,8 @@
   dialog.hidden = true;
   dialog.innerHTML = '<section class="pwa-install-card" role="dialog" aria-modal="true" aria-labelledby="pwa-install-title">' +
     '<button class="pwa-install-close" type="button" aria-label="关闭">×</button>' +
-    '<img class="pwa-install-icon" src="/icons/icon-192.png" alt="Jerry-site 图标">' +
-    '<h2 id="pwa-install-title">安装 Jerry-site</h2>' +
+    '<img class="pwa-install-icon" src="/icons/icon-192.png" alt="callmiruko.cc 图标">' +
+    '<h2 id="pwa-install-title">安装 callmiruko.cc</h2>' +
     '<p class="pwa-install-copy"></p>' +
     '<button class="pwa-install-action" type="button" hidden>安装到设备</button>' +
     '<button class="pwa-install-later" type="button">暂不安装</button>' +
