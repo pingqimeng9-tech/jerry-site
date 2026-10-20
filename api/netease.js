@@ -1,5 +1,29 @@
 // Folia NetEase proxy — maps /api/netease/<endpoint> to @neteasecloudmusicapienhanced/api modules.
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const ncm = require('@neteasecloudmusicapienhanced/api');
+const ncmUtil = require('@neteasecloudmusicapienhanced/api/util');
+const { getXeapiPublicKey } = require('@neteasecloudmusicapienhanced/api/util/xeapiKey');
+
+let xeapiReady = null;
+function ensureXeapiKey() {
+  if (xeapiReady) return xeapiReady;
+  xeapiReady = (async () => {
+    try {
+      if (!global.deviceId) global.deviceId = ncmUtil.generateDeviceId();
+      const keyPath = path.join(os.tmpdir(), 'xeapi_public_key');
+      let current = {};
+      try { current = JSON.parse(fs.readFileSync(keyPath, 'utf-8')); } catch (e) {}
+      if (current && current.sk) return;
+      const key = await getXeapiPublicKey(current, global.deviceId);
+      fs.writeFileSync(keyPath, JSON.stringify(key), 'utf-8');
+    } catch (error) {
+      console.warn('Folia xeapi key init failed:', error && error.message);
+    }
+  })();
+  return xeapiReady;
+}
 
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -44,39 +68,8 @@ module.exports = async function handler(req, res) {
   }
   if (req.headers && req.headers.cookie && !data.cookie) data.cookie = req.headers.cookie;
 
-  if (endpoint === 'song_url_v1' || endpoint === 'song_url') {
-    const id = String(data.id || data.ids || '').replace(/[^0-9,]/g, '').split(',')[0];
-    if (id) {
-      return res.status(200).json({
-        code: 200,
-        data: [{
-          id: Number(id),
-          url: 'https://music.163.com/song/media/outer/url?id=' + encodeURIComponent(id) + '.mp3',
-          br: 128000,
-          size: 0,
-          md5: null,
-          code: 200,
-          expi: 1200,
-          type: 'mp3',
-          gain: 0,
-          peak: null,
-          closedGain: 0,
-          closedPeak: 0,
-          fee: 0,
-          uf: null,
-          payed: 0,
-          flag: 0,
-          canExtend: false,
-          freeTrialInfo: null,
-          level: 'standard',
-          encodeType: 'mp3',
-          time: 0
-        }]
-      });
-    }
-  }
-
   try {
+    await ensureXeapiKey();
     const answer = await fn(data);
     const payload = answer && Object.prototype.hasOwnProperty.call(answer, 'body') ? answer.body : answer;
     if (answer && typeof answer.cookie === 'string' && answer.cookie) {

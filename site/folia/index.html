@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <script>
+      // Skip Folia's one-time 0.7.21 release tour on first visit; keep any choice the user already made.
+      try {
+        var f=window.localStorage;
+        if(!f.getItem('folia_last_seen_guide_version')) f.setItem('folia_last_seen_guide_version','0.7.21');
+        if(!f.getItem('folia_last_seen_ponder_onboarding_version')) f.setItem('folia_last_seen_ponder_onboarding_version','0.7.21');
+        if(!f.getItem('library_suite_prompt_seen')) f.setItem('library_suite_prompt_seen','true');
+        if(!f.getItem('library_suite')) f.setItem('library_suite','grid');
+        if(!f.getItem('playback_entry_view_chosen')) {
+          f.setItem('playback_entry_view','player');
+          f.setItem('playback_entry_view_chosen','true');
+        }
+      } catch (e) {}
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="referrer" content="no-referrer" />

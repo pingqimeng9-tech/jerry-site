@@ -7,3 +7,6 @@ This directory is a prebuilt web bundle of Folia. The build used:
 
 Folia is copyright its contributors. Source code and license:
 https://github.com/chthollyphile/folia-major
+
+Local modification: site/folia/index.html pre-seeds Folia's one-time 0.7.21 onboarding flags
+so the player opens directly; it does not alter Folia's source or subsequent user choices.
