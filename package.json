@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@neteasecloudmusicapienhanced/api": "^4.41.1",
     "@notionhq/client": "^5.22.0",
     "notion-to-md": "^3.1.9"
   },

@@ -258,6 +258,20 @@ function multipartBody(fields, fileField, filename, fileBuf, mime) {
 
 // ---------- API ----------
 async function handleApi(req, res, pathname) {
+  if (pathname === '/api/netease' || pathname.startsWith('/api/netease/')) {
+    const u = new URL(req.url, 'http://x');
+    req.query = Object.fromEntries(u.searchParams.entries());
+    req.query.path = pathname.replace(/^\/api\/netease\/?/, '');
+    const proxy = require('./api/netease.js');
+    const vres = {
+      setHeader: (k, v) => res.setHeader(k, v),
+      status(code) { res.statusCode = code; return vres; },
+      json(body) { res.setHeader('Content-Type', 'application/json; charset=utf-8'); res.end(JSON.stringify(body)); },
+      end() { res.end(); }
+    };
+    try { return await proxy(req, vres); }
+    catch (e) { return send(res, 500, { code: 500, message: e.message }); }
+  }
   // 公开列表（仅已发布，供 blog.html）
   if (req.method === 'GET' && pathname === '/api/posts') {
     const store = readStore();
@@ -886,6 +900,7 @@ async function handleApi(req, res, pathname) {
 function serveStatic(req, res, pathname) {
   let rel = decodeURIComponent(pathname);
   if (rel === '/') rel = '/index.html';
+  if (rel.endsWith('/')) rel += 'index.html';
   const filePath = path.normalize(path.join(SITE, rel));
   if (!filePath.startsWith(SITE)) { res.writeHead(403); return res.end('Forbidden'); }
   fs.readFile(filePath, (err, data) => {

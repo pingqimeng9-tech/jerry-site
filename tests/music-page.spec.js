@@ -31,7 +31,7 @@ test('music page loads the default playlist and supports add/remove', async ({ p
     body: JSON.stringify({ ok: true, songs: [{ id: '888888', name: '搜索结果歌曲', artists: '搜索歌手', album: '搜索专辑', duration: 200000, url: 'https://music.163.com/song/media/outer/url?id=888888.mp3' }] })
   }));
 
-  await page.goto('/music.html');
+  await page.goto('/music-classic.html');
   await ensurePlaylistOpen(page);
   await expect(page.locator('.track-row')).toHaveCount(71);
   await expect(page.locator('#playlistName')).toContainText('我喜欢的音乐');
@@ -68,21 +68,21 @@ test('shared playlist URL renders only the shared songs', async ({ page }) => {
       body: JSON.stringify({ ok: true, songs: ids.map((id, i) => ({ id, name: '分享歌曲 ' + (i + 1), artists: '分享歌手', duration: 100000, url: 'https://music.163.com/song/media/outer/url?id=' + id + '.mp3' })) })
     });
   });
-  await page.goto('/music.html?ids=111,222');
+  await page.goto('/music-classic.html?ids=111,222');
   await expect(page.locator('.track-row')).toHaveCount(2);
   await expect(page.locator('#playlistName')).toContainText('分享歌单');
   await expect(page.locator('#trackList')).toContainText('分享歌曲 1');
 });
 
 test('music page has no horizontal overflow', async ({ page }) => {
-  await page.goto('/music.html');
+  await page.goto('/music-classic.html');
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBe(0);
 });
 
 test('3D record shelf navigates with 3D transforms', async ({ page }) => {
   await page.route(/https:\/\/p\d+\.music\.126\.net\/.*/, route => route.abort());
-  await page.goto('/music.html');
+  await page.goto('/music-classic.html');
   if (!(await page.locator('#shelfStage').isVisible())) {
     await page.locator('#mobileShelfBtn').click();
     await expect(page.locator('.shelf-section')).toBeVisible();
@@ -119,7 +119,7 @@ test('immersive lyrics centers the active line and exits with Escape', async ({ 
     })
   }));
 
-  await page.goto('/music.html');
+  await page.goto('/music-classic.html');
   await ensurePlaylistOpen(page);
   await page.locator('.track-row').first().click();
   await expect(page.locator('#immersiveBtn')).toBeVisible();
@@ -146,7 +146,7 @@ test('immersive lyrics centers the active line and exits with Escape', async ({ 
 test('mobile player is one screen and opens playlist/shelf as panels', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile', 'mobile layout only');
   await page.route(/https:\/\/p\d+\.music\.126\.net\/.*/, route => route.abort());
-  await page.goto('/music.html');
+  await page.goto('/music-classic.html');
   await expect(page.locator('.player-card')).toBeVisible();
   await expect(page.locator('#mobileListBtn')).toBeVisible();
 
@@ -185,7 +185,7 @@ test('shelf selection transitions the record into the player', async ({ page }) 
     });
   });
   await page.route(/https:\/\/p\d+\.music\.126\.net\/.*/, route => route.abort());
-  await page.goto('/music.html');
+  await page.goto('/music-classic.html');
   if (!(await page.locator('#shelfStage').isVisible())) {
     await page.locator('#mobileShelfBtn').click();
     await expect(page.locator('.shelf-section')).toBeVisible();
@@ -219,7 +219,7 @@ test('sync dialog loads a playlist from a pasted link and defaults to Jerry play
     });
   });
   await page.route(/https:\/\/p\d+\.music\.126\.net\/.*/, route => route.abort());
-  await page.goto('/music.html');
+  await page.goto('/music-classic.html');
   await page.locator('#mobileMoreBtn').click();
   await page.locator('[data-mobile-action="sync"]').click();
   await expect(page.locator('#syncModal')).toHaveClass(/open/);
@@ -241,7 +241,7 @@ test('sync dialog loads a playlist from a pasted link and defaults to Jerry play
 test('desktop layout is a one-screen player with playlist, player and shelf', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop', 'desktop layout only');
   await page.route(/https:\/\/p\d+\.music\.126\.net\/.*/, route => route.abort());
-  await page.goto('/music.html');
+  await page.goto('/music-classic.html');
   await expect(page.locator('.player-card')).toBeVisible();
   await expect(page.locator('.library-card')).toBeVisible();
   await expect(page.locator('.shelf-section')).toBeVisible();

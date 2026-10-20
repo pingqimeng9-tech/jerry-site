@@ -18,6 +18,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/netease/:path*",
+      "destination": "/api/netease?path=:path*"
+    },
+    {
       "source": "/p/:slug",
       "destination": "/post.html?slug=:slug"
     }

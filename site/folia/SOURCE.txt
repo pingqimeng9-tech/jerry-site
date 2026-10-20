@@ -1,0 +1,9 @@
+Folia (folia-major) — https://github.com/chthollyphile/folia-major
+Upstream commit: 26c57f9b1b26b402a09e8943171a332215418ce6
+License: GNU Affero General Public License v3.0 (see LICENSE)
+
+This directory is a prebuilt web bundle of Folia. The build used:
+  VITE_NETEASE_API_BASE=/api/netease npx vite build --base=/folia/
+
+Folia is copyright its contributors. Source code and license:
+https://github.com/chthollyphile/folia-major
