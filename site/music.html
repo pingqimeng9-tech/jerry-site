@@ -760,6 +760,75 @@
     .mp-play{background:var(--mag-pink);border-color:var(--mag-pink);color:#fff;box-shadow:2px 2px 0 var(--mag-acid)}
     .mobile-player.show{display:flex}
   }
+
+  /* ---- immersive lyrics / Folia-like fullscreen mode ---- */
+  body.immersive-open{overflow:hidden}
+  .immersive{position:fixed;inset:0;z-index:9990;display:none;flex-direction:column;color:var(--mag-paper);background:#07070c;overflow:hidden}
+  .immersive.open{display:flex;animation:imIn .5s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes imIn{from{opacity:0;clip-path:inset(0 0 100% 0)}to{opacity:1;clip-path:inset(0 0 0 0)}}
+  .im-bg{position:absolute;inset:-8%;background-position:center;background-size:cover;filter:blur(42px) saturate(1.25) brightness(.42);transform:scale(1.1);animation:imBgFloat 18s ease-in-out infinite alternate}
+  @keyframes imBgFloat{from{transform:scale(1.1) translate3d(-1%,-1%,0)}to{transform:scale(1.16) translate3d(1%,1%,0)}}
+  .im-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,5,10,.45),rgba(5,5,10,.75) 55%,rgba(5,5,10,.94)),radial-gradient(circle at 25% 40%,rgba(255,77,157,.18),transparent 40%),radial-gradient(circle at 75% 65%,rgba(92,225,230,.16),transparent 42%)}
+  .im-grain{position:absolute;inset:0;pointer-events:none;opacity:.25;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 4px)}
+  .im-top{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:20px clamp(18px,4vw,54px);border-bottom:1px solid rgba(255,255,255,.14)}
+  .im-brand span{display:block;font:700 9px 'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--mag-pink)}
+  .im-brand b{display:block;font:400 clamp(18px,2.4vw,30px) 'ZCOOL KuaiLe',cursive;letter-spacing:.04em;margin-top:2px}
+  .im-close{width:42px;height:42px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.05);color:#fff;cursor:pointer;box-shadow:3px 3px 0 var(--mag-pink)}
+  .im-close:hover{background:var(--mag-pink);border-color:var(--mag-pink)}
+  .im-stage{position:relative;z-index:2;flex:1;display:grid;grid-template-columns:minmax(260px,38%) minmax(0,1fr);gap:clamp(20px,4vw,60px);align-items:center;padding:clamp(12px,3vh,40px) clamp(20px,5vw,70px);min-height:0}
+  .im-visual{display:flex;flex-direction:column;align-items:center;gap:16px;min-width:0}
+  .im-disc{position:relative;width:min(320px,26vw);aspect-ratio:1;border-radius:50%;background:repeating-radial-gradient(circle,#111116 0 3px,#1b1b24 3px 5px),#111116;box-shadow:0 40px 90px -30px #000,inset 0 0 0 10px #08080c,0 0 0 2px rgba(255,255,255,.3);overflow:hidden;animation:imSpin 22s linear infinite;animation-play-state:paused}
+  body.playing .im-disc{animation-play-state:running}
+  .im-disc img{position:absolute;inset:12%;width:76%;height:76%;border-radius:50%;object-fit:cover;opacity:.95}
+  .im-disc::after{content:"";position:absolute;inset:43%;border-radius:50%;background:var(--mag-pink);box-shadow:0 0 0 7px rgba(8,8,12,.7);z-index:2}
+  @keyframes imSpin{to{transform:rotate(360deg)}}
+  .im-visual-label{font:700 9px 'JetBrains Mono',monospace;letter-spacing:.3em;color:var(--mag-acid)}
+  .im-lyrics{position:relative;height:min(58vh,560px);min-width:0;overflow:hidden;mask-image:linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent);-webkit-mask-image:linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent)}
+  .im-lines{position:absolute;left:0;right:0;top:0;transition:transform .52s cubic-bezier(.2,.8,.2,1);will-change:transform}
+  .im-line{display:block;width:100%;border:0;background:none;color:rgba(243,236,223,.34);text-align:left;padding:9px 0;font:500 clamp(17px,2.1vw,28px)/1.42 'Noto Serif SC',serif;cursor:pointer;transition:color .3s,opacity .3s,transform .35s;transform-origin:left center;white-space:pre-wrap;word-break:break-word}
+  .im-line:hover{color:rgba(243,236,223,.7)}
+  .im-line.past{color:rgba(243,236,223,.18)}
+  .im-line.on{color:#fff;font-size:clamp(23px,3.2vw,42px);font-weight:700;transform:translateX(10px);text-shadow:0 0 26px rgba(255,77,157,.6),3px 3px 0 rgba(255,77,157,.3)}
+  .im-line span{display:inline-block;opacity:.55;transform:translateY(5px);transition:opacity .36s steps(4),transform .36s steps(4)}
+  .im-line.on span{opacity:1;transform:none}
+  .im-line .trans{display:block;font:500 11px 'JetBrains Mono',monospace;color:var(--mag-cyan);margin-top:2px;white-space:normal}
+  .im-empty{font:600 13px 'JetBrains Mono',monospace;color:var(--mag-muted);padding:80px 0}
+  .im-translation{position:absolute;left:0;right:0;bottom:34px;z-index:2;font:600 12px 'Noto Sans SC',sans-serif;color:var(--mag-cyan);text-shadow:0 2px 10px #000;pointer-events:none;min-height:18px}
+  .im-hint{position:absolute;right:0;bottom:8px;font:700 8px 'JetBrains Mono',monospace;letter-spacing:.14em;color:rgba(255,255,255,.38)}
+  .im-bottom{position:relative;z-index:2;display:flex;align-items:center;gap:clamp(10px,2vw,24px);padding:16px clamp(20px,5vw,70px) calc(18px + env(safe-area-inset-bottom,0px));border-top:1px solid rgba(255,255,255,.14);background:linear-gradient(180deg,transparent,rgba(5,5,10,.55))}
+  .im-meta{min-width:150px;max-width:260px;flex:none}
+  .im-meta b{display:block;font:900 14px 'Noto Serif SC',serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .im-meta span{display:block;font:600 9px 'JetBrains Mono',monospace;color:var(--mag-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+  .im-progress{flex:1;height:5px;background:rgba(255,255,255,.14);cursor:pointer;position:relative;min-width:80px}
+  .im-progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--mag-pink),var(--mag-acid));box-shadow:0 0 12px rgba(232,255,79,.6)}
+  .im-controls{display:flex;align-items:center;gap:8px;flex:none}
+  .im-ctrl{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;cursor:pointer;box-shadow:2px 2px 0 #000}
+  .im-ctrl:hover{background:var(--mag-paper);color:var(--mag-ink)}
+  .im-ctrl.im-play{width:52px;height:52px;background:var(--mag-pink);border-color:var(--mag-pink);box-shadow:3px 3px 0 var(--mag-acid)}
+  .im-ctrl.im-play .ico{width:20px;height:20px}
+  @media(max-width:760px){
+    .im-top{padding:14px 16px}
+    .im-brand b{font-size:18px}
+    .im-close{width:36px;height:36px}
+    .im-stage{display:flex;flex-direction:column;justify-content:center;gap:10px;padding:8px 16px 0;overflow:hidden}
+    .im-visual{gap:8px}
+    .im-disc{width:min(180px,42vw)}
+    .im-lyrics{width:100%;height:43vh;min-height:230px}
+    .im-line{font-size:17px;padding:7px 0}
+    .im-line.on{font-size:23px;transform:translateX(5px)}
+    .im-translation{bottom:18px;font-size:10.5px}
+    .im-hint{display:none}
+    .im-bottom{flex-wrap:wrap;gap:9px;padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px))}
+    .im-meta{flex:1;min-width:0;max-width:none;order:1}
+    .im-controls{order:2}
+    .im-progress{order:3;flex-basis:100%;height:3px}
+    .im-ctrl{width:36px;height:36px}
+    .im-ctrl.im-play{width:46px;height:46px}
+  }
+  @media(prefers-reduced-motion:reduce){
+    .im-bg,.im-disc{animation:none}
+    .im-lines,.im-line span{transition:none}
+  }
 </style>
 </head>
 <body data-page="music">
@@ -781,6 +850,7 @@
   <symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m15 15 5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></symbol>
   <symbol id="i-sfx" viewBox="0 0 24 24"><path d="M3 14V10h3l3-2.5v9L6 14H3Z" fill="currentColor"/><path d="M12 8v8M15.5 6v12M19 9v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></symbol>
+  <symbol id="i-expand" viewBox="0 0 24 24"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></symbol>
   <symbol id="i-disc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/></symbol>
 </svg>
 
@@ -859,6 +929,7 @@
         <button type="button" class="ctrl play" id="playBtn" title="播放"><svg class="ico ico-play"><use href="#i-play"></use></svg><span class="ctrl-label">播放</span></button>
         <button type="button" class="ctrl" id="nextBtn" title="下一首"><svg class="ico"><use href="#i-next"></use></svg><span class="ctrl-name">下一首</span></button>
         <button type="button" class="ctrl" id="repeatBtn" title="单曲循环" aria-pressed="false"><svg class="ico"><use href="#i-repeat"></use></svg><span class="ctrl-name">循环</span><i class="led"></i></button>
+        <button type="button" class="ctrl" id="immersiveBtn" title="沉浸歌词"><svg class="ico"><use href="#i-expand"></use></svg><span class="ctrl-name">沉浸</span></button>
         <button type="button" class="sfx-toggle" id="sfxToggle" aria-pressed="true" title="界面音效"><svg class="ico"><use href="#i-sfx"></use></svg><span>音效</span><i class="led"></i></button>
         <div class="volume-control">
           <button type="button" class="vol-mute" id="muteBtn" aria-label="静音" title="静音 / 取消静音"><svg class="ico"><use href="#i-volume"></use></svg></button>
@@ -926,6 +997,35 @@
 
   <footer class="music-foot">歌单来自网易云音乐 · 音频版权归原作者所有 · <a href="https://music.163.com/m/playlist?id=18489916586&creatorId=18038264467" target="_blank" rel="noopener">去网易云收藏</a></footer>
 </main>
+<div class="immersive" id="immersive" aria-hidden="true">
+  <div class="im-bg" id="imBg" aria-hidden="true"></div>
+  <div class="im-shade" aria-hidden="true"></div>
+  <div class="im-grain" aria-hidden="true"></div>
+  <header class="im-top">
+    <div class="im-brand"><span>JERRY MUSIC</span><b>LYRICS / 沉浸模式</b></div>
+    <button type="button" class="im-close" id="imClose" aria-label="退出沉浸模式"><svg class="ico"><use href="#i-x"></use></svg></button>
+  </header>
+  <main class="im-stage">
+    <div class="im-visual">
+      <div class="im-disc" id="imDisc"><img id="imCover" alt="" referrerpolicy="no-referrer"></div>
+      <div class="im-visual-label">NOW PLAYING</div>
+    </div>
+    <div class="im-lyrics" id="imLyrics">
+      <div class="im-lines" id="imLines"><div class="im-empty">歌词加载中…</div></div>
+      <div class="im-translation" id="imTranslation"></div>
+      <div class="im-hint">点击歌词跳转 · ESC 退出</div>
+    </div>
+  </main>
+  <footer class="im-bottom">
+    <div class="im-meta"><b id="imTitle">选择一首歌</b><span id="imArtist"></span></div>
+    <div class="im-progress" id="imProgressBar" role="slider" tabindex="0" aria-label="播放进度"><i id="imFill"></i></div>
+    <div class="im-controls">
+      <button type="button" class="im-ctrl" id="imPrev" aria-label="上一首"><svg class="ico"><use href="#i-prev"></use></svg></button>
+      <button type="button" class="im-ctrl im-play" id="imPlay" aria-label="播放"><svg class="ico"><use href="#i-play"></use></svg></button>
+      <button type="button" class="im-ctrl" id="imNext" aria-label="下一首"><svg class="ico"><use href="#i-next"></use></svg></button>
+    </div>
+  </footer>
+</div>
 <div class="mobile-player" id="mobilePlayer">
   <button type="button" class="mp-cover" id="mpCoverBtn" aria-label="打开播放器"><img id="mpCover" alt="" referrerpolicy="no-referrer"></button>
   <button type="button" class="mp-meta" id="mpMetaBtn">
@@ -960,6 +1060,20 @@
   var mpArtist = document.getElementById('mpArtist');
   var mpProgress = document.getElementById('mpProgress');
   var mpPlay = document.getElementById('mpPlay');
+  var immersive = document.getElementById('immersive');
+  var imBg = document.getElementById('imBg');
+  var imCover = document.getElementById('imCover');
+  var imDisc = document.getElementById('imDisc');
+  var imLines = document.getElementById('imLines');
+  var imLyrics = document.getElementById('imLyrics');
+  var imTranslation = document.getElementById('imTranslation');
+  var imTitle = document.getElementById('imTitle');
+  var imArtist = document.getElementById('imArtist');
+  var imPlay = document.getElementById('imPlay');
+  var imFill = document.getElementById('imFill');
+  var imProgressBar = document.getElementById('imProgressBar');
+  var lyricCache = new Map();
+  var imState = { lines: [], trans: [], active: -1 };
   var shelfStage = document.getElementById('shelfStage');
   var shelfTrack = document.getElementById('shelfTrack');
   var shelfPosition = document.getElementById('shelfPosition');
@@ -1318,6 +1432,135 @@
   function updateMobileProgress(pct) {
     if (mpProgress) mpProgress.style.width = (Math.max(0, Math.min(1, pct || 0)) * 100).toFixed(2) + '%';
   }
+  function parseLrc(text) {
+    var out = [];
+    String(text || '').split(/\r?\n/).forEach(function (line) {
+      var m = /^((?:\[\d{1,3}:\d{2}(?:[.:]\d{1,3})?\])+)(.*)$/.exec(line);
+      if (!m) return;
+      var body = m[2].trim();
+      if (!body) return;
+      (m[1].match(/\[\d{1,3}:\d{2}(?:[.:]\d{1,3})?\]/g) || []).forEach(function (tag) {
+        var p = tag.slice(1, -1).split(/[:.]/);
+        var time = Number(p[0]) * 60 + Number(p[1]) + (p[2] ? Number('0.' + p[2]) : 0);
+        out.push({ time: time, text: body });
+      });
+    });
+    out.sort(function (a, b) { return a.time - b.time; });
+    return out;
+  }
+  function updateImmersiveLyrics(time, force) {
+    if (!imState.lines.length) return;
+    var active = -1;
+    for (var i = 0; i < imState.lines.length; i++) {
+      if (imState.lines[i].time <= time + 0.18) active = i; else break;
+    }
+    if (!force && active === imState.active) return;
+    imState.active = active;
+    var nodes = imLines.querySelectorAll('.im-line');
+    nodes.forEach(function (node, index) {
+      node.classList.toggle('on', index === active);
+      node.classList.toggle('past', index < active);
+    });
+    if (active >= 0 && nodes[active]) {
+      centerLyrics(force);
+      requestAnimationFrame(function () { centerLyrics(force); });
+      setTimeout(function () { centerLyrics(false); }, 60);
+      var trans = '';
+      for (var j = 0; j < imState.trans.length; j++) {
+        if (imState.trans[j].time <= imState.lines[active].time + 0.3) trans = imState.trans[j].text;
+        else break;
+      }
+      imTranslation.textContent = trans;
+    }
+  }
+  function centerLyrics(snap) {
+    if (!imLyrics || !imLines) return;
+    var active = imLines.querySelector('.im-line.on');
+    if (!active) return;
+    var offset = imLyrics.clientHeight / 2 - (active.offsetTop + active.offsetHeight / 2);
+    if (snap) {
+      var prev = imLines.style.transition;
+      imLines.style.transition = 'none';
+      imLines.style.transform = 'translate3d(0,' + offset.toFixed(1) + 'px,0)';
+      void imLines.offsetWidth;
+      imLines.style.transition = prev;
+    } else {
+      imLines.style.transform = 'translate3d(0,' + offset.toFixed(1) + 'px,0)';
+    }
+  }
+  function setImmersiveLyrics(data) {
+    imState.lines = data.lines || [];
+    imState.trans = data.trans || [];
+    imState.active = -1;
+    if (!imState.lines.length) {
+      imLines.innerHTML = '<div class="im-empty">♪ 纯音乐 / 暂无歌词</div>';
+      imLines.style.transform = 'translate3d(0,0,0)';
+      imTranslation.textContent = '';
+      return;
+    }
+    imLines.innerHTML = imState.lines.map(function (line) {
+      return '<button type="button" class="im-line" data-time="' + line.time + '"><span>' + esc(line.text) + '</span></button>';
+    }).join('');
+    updateImmersiveLyrics(audio.currentTime, true);
+    requestAnimationFrame(function () { centerLyrics(true); });
+    setTimeout(function () { centerLyrics(true); }, 80);
+  }
+  function fetchImmersiveLyrics(track) {
+    if (!track || !imLines) return;
+    var id = String(track.id);
+    imTranslation.textContent = '';
+    if (lyricCache.has(id)) { setImmersiveLyrics(lyricCache.get(id)); return; }
+    imLines.innerHTML = '<div class="im-empty">歌词加载中…</div>';
+    imLines.style.transform = 'translate3d(0,0,0)';
+    fetch('/api/assist?do=lyric&id=' + encodeURIComponent(id))
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var data = { lines: parseLrc(d.lyric), trans: parseLrc(d.translation) };
+        lyricCache.set(id, data);
+        var current = state.tracks[state.current];
+        if (current && String(current.id) === id && immersive && immersive.classList.contains('open')) setImmersiveLyrics(data);
+      })
+      .catch(function () {
+        var current = state.tracks[state.current];
+        if (current && String(current.id) === id) setImmersiveLyrics({ lines: [], trans: [] });
+      });
+  }
+  function updateImmersiveMeta() {
+    var track = state.current >= 0 ? state.tracks[state.current] : null;
+    if (!track) return;
+    if (imTitle) imTitle.textContent = track.name || '无标题';
+    if (imArtist) imArtist.textContent = track.artists || '';
+    if (imCover && track.cover) { imCover.src = track.cover; imCover.style.display = ''; }
+    else if (imCover) { imCover.removeAttribute('src'); imCover.style.display = 'none'; }
+    if (imBg) imBg.style.backgroundImage = track.cover ? 'url("' + String(track.cover).replace(/"/g, '%22') + '")' : '';
+    updateImmersivePlay(state.playing);
+  }
+  function updateImmersivePlay(playing) {
+    if (!imPlay) return;
+    var use = imPlay.querySelector('use');
+    if (use) use.setAttribute('href', playing ? '#i-pause' : '#i-play');
+    imPlay.setAttribute('aria-label', playing ? '暂停' : '播放');
+  }
+  function updateImmersiveProgress(pct) {
+    if (imFill) imFill.style.width = (Math.max(0, Math.min(1, pct || 0)) * 100).toFixed(2) + '%';
+  }
+  function openImmersive() {
+    if (state.current < 0 || !state.tracks.length) { toast('先选一首歌'); return; }
+    immersive.classList.add('open');
+    immersive.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('immersive-open');
+    updateImmersiveMeta();
+    fetchImmersiveLyrics(state.tracks[state.current]);
+    var duration = isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 0;
+    updateImmersiveProgress(duration > 0 ? audio.currentTime / duration : 0);
+    if (imPlay) imPlay.focus();
+  }
+  function closeImmersive() {
+    immersive.classList.remove('open');
+    immersive.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('immersive-open');
+    if (document.getElementById('immersiveBtn')) document.getElementById('immersiveBtn').focus();
+  }
   function setTrackUI(track) {
     document.getElementById('trackTitle').textContent = track ? track.name : '选择一首歌开始';
     document.getElementById('trackArtist').textContent = track ? (track.artists + (track.album ? ' · ' + track.album : '')) : '歌单已准备好，点击下方任意歌曲。';
@@ -1355,6 +1598,7 @@
     btn.classList.toggle('playing', playing);
     if (shelf3d) shelf3d.setPlaying(playing);
     updateMobilePlay(playing);
+    updateImmersivePlay(playing);
     setStatus(playing ? ('正在播放：' + (state.tracks[state.current] ? state.tracks[state.current].name : '')) : '已暂停');
     if (state.current >= 0) setTrackUI(state.tracks[state.current]);
   }
@@ -1372,6 +1616,7 @@
     sfxTrack();
     if (showBurst !== false) burst('TRACK ' + String(index + 1).padStart(2, '0'), lastPointer.x, lastPointer.y);
     var track = state.tracks[index];
+    if (immersive && immersive.classList.contains('open')) { updateImmersiveMeta(); fetchImmersiveLyrics(track); }
     state.failStreak = 0;
     audio.src = track.url || outer(track.id);
     audio.load();
@@ -1551,6 +1796,8 @@
     if (seekInput && !seekInput._dragging) seekInput.value = String(Math.round(pct * 1000));
     setSeekPct(pct);
     updateMobileProgress(pct);
+    updateImmersiveProgress(pct);
+    if (immersive && immersive.classList.contains('open')) updateImmersiveLyrics(audio.currentTime, false);
     document.documentElement.style.setProperty('--music-p', (pct * 100).toFixed(2));
   });
   audio.addEventListener('loadedmetadata', function () {
@@ -1888,6 +2135,48 @@
   var mpNextBtn = document.getElementById('mpNext');
   if (mpNextBtn) mpNextBtn.addEventListener('click', function () { next(true); });
 
+  var immersiveBtn = document.getElementById('immersiveBtn');
+  if (immersiveBtn) immersiveBtn.addEventListener('click', openImmersive);
+  var imClose = document.getElementById('imClose');
+  if (imClose) imClose.addEventListener('click', closeImmersive);
+  if (imPlay) imPlay.addEventListener('click', togglePlay);
+  var imPrev = document.getElementById('imPrev');
+  var imNext = document.getElementById('imNext');
+  if (imPrev) imPrev.addEventListener('click', prev);
+  if (imNext) imNext.addEventListener('click', function () { next(true); });
+  if (imLines) imLines.addEventListener('click', function (e) {
+    var line = e.target.closest('.im-line');
+    if (!line) return;
+    var time = Number(line.dataset.time) || 0;
+    audio.currentTime = time;
+    updateImmersiveLyrics(time, true);
+    if (!audio.paused) audio.play().catch(function () {});
+  });
+  if (imProgressBar) {
+    imProgressBar.addEventListener('click', function (e) {
+      var duration = isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 0;
+      if (!duration) return;
+      var r = imProgressBar.getBoundingClientRect();
+      var pct = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+      audio.currentTime = pct * duration;
+      updateImmersiveProgress(pct);
+      setSeekPct(pct);
+    });
+    imProgressBar.addEventListener('keydown', function (e) {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      e.preventDefault();
+      var duration = isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 0;
+      if (!duration) return;
+      audio.currentTime = Math.max(0, Math.min(duration, audio.currentTime + (e.key === 'ArrowRight' ? 5 : -5)));
+    });
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && immersive && immersive.classList.contains('open')) closeImmersive();
+  });
+
+  window.addEventListener('resize', function () {
+    if (immersive && immersive.classList.contains('open')) setTimeout(function () { centerLyrics(true); }, 120);
+  });
   var shelfScrollTick = false;
   function shelfParallax() {
     shelfScrollTick = false;

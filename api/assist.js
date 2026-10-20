@@ -102,6 +102,18 @@ async function handlePlaylist(req, res) {
   });
 }
 
+async function handleLyric(req, res) {
+  const id = ((req.query && req.query.id) || '').trim();
+  if (!id) return res.status(400).json({ ok: false, error: '缺少歌曲 ID' });
+  const r = await fetch('https://music.163.com/api/song/lyric?id=' + encodeURIComponent(id) + '&lv=1&kv=1&tv=-1', { headers: NETEASE_HEADERS });
+  const j = await r.json();
+  res.status(200).json({
+    ok: true,
+    lyric: (j.lrc && j.lrc.lyric) || '',
+    translation: (j.tlyric && j.tlyric.lyric) || ''
+  });
+}
+
 async function handleChat(req, res) {
   const body = await readBody(req);
   const msgs = Array.isArray(body.messages) ? body.messages.slice(-10) : [];
@@ -237,6 +249,7 @@ module.exports = async (req, res) => {
     if (doWhat === 'music' && req.method === 'GET') return await handleMusic(req, res);
     if (doWhat === 'search' && req.method === 'GET') return await handleSearch(req, res);
     if (doWhat === 'playlist' && req.method === 'GET') return await handlePlaylist(req, res);
+    if (doWhat === 'lyric' && req.method === 'GET') return await handleLyric(req, res);
     if (doWhat === 'chat' && req.method === 'POST') return await handleChat(req, res);
     if (doWhat === 'send-code' && req.method === 'POST') return await handleSendCode(req, res);
     if (doWhat === 'verify-code' && req.method === 'POST') return await handleVerifyCode(req, res);

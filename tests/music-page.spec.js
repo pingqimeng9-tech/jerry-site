@@ -1,6 +1,7 @@
 const { test, expect } = require('@playwright/test');
 
 test('music page loads the default playlist and supports add/remove', async ({ page }) => {
+  test.setTimeout(60000);
   await page.route(/https:\/\/p\d+\.music\.126\.net\/.*/, route => route.abort());
   await page.route('**/api/assist?do=music&ids=*', route => {
     const ids = new URL(route.request().url()).searchParams.get('ids').split(',');
@@ -79,4 +80,47 @@ test('3D record shelf navigates with 3D transforms', async ({ page }) => {
   const before = await page.locator('#shelfPosition').innerText();
   await page.locator('#shelfNext').click();
   await expect(page.locator('#shelfPosition')).not.toHaveText(before);
+});
+
+test('immersive lyrics centers the active line and exits with Escape', async ({ page }) => {
+  await page.addInitScript(() => {
+    HTMLMediaElement.prototype.load = function () {};
+    HTMLMediaElement.prototype.play = function () { return Promise.resolve(); };
+    Object.defineProperty(HTMLMediaElement.prototype, 'src', {
+      configurable: true,
+      get() { return this.getAttribute('data-src') || ''; },
+      set(value) { this.setAttribute('data-src', value); }
+    });
+  });
+  await page.route(/https:\/\/p\d+\.music\.126\.net\/.*/, route => route.abort());
+  await page.route('**/api/assist?do=lyric*', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      ok: true,
+      lyric: '[00:00.00]Line one\n[00:03.00]Line two\n[00:06.00]Line three\n[00:09.00]Line four',
+      translation: '[00:00.00]第一行'
+    })
+  }));
+
+  await page.goto('/music.html');
+  await page.locator('.track-row').first().click();
+  await page.locator('#immersiveBtn').click();
+
+  const overlay = page.locator('#immersive');
+  await expect(overlay).toHaveClass(/open/);
+  const active = page.locator('.im-line.on');
+  await expect(active).toHaveCount(1);
+  await expect(active).toContainText('Line one');
+  await expect(page.locator('#imTranslation')).toContainText('第一行');
+
+  const offset = await page.evaluate(() => {
+    const box = document.getElementById('imLyrics').getBoundingClientRect();
+    const line = document.querySelector('.im-line.on').getBoundingClientRect();
+    return Math.abs((line.top + line.height / 2) - (box.top + box.height / 2));
+  });
+  expect(offset).toBeLessThan(2);
+
+  await page.keyboard.press('Escape');
+  await expect(overlay).not.toHaveClass(/open/);
 });

@@ -831,6 +831,15 @@ async function handleApi(req, res, pathname) {
       return send(res, 200, { ok: true, songs: ((j.result && j.result.songs) || []).map(mapNetSong) });
     } catch (e) { return send(res, 200, { ok: false, error: e.message, songs: [] }); }
   }
+  if (req.method === 'GET' && pathname === '/api/assist' && assistDo === 'lyric') {
+    const id = new URL(req.url, 'http://x').searchParams.get('id') || '';
+    if (!id.trim()) return send(res, 400, { ok: false, error: '缺少歌曲 ID' });
+    try {
+      const r = await httpsJson('GET', 'https://music.163.com/api/song/lyric?id=' + encodeURIComponent(id) + '&lv=1&kv=1&tv=-1', NET_HEADERS, null, 15000);
+      const j = JSON.parse(r.text || '{}');
+      return send(res, 200, { ok: true, lyric: (j.lrc && j.lrc.lyric) || '', translation: (j.tlyric && j.tlyric.lyric) || '' });
+    } catch (e) { return send(res, 200, { ok: false, error: e.message }); }
+  }
   if (req.method === 'GET' && pathname === '/api/assist' && assistDo === 'playlist') {
     const id = new URL(req.url, 'http://x').searchParams.get('id') || '';
     if (!id.trim()) return send(res, 400, { ok: false, error: '缺少歌单 ID' });
