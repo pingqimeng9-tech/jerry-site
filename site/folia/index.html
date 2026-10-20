@@ -14,11 +14,13 @@
           f.setItem('playback_entry_view_chosen','true');
         }
         var mobileView = Math.min(window.innerWidth || 9999, (window.screen && window.screen.width) || 9999) <= 640 || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+        var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        var slowNet = !!conn && (conn.saveData === true || /(^|-)2g$|(^|-)3g$|slow-2g/i.test(conn.effectiveType || '') || (typeof conn.downlink === 'number' && conn.downlink > 0 && conn.downlink < 1.5));
         if(mobileView) {
           if(!f.getItem('visualizer_frame_rate')) f.setItem('visualizer_frame_rate','60');
           if(!f.getItem('visualizer_background_mode')) f.setItem('visualizer_background_mode','common');
-          if(!f.getItem('background_opacity')) f.setItem('background_opacity','0.45');
-          var low = (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4 || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          if(!f.getItem('background_opacity')) f.setItem('background_opacity', slowNet ? '0.35' : '0.45');
+          var low = slowNet || (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4 || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
           if(low && !f.getItem('visualizer_mode')) f.setItem('visualizer_mode','still');
         }
         if('serviceWorker' in navigator) {
@@ -38,6 +40,30 @@
         [class*="backdrop-blur"] { --tw-backdrop-blur: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important; backdrop-filter: blur(8px) !important; }
         body { overflow-x: hidden; }
       }
+
+      /* Mobile-only persistent transport + layout guard. */
+      #folia-mobile-transport{display:none;position:fixed;left:0;right:0;bottom:0;z-index:120;color:#fff;background:linear-gradient(180deg,rgba(10,10,14,.72),rgba(8,8,12,.94));border-top:1px solid rgba(255,255,255,.14);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:0 -14px 40px rgba(0,0,0,.28);padding-bottom:env(safe-area-inset-bottom,0px)}
+      body.folia-mobile-player #folia-mobile-transport{display:block}
+      .fmt-progress{position:relative;height:3px;background:rgba(255,255,255,.16);overflow:visible}
+      .fmt-progress i{display:block;height:100%;width:0;background:#fff;transition:width .18s linear}
+      .fmt-progress input{position:absolute;left:0;right:0;top:-10px;width:100%;height:24px;opacity:0;margin:0;cursor:pointer}
+      .fmt-main{display:flex;align-items:center;gap:10px;padding:8px 12px 9px;min-width:0}
+      .fmt-meta{display:flex;align-items:center;gap:9px;min-width:0;flex:1;border:0;background:none;color:inherit;text-align:left;padding:0;cursor:pointer}
+      .fmt-cover{width:44px;height:44px;flex:none;border-radius:9px;object-fit:cover;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18)}
+      .fmt-text{min-width:0;display:flex;flex-direction:column;gap:2px}
+      .fmt-text b{font-size:13px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .fmt-text small{font-size:10px;line-height:1.2;color:rgba(255,255,255,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .fmt-play{width:48px;height:48px;flex:none;border-radius:50%;border:0;background:#fff;color:#07070b;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 22px rgba(255,255,255,.16)}
+      .fmt-play svg{width:22px;height:22px;fill:currentColor}
+      .fmt-open{width:40px;height:40px;flex:none;border-radius:50%;border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.06);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px}
+      .fmt-open:active,.fmt-play:active{transform:scale(.94)}
+      body.folia-mobile-player button[aria-label="展开歌曲卡片"]{opacity:0!important;pointer-events:none!important}
+      body.folia-mobile-player .fmt-original-progress,body.folia-mobile-player .fmt-original-gear{display:none!important}
+      body.folia-mobile-player .fmt-original-card{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+
+      #folia-desktop-play{display:none;position:fixed;right:88px;bottom:26px;z-index:120;width:52px;height:52px;border-radius:50%;border:0;background:#fff;color:#07070b;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 26px rgba(255,255,255,.18);transition:transform .15s,opacity .15s}
+      #folia-desktop-play:active{transform:scale(.94)}
+      #folia-desktop-play svg{width:23px;height:23px;fill:currentColor}
     </style>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -220,5 +246,202 @@
       })();
     </script>
     <div id="root"></div>
+    <script>
+      (function () {
+        if (!window.matchMedia('(max-width: 768px)').matches) return;
+
+        var PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+        var PAUSE = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+
+        var bar = document.createElement('div');
+        bar.id = 'folia-mobile-transport';
+        bar.innerHTML = '<div class="fmt-progress"><i></i><input type="range" min="0" max="1000" value="0" aria-label="播放进度"></div>' +
+          '<div class="fmt-main"><button class="fmt-meta" type="button" aria-label="打开歌曲详情"><img class="fmt-cover" alt=""><span class="fmt-text"><b>正在播放</b><small></small></span></button>' +
+          '<button class="fmt-play" type="button" aria-label="播放">' + PLAY + '</button>' +
+          '<button class="fmt-open" type="button" aria-label="打开歌曲面板">⋯</button></div>';
+        document.body.appendChild(bar);
+
+        var fill = bar.querySelector('.fmt-progress i');
+        var range = bar.querySelector('.fmt-progress input');
+        var meta = bar.querySelector('.fmt-meta');
+        var cover = bar.querySelector('.fmt-cover');
+        var titleEl = bar.querySelector('.fmt-text b');
+        var artistEl = bar.querySelector('.fmt-text small');
+        var playBtn = bar.querySelector('.fmt-play');
+        var openBtn = bar.querySelector('.fmt-open');
+        var hidden = [];
+        var currentAudio = null;
+
+        function remember(el, cls) {
+          if (!el || el.classList.contains(cls)) return;
+          el.classList.add(cls);
+          hidden.push(el);
+        }
+        function clearHidden() {
+          hidden.forEach(function (el) { if (el && el.classList) el.classList.remove('fmt-original-card', 'fmt-original-progress', 'fmt-original-gear'); });
+          hidden = [];
+        }
+        function getPlayerButton() {
+          var marker = document.querySelector('button [data-toast-cover="image"]');
+          if (marker) {
+            var candidate = marker.closest('button');
+            if (candidate && !bar.contains(candidate)) return candidate;
+          }
+          var buttons = document.querySelectorAll('button[aria-label]');
+          for (var i = 0; i < buttons.length; i += 1) {
+            if (bar.contains(buttons[i])) continue;
+            var label = buttons[i].getAttribute('aria-label') || '';
+            if (/展开歌曲卡片|open the song card|stageTrackPillOpenSongCard/i.test(label)) return buttons[i];
+          }
+          return null;
+        }
+        function getAudio() {
+          var audios = Array.prototype.slice.call(document.querySelectorAll('audio'));
+          var playing = audios.find(function (a) { return a.currentSrc && !a.paused && !a.ended; });
+          if (playing) return playing;
+          var loaded = audios.find(function (a) { return a.currentSrc || a.src; });
+          return loaded || audios[0] || null;
+        }
+        function fmtTime(sec) {
+          if (!isFinite(sec) || sec < 0) sec = 0;
+          var m = Math.floor(sec / 60);
+          var s = Math.floor(sec % 60);
+          return m + ':' + String(s).padStart(2, '0');
+        }
+        function sync() {
+          var playerButton = getPlayerButton();
+          var active = !!playerButton && window.matchMedia('(max-width: 768px)').matches;
+          document.body.classList.toggle('folia-mobile-player', active);
+          if (!active) { clearHidden(); currentAudio = null; return; }
+
+          var card = playerButton.closest('div.pointer-events-none.fixed') || playerButton.parentElement;
+          remember(card, 'fmt-original-card');
+
+          document.querySelectorAll('input[type="range"]').forEach(function (input) {
+            if (input.closest('#folia-mobile-transport')) return;
+            var r = input.getBoundingClientRect();
+            if (r.width > 0 && r.bottom > window.innerHeight - 120) {
+              var wrap = input.parentElement;
+              for (var i = 0; i < 4 && wrap; i += 1) {
+                if ((wrap.className || '').indexOf('z-60') !== -1) break;
+                wrap = wrap.parentElement;
+              }
+              remember(wrap, 'fmt-original-progress');
+            }
+          });
+
+          document.querySelectorAll('button').forEach(function (button) {
+            if (button.closest('#folia-mobile-transport')) return;
+            var r = button.getBoundingClientRect();
+            if (!button.getAttribute('aria-label') && r.width >= 40 && r.height >= 40 && r.bottom > window.innerHeight - 120 && r.left > window.innerWidth * 0.7) {
+              var wrap = button.closest('div.fixed.right-0') || button.parentElement;
+              remember(wrap, 'fmt-original-gear');
+            }
+          });
+
+          var trunc = playerButton.querySelectorAll('.truncate');
+          titleEl.textContent = (trunc[0] && trunc[0].textContent) || '正在播放';
+          artistEl.textContent = (trunc[1] && trunc[1].textContent) || '';
+          var image = playerButton.querySelector('img');
+          if (image && image.src) { cover.src = image.src; cover.style.display = ''; } else { cover.style.display = 'none'; }
+
+          var audio = getAudio();
+          currentAudio = audio;
+          var playing = !!audio && !audio.paused && !audio.ended;
+          playBtn.innerHTML = playing ? PAUSE : PLAY;
+          playBtn.setAttribute('aria-label', playing ? '暂停' : '播放');
+          if (audio && isFinite(audio.duration) && audio.duration > 0) {
+            if (!range._dragging) range.value = String(Math.round(audio.currentTime / audio.duration * 1000));
+            fill.style.width = ((audio.currentTime / audio.duration) * 100).toFixed(2) + '%';
+          } else {
+            fill.style.width = '0%';
+          }
+        }
+
+        playBtn.addEventListener('click', function (event) {
+          event.stopPropagation();
+          var audio = getAudio();
+          if (!audio) return;
+          if (audio.paused || audio.ended) audio.play().catch(function () {});
+          else audio.pause();
+          setTimeout(sync, 120);
+        });
+        meta.addEventListener('click', function () { var button = getPlayerButton(); if (button) button.click(); });
+        openBtn.addEventListener('click', function () { var button = getPlayerButton(); if (button) button.click(); });
+        range.addEventListener('pointerdown', function () { range._dragging = true; });
+        range.addEventListener('pointerup', function () { range._dragging = false; });
+        range.addEventListener('input', function () {
+          var audio = getAudio();
+          if (!audio || !isFinite(audio.duration) || !audio.duration) return;
+          audio.currentTime = Number(range.value) / 1000 * audio.duration;
+          fill.style.width = (Number(range.value) / 10).toFixed(2) + '%';
+        });
+
+        setInterval(sync, 500);
+        setTimeout(sync, 1200);
+        window.addEventListener('resize', sync, { passive: true });
+
+        if (!navigator.webdriver && !sessionStorage.getItem('folia_auto_degraded')) {
+          var frames = 0;
+          var started = 0;
+          var check = function (now) {
+            if (!started) started = now;
+            frames += 1;
+            if (now - started < 4000) { requestAnimationFrame(check); return; }
+            var fps = frames / ((now - started) / 1000);
+            if (fps < 35 && getPlayerButton()) {
+              localStorage.setItem('visualizer_mode', 'still');
+              localStorage.setItem('visualizer_background_mode', 'common');
+              localStorage.setItem('visualizer_frame_rate', '60');
+              localStorage.setItem('background_opacity', '0.4');
+              sessionStorage.setItem('folia_auto_degraded', '1');
+              location.reload();
+            }
+          };
+          setTimeout(function () { requestAnimationFrame(check); }, 9000);
+        }
+      })();
+    </script>
+    <script>
+      (function () {
+        if (!window.matchMedia('(min-width: 1024px)').matches) return;
+        var PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+        var PAUSE = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+        var button = document.createElement('button');
+        button.id = 'folia-desktop-play';
+        button.type = 'button';
+        button.setAttribute('aria-label', '播放');
+        button.innerHTML = PLAY;
+        document.body.appendChild(button);
+        function playerButton() {
+          var marker = document.querySelector('button [data-toast-cover="image"]');
+          if (marker) { var b = marker.closest('button'); if (b) return b; }
+          var buttons = document.querySelectorAll('button[aria-label]');
+          for (var i = 0; i < buttons.length; i += 1) {
+            if (/展开歌曲卡片|open the song card|stageTrackPillOpenSongCard/i.test(buttons[i].getAttribute('aria-label') || '')) return buttons[i];
+          }
+          return null;
+        }
+        function audio() {
+          var all = Array.prototype.slice.call(document.querySelectorAll('audio'));
+          return all.find(function (a) { return a.currentSrc && !a.paused && !a.ended; }) || all.find(function (a) { return a.currentSrc || a.src; }) || null;
+        }
+        function sync() {
+          var p = playerButton();
+          button.style.display = p ? 'flex' : 'none';
+          var a = audio();
+          var playing = !!a && !a.paused && !a.ended;
+          button.innerHTML = playing ? PAUSE : PLAY;
+          button.setAttribute('aria-label', playing ? '暂停' : '播放');
+        }
+        button.addEventListener('click', function () {
+          var a = audio(); if (!a) return;
+          if (a.paused || a.ended) a.play().catch(function () {}); else a.pause();
+          setTimeout(sync, 120);
+        });
+        setInterval(sync, 500);
+        sync();
+      })();
+    </script>
   </body>
 </html>

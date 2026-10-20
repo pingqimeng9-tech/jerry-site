@@ -14,3 +14,8 @@ so the player opens directly; it does not alter Folia's source or subsequent use
 Local modifications: /folia/index.html sets viewport-fit=cover, mobile 100dvh/backdrop-blur
 performance overrides, mobile visualizer defaults, skips onboarding, and unregisters Folia's
 service worker to avoid a 15MB mobile precache. Folia's source is otherwise unmodified.
+
+Additional local adaptation: /folia/index.html injects a mobile persistent transport bar
+(play/pause, seek, cover/title, panel button), a desktop persistent play/pause control, and an
+automatic low-performance fallback (network type/device memory + runtime FPS) that switches to
+Folia's lightweight visualizer mode once.

@@ -37,3 +37,29 @@ test('Folia mobile portrait fits the viewport', async ({ page }, testInfo) => {
   expect(layout.scrollHeight).toBeLessThanOrEqual(layout.height + 1);
   await expect(page.locator('input[placeholder*="SEARCH"], input[placeholder*="搜索"]')).toHaveCount(1);
 });
+
+test('Folia mobile player exposes a persistent transport without overlap', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile', 'mobile player only');
+  test.setTimeout(120000);
+  await page.route('**/api/netease/song/url/v1*', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ code: 200, data: [{ id: 1442466883, url: 'https://example.com/x.wav', br: 128000, size: 0, code: 200, type: 'mp3', level: 'standard' }] })
+  }));
+  await page.goto('/folia/');
+  await page.waitForTimeout(6500);
+  const search = page.locator('input[placeholder*="SEARCH"], input[placeholder*="搜索"]').first();
+  await search.fill('花に亡霊');
+  await search.press('Enter');
+  await page.waitForTimeout(4000);
+  await page.locator('button:has-text("花に亡霊")').first().click({ force: true });
+  await page.waitForTimeout(4500);
+
+  const bar = page.locator('#folia-mobile-transport');
+  await expect(bar).toBeVisible();
+  await expect(bar.locator('.fmt-play')).toBeVisible();
+  await expect(bar.locator('.fmt-text b')).toContainText('花に亡霊');
+  await expect(page.locator('.fmt-original-card')).toBeHidden();
+  const rect = await bar.boundingBox();
+  expect(rect.y + rect.height).toBeLessThanOrEqual(845);
+});
