@@ -21,8 +21,15 @@ automatic low-performance fallback (network type/device memory + runtime FPS) th
 Folia's lightweight visualizer mode once.
 
 Bravais mobile: the seam is pinned to the left edge, its navigation is always visible with
-larger touch targets, and a subtle grid icon at the bottom switches to the classic Grid library.
-Mobile Bravais also drops the grain overlay and seam shadow for smoother scrolling.
+larger touch targets, and a floating grid icon switches to the classic Grid library. The left rail
+carries a separate site-page nav (首页 / 博客 / Rumi / 音乐 / 友链 / 项目) above the account and tool
+icons, so the site links no longer overlap Folia's controls. Mobile Bravais also drops the grain
+overlay and seam shadow for smoother scrolling.
 
-Branding: splash now starts with callmiruko.cc, and the Bravais mobile rail contains site-page links.
+A top-right 原版 / 适配版 toggle switches between this mobile adaptation and Folia's untouched
+original layout. Original mode hides the site nav, custom transport and grid switch, while keeping
+the toggle available to come back. It does not remove Folia's idle text animations.
+
+Branding: splash now starts with callmiruko.cc.
 The desktop/mobile player transport uses Folia's real next/previous transport handlers.
+Mobile Bravais is vertically locked and the right edge is cropped so no half poster stays visible.

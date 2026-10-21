@@ -19,12 +19,20 @@
         var slowNet = !!conn && (conn.saveData === true || /(^|-)2g$|(^|-)3g$|slow-2g/i.test(conn.effectiveType || '') || (typeof conn.downlink === 'number' && conn.downlink > 0 && conn.downlink < 1.5));
         if(mobileView) {
           f.setItem('always_show_track_switch_buttons','true');
-          if(!f.getItem('visualizer_frame_rate')) f.setItem('visualizer_frame_rate','60');
-          if(!f.getItem('visualizer_background_mode')) f.setItem('visualizer_background_mode','common');
-          if(!f.getItem('background_opacity')) f.setItem('background_opacity', slowNet ? '0.35' : '0.45');
-          var low = slowNet || (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4 || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-          if(low && !f.getItem('visualizer_mode')) f.setItem('visualizer_mode','still');
-          if(low || slowNet) document.documentElement.classList.add('folia-perf-low');
+          if(!f.getItem('jerry_visuals_restored_v2')) {
+            if(f.getItem('visualizer_mode') === 'still') f.removeItem('visualizer_mode');
+            if(f.getItem('visualizer_background_mode') === 'common') f.removeItem('visualizer_background_mode');
+            if(f.getItem('background_opacity') === '0.45' || f.getItem('background_opacity') === '0.35') f.removeItem('background_opacity');
+            if(f.getItem('visualizer_frame_rate') === '60') f.removeItem('visualizer_frame_rate');
+            f.setItem('jerry_visuals_restored_v2','1');
+          }
+          if(slowNet) {
+            if(!f.getItem('visualizer_mode')) f.setItem('visualizer_mode','still');
+            if(!f.getItem('visualizer_background_mode')) f.setItem('visualizer_background_mode','common');
+            if(!f.getItem('background_opacity')) f.setItem('background_opacity','0.35');
+            if(!f.getItem('visualizer_frame_rate')) f.setItem('visualizer_frame_rate','60');
+            document.documentElement.classList.add('folia-perf-low');
+          }
         }
         if('serviceWorker' in navigator) {
           navigator.serviceWorker.getRegistrations().then(function(rs) {
@@ -45,10 +53,10 @@
       }
       @media (max-width: 768px) {
         :root { --jerry-mobile-rail: clamp(70px, 20vw, 86px); }
-        .bravais-field { touch-action: pan-y; }
-        .bravais-root::after { display: none !important; }
-        .bravais-seam { box-shadow: none !important; }
-        .bravais-seam:has(.bravais-seam-home) {
+        html:not(.folia-original) .bravais-field { touch-action: pan-y; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 82px, #000 calc(100% - 28px), transparent 100%); mask-image: linear-gradient(90deg, transparent 0, #000 82px, #000 calc(100% - 28px), transparent 100%); }
+        html:not(.folia-original) .bravais-root::after { display: none !important; }
+        html:not(.folia-original) .bravais-seam { box-shadow: none !important; }
+        html:not(.folia-original) .bravais-seam:has(.bravais-seam-home) {
           left: 0 !important;
           transform: none !important;
           width: var(--jerry-mobile-rail) !important;
@@ -56,24 +64,24 @@
           -webkit-backdrop-filter: none !important;
           backdrop-filter: none !important;
         }
-        .bravais-seam:has(.bravais-seam-home) .bravais-seam-content {
+        html:not(.folia-original) .bravais-seam:has(.bravais-seam-home) .bravais-seam-content {
           left: 0 !important;
           margin-left: 0 !important;
           transform: none !important;
           width: var(--jerry-mobile-rail) !important;
         }
-        .bravais-seam:has(.bravais-seam-home) .bravais-seam-home {
+        html:not(.folia-original) .bravais-seam:has(.bravais-seam-home) .bravais-seam-home {
           width: var(--jerry-mobile-rail) !important;
           padding: calc(14px + env(safe-area-inset-top, 0px)) 10px 0 !important;
         }
-        .bravais-seam:has(.bravais-seam-home) .bravais-seam-home-head,
-        .bravais-seam:has(.bravais-seam-home) .bravais-seam-home-side,
-        .bravais-seam:has(.bravais-seam-home) .bravais-seam-home-measure,
-        .bravais-seam:has(.bravais-seam-home) .bravais-seam-dock {
+        html:not(.folia-original) .bravais-seam:has(.bravais-seam-home) .bravais-seam-home-head,
+        html:not(.folia-original) .bravais-seam:has(.bravais-seam-home) .bravais-seam-home-side,
+        html:not(.folia-original) .bravais-seam:has(.bravais-seam-home) .bravais-seam-home-measure,
+        html:not(.folia-original) .bravais-seam:has(.bravais-seam-home) .bravais-seam-dock {
           width: calc(var(--jerry-mobile-rail) - 18px) !important;
         }
-        .bravais-seam:has(.bravais-seam-home) .bravais-seam-tabs { width: 100% !important; }
-        .bravais-seam:has(.bravais-seam-home) .bravais-seam-tabs button {
+        html:not(.folia-original) .bravais-seam:has(.bravais-seam-home) .bravais-seam-tabs { width: 100% !important; }
+        html:not(.folia-original) .bravais-seam:has(.bravais-seam-home) .bravais-seam-tabs button {
           min-height: 42px;
           width: 100%;
           padding: 8px 2px !important;
@@ -82,18 +90,11 @@
           writing-mode: horizontal-tb !important;
           text-orientation: mixed !important;
         }
-        .bravais-seam:has(.bravais-seam-home) .bravais-seam-icon,
-        .bravais-seam:has(.bravais-seam-home) .bravais-seam-back { width: 40px; height: 40px; }
+        html:not(.folia-original) .bravais-seam:has(.bravais-seam-home) [data-bravais-seam-action="hide"],
+        html:not(.folia-original) .bravais-seam:has(.bravais-seam-home) .bravais-seam-back { width: 40px; height: 40px; }
         html.folia-perf-low .bravais-seam { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
       }
 
-      .jerry-site-links{position:absolute;left:50%;bottom:calc(178px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:5px;z-index:8}
-      .jerry-site-links a{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:rgba(255,255,255,.035);color:rgba(255,255,255,.58);font:700 10px/1 'JetBrains Mono',monospace;text-decoration:none;letter-spacing:0}
-      .jerry-site-links a:hover,.jerry-site-links a:active{color:#fff;background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.28)}
-      .app-splash-brand{margin-bottom:clamp(14px,3vh,30px);font:600 clamp(10px,2.6vw,14px)/1 "JetBrains Mono",monospace;letter-spacing:.24em;color:rgba(255,255,255,.62);text-transform:lowercase}
-      .jerry-suite-switch{position:absolute;left:50%;bottom:calc(3px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;align-items:center;justify-content:center;width:26px;height:26px;padding:0;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.04);color:rgba(255,255,255,.36);cursor:pointer;z-index:8;opacity:.55;transition:opacity .18s,background .18s,color .18s}
-      .jerry-suite-switch:hover,.jerry-suite-switch:active{opacity:1;color:#fff;background:rgba(255,255,255,.14)}
-      .jerry-suite-switch svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.5}
 
       /* Mobile-only persistent transport + layout guard. */
       #folia-mobile-transport{display:none;position:fixed;left:0;right:0;bottom:0;z-index:120;color:#fff;background:linear-gradient(180deg,rgba(10,10,14,.72),rgba(8,8,12,.94));border-top:1px solid rgba(255,255,255,.14);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:0 -14px 40px rgba(0,0,0,.28);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box;min-height:clamp(64px,9vh,80px)}
@@ -121,6 +122,20 @@
       #folia-desktop-play{display:none;position:fixed;right:88px;bottom:26px;z-index:120;width:52px;height:52px;border-radius:50%;border:0;background:#fff;color:#07070b;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 26px rgba(255,255,255,.18);transition:transform .15s,opacity .15s}
       #folia-desktop-play:active{transform:scale(.94)}
       #folia-desktop-play svg{width:23px;height:23px;fill:currentColor}
+
+
+      .jerry-suite-switch{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:30px;margin-top:4px;padding:0;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.035);color:rgba(255,255,255,.34);cursor:pointer;z-index:8;opacity:.7;transition:opacity .18s,background .18s,color .18s}
+      .jerry-suite-switch:hover,.jerry-suite-switch:active{opacity:1;color:#fff;background:rgba(255,255,255,.14)}
+      .jerry-suite-switch svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.5}
+      #jerry-edge-mask{display:none;position:fixed;top:0;right:0;bottom:0;width:clamp(64px,17vw,92px);z-index:110;pointer-events:none;background:linear-gradient(90deg,rgba(8,8,12,0),#08080d 12%,#08080d)}
+      body.jerry-bravais #jerry-edge-mask{display:block}
+      #jerry-top-nav{position:fixed;top:0;left:0;right:0;z-index:118;display:flex;align-items:center;gap:8px;padding:calc(7px + env(safe-area-inset-top,0px)) 10px 7px;background:rgba(8,8,12,.88);border-bottom:1px solid rgba(255,255,255,.12);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);transform:translateY(-112%);transition:transform .24s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+      #jerry-top-nav.show{transform:none;pointer-events:auto}
+      #jerry-top-nav .jtn-brand{flex:none;color:#fff;text-decoration:none;font:800 11px 'JetBrains Mono',monospace;letter-spacing:-.02em;padding:6px 4px}
+      #jerry-top-nav nav{display:flex;align-items:center;gap:2px;min-width:0;overflow-x:auto;scrollbar-width:none}
+      #jerry-top-nav nav::-webkit-scrollbar{display:none}
+      #jerry-top-nav nav a{flex:none;color:rgba(255,255,255,.7);text-decoration:none;font:600 10px 'Noto Sans SC',sans-serif;padding:7px 8px;border-radius:8px;white-space:nowrap}
+      #jerry-top-nav nav a:active{color:#fff;background:rgba(255,255,255,.14)}
     </style>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -334,6 +349,7 @@
         var nextBtn = bar.querySelector('.fmt-next');
         var hidden = [];
         var currentAudio = null;
+        var wasPlayer = false;
 
         function remember(el, cls) {
           if (!el || el.classList.contains(cls)) return;
@@ -394,12 +410,19 @@
         }
         function sync() {
           var playerButton = getPlayerButton();
-          var active = !!playerButton && window.matchMedia('(max-width: 768px)').matches;
+          var homeWall = document.querySelector('.bravais-field');
+          var homeSearch = document.querySelector('input[placeholder*="SEARCH"], input[placeholder*="搜索"]');
+          var playerSurface = playerButton || ((!homeWall && !homeSearch) ? document.querySelector('[data-visualizer-style]') : null);
+          var active = !!playerSurface && window.matchMedia('(max-width: 768px)').matches;
           document.body.classList.toggle('folia-mobile-player', active);
+          if (active && !wasPlayer) hideTopNav();
+          wasPlayer = active;
           if (!active) { clearHidden(); currentAudio = null; return; }
 
-          var card = playerButton.closest('div.pointer-events-none.fixed') || playerButton.parentElement;
-          remember(card, 'fmt-original-card');
+          if (playerButton) {
+            var card = playerButton.closest('div.pointer-events-none.fixed') || playerButton.parentElement;
+            remember(card, 'fmt-original-card');
+          }
 
           document.querySelectorAll('input[type="range"]').forEach(function (input) {
             if (input.closest('#folia-mobile-transport')) return;
@@ -423,11 +446,13 @@
             }
           });
 
-          var trunc = playerButton.querySelectorAll('.truncate');
-          titleEl.textContent = (trunc[0] && trunc[0].textContent) || '正在播放';
-          artistEl.textContent = (trunc[1] && trunc[1].textContent) || '';
-          var image = playerButton.querySelector('img');
-          if (image && image.src) { cover.src = image.src; cover.style.display = ''; } else { cover.style.display = 'none'; }
+          if (playerButton) {
+            var trunc = playerButton.querySelectorAll('.truncate');
+            titleEl.textContent = (trunc[0] && trunc[0].textContent) || '正在播放';
+            artistEl.textContent = (trunc[1] && trunc[1].textContent) || '';
+            var image = playerButton.querySelector('img');
+            if (image && image.src) { cover.src = image.src; cover.style.display = ''; } else { cover.style.display = 'none'; }
+          }
 
           var audio = getAudio();
           currentAudio = audio;
@@ -465,6 +490,44 @@
           fill.style.width = (Number(range.value) / 10).toFixed(2) + '%';
         });
 
+        var topNav = document.createElement('div');
+        topNav.id = 'jerry-top-nav';
+        topNav.innerHTML = '<a class="jtn-brand" href="/">callmiruko.cc</a><nav aria-label="站点导航">' +
+          '<a href="/">首页</a><a href="/blog.html">博客</a><a href="/rumi.html">Rumi</a><a href="/projects.html">项目</a><a href="/friends.html">友链</a></nav>';
+        document.body.appendChild(topNav);
+        var topNavTimer = 0;
+        function showTopNav() {
+          topNav.classList.add('show');
+          clearTimeout(topNavTimer);
+          topNavTimer = setTimeout(function () { topNav.classList.remove('show'); }, 3200);
+        }
+        function hideTopNav() {
+          clearTimeout(topNavTimer);
+          topNav.classList.remove('show');
+        }
+        var navPointerY = null;
+        document.addEventListener('pointerdown', function (event) {
+          if (event.pointerType === 'mouse' && event.button !== 0) return;
+          navPointerY = event.clientY;
+        }, { passive: true });
+        document.addEventListener('pointermove', function (event) {
+          if (navPointerY === null) return;
+          var dy = event.clientY - navPointerY;
+          if (Math.abs(dy) < 8) return;
+          if (dy > 0) showTopNav(); else hideTopNav();
+          navPointerY = event.clientY;
+        }, { passive: true });
+        document.addEventListener('pointerup', function () { navPointerY = null; }, { passive: true });
+        document.addEventListener('wheel', function (event) {
+          if (event.deltaY < -6) showTopNav();
+          else if (event.deltaY > 6) hideTopNav();
+        }, { passive: true });
+        var edgeMask = document.createElement('div');
+        edgeMask.id = 'jerry-edge-mask';
+        document.body.appendChild(edgeMask);
+        setInterval(function () {
+          document.body.classList.toggle('jerry-bravais', !!document.querySelector('.bravais-field'));
+        }, 500);
         setInterval(sync, 500);
         setTimeout(sync, 1200);
         window.addEventListener('resize', sync, { passive: true });
@@ -486,29 +549,9 @@
             } catch (e) {}
             location.reload();
           });
-          home.appendChild(switchButton);
+          var tabs = home.querySelector('.bravais-seam-tabs');
+          (tabs || home).appendChild(switchButton);
         }
-        function ensureSiteLinks() {
-          var home = document.querySelector('.bravais-seam-home');
-          if (!home || home.querySelector('.jerry-site-links')) return;
-          var links = document.createElement('nav');
-          links.className = 'jerry-site-links';
-          links.setAttribute('aria-label', '站点导航');
-          [
-            ['/', '首', '首页'],
-            ['/blog.html', '博', '博客'],
-            ['/rumi.html', 'R', 'Rumi 英语'],
-            ['/projects.html', '项', '项目'],
-            ['/friends.html', '友', '友链']
-          ].forEach(function (item) {
-            var a = document.createElement('a');
-            a.href = item[0]; a.textContent = item[1]; a.title = item[2]; a.setAttribute('aria-label', item[2]);
-            links.appendChild(a);
-          });
-          home.appendChild(links);
-        }
-        setInterval(ensureSiteLinks, 800);
-        setTimeout(ensureSiteLinks, 1200);
         setInterval(ensureSuiteSwitch, 800);
         setTimeout(ensureSuiteSwitch, 1200);
 

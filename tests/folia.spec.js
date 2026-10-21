@@ -64,7 +64,10 @@ test('Folia mobile player exposes a persistent transport without overlap', async
   await expect(bar.locator('.fmt-next')).toBeEnabled();
   await expect(bar.locator('.fmt-text b')).toContainText('花に亡霊');
   await expect(page.locator('.fmt-original-card')).toBeHidden();
-  const rect = await bar.boundingBox();
+  const rect = await bar.evaluate(el => {
+    const box = el.getBoundingClientRect();
+    return { y: box.y, height: box.height };
+  });
   expect(rect.y + rect.height).toBeLessThanOrEqual(845);
 });
 
@@ -77,7 +80,16 @@ test('Folia mobile Bravais keeps its nav pinned left and can switch to Grid', as
   const seam = await page.locator('.bravais-seam').boundingBox();
   expect(seam.x).toBe(0);
   await expect(page.locator('.jerry-suite-switch')).toBeVisible();
-  await expect(page.locator('.jerry-site-links a')).toHaveCount(5);
+  await expect(page.locator('.jerry-site-links')).toHaveCount(0);
+
+  const field = await page.locator('.bravais-field').boundingBox();
+  await page.mouse.move(field.x + 200, field.y + 320);
+  await page.mouse.down();
+  await page.mouse.move(field.x + 200, field.y + 440, { steps: 10 });
+  await page.mouse.up();
+  await expect(page.locator('#jerry-top-nav')).toHaveClass(/show/);
+  await expect(page.locator('#jerry-top-nav nav a')).toHaveCount(5);
+
   await page.locator('.jerry-suite-switch').click({ force: true });
   await page.waitForTimeout(6500);
   await expect(page.locator('input[placeholder*="SEARCH"], input[placeholder*="搜索"]')).toHaveCount(1);
