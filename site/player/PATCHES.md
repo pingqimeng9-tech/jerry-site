@@ -13,18 +13,15 @@ VITE_NETEASE_API_BASE=/api/netease VITE_AI_PROVIDER=google vite build --base=/pl
    - Adds an `axis: 'both' | 'x' | 'y'` option. The locked axis is zeroed for drag,
      wheel and inertia.
 3. `src/library/suites/bravais/useBravaisCamera.ts`
-   - Passes `axis: 'y'` below 768px, so the mobile infinite wall pans vertically only.
+   - Keeps the `axis` option; mobile now pans the infinite wall in both directions, like desktop.
 4. `src/library/suites/bravais/useBravaisSeam.ts`
-   - Below 768px, plans the Bravais wall seam against the left edge (screen x = opening width / 2)
-     and treats the viewport edge as having no margin, instead of leaving the world seam in the
-     middle of a portrait screen. The home seam opens to the rail width. Re-plans when the viewport
-     width changes.
-   - The shipped `site/listen/index.html` keeps the matching left navigation rail width and hides
-     the old right-edge mask.
+   - Below 768px, the home seam closes to zero width and moves off the visible wall, so the
+     infinite canvas has no central gap. The navigation DOM is kept visible at the left edge.
+   - The shipped `site/listen/index.html` draws an opaque fixed rail over the canvas and keeps the
+     original seam controls in it.
 5. `src/library/suites/bravais/bravaisConstants.ts`
-   - Adds `getBravaisMobileRailWidth`, matching the site's left rail width. The camera keeps Folia's
-     original infinite-canvas scale on mobile; `site/listen/index.html` hides only tiles that would
-     straddle the rail or the right edge, rather than changing the canvas zoom.
+   - Adds `getBravaisMobileRailWidth`, matching the site's opaque left rail width. Folia's original
+     infinite-canvas zoom is unchanged on mobile.
 
 The shipped bundle remains AGPL-3.0. The full upstream source is available at the
 URL above; these are the local source changes.

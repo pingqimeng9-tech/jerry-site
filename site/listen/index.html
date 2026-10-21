@@ -14,6 +14,11 @@
           f.setItem('playback_entry_view_chosen','true');
         }
         var mobileView = Math.min(window.innerWidth || 9999, (window.screen && window.screen.width) || 9999) <= 640 || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+        if(mobileView && f.getItem('jerry_canvas_restore_v2') !== '1') {
+          f.setItem('library_suite', 'bravais');
+          f.removeItem('jerry_mobile_suite_choice');
+          f.setItem('jerry_canvas_restore_v2', '1');
+        }
         if(mobileView && !f.getItem('jerry_mobile_suite_choice')) f.setItem('library_suite', 'bravais');
         if(!f.getItem('library_suite')) f.setItem('library_suite', 'grid');
         if(mobileView) {
@@ -52,7 +57,10 @@
           left: 0 !important;
           transform: none !important;
           width: var(--jerry-mobile-rail) !important;
+          min-width: var(--jerry-mobile-rail) !important;
           visibility: visible !important;
+          opacity: 1 !important;
+          background: #08080d !important;
           -webkit-backdrop-filter: none !important;
           backdrop-filter: none !important;
         }
@@ -61,6 +69,7 @@
           margin-left: 0 !important;
           transform: none !important;
           width: var(--jerry-mobile-rail) !important;
+          opacity: 1 !important;
         }
         html:not(.folia-original) .bravais-seam:has(.bravais-seam-home) .bravais-seam-home {
           width: var(--jerry-mobile-rail) !important;
@@ -157,11 +166,10 @@
         #jerry-top-nav nav{flex:1 1 100%;gap:0;overflow:visible;mask-image:none;-webkit-mask-image:none;padding-right:0;justify-content:space-between}
         #jerry-top-nav nav a{flex:1 1 0;min-width:0;justify-content:center;padding:0 2px;font-size:clamp(11px,3.2vw,13px);letter-spacing:0}
       }
-      .jerry-edge-clipped{visibility:hidden!important;pointer-events:none!important}
       #jerry-guest-preview{display:none!important}
     </style>
     <meta charset="UTF-8" />
-    <meta name="jerry-build" content="phase2d-2026-10-21" />
+    <meta name="jerry-build" content="phase2f-2026-10-21" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="referrer" content="no-referrer" />
     <meta name="description" content="一个动态歌词播放器，支持 AI 主题生成" />
@@ -197,7 +205,7 @@
 <link rel="modulepreload" crossorigin href="/player/assets/preload-helper-DOwwPQP2.js">
 <link rel="modulepreload" crossorigin href="/player/assets/modulepreload-polyfill-P2Xu9kJm.js">
 <link rel="modulepreload" crossorigin href="/player/assets/frameRateLimiter-DYVxXwkE.js">
-<script type="module" crossorigin src="/player/assets/main-UjFz4amP.js"></script>
+<script type="module" crossorigin src="/player/assets/main-DWi12gcP.js"></script>
 </head>
   <body>
     <div id="app-splash" role="status" aria-live="polite" aria-label="Loading Folia">
@@ -577,27 +585,6 @@
         setInterval(ensureSuiteSwitch, 800);
         setTimeout(ensureSuiteSwitch, 1200);
 
-      })();
-    </script>
-    <script>
-      (function () {
-        if (window.__jerryWallEdgeGuard) return;
-        window.__jerryWallEdgeGuard = true;
-        function guardWallEdges() {
-          if (!window.matchMedia('(max-width: 768px)').matches) return;
-          var seam = document.querySelector('.bravais-seam');
-          var left = seam ? seam.getBoundingClientRect().right : 0;
-          var right = window.innerWidth;
-          document.querySelectorAll('.bravais-field .bravais-tile, .bravais-field article.lattice-poster').forEach(function (tile) {
-            var r = tile.getBoundingClientRect();
-            if (r.width <= 0 || r.height <= 0) return;
-            var clipped = r.left < left - 0.5 || r.right > right - 0.5;
-            tile.classList.toggle('jerry-edge-clipped', clipped);
-          });
-        }
-        setInterval(guardWallEdges, 300);
-        window.addEventListener('resize', guardWallEdges, { passive: true });
-        setTimeout(guardWallEdges, 1200);
       })();
     </script>
     <script>

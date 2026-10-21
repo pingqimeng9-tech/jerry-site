@@ -30,7 +30,7 @@ The mobile/desktop layout fallback is planned for a later stage; it is not part 
 
 Branding: splash now starts with callmiruko.cc.
 The desktop/mobile player transport uses Folia's real next/previous transport handlers.
-Mobile Bravais is vertically locked. The temporary right-edge crop was removed; bounded tile layout is the next stage.
+Mobile Bravais keeps Folia's infinite canvas and pans in both directions. The home seam is closed and the left navigation rail is fixed and opaque over the canvas.
 
 Visual effects: the site no longer forces Folia's 'still' lyric mode. Low-network/FPS adaptation
 only simplifies the background/frame rate, so lyric animations and text effects stay enabled.
