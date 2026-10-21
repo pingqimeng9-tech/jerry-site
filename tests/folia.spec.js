@@ -79,6 +79,7 @@ test('Folia mobile Bravais keeps its nav pinned left', async ({ page }, testInfo
   await page.waitForTimeout(6500);
   const seam = await page.locator('.bravais-seam').boundingBox();
   expect(seam.x).toBe(0);
+  await expect(page.locator('.jerry-suite-switch')).toBeVisible();
   await expect(page.locator('.jerry-site-links')).toHaveCount(0);
 
   const field = await page.locator('.bravais-field').boundingBox();
@@ -170,10 +171,16 @@ test('Folia mobile logged-in wall keeps playlists inside the content area', asyn
       visible: tiles.length,
       clipped: tiles.filter(rect => rect.left < seam.right - 1 || rect.right > window.innerWidth + 1).length,
       images: document.querySelectorAll('.lattice-poster img').length,
+      autoDegraded: sessionStorage.getItem('folia_auto_degraded'),
+      visualizerBackground: localStorage.getItem('visualizer_background_mode'),
+      visualizerFrameRate: localStorage.getItem('visualizer_frame_rate'),
     };
   });
 
   expect(layout.scrollWidth).toBeLessThanOrEqual(layout.width);
   expect(layout.visible).toBeGreaterThan(0);
   expect(layout.clipped).toBe(0);
+  expect(layout.autoDegraded).toBeNull();
+  expect(layout.visualizerBackground).toBeNull();
+  expect(layout.visualizerFrameRate).toBeNull();
 });

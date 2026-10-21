@@ -1,1 +1,0 @@
-import{er as e}from"./bootstrap-lb89nYVC.js";export{e as matchLyrics};
