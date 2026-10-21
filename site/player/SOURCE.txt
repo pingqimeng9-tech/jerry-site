@@ -33,3 +33,6 @@ the toggle available to come back. It does not remove Folia's idle text animatio
 Branding: splash now starts with callmiruko.cc.
 The desktop/mobile player transport uses Folia's real next/previous transport handlers.
 Mobile Bravais is vertically locked and the right edge is cropped so no half poster stays visible.
+
+Visual effects: the site no longer forces Folia's 'still' lyric mode. Low-network/FPS adaptation
+only simplifies the background/frame rate, so lyric animations and text effects stay enabled.

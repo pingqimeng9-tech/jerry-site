@@ -19,15 +19,14 @@
         var slowNet = !!conn && (conn.saveData === true || /(^|-)2g$|(^|-)3g$|slow-2g/i.test(conn.effectiveType || '') || (typeof conn.downlink === 'number' && conn.downlink > 0 && conn.downlink < 1.5));
         if(mobileView) {
           f.setItem('always_show_track_switch_buttons','true');
-          if(!f.getItem('jerry_visuals_restored_v2')) {
+          if(!f.getItem('jerry_visuals_restored_v3')) {
             if(f.getItem('visualizer_mode') === 'still') f.removeItem('visualizer_mode');
             if(f.getItem('visualizer_background_mode') === 'common') f.removeItem('visualizer_background_mode');
             if(f.getItem('background_opacity') === '0.45' || f.getItem('background_opacity') === '0.35') f.removeItem('background_opacity');
             if(f.getItem('visualizer_frame_rate') === '60') f.removeItem('visualizer_frame_rate');
-            f.setItem('jerry_visuals_restored_v2','1');
+            f.setItem('jerry_visuals_restored_v3','1');
           }
           if(slowNet) {
-            if(!f.getItem('visualizer_mode')) f.setItem('visualizer_mode','still');
             if(!f.getItem('visualizer_background_mode')) f.setItem('visualizer_background_mode','common');
             if(!f.getItem('background_opacity')) f.setItem('background_opacity','0.35');
             if(!f.getItem('visualizer_frame_rate')) f.setItem('visualizer_frame_rate','60');
@@ -564,7 +563,6 @@
             if (now - started < 4000) { requestAnimationFrame(check); return; }
             var fps = frames / ((now - started) / 1000);
             if (fps < 35 && getPlayerButton()) {
-              localStorage.setItem('visualizer_mode', 'still');
               localStorage.setItem('visualizer_background_mode', 'common');
               localStorage.setItem('visualizer_frame_rate', '60');
               localStorage.setItem('background_opacity', '0.4');
