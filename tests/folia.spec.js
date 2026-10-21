@@ -18,13 +18,12 @@ test('Folia opens directly on the grid search home', async ({ page }, testInfo) 
   await page.goto('/listen/');
   await expect(page).toHaveTitle(/callmiruko\.cc.*Folia/, { timeout: 30000 });
   await page.waitForTimeout(6500);
-  await expect(page.locator('input[placeholder*="SEARCH"], input[placeholder*="搜索"]')).toHaveCount(1);
+  await expect(page.locator('input[placeholder*="search" i], input[placeholder*="搜索"]')).toHaveCount(1);
 });
 
 test('Folia mobile portrait fits the viewport', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile', 'mobile portrait only');
   test.setTimeout(120000);
-  await page.addInitScript(() => localStorage.setItem('library_suite', 'grid'));
   await page.goto('/listen/');
   await expect(page).toHaveTitle(/callmiruko\.cc.*Folia/, { timeout: 30000 });
   await page.waitForTimeout(6500);
@@ -36,13 +35,12 @@ test('Folia mobile portrait fits the viewport', async ({ page }, testInfo) => {
   }));
   expect(layout.scrollWidth).toBeLessThanOrEqual(layout.width);
   expect(layout.scrollHeight).toBeLessThanOrEqual(layout.height + 1);
-  await expect(page.locator('input[placeholder*="SEARCH"], input[placeholder*="搜索"]')).toHaveCount(1);
+  await expect(page.locator('#jerry-mobile-grid')).toBeVisible();
 });
 
 test('Folia mobile player exposes a persistent transport without overlap', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile', 'mobile player only');
   test.setTimeout(120000);
-  await page.addInitScript(() => localStorage.setItem('library_suite', 'grid'));
   await page.route('**/api/netease/song/url/v1*', route => route.fulfill({
     status: 200,
     contentType: 'application/json',
@@ -50,7 +48,9 @@ test('Folia mobile player exposes a persistent transport without overlap', async
   }));
   await page.goto('/listen/');
   await page.waitForTimeout(6500);
-  const search = page.locator('input[placeholder*="SEARCH"], input[placeholder*="搜索"]').first();
+  await page.locator('button[aria-label="Search online platforms"]').first().click();
+  await page.waitForTimeout(800);
+  const search = page.locator('input[placeholder*="search" i], input[placeholder*="搜索"]').first();
   await search.fill('花に亡霊');
   await search.press('Enter');
   await page.waitForTimeout(4000);
@@ -74,6 +74,7 @@ test('Folia mobile player exposes a persistent transport without overlap', async
 
 test('Folia mobile Bravais keeps its nav pinned left and can switch to Grid', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile', 'mobile Bravais only');
+  test.skip(true, 'Mobile uses the bounded guest grid in phase 2; wall panning returns with the account grid');
   test.setTimeout(120000);
   await page.goto('/listen/');
   await page.waitForTimeout(6500);
@@ -92,13 +93,14 @@ test('Folia mobile Bravais keeps its nav pinned left and can switch to Grid', as
 
   await page.locator('.jerry-suite-switch').click({ force: true });
   await page.waitForTimeout(6500);
-  await expect(page.locator('input[placeholder*="SEARCH"], input[placeholder*="搜索"]')).toHaveCount(1);
+  await expect(page.locator('input[placeholder*="search" i], input[placeholder*="搜索"]')).toHaveCount(1);
   expect(await page.evaluate(() => localStorage.getItem('library_suite'))).toBe('grid');
 });
 
 
 test('Folia mobile Bravais pans vertically only', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile', 'mobile Bravais only');
+  test.skip(true, 'Mobile uses the bounded guest grid in phase 2; wall panning returns with the account grid');
   test.setTimeout(120000);
   await page.goto('/listen/');
   await page.waitForTimeout(6500);
@@ -126,18 +128,41 @@ test('Folia mobile Bravais pans vertically only', async ({ page }, testInfo) => 
   expect(afterVertical.y).not.toBe(before.y);
 });
 
-test('Folia guest home shows recommended covers instead of a blank screen', async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== 'mobile', 'mobile guest preview only');
-  test.skip(true, 'Guest catalog is rebuilt in phase 4; phase 1 intentionally removes the old overlay');
+test('Folia mobile guest grid stays inside the bounded content area', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile', 'mobile guest grid only');
   test.setTimeout(120000);
-  await page.addInitScript(() => localStorage.setItem('library_suite', 'grid'));
   await page.goto('/listen/');
   await page.waitForTimeout(7000);
-  const panel = page.locator('#jerry-guest-preview');
-  await expect(panel).toBeVisible();
-  await expect(panel.locator('.jgp-card')).toHaveCount(8);
-  await expect(panel).toContainText('站长推荐');
-  await expect(panel.locator('a[href*="qishui"]')).toHaveCount(1);
-  await panel.locator('.jgp-card').first().click();
-  await expect(page.locator('input[placeholder*="SEARCH"], input[placeholder*="搜索"]').first()).toHaveValue(/花に亡霊/);
+
+  const grid = page.locator('#jerry-mobile-grid');
+  await expect(grid).toBeVisible();
+  await expect(grid.locator('.jmg-card')).toHaveCount(8);
+  await expect(grid).toContainText('先听一首');
+
+  const layout = await page.evaluate(() => {
+    const root = document.getElementById('jerry-mobile-grid');
+    const box = root.getBoundingClientRect();
+    const cards = Array.from(root.querySelectorAll('.jmg-card')).map(card => {
+      const rect = card.getBoundingClientRect();
+      return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom };
+    });
+    const nav = document.querySelector('#jerry-top-nav nav');
+    return {
+      width: window.innerWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+      gridLeft: box.left,
+      gridRight: box.right,
+      minLeft: Math.min(...cards.map(card => card.left)),
+      maxRight: Math.max(...cards.map(card => card.right)),
+      navScrollWidth: nav ? nav.scrollWidth : 0,
+      navClientWidth: nav ? nav.clientWidth : 0,
+      edgeMask: Boolean(document.getElementById('jerry-edge-mask')),
+    };
+  });
+
+  expect(layout.scrollWidth).toBeLessThanOrEqual(layout.width);
+  expect(layout.minLeft).toBeGreaterThanOrEqual(layout.gridLeft - 1);
+  expect(layout.maxRight).toBeLessThanOrEqual(layout.gridRight + 1);
+  expect(layout.navScrollWidth).toBeLessThanOrEqual(layout.navClientWidth + 1);
+  expect(layout.edgeMask).toBe(false);
 });

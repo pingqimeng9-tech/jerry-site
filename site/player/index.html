@@ -14,7 +14,8 @@
           f.setItem('playback_entry_view_chosen','true');
         }
         var mobileView = Math.min(window.innerWidth || 9999, (window.screen && window.screen.width) || 9999) <= 640 || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
-        if(!f.getItem('library_suite')) f.setItem('library_suite', mobileView ? 'bravais' : 'grid');
+        if(mobileView) f.setItem('library_suite', 'bravais');
+        if(!f.getItem('library_suite')) f.setItem('library_suite', 'grid');
         var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
         var slowNet = !!conn && (conn.saveData === true || /(^|-)2g$|(^|-)3g$|slow-2g/i.test(conn.effectiveType || '') || (typeof conn.downlink === 'number' && conn.downlink > 0 && conn.downlink < 1.5));
         if(mobileView) {
@@ -159,10 +160,34 @@
       #jerry-top-nav nav::-webkit-scrollbar{display:none}
       #jerry-top-nav nav a{flex:none;display:flex;align-items:center;min-height:44px;color:rgba(255,255,255,.72);text-decoration:none;font:600 clamp(12px,3.4vw,14px) 'Noto Sans SC',sans-serif;padding:0 clamp(9px,2.6vw,13px);border-radius:10px;white-space:nowrap}
       #jerry-top-nav nav a:active{color:#fff;background:rgba(255,255,255,.14)}
+      @media (max-width: 480px) {
+        #jerry-top-nav{flex-wrap:wrap;align-content:center;gap:0;padding-top:calc(5px + env(safe-area-inset-top,0px));padding-bottom:5px}
+        #jerry-top-nav .jtn-brand{flex:1 1 100%;min-height:32px;padding-left:4px;font-size:15px}
+        #jerry-top-nav nav{flex:1 1 100%;gap:0;overflow:visible;mask-image:none;-webkit-mask-image:none;padding-right:0;justify-content:space-between}
+        #jerry-top-nav nav a{flex:1 1 0;min-width:0;justify-content:center;padding:0 2px;font-size:clamp(11px,3.2vw,13px);letter-spacing:0}
+      }
+      .jerry-edge-clipped{visibility:hidden!important;pointer-events:none!important}
+      #jerry-mobile-grid{display:none;position:fixed;left:var(--jerry-mobile-rail,84px);right:0;top:0;bottom:0;z-index:4;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;background:#08080d;color:#fff;padding:calc(14px + env(safe-area-inset-top,0px)) clamp(10px,3vw,14px) calc(92px + env(safe-area-inset-bottom,0px));scrollbar-width:none}
+      #jerry-mobile-grid::-webkit-scrollbar{display:none}
+      .jmg-head{padding:2px 2px 12px}
+      .jmg-head small{display:block;font:700 8px 'JetBrains Mono',monospace;letter-spacing:.22em;color:#ff6aa9;margin-bottom:4px}
+      .jmg-head b{display:block;font:700 clamp(18px,5vw,24px)/1.15 'Noto Serif SC',serif;letter-spacing:.02em}
+      .jmg-head p{margin:6px 0 0;color:rgba(255,255,255,.5);font:500 10px/1.5 'Noto Sans SC',sans-serif}
+      .jmg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(62px,18vw,84px),1fr));gap:clamp(8px,2.4vw,12px)}
+      .jmg-card{min-width:0;border:0;background:none;color:inherit;text-align:left;padding:0;cursor:pointer}
+      .jmg-cover{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16)}
+      .jmg-card b{display:block;margin-top:6px;font:700 10px/1.25 'Noto Sans SC',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .jmg-card span{display:block;margin-top:2px;font:500 8px/1.2 'JetBrains Mono',monospace;color:rgba(255,255,255,.42);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      @media (max-width:768px){
+        #jerry-mobile-grid{display:block}
+        html:not(.folia-original) .bravais-field{visibility:hidden!important;pointer-events:none!important}
+      }
+      body.folia-mobile-player #jerry-mobile-grid{display:none}
+      #jerry-mobile-grid.jmg-hidden{display:none!important}
       #jerry-guest-preview{display:none!important}
     </style>
     <meta charset="UTF-8" />
-    <meta name="jerry-build" content="phase1-2026-10-21" />
+    <meta name="jerry-build" content="phase2a-2026-10-21" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="referrer" content="no-referrer" />
     <meta name="description" content="一个动态歌词播放器，支持 AI 主题生成" />
@@ -435,7 +460,8 @@
         }
         function sync() {
           var playerButton = getPlayerButton();
-          var homeWall = document.querySelector('.bravais-field');
+          var wall = document.querySelector('.bravais-field');
+          var homeWall = wall && getComputedStyle(wall).visibility !== 'hidden' && wall.getBoundingClientRect().width > 0;
           var homeSearch = document.querySelector('input[placeholder*="SEARCH"], input[placeholder*="搜索"]');
           var audioNow = getAudio();
           var hasTrack = !!(audioNow && (audioNow.currentSrc || audioNow.src));
@@ -554,29 +580,6 @@
         setTimeout(sync, 1200);
         window.addEventListener('resize', sync, { passive: true });
 
-        function ensureSuiteSwitch() {
-          var home = document.querySelector('.bravais-seam-home');
-          if (!home || home.querySelector('.jerry-suite-switch')) return;
-          var switchButton = document.createElement('button');
-          switchButton.type = 'button';
-          switchButton.className = 'jerry-suite-switch';
-          switchButton.title = '切换经典模式';
-          switchButton.setAttribute('aria-label', '切换经典模式');
-          switchButton.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="5" height="5"/><rect x="9" y="2" width="5" height="5"/><rect x="2" y="9" width="5" height="5"/><rect x="9" y="9" width="5" height="5"/></svg>';
-          switchButton.addEventListener('click', function (event) {
-            event.stopPropagation();
-            try {
-              localStorage.setItem('library_suite', 'grid');
-              localStorage.setItem('jerry_mobile_suite_choice', 'grid');
-            } catch (e) {}
-            location.reload();
-          });
-          var tabs = home.querySelector('.bravais-seam-tabs');
-          (tabs || home).appendChild(switchButton);
-        }
-        setInterval(ensureSuiteSwitch, 800);
-        setTimeout(ensureSuiteSwitch, 1200);
-
         if (!navigator.webdriver && !sessionStorage.getItem('folia_auto_degraded')) {
           var frames = 0;
           var started = 0;
@@ -653,12 +656,29 @@
           panel.classList.remove('show');
           try { sessionStorage.setItem('jerry_guest_preview_closed', '1'); } catch (e) {}
         });
+        window.__jerrySearchSong = searchSong;
         fetch('/data/music_playlist.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (data) {
           tracks = (data.tracks || []).filter(function (t) { return t.cover; }).slice(0, 8);
           grid.innerHTML = tracks.map(function (track, index) {
             return '<button class="jgp-card" data-i="' + index + '" type="button"><img class="jgp-cover" src="' + String(track.cover).replace(/"/g, '%22') + '" alt="" loading="lazy" referrerpolicy="no-referrer"><b>' + String(track.name || '') + '</b><span>' + String(track.artists || '') + '</span></button>';
           }).join('');
-          grid.addEventListener('click', function (event) {
+          function syncGridVisibility() {
+          if (!window.matchMedia('(max-width: 768px)').matches) return;
+          var root = document.getElementById('jerry-mobile-grid');
+          if (!root) return;
+          var seam = document.querySelector('.bravais-seam');
+          var rail = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--jerry-mobile-rail')) || 84;
+          var expanded = !!seam && seam.getBoundingClientRect().width > rail + 12;
+          var inputs = Array.prototype.slice.call(document.querySelectorAll('input[placeholder*="search" i], input[placeholder*="搜索"]'));
+          var searching = inputs.some(function (input) { var r = input.getBoundingClientRect(); return r.width > 0 && r.height > 0; });
+          var results = Array.prototype.some.call(document.querySelectorAll('button[aria-label="Play track"]'), function (button) { var r = button.getBoundingClientRect(); return r.width > 0 && r.height > 0; });
+          var player = document.body.classList.contains('folia-mobile-player');
+          root.classList.toggle('jmg-hidden', expanded || searching || results || player);
+        }
+        setInterval(syncGridVisibility, 350);
+        window.addEventListener('resize', syncGridVisibility, { passive: true });
+        setTimeout(syncGridVisibility, 900);
+        grid.addEventListener('click', function (event) {
             var card = event.target.closest('.jgp-card');
             if (!card) return;
             var track = tracks[Number(card.dataset.i)];
@@ -709,6 +729,34 @@
         });
         setInterval(sync, 500);
         sync();
+      })();
+    </script>
+    <script>
+      (function () {
+        if (window.__jerryMobileGrid) return;
+        window.__jerryMobileGrid = true;
+        var root = document.createElement('section');
+        root.id = 'jerry-mobile-grid';
+        root.setAttribute('aria-label', '未登录推荐');
+        root.innerHTML = '<div class="jmg-head"><small>GUEST PICKS</small><b>先听一首</b><p>未登录也能点开推荐；完整播放需要登录网易云。</p></div><div class="jmg-grid"></div>';
+        document.body.appendChild(root);
+        var grid = root.querySelector('.jmg-grid');
+        var tracks = [];
+        fetch('/data/music_playlist.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (data) {
+          tracks = (data.tracks || []).filter(function (t) { return t.cover; }).slice(0, 8);
+          grid.innerHTML = tracks.map(function (track, index) {
+            return '<button class="jmg-card" data-i="' + index + '" type="button"><img class="jmg-cover" src="' + String(track.cover).replace(/"/g, '%22') + '" alt="" loading="lazy" referrerpolicy="no-referrer"><b>' + String(track.name || '') + '</b><span>' + String(track.artists || '') + '</span></button>';
+          }).join('');
+        }).catch(function () {});
+        grid.addEventListener('click', function (event) {
+          var card = event.target.closest('.jmg-card');
+          if (!card) return;
+          var track = tracks[Number(card.dataset.i)];
+          if (!track) return;
+          var title = track.name + ' ' + (track.artists || '').split('/')[0];
+          if (typeof window.__jerrySearchSong === 'function') window.__jerrySearchSong(title);
+          else window.open('https://music.163.com/#/search/m/?s=' + encodeURIComponent(title), '_blank');
+        });
       })();
     </script>
   </body>
