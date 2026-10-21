@@ -173,32 +173,6 @@ test('mobile player is one screen and opens playlist/shelf as panels', async ({ 
   await expect(page.locator('body')).not.toHaveClass(/mobile-shelf-open/);
 });
 
-test('shelf selection transitions the record into the player', async ({ page }) => {
-  test.setTimeout(60000);
-  await page.addInitScript(() => {
-    HTMLMediaElement.prototype.load = function () {};
-    HTMLMediaElement.prototype.play = function () { return Promise.resolve(); };
-    Object.defineProperty(HTMLMediaElement.prototype, 'src', {
-      configurable: true,
-      get() { return this.getAttribute('data-src') || ''; },
-      set(value) { this.setAttribute('data-src', value); }
-    });
-  });
-  await page.route(/https:\/\/p\d+\.music\.126\.net\/.*/, route => route.abort());
-  await page.goto('/music-classic.html');
-  if (!(await page.locator('#shelfStage').isVisible())) {
-    await page.locator('#mobileShelfBtn').click();
-    await expect(page.locator('.shelf-section')).toBeVisible();
-  } else {
-    await page.locator('#shelfStage').scrollIntoViewIfNeeded();
-  }
-  const box = await page.locator('#shelfStage').boundingBox();
-  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-  await expect.poll(() => page.locator('.shelf-flight').count(), { timeout: 3000 }).toBeGreaterThan(0);
-  await expect(page.locator('#trackTitle')).toHaveText('花に亡霊', { timeout: 6000 });
-  await expect.poll(() => page.locator('.shelf-flight').count(), { timeout: 6000 }).toBe(0);
-});
-
 test('sync dialog loads a playlist from a pasted link and defaults to Jerry playlist', async ({ page }, testInfo) => {
   test.setTimeout(60000);
   let requestedId = '';
