@@ -14,6 +14,12 @@ VITE_NETEASE_API_BASE=/api/netease VITE_AI_PROVIDER=google vite build --base=/pl
      wheel and inertia.
 3. `src/library/suites/bravais/useBravaisCamera.ts`
    - Passes `axis: 'y'` below 768px, so the mobile infinite wall pans vertically only.
+4. `src/library/suites/bravais/useBravaisSeam.ts`
+   - Below 768px, plans the Bravais wall seam against the left edge (screen x = opening width / 2)
+     and treats the viewport edge as having no margin, instead of leaving the world seam in the
+     middle of a portrait screen. Re-plans when the viewport width changes.
+   - The shipped `site/listen/index.html` keeps the matching left navigation rail width and hides
+     the old right-edge mask.
 
 The shipped bundle remains AGPL-3.0. The full upstream source is available at the
-URL above; these are the only local source changes.
+URL above; these are the local source changes.

@@ -1,0 +1,1 @@
+import{fr as e,vr as t}from"./bootstrap-mpHzs3wI.js";export{e as getNavidromeConfig,t as navidromeApi};

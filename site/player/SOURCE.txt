@@ -20,19 +20,17 @@ Additional local adaptation: /player/index.html injects a mobile persistent tran
 automatic low-performance fallback (network type/device memory + runtime FPS) that switches to
 Folia's lightweight visualizer mode once.
 
-Bravais mobile: the seam is pinned to the left edge, its navigation is always visible with
-larger touch targets, and a floating grid icon switches to the classic Grid library. The left rail
-carries a separate site-page nav (首页 / 博客 / Rumi / 音乐 / 友链 / 项目) above the account and tool
-icons, so the site links no longer overlap Folia's controls. Mobile Bravais also drops the grain
-overlay and seam shadow for smoother scrolling.
+Bravais mobile: the seam is planned against the left edge and its navigation is always visible with
+larger touch targets; the old right-edge cover and site-page rail were removed. The mobile shell
+uses a bounded content area beginning at the navigation rail. A floating grid icon switches to the
+classic Grid library. The site-page navigation is the separately injected top bar, not a second
+left column.
 
-A top-right 原版 / 适配版 toggle switches between this mobile adaptation and Folia's untouched
-original layout. Original mode hides the site nav, custom transport and grid switch, while keeping
-the toggle available to come back. It does not remove Folia's idle text animations.
+The mobile/desktop layout fallback is planned for a later stage; it is not part of this build.
 
 Branding: splash now starts with callmiruko.cc.
 The desktop/mobile player transport uses Folia's real next/previous transport handlers.
-Mobile Bravais is vertically locked and the right edge is cropped so no half poster stays visible.
+Mobile Bravais is vertically locked. The temporary right-edge crop was removed; bounded tile layout is the next stage.
 
 Visual effects: the site no longer forces Folia's 'still' lyric mode. Low-network/FPS adaptation
 only simplifies the background/frame rate, so lyric animations and text effects stay enabled.

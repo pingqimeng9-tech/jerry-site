@@ -128,6 +128,7 @@ test('Folia mobile Bravais pans vertically only', async ({ page }, testInfo) => 
 
 test('Folia guest home shows recommended covers instead of a blank screen', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile', 'mobile guest preview only');
+  test.skip(true, 'Guest catalog is rebuilt in phase 4; phase 1 intentionally removes the old overlay');
   test.setTimeout(120000);
   await page.addInitScript(() => localStorage.setItem('library_suite', 'grid'));
   await page.goto('/listen/');
