@@ -52,7 +52,8 @@
       }
       @media (max-width: 768px) {
         :root { --jerry-mobile-rail: clamp(70px, 20vw, 86px); }
-        html:not(.folia-original) .bravais-field { touch-action: pan-y; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 82px, #000 calc(100% - 28px), transparent 100%); mask-image: linear-gradient(90deg, transparent 0, #000 82px, #000 calc(100% - 28px), transparent 100%); }
+        html:not(.folia-original) .bravais-field { touch-action: pan-y; }
+
         html:not(.folia-original) .bravais-root::after { display: none !important; }
         html:not(.folia-original) .bravais-seam { box-shadow: none !important; }
         html:not(.folia-original) .bravais-seam:has(.bravais-seam-home) {
@@ -126,8 +127,33 @@
       .jerry-suite-switch{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:30px;margin-top:4px;padding:0;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.035);color:rgba(255,255,255,.34);cursor:pointer;z-index:8;opacity:.7;transition:opacity .18s,background .18s,color .18s}
       .jerry-suite-switch:hover,.jerry-suite-switch:active{opacity:1;color:#fff;background:rgba(255,255,255,.14)}
       .jerry-suite-switch svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.5}
-      #jerry-edge-mask{display:none;position:fixed;top:0;right:0;bottom:0;width:clamp(64px,17vw,92px);z-index:110;pointer-events:none;background:linear-gradient(90deg,rgba(8,8,12,0),#08080d 12%,#08080d)}
+      #jerry-edge-mask{display:none;position:fixed;top:0;right:0;bottom:0;width:clamp(78px,23vw,110px);z-index:110;pointer-events:none;background:#08080d}
       body.jerry-bravais #jerry-edge-mask{display:block}
+
+      #jerry-guest-preview{position:fixed;left:50%;top:96px;transform:translateX(-50%);z-index:105;width:min(560px,calc(100vw - 40px));max-height:52vh;overflow:auto;padding:14px;border:1px solid rgba(255,255,255,.16);border-radius:18px;background:rgba(10,10,16,.76);-webkit-backdrop-filter:blur(20px) saturate(1.25);backdrop-filter:blur(20px) saturate(1.25);box-shadow:0 22px 60px -24px #000;color:#fff;display:none;scrollbar-width:none}
+      #jerry-guest-preview.show{display:block}
+      #jerry-guest-preview::-webkit-scrollbar{display:none}
+      .jgp-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:6px}
+      .jgp-head>div{flex:1;min-width:0}
+      .jgp-head small{display:block;font:700 8px 'JetBrains Mono',monospace;letter-spacing:.22em;color:#ff6aa9;margin-bottom:3px}
+      .jgp-head b{display:block;font:700 18px 'Noto Serif SC',serif;letter-spacing:.02em}
+      .jgp-soda{flex:none;color:#9df6ff;text-decoration:none;font:700 9px 'JetBrains Mono',monospace;border:1px solid rgba(157,246,255,.35);border-radius:999px;padding:6px 9px;background:rgba(157,246,255,.08)}
+      .jgp-close{flex:none;width:28px;height:28px;border:1px solid rgba(255,255,255,.16);border-radius:50%;background:rgba(255,255,255,.05);color:rgba(255,255,255,.7);font-size:16px;line-height:1;cursor:pointer}
+      .jgp-copy{margin:0 0 10px;color:rgba(255,255,255,.55);font:500 10px/1.5 'Noto Sans SC',sans-serif}
+      .jgp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+      .jgp-card{border:0;background:none;color:inherit;padding:0;text-align:left;cursor:pointer;min-width:0}
+      .jgp-cover{width:100%;aspect-ratio:1;object-fit:cover;border-radius:9px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);display:block}
+      .jgp-card b{display:block;margin-top:5px;font:700 10px/1.25 'Noto Sans SC',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .jgp-card span{display:block;margin-top:1px;font:500 8px/1.2 'JetBrains Mono',monospace;color:rgba(255,255,255,.45);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      body.folia-mobile-player #jerry-guest-preview{display:none!important}
+      @media(max-width:768px){
+        #jerry-guest-preview{left:12px;right:12px;top:calc(176px + env(safe-area-inset-top,0px));width:auto;transform:none;max-height:48vh;padding:12px}
+        body.jerry-bravais #jerry-guest-preview{left:calc(var(--jerry-mobile-rail,78px) + 12px);top:calc(82px + env(safe-area-inset-top,0px))}
+        .jgp-head b{font-size:16px}
+        .jgp-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+        .jgp-card b{font-size:9px}
+        .jgp-card span{font-size:7px}
+      }
       #jerry-top-nav{position:fixed;top:0;left:0;right:0;z-index:118;display:flex;align-items:center;gap:8px;padding:calc(7px + env(safe-area-inset-top,0px)) 10px 7px;background:rgba(8,8,12,.88);border-bottom:1px solid rgba(255,255,255,.12);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);transform:translateY(-112%);transition:transform .24s cubic-bezier(.2,.8,.2,1);pointer-events:none}
       #jerry-top-nav.show{transform:none;pointer-events:auto}
       #jerry-top-nav .jtn-brand{flex:none;color:#fff;text-decoration:none;font:800 11px 'JetBrains Mono',monospace;letter-spacing:-.02em;padding:6px 4px}
@@ -411,8 +437,10 @@
           var playerButton = getPlayerButton();
           var homeWall = document.querySelector('.bravais-field');
           var homeSearch = document.querySelector('input[placeholder*="SEARCH"], input[placeholder*="搜索"]');
-          var playerSurface = playerButton || ((!homeWall && !homeSearch) ? document.querySelector('[data-visualizer-style]') : null);
-          var active = !!playerSurface && window.matchMedia('(max-width: 768px)').matches;
+          var audioNow = getAudio();
+          var hasTrack = !!(audioNow && (audioNow.currentSrc || audioNow.src));
+          var playerSurface = playerButton || ((hasTrack && !homeWall && !homeSearch) ? document.querySelector('[data-visualizer-style]') : null);
+          var active = !!playerSurface && !homeWall && !homeSearch && window.matchMedia('(max-width: 768px)').matches;
           document.body.classList.toggle('folia-mobile-player', active);
           if (active && !wasPlayer) hideTopNav();
           wasPlayer = active;
@@ -492,10 +520,11 @@
         var topNav = document.createElement('div');
         topNav.id = 'jerry-top-nav';
         topNav.innerHTML = '<a class="jtn-brand" href="/">callmiruko.cc</a><nav aria-label="站点导航">' +
-          '<a href="/">首页</a><a href="/blog.html">博客</a><a href="/rumi.html">Rumi</a><a href="/projects.html">项目</a><a href="/friends.html">友链</a></nav>';
+          '<a href="/">首页</a><a href="/blog.html">博客</a><a href="/rumi.html">Rumi</a><a href="/projects.html">项目</a><a href="/friends.html">友链</a><a href="https://qishui.douyin.com/" target="_blank" rel="noopener">汽水音乐</a></nav>';
         document.body.appendChild(topNav);
         var topNavTimer = 0;
         function showTopNav() {
+          if (document.body.classList.contains('folia-mobile-player')) return;
           topNav.classList.add('show');
           clearTimeout(topNavTimer);
           topNavTimer = setTimeout(function () { topNav.classList.remove('show'); }, 3200);
@@ -572,6 +601,79 @@
           };
           setTimeout(function () { requestAnimationFrame(check); }, 9000);
         }
+      })();
+    </script>
+    <script>
+      (function () {
+        if (window.__jerryGuestPreview) return;
+        window.__jerryGuestPreview = true;
+        var panel = document.createElement('div');
+        panel.id = 'jerry-guest-preview';
+        panel.innerHTML = '<div class="jgp-head"><div><small>GUEST PREVIEW</small><b>站长推荐</b></div><a class="jgp-soda" href="https://qishui.douyin.com/" target="_blank" rel="noopener">汽水音乐 ↗</a><button class="jgp-close" type="button" aria-label="关闭推荐">×</button></div>' +
+          '<p class="jgp-copy">不用登录也能先逛逛。点封面去搜索；登录网易云后可播放完整歌曲。</p><div class="jgp-grid"></div>';
+        document.body.appendChild(panel);
+        var grid = panel.querySelector('.jgp-grid');
+        var tracks = [];
+        function isGuestHome() {
+          if (document.body.classList.contains('folia-mobile-player')) return false;
+          if (!document.querySelector('.bravais-field') && !document.querySelector('input[placeholder*="SEARCH"], input[placeholder*="搜索"]')) return false;
+          var text = document.body.innerText || '';
+          var guestButton = Array.prototype.some.call(document.querySelectorAll('button[aria-label]'), function (button) {
+            return /连接在线平台|未登录|Log in|Connect/i.test(button.getAttribute('aria-label') || '');
+          });
+          return guestButton || /登录在线音乐平台|连接在线平台|未登录|Log in|Sign in|Connect/i.test(text);
+        }
+        function sync() {
+          var closed = false;
+          try { closed = sessionStorage.getItem('jerry_guest_preview_closed') === '1'; } catch (e) {}
+          panel.classList.toggle('show', !closed && tracks.length > 0 && isGuestHome());
+        }
+        function searchSong(title) {
+          var findInput = function () {
+            return Array.prototype.slice.call(document.querySelectorAll('input')).find(function (input) {
+              return /搜索|search/i.test(input.placeholder || '');
+            });
+          };
+          var input = findInput();
+          if (!input) {
+            var button = Array.prototype.slice.call(document.querySelectorAll('button[aria-label]')).find(function (btn) {
+              return /搜索|search/i.test(btn.getAttribute('aria-label') || '');
+            });
+            if (button) button.click();
+          }
+          setTimeout(function () {
+            input = findInput();
+            if (!input) {
+              window.open('https://music.163.com/#/search/m/?s=' + encodeURIComponent(title), '_blank');
+              return;
+            }
+            var setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+            setter.call(input, title);
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.focus();
+            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true }));
+            panel.classList.remove('show');
+          }, 450);
+        }
+        panel.querySelector('.jgp-close').addEventListener('click', function () {
+          panel.classList.remove('show');
+          try { sessionStorage.setItem('jerry_guest_preview_closed', '1'); } catch (e) {}
+        });
+        fetch('/data/music_playlist.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (data) {
+          tracks = (data.tracks || []).filter(function (t) { return t.cover; }).slice(0, 8);
+          grid.innerHTML = tracks.map(function (track, index) {
+            return '<button class="jgp-card" data-i="' + index + '" type="button"><img class="jgp-cover" src="' + String(track.cover).replace(/"/g, '%22') + '" alt="" loading="lazy" referrerpolicy="no-referrer"><b>' + String(track.name || '') + '</b><span>' + String(track.artists || '') + '</span></button>';
+          }).join('');
+          grid.addEventListener('click', function (event) {
+            var card = event.target.closest('.jgp-card');
+            if (!card) return;
+            var track = tracks[Number(card.dataset.i)];
+            if (track) searchSong(track.name + ' ' + (track.artists || '').split('/')[0]);
+          });
+          sync();
+        }).catch(function () {});
+        setInterval(sync, 900);
+        setTimeout(sync, 1500);
       })();
     </script>
     <script>

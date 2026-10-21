@@ -88,7 +88,7 @@ test('Folia mobile Bravais keeps its nav pinned left and can switch to Grid', as
   await page.mouse.move(field.x + 200, field.y + 440, { steps: 10 });
   await page.mouse.up();
   await expect(page.locator('#jerry-top-nav')).toHaveClass(/show/);
-  await expect(page.locator('#jerry-top-nav nav a')).toHaveCount(5);
+  await expect(page.locator('#jerry-top-nav nav a')).toHaveCount(6);
 
   await page.locator('.jerry-suite-switch').click({ force: true });
   await page.waitForTimeout(6500);
@@ -117,11 +117,26 @@ test('Folia mobile Bravais pans vertically only', async ({ page }, testInfo) => 
   const afterHorizontal = await tilePosition();
   expect(afterHorizontal).toEqual(before);
 
-  await page.mouse.move(field.x + 200, field.y + 300);
+  await page.mouse.move(field.x + 200, field.y + 480);
   await page.mouse.down();
-  await page.mouse.move(field.x + 200, field.y + 420, { steps: 10 });
+  await page.mouse.move(field.x + 200, field.y + 600, { steps: 10 });
   await page.mouse.up();
   await page.waitForTimeout(700);
   const afterVertical = await tilePosition();
   expect(afterVertical.y).not.toBe(before.y);
+});
+
+test('Folia guest home shows recommended covers instead of a blank screen', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile', 'mobile guest preview only');
+  test.setTimeout(120000);
+  await page.addInitScript(() => localStorage.setItem('library_suite', 'grid'));
+  await page.goto('/player/');
+  await page.waitForTimeout(7000);
+  const panel = page.locator('#jerry-guest-preview');
+  await expect(panel).toBeVisible();
+  await expect(panel.locator('.jgp-card')).toHaveCount(8);
+  await expect(panel).toContainText('站长推荐');
+  await expect(panel.locator('a[href*="qishui"]')).toHaveCount(1);
+  await panel.locator('.jgp-card').first().click();
+  await expect(page.locator('input[placeholder*="SEARCH"], input[placeholder*="搜索"]').first()).toHaveValue(/花に亡霊/);
 });
