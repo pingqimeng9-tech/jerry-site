@@ -1,0 +1,1 @@
+var e={cellSize:128,gap:8},t=.46,n=.12,r=.95,i=.5,a=[.45,0,.2,1],o=e=>Math.min(88,Math.max(80,e*.21)),s=e=>{if(e<=768){let t=e-o(e)-12;for(let e=4;e>=2;--e){let n=t/(e*136-8);if(n>=.52)return Math.min(.76,n)}return t/264}return e<1100?.64:.76},c=.36,l=.42;export{r as a,c,n as i,o as l,e as n,i as o,a as r,t as s,l as t,s as u};

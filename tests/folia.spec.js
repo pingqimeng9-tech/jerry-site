@@ -35,7 +35,7 @@ test('Folia mobile portrait fits the viewport', async ({ page }, testInfo) => {
   }));
   expect(layout.scrollWidth).toBeLessThanOrEqual(layout.width);
   expect(layout.scrollHeight).toBeLessThanOrEqual(layout.height + 1);
-  await expect(page.locator('#jerry-mobile-grid')).toBeVisible();
+  await expect(page.locator('.bravais-field')).toBeVisible();
 });
 
 test('Folia mobile player exposes a persistent transport without overlap', async ({ page }, testInfo) => {
@@ -72,15 +72,13 @@ test('Folia mobile player exposes a persistent transport without overlap', async
 });
 
 
-test('Folia mobile Bravais keeps its nav pinned left and can switch to Grid', async ({ page }, testInfo) => {
+test('Folia mobile Bravais keeps its nav pinned left', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile', 'mobile Bravais only');
-  test.skip(true, 'Mobile uses the bounded guest grid in phase 2; wall panning returns with the account grid');
   test.setTimeout(120000);
   await page.goto('/listen/');
   await page.waitForTimeout(6500);
   const seam = await page.locator('.bravais-seam').boundingBox();
   expect(seam.x).toBe(0);
-  await expect(page.locator('.jerry-suite-switch')).toBeVisible();
   await expect(page.locator('.jerry-site-links')).toHaveCount(0);
 
   const field = await page.locator('.bravais-field').boundingBox();
@@ -90,17 +88,13 @@ test('Folia mobile Bravais keeps its nav pinned left and can switch to Grid', as
   await page.mouse.up();
   await expect(page.locator('#jerry-top-nav')).toHaveClass(/show/);
   await expect(page.locator('#jerry-top-nav nav a')).toHaveCount(6);
-
-  await page.locator('.jerry-suite-switch').click({ force: true });
-  await page.waitForTimeout(6500);
-  await expect(page.locator('input[placeholder*="search" i], input[placeholder*="搜索"]')).toHaveCount(1);
-  expect(await page.evaluate(() => localStorage.getItem('library_suite'))).toBe('grid');
+  const navWidth = await page.locator('#jerry-top-nav nav').evaluate(nav => ({ scroll: nav.scrollWidth, client: nav.clientWidth }));
+  expect(navWidth.scroll).toBeLessThanOrEqual(navWidth.client + 1);
 });
 
 
 test('Folia mobile Bravais pans vertically only', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile', 'mobile Bravais only');
-  test.skip(true, 'Mobile uses the bounded guest grid in phase 2; wall panning returns with the account grid');
   test.setTimeout(120000);
   await page.goto('/listen/');
   await page.waitForTimeout(6500);
@@ -128,41 +122,58 @@ test('Folia mobile Bravais pans vertically only', async ({ page }, testInfo) => 
   expect(afterVertical.y).not.toBe(before.y);
 });
 
-test('Folia mobile guest grid stays inside the bounded content area', async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== 'mobile', 'mobile guest grid only');
+test('Folia mobile logged-in wall keeps playlists inside the content area', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile', 'mobile wall only');
   test.setTimeout(120000);
-  await page.goto('/listen/');
-  await page.waitForTimeout(7000);
+  const svg = (label, background) => `data:image/svg+xml;utf8,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600"><rect width="600" height="600" fill="${background}"/><text x="50%" y="50%" fill="#fff" font-size="64" text-anchor="middle" dominant-baseline="middle">${label}</text></svg>`
+  )}`;
+  const profile = { userId: 1001, nickname: 'Fixture Listener', avatarUrl: svg('User', '#2563eb'), backgroundUrl: svg('BG', '#0f172a') };
+  const playlists = [
+    { id: 9001, name: 'Daily Mix', coverImgUrl: svg('Mix', '#ef4444'), trackCount: 18, playCount: 1204, updateTime: 1710000000000, trackUpdateTime: 1710000000000, specialType: 0 },
+    { id: 9002, name: 'Late Night Drive', coverImgUrl: svg('Drive', '#7c3aed'), trackCount: 32, playCount: 420, updateTime: 1710000000000, trackUpdateTime: 1710000000000, specialType: 0 },
+  ];
+  await page.addInitScript(() => {
+    localStorage.setItem('netease_cookie', 'fixture-cookie');
+    localStorage.setItem('library_suite', 'bravais');
+    localStorage.setItem('library_suite_prompt_seen', 'true');
+    localStorage.setItem('folia_last_seen_guide_version', '0.7.21');
+    localStorage.setItem('folia_last_seen_ponder_onboarding_version', '0.7.21');
+    localStorage.setItem('playback_entry_view', 'player');
+    localStorage.setItem('playback_entry_view_chosen', 'true');
+    localStorage.setItem('always_show_track_switch_buttons', 'true');
+  });
+  await page.route('**/api/netease/**', async route => {
+    const endpoint = new URL(route.request().url()).pathname.replace('/api/netease', '');
+    let body = { code: 200 };
+    if (endpoint === '/login/status') body = { code: 200, data: { profile }, cookie: 'fixture-cookie' };
+    else if (endpoint === '/user/account') body = { code: 200, account: { id: 1001 }, profile };
+    else if (endpoint === '/user/playlist') body = { code: 200, playlist: playlists.map(item => ({ ...item, creator: profile, description: `${item.name} fixture` })) };
+    else if (endpoint === '/likelist') body = { code: 200, ids: [7001, 7002, 7003] };
+    else if (endpoint === '/user/cloud') body = { code: 200, count: 0, songs: [] };
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+  });
 
-  const grid = page.locator('#jerry-mobile-grid');
-  await expect(grid).toBeVisible();
-  await expect(grid.locator('.jmg-card')).toHaveCount(8);
-  await expect(grid).toContainText('先听一首');
+  await page.goto('/listen/');
+  await page.waitForTimeout(9000);
 
   const layout = await page.evaluate(() => {
-    const root = document.getElementById('jerry-mobile-grid');
-    const box = root.getBoundingClientRect();
-    const cards = Array.from(root.querySelectorAll('.jmg-card')).map(card => {
-      const rect = card.getBoundingClientRect();
-      return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom };
-    });
-    const nav = document.querySelector('#jerry-top-nav nav');
+    const seam = document.querySelector('.bravais-seam').getBoundingClientRect();
+    const tiles = Array.from(document.querySelectorAll('.bravais-tile'))
+      .filter(tile => getComputedStyle(tile).visibility !== 'hidden')
+      .map(tile => tile.getBoundingClientRect())
+      .filter(rect => rect.width > 0 && rect.height > 0);
     return {
       width: window.innerWidth,
       scrollWidth: document.documentElement.scrollWidth,
-      gridLeft: box.left,
-      gridRight: box.right,
-      minLeft: Math.min(...cards.map(card => card.left)),
-      maxRight: Math.max(...cards.map(card => card.right)),
-      navScrollWidth: nav ? nav.scrollWidth : 0,
-      navClientWidth: nav ? nav.clientWidth : 0,
-      edgeMask: Boolean(document.getElementById('jerry-edge-mask')),
+      seamRight: seam.right,
+      visible: tiles.length,
+      clipped: tiles.filter(rect => rect.left < seam.right - 1 || rect.right > window.innerWidth + 1).length,
+      images: document.querySelectorAll('.lattice-poster img').length,
     };
   });
 
   expect(layout.scrollWidth).toBeLessThanOrEqual(layout.width);
-  expect(layout.minLeft).toBeGreaterThanOrEqual(layout.gridLeft - 1);
-  expect(layout.maxRight).toBeLessThanOrEqual(layout.gridRight + 1);
-  expect(layout.navScrollWidth).toBeLessThanOrEqual(layout.navClientWidth + 1);
-  expect(layout.edgeMask).toBe(false);
+  expect(layout.visible).toBeGreaterThan(0);
+  expect(layout.clipped).toBe(0);
 });
