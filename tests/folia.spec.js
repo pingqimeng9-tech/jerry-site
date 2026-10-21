@@ -7,7 +7,7 @@ test('music route opens Folia', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop', 'Folia smoke test runs once');
   test.setTimeout(120000);
   await page.goto('/music.html');
-  await page.waitForURL('**/player/', { timeout: 30000 });
+  await page.waitForURL('**/listen/', { timeout: 30000 });
   await expect(page).toHaveTitle(/callmiruko\.cc.*Folia/, { timeout: 30000 });
   await expect(page.locator('#root')).toHaveCount(1);
 });
@@ -15,7 +15,7 @@ test('music route opens Folia', async ({ page }, testInfo) => {
 test('Folia opens directly on the grid search home', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop', 'Folia smoke test runs once');
   test.setTimeout(120000);
-  await page.goto('/player/');
+  await page.goto('/listen/');
   await expect(page).toHaveTitle(/callmiruko\.cc.*Folia/, { timeout: 30000 });
   await page.waitForTimeout(6500);
   await expect(page.locator('input[placeholder*="SEARCH"], input[placeholder*="搜索"]')).toHaveCount(1);
@@ -25,7 +25,7 @@ test('Folia mobile portrait fits the viewport', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile', 'mobile portrait only');
   test.setTimeout(120000);
   await page.addInitScript(() => localStorage.setItem('library_suite', 'grid'));
-  await page.goto('/player/');
+  await page.goto('/listen/');
   await expect(page).toHaveTitle(/callmiruko\.cc.*Folia/, { timeout: 30000 });
   await page.waitForTimeout(6500);
   const layout = await page.evaluate(() => ({
@@ -48,7 +48,7 @@ test('Folia mobile player exposes a persistent transport without overlap', async
     contentType: 'application/json',
     body: JSON.stringify({ code: 200, data: [{ id: 1442466883, url: 'https://example.com/x.wav', br: 128000, size: 0, code: 200, type: 'mp3', level: 'standard' }] })
   }));
-  await page.goto('/player/');
+  await page.goto('/listen/');
   await page.waitForTimeout(6500);
   const search = page.locator('input[placeholder*="SEARCH"], input[placeholder*="搜索"]').first();
   await search.fill('花に亡霊');
@@ -75,7 +75,7 @@ test('Folia mobile player exposes a persistent transport without overlap', async
 test('Folia mobile Bravais keeps its nav pinned left and can switch to Grid', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile', 'mobile Bravais only');
   test.setTimeout(120000);
-  await page.goto('/player/');
+  await page.goto('/listen/');
   await page.waitForTimeout(6500);
   const seam = await page.locator('.bravais-seam').boundingBox();
   expect(seam.x).toBe(0);
@@ -100,7 +100,7 @@ test('Folia mobile Bravais keeps its nav pinned left and can switch to Grid', as
 test('Folia mobile Bravais pans vertically only', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile', 'mobile Bravais only');
   test.setTimeout(120000);
-  await page.goto('/player/');
+  await page.goto('/listen/');
   await page.waitForTimeout(6500);
   const field = await page.locator('.bravais-field').boundingBox();
   const tilePosition = () => page.evaluate(() => {
@@ -130,7 +130,7 @@ test('Folia guest home shows recommended covers instead of a blank screen', asyn
   test.skip(testInfo.project.name !== 'mobile', 'mobile guest preview only');
   test.setTimeout(120000);
   await page.addInitScript(() => localStorage.setItem('library_suite', 'grid'));
-  await page.goto('/player/');
+  await page.goto('/listen/');
   await page.waitForTimeout(7000);
   const panel = page.locator('#jerry-guest-preview');
   await expect(panel).toBeVisible();

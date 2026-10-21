@@ -35,7 +35,7 @@
         }
         if('serviceWorker' in navigator) {
           navigator.serviceWorker.getRegistrations().then(function(rs) {
-            rs.forEach(function(r) { if(r.scope.indexOf('/player/') !== -1 || r.scope.indexOf('/folia/') !== -1) r.unregister(); });
+            rs.forEach(function(r) { if(r.scope.indexOf('/player/') !== -1 || r.scope.indexOf('/listen/') !== -1 || r.scope.indexOf('/folia/') !== -1) r.unregister(); });
           }).catch(function() {});
         }
       } catch (e) {}
