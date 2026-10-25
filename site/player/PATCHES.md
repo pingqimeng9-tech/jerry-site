@@ -22,6 +22,10 @@ VITE_NETEASE_API_BASE=/api/netease VITE_AI_PROVIDER=google vite build --base=/pl
 5. `src/library/suites/bravais/bravaisConstants.ts`
    - Adds `getBravaisMobileRailWidth`, matching the site's opaque left rail width. Folia's original
      infinite-canvas zoom is unchanged on mobile.
+6. `src/components/visualizer/classic/Visualizer.tsx` and `glowWordVariants.ts`
+   - Adds a portrait-only layout for the default classic lyric style: words flow/wrap inside the
+     viewport instead of using the landscape random offsets, with a reduced active scale and no
+     waiting/passed x/y drift. Landscape and desktop behavior is unchanged.
 
 The shipped bundle remains AGPL-3.0. The full upstream source is available at the
 URL above; these are the local source changes.
