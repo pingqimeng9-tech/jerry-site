@@ -610,7 +610,6 @@
       -webkit-overflow-scrolling:touch;
     }
     .tabbar::-webkit-scrollbar{display:none}
-    .tabbar a[data-filter="all"]{ display:none; } /* 手机端默认展示全部文章，分类栏可横向滑动查看 */
     .tabbar a{
       flex:0 0 auto; width:clamp(68px,19vw,108px); min-width:0; text-align:center;
       padding:clamp(8px,2.4vw,9px) clamp(3px,1vw,5px); font-size:clamp(10px,3.2vw,12px);
@@ -1519,7 +1518,7 @@ function renderSections(posts){
         <span class="cat-count mono">${sec.posts.length} 篇</span>
       </div>
       <div class="post-grid">
-        ${sec.posts.map(postCardHtml).join('')}
+        ${sec.posts.map(post => postCardHtml(post)).join('')}
       </div>
     </div>
   `).join('');
@@ -1603,7 +1602,7 @@ function renderMobilePaged(posts, page){
   }
   contentArea.innerHTML = `
     <div class="cat-section">
-      <div class="post-grid">${pageItems.map(postCardHtml).join('')}</div>
+      <div class="post-grid">${pageItems.map(post => postCardHtml(post)).join('')}</div>
     </div>
     ${buildPaginationHtml(mobilePage, totalPages)}
   `;

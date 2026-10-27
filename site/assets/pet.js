@@ -883,7 +883,7 @@
     wrap.style.bottom = 'auto';
     const top = clampTop(topPx, ball);
     wrap.style.top = top + 'px';
-    const visible = ball * 0.55; // 贴边露出比例，剩下探出屏幕外一点，更像悬浮球吸住的样子
+    const visible = ball * 0.82; // 贴边露出比例：保留悬浮球吸边感，但保证头像和点击区在屏内
     wrap.style.left = (side === 'right' ? (window.innerWidth - visible) : (-(ball - visible))) + 'px';
     wrap.style.right = 'auto';
   }

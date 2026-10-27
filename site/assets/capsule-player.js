@@ -333,6 +333,10 @@
       persist();
     }
 
+    function ensureLoaded() {
+      if (!audio.getAttribute('src')) audio.src = st.playlist[st.curIndex].src;
+    }
+
     audio.addEventListener('timeupdate', function () { st.curTime = audio.currentTime; if (++saveTimer % 12 === 0) persist(); });
     audio.addEventListener('loadedmetadata', function () { st.totalTime = isFinite(audio.duration) ? audio.duration : 0; st.playlist[st.curIndex].duration = st.totalTime; });
     audio.addEventListener('play', function () { st.playing = true; failChain = 0; persist(); });
@@ -351,17 +355,18 @@
       else go(st.curIndex + 1, true);
     });
 
-    go(st.curIndex, false);
-    // 跨页恢复：上次在播则尝试续播（被浏览器自动播放策略拦截则静默暂停，等用户点一下）
+    // 不在加载时给 audio.src：网易云外链会在无人点击时失败并自动连跳整张歌单，
+    // 每次进页面都会产生一串 404 媒体请求。等用户真正点播放/上一首/下一首时再加载。
     if (!PLAYER_ONLY && sameIds && saved.playing) {
+      go(st.curIndex, false);
       if (saved.t > 1) { var once = function () { try { audio.currentTime = Math.min(saved.t, (audio.duration || 1e9) - 2); } catch (_) {} audio.removeEventListener('loadedmetadata', once); }; audio.addEventListener('loadedmetadata', once); }
       audio.play().then(function () {}).catch(function () {});
     }
 
     var api = {
-      play: function () { return audio.play().catch(function () {}); },
+      play: function () { ensureLoaded(); return audio.play().catch(function () {}); },
       pause: function () { audio.pause(); },
-      toggle: function () { return audio.paused ? audio.play().catch(function () {}) : audio.pause(); },
+      toggle: function () { ensureLoaded(); return audio.paused ? audio.play().catch(function () {}) : audio.pause(); },
       next: function () { go(st.curIndex + 1, !audio.paused); },
       prev: function () { go(st.curIndex - 1, !audio.paused); },
       seek: function (x) { if (isFinite(audio.duration) && audio.duration > 0) audio.currentTime = clamp(x, 0, audio.duration); },
