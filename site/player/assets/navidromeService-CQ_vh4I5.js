@@ -1,0 +1,1 @@
+import{fr as e,vr as t}from"./bootstrap-CU5Gm40M.js";export{e as getNavidromeConfig,t as navidromeApi};

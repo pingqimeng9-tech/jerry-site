@@ -26,7 +26,9 @@ uses a bounded content area beginning at the navigation rail. A floating grid ic
 classic Grid library. The site-page navigation is the separately injected top bar, not a second
 left column.
 
-The mobile/desktop layout fallback is planned for a later stage; it is not part of this build.
+The mobile shell links to `/listen/desktop.html`, which loads the same bundle with
+`window.__JERRY_DESKTOP__ = true` and restores Folia's original centred seam. A fixed 手机版 button
+returns to the mobile shell.
 
 Branding: splash now starts with callmiruko.cc.
 The desktop/mobile player transport uses Folia's real next/previous transport handlers.

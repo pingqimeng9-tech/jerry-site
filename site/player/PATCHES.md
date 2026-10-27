@@ -26,6 +26,9 @@ VITE_NETEASE_API_BASE=/api/netease VITE_AI_PROVIDER=google vite build --base=/pl
    - Adds a portrait-only layout for the default classic lyric style: words flow/wrap inside the
      viewport instead of using the landscape random offsets, with a reduced active scale and no
      waiting/passed x/y drift. Landscape and desktop behavior is unchanged.
+7. `src/library/suites/bravais/useBravaisSeam.ts` (desktop fallback flag)
+   - `window.__JERRY_DESKTOP__` disables the portrait seam pinning/closure for
+     `/listen/desktop.html`, restoring Folia's original centred seam and desktop interaction.
 
 The shipped bundle remains AGPL-3.0. The full upstream source is available at the
 URL above; these are the local source changes.

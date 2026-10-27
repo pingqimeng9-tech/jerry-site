@@ -28,6 +28,15 @@
   ],
   "headers": [
     {
+      "source": "/listen/desktop.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
       "source": "/listen",
       "headers": [
         {

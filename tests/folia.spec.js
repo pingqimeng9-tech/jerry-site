@@ -183,3 +183,26 @@ test('Folia mobile logged-in wall renders and the page does not overflow', async
   expect(layout.visualizerBackground).toBeNull();
   expect(layout.visualizerFrameRate).toBeNull();
 });
+
+test('Folia mobile can switch to the desktop fallback and back', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile', 'mobile layout fallback only');
+  test.setTimeout(120000);
+  await page.goto('/listen/');
+  await page.waitForTimeout(6500);
+
+  const layoutSwitch = page.locator('.jerry-layout-switch');
+  await expect(layoutSwitch).toBeVisible();
+  await layoutSwitch.click({ force: true });
+  await page.waitForURL('**/listen/desktop.html', { timeout: 30000 });
+  await expect(page).toHaveTitle(/Folia.*电脑版/);
+  await expect(page.locator('#jerry-desktop-return')).toBeVisible();
+  await expect(page.locator('#jerry-top-nav')).toHaveCount(0);
+  expect(await page.evaluate(() => Boolean(window.__JERRY_DESKTOP__))).toBe(true);
+  const seam = await page.locator('.bravais-seam').boundingBox();
+  expect(seam.x).toBeGreaterThan(100);
+
+  await page.locator('#jerry-desktop-return').click();
+  await page.waitForURL(/\/listen\/$/, { timeout: 30000 });
+  await expect(page.locator('#jerry-top-nav')).toHaveCount(1);
+  await expect(page.locator('.jerry-layout-switch')).toBeVisible();
+});
