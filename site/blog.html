@@ -318,7 +318,7 @@
   .main-controls { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; gap: 10px; flex-wrap:wrap;}
   
   .tabbar{ display:flex; gap:8px; background:var(--glass); border:1px solid var(--glass-border); backdrop-filter:blur(16px); border-radius:100px; padding:6px; flex-wrap:wrap; }
-  .tabbar a{ padding:9px 18px; border-radius:100px; font-size:13.5px; color:var(--muted); transition:.2s; }
+  .tabbar a{ padding:9px 18px; border-radius:100px; font-size:13.5px; color:rgba(236,232,255,.82); transition:.2s; }
   .tabbar a.active{background:linear-gradient(120deg,var(--coral),var(--pink));color:#1a0f2b;font-weight:700;}
   .tabbar a:not(.active):hover{background:rgba(255,255,255,.08);color:#fff;}
 
@@ -1533,15 +1533,19 @@ function postCardHtml(post, alreadyEscaped){
   // 这样列表视图不会因为"只塞了一张图进去"而变成没有文字的空卡片
   // 封面优先级：文章缩略图 thumb > 文章封面 cover > 站点默认封面
   const cover = post.thumb || post.cover || defaultCover();
+  // 卡片用本地 800px 缩略图；文章页仍用原图。新图还没生成缩略图时回退原图。
+  const cardCover = cover && !/^https?:/i.test(cover) && cover.startsWith('/images/posts/')
+    ? `/images/posts/thumbs/${cover.slice('/images/posts/'.length).replace(/\.[^.]+$/, '')}.webp`
+    : cover;
   const coverImg = cover
-    ? `<img class="post-cover-img" src="${cover}" alt="" loading="lazy" onerror="this.style.display='none'">`
+    ? `<img class="post-cover-img" src="${cardCover}" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='${cover}'">`
     : '';
 
   const slug = post.slug || (post.id||'').split('_').pop();
   const folderCov = cover ? `
       <div class="f-cov">
-        <img class="f-img" src="${cover}" alt="" loading="lazy" onerror="this.parentNode.style.display='none'">
-        <img class="f-img2" src="${cover}" alt="" aria-hidden="true" loading="lazy">
+        <img class="f-img" src="${cardCover}" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='${cover}'">
+        <img class="f-img2" src="${cardCover}" alt="" aria-hidden="true" loading="lazy" decoding="async">
         <i class="f-dim"></i><i class="f-vig"></i><i class="f-tint"></i>
       </div>` : '';
   const folderCard = (n) => `

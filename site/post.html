@@ -705,11 +705,15 @@ async function loadPost(){
       if (k === 'tags') { post.tags = [...new Set([...(post.tags || []), ...String(v).split(/[,，、\s]+/).filter(Boolean)])]; continue; }
       if (post[k] == null || post[k] === '') post[k] = v;
     }
+    const localCardCover = cover => cover && !/^https?:/i.test(cover) && cover.startsWith('/images/posts/')
+      ? `/images/posts/thumbs/${cover.slice('/images/posts/'.length).replace(/\.[^.]+$/, '')}.webp`
+      : cover;
+    const coverBanner = localCardCover(post.cover);
     const tagsRow = (post.tags && post.tags.length)
       ? `<span class="post-tags-row" data-module="c-tags">${post.tags.map(t => `<span>#${escapeHtml(t)}</span>`).join('')}</span>` : '';
     container.innerHTML = `
       <div class="breadcrumb mono" data-module="c-breadcrumb">首页 / 博客 ${post.category ? '/ ' + escapeHtml(post.category) : ''}</div>
-      ${post.cover ? `<img class="cover-banner" data-module="c-cover" src="${post.cover}" alt="${escapeHtml(post.title || '封面图')}"/>` : ''}
+      ${post.cover ? `<img class="cover-banner" data-module="c-cover" src="${coverBanner}" alt="${escapeHtml(post.title || '封面图')}" loading="eager" decoding="async" onerror="this.onerror=null;this.src='${post.cover}'"/>` : ''}
       ${titleRowHtml}
       <div class="a-meta">
         ${post.date ? `<span>📅 ${post.date}</span>` : ''}
@@ -964,7 +968,11 @@ function initLightbox(){
     box.addEventListener('click', () => box.classList.remove('open'));
     document.addEventListener('keydown', e => { if (e.key === 'Escape') box.classList.remove('open'); });
   }
-  body.querySelectorAll('img').forEach(img => { if (!img.closest('a')) img.classList.add('ne-zoomable'); });
+  body.querySelectorAll('img').forEach(img => {
+    if (!img.closest('a')) img.classList.add('ne-zoomable');
+    if (!img.hasAttribute('loading')) img.setAttribute('loading', 'lazy');
+    if (!img.hasAttribute('decoding')) img.setAttribute('decoding', 'async');
+  });
   body.addEventListener('click', e => {
     const img = e.target;
     if (img.tagName !== 'IMG') return;
