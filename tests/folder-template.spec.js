@@ -2,29 +2,38 @@ const { test, expect } = require('@playwright/test');
 
 test.use({ serviceWorkers: 'block' });
 
-test('Folder Blog template exposes four warped corners, editable text, and an unfolding cover', async ({ page }) => {
+test('Folder Blog template copies folder, list, and gallery views with editable corners', async ({ page }) => {
   await page.goto('/#folderblog');
-  await expect(page.locator('.fbx')).toBeVisible();
-  await expect(page.locator('.fbx-handle')).toHaveCount(4);
-  await expect(page.locator('.fbx-cover-text h2')).toHaveText('脱离固有思维');
-  expect(await page.locator('.fbx-cover').evaluate(el => getComputedStyle(el).backgroundImage)).toContain('ndfc39abe-cover');
-  expect(await page.locator('.fbx-cover-text h2').getAttribute('contenteditable')).toBe('true');
+  await expect(page.locator('.fb')).toBeVisible();
+  await expect(page.locator('.fb-folder')).toHaveCount(6);
+  await expect(page.locator('.fb-seg button')).toHaveCount(3);
+  await expect(page.locator('.fb-seg button[data-v="folder"]')).toHaveAttribute('aria-pressed', 'true');
+  expect(await page.locator('.fb-bg').evaluate(el => getComputedStyle(el).backgroundImage)).toContain('ndfc39abe-cover');
 
-  const before = await page.locator('.fbx-cover').evaluate(el => getComputedStyle(el).transform);
-  const handle = await page.locator('.fbx-handle').first().boundingBox();
+  const first = page.locator('.fb-folder').first();
+  await first.click();
+  await expect(first).toHaveClass(/open/);
+  await expect.poll(() => first.locator('.fb-chapter').first().evaluate(el => getComputedStyle(el).opacity)).toBe('1');
+
+  await page.locator('.fb-edit').click();
+  expect(await first.locator('.fb-front-title').getAttribute('contenteditable')).toBe('true');
+  await page.locator('.fb-edit').click();
+
+  await page.locator('.fb-quad').click();
+  await expect(page.locator('.fb-quad-handle')).toHaveCount(4);
+  const before = await first.locator('.fb-glass-inner').evaluate(el => getComputedStyle(el).transform);
+  const handle = await page.locator('.fb-quad-handle').first().boundingBox();
   await page.mouse.move(handle.x + handle.width / 2, handle.y + handle.height / 2);
   await page.mouse.down();
-  await page.mouse.move(handle.x + 48, handle.y + 24, { steps: 8 });
+  await page.mouse.move(handle.x + 32, handle.y + 18, { steps: 8 });
   await page.mouse.up();
-  await page.waitForTimeout(200);
-  const after = await page.locator('.fbx-cover').evaluate(el => getComputedStyle(el).transform);
+  const after = await first.locator('.fb-glass-inner').evaluate(el => getComputedStyle(el).transform);
   expect(after).not.toBe(before);
 
-  await page.locator('.fbx-toggle').click();
-  await expect(page.locator('.fbx')).toHaveClass(/open/);
-  expect(await page.locator('.fbx-handle').first().evaluate(el => getComputedStyle(el).opacity)).toBe('0');
-  await page.locator('.fbx-toggle').click();
-  await expect(page.locator('.fbx')).not.toHaveClass(/open/);
+  await page.locator('.fb-seg button[data-v="list"]').click();
+  expect(await page.locator('.fb-row').count()).toBe(6);
+  await page.locator('.fb-seg button[data-v="gallery"]').click();
+  expect(await page.locator('.fb-gallery .fb-card').count()).toBe(6);
 });
 
 test('article links are short English slugs and old article links redirect', async ({ page }) => {

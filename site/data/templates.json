@@ -1,6 +1,6 @@
 {
   "format": "jerry-templates/v1",
-  "generatedAt": "2026-10-28T12:52:48.269Z",
+  "generatedAt": "2026-10-28T13:23:46.874Z",
   "templates": [
     {
       "id": "asciisharks",
@@ -479,30 +479,31 @@
         "UI",
         "Folder",
         "Blog",
-        "Perspective"
+        "List",
+        "Gallery"
       ],
-      "spell": "博客文件夹实体展开：点最上层翻开，四个角可以拖动，封面文字像纹理一样跟着透视扭曲。",
-      "core": "文件夹 = 会物理展开的封面 · 四个角控制封面四边形 · 标题和正文是封面上的可编辑纹理",
+      "spell": "博客的文件夹视图：文件夹 / 列表 / 图库三种看法，点文件夹翻开章节卡，背景沿用文章封面。",
+      "core": "文章文件夹 + 三种预览方式 + 原位翻开的多张章节卡",
       "knobs": [
         {
           "key": "OPEN",
           "label": "OPEN 展开时长 ms",
-          "default": 680,
-          "min": 220,
-          "max": 1400,
+          "default": 520,
+          "min": 180,
+          "max": 1000,
           "step": 20
         },
         {
-          "key": "TILT",
-          "label": "TILT 合上时的倾斜角度",
-          "default": 7,
-          "min": 0,
-          "max": 16,
+          "key": "GAP",
+          "label": "GAP 文件夹间距",
+          "default": 22,
+          "min": 8,
+          "max": 40,
           "step": 1
         }
       ],
       "credit": {
-        "n": "callmiruko.cc 博客页的 Folder 视图与「脱离固有思维」文章封面",
+        "n": "callmiruko.cc 博客页的文件夹 / 列表 / 图库三视图与「脱离固有思维」封面",
         "u": "https://callmiruko.cc/p/detach-from-fixed-mindset",
         "own": 1
       },
