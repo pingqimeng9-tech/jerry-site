@@ -678,8 +678,8 @@ async function loadPost(){
     currentPost = post;
     currentPostId = post.id; // 点赞/收藏/浏览量一律用真实 id（短链 slug 也能正确归因）
     const postId = post.id;
-    // 旧长链 ?id= 打开后，地址栏静默替换为短链 /p/<slug>（复制地址/转发即短链）
-    if(!slug && postSlugOf(post)){ try{ history.replaceState(null, '', postHrefOf(post)); }catch(e){} }
+    // 旧长链 /p/<旧 slug> / ?id= 打开后，地址栏静默替换为当前英文短链（复制地址/转发即短链）
+    if(postSlugOf(post) && (!slug || slug !== postSlugOf(post))){ try{ history.replaceState(null, '', postHrefOf(post) + window.location.hash); }catch(e){} }
     document.title = (post.title || '文章') + ' · callmiruko.cc';
 
     const locked = isLockedCategory(post.category);

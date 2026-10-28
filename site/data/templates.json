@@ -1,6 +1,6 @@
 {
   "format": "jerry-templates/v1",
-  "generatedAt": "2026-10-19T13:49:02.652Z",
+  "generatedAt": "2026-10-28T12:52:48.269Z",
   "templates": [
     {
       "id": "asciisharks",
@@ -478,48 +478,32 @@
       "tags": [
         "UI",
         "Folder",
-        "Drag",
-        "Blog"
+        "Blog",
+        "Perspective"
       ],
-      "spell": "文章按文件夹归档：悬停开盖，点击展开，把文件拖到别的文件夹里就能换分类。",
-      "core": "文件夹 = 一个会开盖的容器，文件是可以拖动的卡片",
+      "spell": "博客文件夹实体展开：点最上层翻开，四个角可以拖动，封面文字像纹理一样跟着透视扭曲。",
+      "core": "文件夹 = 会物理展开的封面 · 四个角控制封面四边形 · 标题和正文是封面上的可编辑纹理",
       "knobs": [
-        {
-          "key": "FAN",
-          "label": "FAN 纸张探头高度",
-          "default": 14,
-          "min": 0,
-          "max": 40,
-          "step": 1
-        },
-        {
-          "key": "LID",
-          "label": "LID 前盖开合角度",
-          "default": 22,
-          "min": 0,
-          "max": 50,
-          "step": 1
-        },
         {
           "key": "OPEN",
           "label": "OPEN 展开时长 ms",
-          "default": 420,
-          "min": 100,
-          "max": 1000,
+          "default": 680,
+          "min": 220,
+          "max": 1400,
           "step": 20
         },
         {
-          "key": "VIEW",
-          "label": "VIEW 起始视图（0文件夹 1列表 2图库）",
-          "default": 0,
+          "key": "TILT",
+          "label": "TILT 合上时的倾斜角度",
+          "default": 7,
           "min": 0,
-          "max": 2,
+          "max": 16,
           "step": 1
         }
       ],
       "credit": {
-        "n": "callmiruko.cc 博客页的“图库 / 列表 / 文件夹”三种视图（交互思路参考，样式与代码为原创）",
-        "u": "https://callmiruko.cc/blog.html",
+        "n": "callmiruko.cc 博客页的 Folder 视图与「脱离固有思维」文章封面",
+        "u": "https://callmiruko.cc/p/detach-from-fixed-mindset",
         "own": 1
       },
       "source": "/assets/templates/folderblog.js"

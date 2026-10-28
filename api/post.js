@@ -10,7 +10,9 @@ module.exports = async (req, res) => {
   res.setHeader('Cache-Control','s-maxage=60, stale-while-revalidate');
   const { id, slug } = req.query || {};
   if(!id && !slug) return res.status(400).json({ok:false,error:'缺少文章 id 或 slug 参数'});
-  const p = load().find(x => id ? x.id===id : (x.slug===slug || slugOf(x)===slug || x.id.endsWith('_'+slug)));
+  const p = load().find(x => id
+    ? x.id===id
+    : (x.slug===slug || slugOf(x)===slug || x.id===slug || x.id.endsWith('_'+slug) || x.id.endsWith('-'+slug)));
   if(!p) return res.status(200).json({ok:false,error:'文章不存在'});
   res.status(200).json({ok:true,post:{id:p.id,slug:slugOf(p),title:p.title||'',date:p.date||null,category:p.category||null,views:p.views||0,cover:p.cover||null,markdown:p.markdown||'',annotations:Array.isArray(p.annotations)?p.annotations:[]}});
 };

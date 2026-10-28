@@ -283,7 +283,9 @@ async function handleApi(req, res, pathname) {
     const id = uq.get('id') || '';
     const slug = uq.get('slug') || '';
     const slugOf = x => (x.slug && String(x.slug).trim()) || String(x.id || '').split('_').pop();
-    const p = readStore().posts.find(x => id ? x.id === id : (x.slug === slug || slugOf(x) === slug || x.id.endsWith('_' + slug)));
+    const p = readStore().posts.find(x => id
+      ? x.id === id
+      : (x.slug === slug || slugOf(x) === slug || x.id === slug || x.id.endsWith('_' + slug) || x.id.endsWith('-' + slug)));
     if (!p) return send(res, 200, { ok: false, error: '文章不存在' });
     return send(res, 200, { ok: true, post: { id: p.id, slug: slugOf(p), title: p.title, date: p.date, category: p.category,
       views: p.views || 0, cover: p.cover || null, excerpt: p.excerpt || '', status: p.status,
