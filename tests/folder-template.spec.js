@@ -11,10 +11,21 @@ test('Folder Blog template is a single copy of the blog folder card', async ({ p
   await expect(page.locator('.fb-front p')).toContainText('有边界的思维');
   expect(await page.locator('.fb-cov img').getAttribute('src')).toContain('ndfc39abe-cover');
   expect(await page.locator('.fb-chapter')).toHaveCount(3);
+  await expect(page.locator('.fb-ver')).toHaveCount(3);
 
   const card = page.locator('.fb-card');
   await card.click();
   await expect(card).toHaveClass(/open/);
+  await expect(page.locator('.fb-chapter.c3')).toBeVisible();
+  const popupPromise = page.waitForEvent('popup');
+  await page.locator('.fb-chapter.c3').click();
+  const popup = await popupPromise;
+  expect(popup.url()).toContain('/p/detach-from-fixed-mindset');
+  await popup.close();
+  await page.locator('.fb-ver[data-v="v1"]').click();
+  await expect(card).toHaveAttribute('data-version', 'v1');
+  await page.locator('.fb-ver[data-v="v3"]').click();
+  await expect(card).toHaveAttribute('data-version', 'v3');
   await card.click();
   await expect(card).not.toHaveClass(/open/);
 });

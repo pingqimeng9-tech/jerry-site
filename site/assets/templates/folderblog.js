@@ -26,27 +26,46 @@ css:`.fb{position:absolute;inset:0;background:#050506;color:#fff;font-family:Int
 .fb-meta span:last-child{font-family:"Noto Serif SC","Songti SC",serif;font-size:11px;overflow:hidden;text-overflow:ellipsis}
 
 .fb-chapter{position:absolute;left:50%;top:50%;width:156px;height:184px;margin:-92px 0 0 -78px;z-index:var(--z);opacity:0;pointer-events:none;border-radius:15px;background:linear-gradient(165deg,#fff 34%,#f4ebe1);color:#292b38;padding:15px 14px;box-sizing:border-box;box-shadow:0 14px 34px rgba(0,0,0,.25),0 0 0 1px rgba(255,255,255,.3);transform:translate(var(--rx),var(--ry)) rotate(var(--rr)) scale(.86);transition:transform .5s cubic-bezier(.16,1,.3,1),opacity .2s}
-.fb-card.open .fb-chapter{opacity:1;pointer-events:auto;transform:translate(var(--fx),var(--fy)) rotate(var(--fr)) scale(1);transition:transform .6s cubic-bezier(.34,1.56,.64,1),opacity .18s}
-.fb-chapter.c1{--rx:-6px;--ry:35px;--rr:-1deg;--fx:-132px;--fy:-118px;--fr:-8deg;--z:2;--in:0ms}
-.fb-chapter.c2{--rx:0;--ry:30px;--rr:0deg;--fx:0;--fy:-158px;--fr:1deg;--z:1;--in:70ms}
-.fb-chapter.c3{--rx:6px;--ry:35px;--rr:1deg;--fx:132px;--fy:-118px;--fr:8deg;--z:3;--in:140ms}
+.fb-card.open .fb-chapter{opacity:1;pointer-events:auto;z-index:5;transform:translate(var(--fx),var(--fy)) rotate(var(--fr)) scale(1);transition:transform .6s cubic-bezier(.34,1.56,.64,1),opacity .18s}
+.fb-card.open .fb-chapter.c1{z-index:5}
+.fb-card.open .fb-chapter.c2{z-index:6}
+.fb-card.open .fb-chapter.c3{z-index:7}
+.fb-chapter{pointer-events:none;cursor:pointer}.fb-card.open .fb-chapter:hover{transform:translate(var(--fx),var(--fy)) rotate(var(--fr)) scale(1.06);z-index:9;box-shadow:0 26px 46px rgba(0,0,0,.38)}
+.fb-chapter.c1{--rx:-6px;--ry:35px;--rr:-1deg;--fx:-132px;--fy:-170px;--fr:-8deg;--z:2;--in:0ms}
+.fb-chapter.c2{--rx:0;--ry:30px;--rr:0deg;--fx:0;--fy:-205px;--fr:1deg;--z:1;--in:70ms}
+.fb-chapter.c3{--rx:6px;--ry:35px;--rr:1deg;--fx:132px;--fy:-170px;--fr:8deg;--z:3;--in:140ms}
 .fb-chapter em{display:block;font:600 9px ui-monospace,Menlo,monospace;letter-spacing:.08em;color:#a47b28;font-style:normal;margin-bottom:9px}
 .fb-chapter b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font:700 13px/1.35 "Noto Serif SC","Songti SC",serif}
 .fb-chapter p{margin:7px 0 0;color:#6e7080;font:400 10.5px/1.55 "Noto Serif SC","Songti SC",serif;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
 .fb-chapter i{position:absolute;right:12px;bottom:8px;color:#d7b38a;font:600 26px/1 ui-monospace,Menlo,monospace;font-style:normal}
+
+.fb-history{position:absolute;left:50%;bottom:clamp(12px,2vw,22px);transform:translateX(-50%);z-index:12;display:flex;align-items:flex-start;gap:clamp(34px,7vw,86px);padding:14px 22px 10px;border-radius:16px;background:rgba(5,7,10,.52);border:1px solid rgba(255,255,255,.11);backdrop-filter:blur(14px)}
+.fb-history:before{content:"FOLDER HISTORY";position:absolute;left:50%;top:-17px;transform:translateX(-50%);font:700 8px ui-monospace,monospace;letter-spacing:.18em;color:rgba(255,255,255,.4);white-space:nowrap}
+.fb-history:after{content:"";position:absolute;left:28px;right:28px;top:22px;height:1px;background:rgba(255,255,255,.16)}
+.fb-ver{position:relative;z-index:1;border:0;background:none;color:rgba(255,255,255,.46);padding:0 2px;cursor:pointer;text-align:center;font:inherit}.fb-ver:before{content:"";display:block;width:7px;height:7px;border-radius:50%;margin:0 auto 7px;background:#4b4d53;box-shadow:0 0 0 3px rgba(5,7,10,.8);transition:.2s}.fb-ver b{display:block;font:600 10px "Noto Sans SC",sans-serif;white-space:nowrap}.fb-ver small{display:block;margin-top:2px;font:8px ui-monospace,monospace;opacity:.55;white-space:nowrap}.fb-ver[aria-pressed=true]{color:#fff}.fb-ver[aria-pressed=true]:before{background:#fff;box-shadow:0 0 0 3px rgba(5,7,10,.8),0 0 14px rgba(255,255,255,.7)}
+.fb-card[data-version="v1"] .fb-cov img{opacity:.42;filter:saturate(.35)}
+.fb-card[data-version="v1"].open .fb-shell{transform:rotateX(14deg) scaleY(1.04)}
+.fb-card[data-version="v1"].open .fb-front{transform:rotateX(-30deg) translateY(12px)}
+.fb-card[data-version="v1"] .fb-glass{background:rgba(20,22,28,.78)}
+.fb-card[data-version="v1"] .fb-front{top:128px}
+.fb-card[data-version="v1"] .fb-chapter{--fx:-86px;--fy:-112px;--fr:-5deg}.fb-card[data-version="v1"] .fb-chapter.c2{--fx:0;--fy:-142px}.fb-card[data-version="v1"] .fb-chapter.c3{--fx:86px;--fy:-112px;--fr:5deg}
+.fb-card[data-version="v2"] .fb-cov img{opacity:.7}
+.fb-card[data-version="v2"] .fb-glass{background:rgba(24,27,36,.68)}
 `,
 mount(h,ctx){
   h.innerHTML=`<div class="fb"><div class="fb-bg"></div><div class="fb-stage">
     <div class="fb-card" role="button" tabindex="0" aria-label="打开文件夹">
-      <div class="fb-tilt"><div class="fb-shell"><div class="fb-glow"></div><div class="fb-cov"><img src="/images/posts/thumbs/ndfc39abe-cover.webp" alt="" loading="lazy"><i class="fb-dim"></i></div><div class="fb-chapter c1"><em>01 · 章节</em><b>多元思维模型</b><p>大多数人使用学过的学科思维模型，聪明的家伙往往涉猎多个领域。</p><i>01</i></div><div class="fb-chapter c2"><em>02 · 章节</em><b>跨领域</b><p>不拿半固有思维判断，加入其他学科的经验。</p><i>02</i></div><div class="fb-chapter c3"><em>03 · 章节</em><b>融会贯通</b><p>术有专攻，但道是融会贯通，互为联系。</p><i>03</i></div></div>
+      <div class="fb-tilt"><div class="fb-shell"><div class="fb-glow"></div><div class="fb-cov"><img src="/images/posts/thumbs/ndfc39abe-cover.webp" alt="" loading="lazy"><i class="fb-dim"></i></div></div><div class="fb-chapter c1"><em>01 · 章节</em><b>多元思维模型</b><p>大多数人使用学过的学科思维模型，聪明的家伙往往涉猎多个领域。</p><i>01</i></div><div class="fb-chapter c2"><em>02 · 章节</em><b>跨领域</b><p>不拿半固有思维判断，加入其他学科的经验。</p><i>02</i></div><div class="fb-chapter c3"><em>03 · 章节</em><b>融会贯通</b><p>术有专攻，但道是融会贯通，互为联系。</p><i>03</i></div>
         <div class="fb-front"><div class="fb-glass"></div><svg class="fb-rim" viewBox="0 0 262 176" preserveAspectRatio="none"><path d="M16 0H100C112 0 118 4 124 10C130 16 136 20 150 20H244Q262 20 262 38V156Q262 176 242 176H20Q0 176 0 156V16Q0 0 16 0Z"/></svg><h3>脱离固有思维</h3><p>有边界的思维和不能错/完美的思维，多元思维模型。</p><div class="fb-meta"><span>📅 2026-07-17</span><span>🏷️ 思维日记</span></div></div>
-      </div>
+      </div></div>
     </div>
-  </div></div>`;
+  </div></div><div class="fb-history" role="group" aria-label="文件夹历史版本"><button type="button" class="fb-ver" data-v="v1"><b>初代</b><small>2026.10</small></button><button type="button" class="fb-ver" data-v="v2"><b>1:1</b><small>2026.10</small></button><button type="button" class="fb-ver" data-v="v3" aria-pressed="true"><b>最终版</b><small>NOW</small></button></div>`;
   const card=h.querySelector('.fb-card'),tilt=h.querySelector('.fb-tilt');
+  let version='v3';card.dataset.version=version;
   const toggle=()=>card.classList.toggle('open');
-  card.addEventListener('click',toggle);
-  card.addEventListener('click',e=>{if(e.target.closest('.fb-chapter'))e.stopPropagation()},true);
+  card.addEventListener('click',e=>{if(e.target.closest('.fb-chapter'))return;toggle()});
+  h.querySelectorAll('.fb-chapter').forEach(c=>c.addEventListener('click',()=>window.open('/p/detach-from-fixed-mindset','_blank','noopener')));
+  h.querySelectorAll('.fb-ver').forEach(b=>b.addEventListener('click',()=>{version=b.dataset.v;card.dataset.version=version;h.querySelectorAll('.fb-ver').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))}));
   if(ctx&&typeof ctx.demo==='function')ctx.demo(()=>toggle(),2600);
   const fallbackDemo=(!ctx||!ctx.auto) ? setInterval(toggle,2600) : null;
   card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}});
