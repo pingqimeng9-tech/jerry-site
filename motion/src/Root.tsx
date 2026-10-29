@@ -6,7 +6,7 @@ export const RemotionRoot = () => (
     <Composition
       id="FolderDemo"
       component={FixDemo}
-      durationInFrames={180}
+      durationInFrames={210}
       fps={30}
       width={1440}
       height={900}
@@ -19,9 +19,24 @@ export const RemotionRoot = () => (
       }}
     />
     <Composition
+      id="ViewDemo"
+      component={FixDemo}
+      durationInFrames={210}
+      fps={30}
+      width={1440}
+      height={900}
+      defaultProps={{
+        before: 'screens/blog-desktop.png',
+        after: 'screens/folder-closed.png',
+        target: { x: 817, y: 187, w: 128, h: 38 },
+        mode: 'view' as const,
+        caption: '点击「文件夹」，视图切换成卡片堆',
+      }}
+    />
+    <Composition
       id="TocDemo"
       component={FixDemo}
-      durationInFrames={180}
+      durationInFrames={210}
       fps={30}
       width={1440}
       height={900}

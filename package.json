@@ -8,7 +8,7 @@
     "test:e2e": "playwright test",
     "gen:templates": "node scripts/gen-templates-manifest.js",
     "sync:music": "node scripts/fetch-netease-playlist.mjs",
-    "render:demos": "cd motion && npx remotion render src/index.tsx FolderDemo ../site/videos/demos/folder-demo.mp4 --codec=h264 --overwrite --crf=23 && npx remotion render src/index.tsx TocDemo ../site/videos/demos/toc-demo.mp4 --codec=h264 --overwrite --crf=23"
+    "render:demos": "cd motion && npx remotion render src/index.tsx FolderDemo ../site/videos/demos/folder-demo.mp4 --codec=h264 --overwrite --crf=23 && npx remotion render src/index.tsx TocDemo ../site/videos/demos/toc-demo.mp4 --codec=h264 --overwrite --crf=23 && npx remotion render src/index.tsx ViewDemo ../site/videos/demos/view-demo.mp4 --codec=h264 --overwrite --crf=23"
   },
   "keywords": [],
   "author": "",

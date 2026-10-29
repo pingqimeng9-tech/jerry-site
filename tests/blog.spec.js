@@ -45,7 +45,7 @@ test('merged categories and real-page demo deck article render', async ({ page }
   await page.goto('/p/website-experience-ideas');
   await page.waitForTimeout(1000);
   await expect(page.locator('[data-deck]')).toHaveCount(1);
-  await expect(page.locator('[data-card]')).toHaveCount(2);
+  await expect(page.locator('[data-card]')).toHaveCount(3);
   await expect(page.locator('[data-now]')).toHaveText('01');
   await expect(page.locator('[data-card] video').first()).toBeVisible();
   await page.locator('[data-next]').click();
@@ -53,6 +53,10 @@ test('merged categories and real-page demo deck article render', async ({ page }
   await expect(page.locator('[data-now]')).toHaveText('02');
   await expect(page.locator('.rd-dot.on')).toHaveCount(1);
   await expect(page.locator('[data-card] video').nth(1)).toBeVisible();
+  await page.locator('[data-to="2"]').click();
+  await page.waitForTimeout(700);
+  await expect(page.locator('[data-now]')).toHaveText('03');
+  await expect(page.locator('[data-card] video').nth(2)).toBeVisible();
 
   await page.goto('/p/procurement-pitfalls');
   await page.waitForTimeout(700);
