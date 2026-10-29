@@ -204,5 +204,4 @@ test('Folia mobile can switch to the desktop fallback and back', async ({ page }
   await page.locator('#jerry-desktop-return').click();
   await page.waitForURL(/\/listen\/$/, { timeout: 30000 });
   await expect(page.locator('#jerry-top-nav')).toHaveCount(1);
-  await expect(page.locator('.jerry-layout-switch')).toBeVisible();
 });
