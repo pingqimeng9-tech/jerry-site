@@ -1,6 +1,6 @@
 {
   "format": "jerry-templates/v1",
-  "generatedAt": "2026-10-29T07:24:40.638Z",
+  "generatedAt": "2026-10-29T07:54:15.995Z",
   "templates": [
     {
       "id": "asciisharks",
@@ -481,12 +481,12 @@
         "Blog",
         "Copy"
       ],
-      "spell": "把博客文件夹里的单个文件夹 1:1 放进模板：圆角、黑白背景、封面标题与摘要，点开时正面抬起。",
+      "spell": "把博客文件夹里的单个文件夹 1:1 放进模板：原色封面、标题与摘要，点开飞出三张章节卡。",
       "core": "单个文件夹 = 博客 Folder 卡片原样复制",
       "knobs": [],
       "credit": {
-        "n": "callmiruko.cc 博客 Folder 视图中的「论平衡时间优先级」卡片",
-        "u": "https://callmiruko.cc/p/balance-time-priorities",
+        "n": "callmiruko.cc 博客 Folder 视图中的「脱离固有思维」卡片",
+        "u": "https://callmiruko.cc/p/detach-from-fixed-mindset",
         "own": 1
       },
       "source": "/assets/templates/folderblog.js"

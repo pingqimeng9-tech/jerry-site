@@ -7,10 +7,10 @@ test('Folder Blog template is a single copy of the blog folder card', async ({ p
   await expect(page.locator('.fb')).toBeVisible();
   await expect(page.locator('.fb-card')).toHaveCount(1);
   await expect(page.locator('.fb-seg')).toHaveCount(0);
-  await expect(page.locator('.fb-front h3')).toHaveText('论平衡时间优先级');
-  await expect(page.locator('.fb-front p')).toContainText('积累与实践');
-  expect(await page.locator('.fb-cov img').getAttribute('src')).toContain('nc1939abe-cover');
-  expect(await page.locator('.fb-card').evaluate(el => getComputedStyle(el).filter)).toContain('grayscale');
+  await expect(page.locator('.fb-front h3')).toHaveText('脱离固有思维');
+  await expect(page.locator('.fb-front p')).toContainText('有边界的思维');
+  expect(await page.locator('.fb-cov img').getAttribute('src')).toContain('ndfc39abe-cover');
+  expect(await page.locator('.fb-chapter')).toHaveCount(3);
 
   const card = page.locator('.fb-card');
   await card.click();
