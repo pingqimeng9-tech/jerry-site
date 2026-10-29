@@ -48,9 +48,10 @@ mount(h,ctx){
   card.addEventListener('click',toggle);
   card.addEventListener('click',e=>{if(e.target.closest('.fb-chapter'))e.stopPropagation()},true);
   if(ctx&&typeof ctx.demo==='function')ctx.demo(()=>toggle(),2600);
+  const fallbackDemo=(!ctx||!ctx.auto) ? setInterval(toggle,2600) : null;
   card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}});
   card.addEventListener('pointermove',e=>{if(card.classList.contains('open'))return;const r=card.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;tilt.style.transform=`rotateX(${(-y*5).toFixed(2)}deg) rotateY(${(x*5).toFixed(2)}deg)`});
   card.addEventListener('pointerleave',()=>{if(!card.classList.contains('open'))tilt.style.transform=''});
   ctx&&ctx.status&&ctx.status('FOLDER');
-  return()=>{};
+  return()=>{if(fallbackDemo)clearInterval(fallbackDemo)};
 }});
