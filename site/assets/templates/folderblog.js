@@ -27,8 +27,7 @@ css:`.fb{position:absolute;inset:0;background:#08090b;color:#f4f4f4;font-family:
 .fb-folder.open .fb-lid{transform:rotateX(-82deg)}.fb-folder.open .fb-handles{opacity:0;pointer-events:none}.fb-folder.open .fb-cover{cursor:default}
 .fb-tools{position:absolute;right:clamp(16px,3vw,32px);bottom:clamp(16px,3vw,26px);z-index:10;display:flex;gap:7px}
 .fb-tools button{border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.5);color:rgba(255,255,255,.75);border-radius:999px;padding:8px 12px;font:600 11px inherit;cursor:pointer;backdrop-filter:blur(12px)}.fb-tools button[aria-pressed=true]{background:#fff;color:#111;border-color:#fff}
-.fb-hint{position:absolute;left:clamp(16px,3vw,32px);bottom:clamp(16px,3vw,26px);z-index:10;color:rgba(255,255,255,.38);font:10px ui-monospace,monospace;letter-spacing:.06em}
-@media (max-width:600px){.fb-folder{width:min(360px,82vw)}.fb-hint{display:none}.fb-tools{bottom:14px;right:14px}.fb-tools button{padding:7px 10px;font-size:10px}}
+@media (max-width:600px){.fb-folder{width:min(360px,82vw)}.fb-tools{bottom:14px;right:14px}.fb-tools button{padding:7px 10px;font-size:10px}}
 `,
 mount(h,ctx){
   const OPEN=(ctx&&ctx.P&&ctx.P.OPEN)||620;
@@ -38,7 +37,7 @@ mount(h,ctx){
     <div class="fb-paper"><em>01 · 内容</em><h3>优先级</h3><p>论平衡时间优先级。</p><i>01</i></div>
     <div class="fb-lid"><div class="fb-cover"><div class="fb-copy"><small contenteditable="false" data-edit spellcheck="false">思维日记 · 2026-07-17</small><h2 contenteditable="false" data-edit spellcheck="false">论平衡时间优先级</h2><p contenteditable="false" data-edit spellcheck="false">积累与实践，在前期时间不充足的情况下，哪个重要。</p></div></div></div>
     <div class="fb-handles"></div>
-  </div></div><div class="fb-hint">点封面空白展开 · 四角可调 · 点文字按钮编辑</div><div class="fb-tools"><button type="button" class="fb-edit">文字</button><button type="button" class="fb-quad">四角</button><button type="button" class="fb-reset">重置</button></div></div>`;
+  </div></div><div class="fb-tools"><button type="button" class="fb-edit">文字</button><button type="button" class="fb-quad">四角</button><button type="button" class="fb-reset">重置</button></div></div>`;
   const root=h.querySelector('.fb'),folder=h.querySelector('.fb-folder'),lid=h.querySelector('.fb-lid'),cover=h.querySelector('.fb-cover'),handles=h.querySelector('.fb-handles'),editBtn=h.querySelector('.fb-edit'),quadBtn=h.querySelector('.fb-quad'),resetBtn=h.querySelector('.fb-reset');
   let W=480,H=520,quad=[[0,0],[W,0],[W,H],[0,H]],drag=null,quadMode=false,editing=false;
   const solve8=(A,b)=>{for(let c=0;c<8;c++){let p=c;for(let r=c+1;r<8;r++)if(Math.abs(A[r][c])>Math.abs(A[p][c]))p=r;[A[c],A[p]]=[A[p],A[c]];[b[c],b[p]]=[b[p],b[c]];const d=A[c][c]||1e-9;for(let j=c;j<8;j++)A[c][j]/=d;b[c]/=d;for(let r=0;r<8;r++){if(r===c)continue;const f=A[r][c];if(!f)continue;for(let j=c;j<8;j++)A[r][j]-=f*A[c][j];b[r]-=f*b[c]}}return b};
