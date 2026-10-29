@@ -41,16 +41,20 @@ test('blog keeps category tabs, all three preview modes, cards and the pet', asy
 });
 
 
-test('merged categories and numbered demo cards article render', async ({ page }) => {
+test('merged categories and swipeable demo deck article render', async ({ page }) => {
   await page.goto('/p/website-experience-ideas');
   await page.waitForTimeout(900);
-  await expect(page.locator('.il-panel')).toHaveCount(5);
-  await expect(page.locator('.il-panel:visible')).toHaveCount(1);
-  await expect(page.locator('.il-panel:visible .il-ph h3')).toHaveText('把重复分类收成一条时间线');
-  await page.locator('label[for="il-3"]').click();
-  await page.waitForTimeout(500);
-  await expect(page.locator('.il-panel:visible .il-ph h3')).toHaveText('文章里的演示卡，用编号切换而不是堆截图');
-  await expect(page.locator('.il-tab[for="il-3"]')).toHaveCSS('color', 'rgb(255, 255, 255)');
+  await expect(page.locator('[data-deck]')).toHaveCount(1);
+  await expect(page.locator('[data-card]')).toHaveCount(5);
+  await expect(page.locator('[data-now]')).toHaveText('01');
+  await expect(page.locator('[data-card]').first()).toBeVisible();
+  await page.locator('[data-next]').click();
+  await page.waitForTimeout(700);
+  await expect(page.locator('[data-now]')).toHaveText('02');
+  await page.locator('[data-to="3"]').click();
+  await page.waitForTimeout(700);
+  await expect(page.locator('[data-now]')).toHaveText('04');
+  await expect(page.locator('.sd-dot.on')).toHaveCount(1);
 
   await page.goto('/p/procurement-pitfalls');
   await page.waitForTimeout(700);
