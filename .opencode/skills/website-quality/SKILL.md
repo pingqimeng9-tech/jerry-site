@@ -45,6 +45,10 @@ This skill is a pre-flight and verification checklist for high-quality website c
 - A folder card's chapters must sit outside the `overflow:hidden` shell and share the front panel's stacking context. Keep the third card clickable.
 - Do not use `git checkout -- site/data/posts.json` after adding content; targeted resets of `views` are safer.
 
+## Motion work
+
+For animation-heavy demo cards or keyframe work, also load `ui-motion-demos`. Its rule is mandatory here: real screenshots, one action per beat, spatial continuity, deliberate easing, and replayable before/after interaction demos.
+
 ## Definition of done
 
 - The requested behavior is visible in a real screenshot at 1440px and 390px.

@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:e2e": "playwright test",
     "gen:templates": "node scripts/gen-templates-manifest.js",
-    "sync:music": "node scripts/fetch-netease-playlist.mjs"
+    "sync:music": "node scripts/fetch-netease-playlist.mjs",
+    "render:demos": "cd motion && npx remotion render src/index.tsx FolderDemo ../site/videos/demos/folder-demo.mp4 --codec=h264 --overwrite --crf=23 && npx remotion render src/index.tsx TocDemo ../site/videos/demos/toc-demo.mp4 --codec=h264 --overwrite --crf=23"
   },
   "keywords": [],
   "author": "",
@@ -18,6 +19,11 @@
     "notion-to-md": "^3.1.9"
   },
   "devDependencies": {
-    "@playwright/test": "^1.48.2"
+    "@playwright/test": "^1.48.2",
+    "@remotion/cli": "^4.0.539",
+    "@remotion/player": "^4.0.539",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "remotion": "^4.0.539"
   }
 }

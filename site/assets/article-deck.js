@@ -5,6 +5,7 @@
     if (!track) return;
     const cards = Array.from(track.querySelectorAll('[data-card]'));
     if (!cards.length) return;
+    const videos = Array.from(track.querySelectorAll('video'));
     deck.dataset.ready = '1';
     const now = deck.querySelector('[data-now]');
     const dots = Array.from(deck.querySelectorAll('[data-to]'));
@@ -21,6 +22,14 @@
       current = Math.max(0, Math.min(cards.length - 1, i));
       if (now) now.textContent = String(current + 1).padStart(2, '0');
       dots.forEach((d, n) => d.classList.toggle('on', n === current));
+      videos.forEach((v, n) => {
+        if (n === current) {
+          v.muted = true;
+          v.play().catch(() => {});
+        } else {
+          v.pause();
+        }
+      });
     };
 
     const goTo = (i) => {
@@ -49,6 +58,12 @@
       }, 70);
     }, { passive: true });
 
+    deck.querySelector('[data-replay]')?.addEventListener('click', () => {
+      const v = videos[current];
+      if (!v) return;
+      v.currentTime = 0;
+      v.play().catch(() => {});
+    });
     track.addEventListener('dragstart', (e) => e.preventDefault());
     track.addEventListener('pointerdown', (e) => {
       if (e.pointerType !== 'mouse' || e.button !== 0) return;
