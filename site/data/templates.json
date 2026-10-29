@@ -1,6 +1,6 @@
 {
   "format": "jerry-templates/v1",
-  "generatedAt": "2026-10-29T06:46:08.686Z",
+  "generatedAt": "2026-10-29T07:17:32.074Z",
   "templates": [
     {
       "id": "folderblog",
@@ -10,33 +10,24 @@
       "tags": [
         "UI",
         "Folder",
-        "Blog",
-        "List",
-        "Gallery"
+        "Monochrome",
+        "Perspective"
       ],
-      "spell": "博客的文件夹视图：文件夹 / 列表 / 图库三种看法，点文件夹翻开章节卡，背景沿用文章封面。",
-      "core": "文章文件夹 + 三种预览方式 + 原位翻开的多张章节卡",
+      "spell": "只复刻博客里的一个圆角文件夹：黑白背景、实体展开、四角可调，文字跟着封面扭曲。",
+      "core": "单个圆角文件夹 · 黑色/白色背景 · 四角透视 · 可编辑文字",
       "knobs": [
         {
           "key": "OPEN",
           "label": "OPEN 展开时长 ms",
-          "default": 520,
-          "min": 180,
-          "max": 1000,
+          "default": 620,
+          "min": 220,
+          "max": 1200,
           "step": 20
-        },
-        {
-          "key": "GAP",
-          "label": "GAP 文件夹间距",
-          "default": 22,
-          "min": 8,
-          "max": 40,
-          "step": 1
         }
       ],
       "credit": {
-        "n": "callmiruko.cc 博客页的文件夹 / 列表 / 图库三视图与「脱离固有思维」封面",
-        "u": "https://callmiruko.cc/p/detach-from-fixed-mindset",
+        "n": "callmiruko.cc 博客文件夹的单个文件夹与「论平衡时间优先级」封面",
+        "u": "https://callmiruko.cc/p/balance-time-priorities",
         "own": 1
       },
       "source": "/assets/templates/folderblog.js"
