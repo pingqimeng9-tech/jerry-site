@@ -2,33 +2,21 @@ const { test, expect } = require('@playwright/test');
 
 test.use({ serviceWorkers: 'block' });
 
-test('Folder Blog is one black-and-white folder with the article cover, corners and editable text', async ({ page }) => {
+test('Folder Blog template is a single copy of the blog folder card', async ({ page }) => {
   await page.goto('/#folderblog');
   await expect(page.locator('.fb')).toBeVisible();
-  await expect(page.locator('.fb-folder')).toHaveCount(1);
+  await expect(page.locator('.fb-card')).toHaveCount(1);
   await expect(page.locator('.fb-seg')).toHaveCount(0);
-  await expect(page.locator('.fb-copy h2')).toHaveText('论平衡时间优先级');
-  expect(await page.locator('.fb-cover').evaluate(el => getComputedStyle(el).backgroundImage)).toContain('nc1939abe-cover');
-  expect(await page.locator('.fb-bg').evaluate(el => getComputedStyle(el).backgroundImage)).toContain('nc1939abe-cover');
+  await expect(page.locator('.fb-front h3')).toHaveText('论平衡时间优先级');
+  await expect(page.locator('.fb-front p')).toContainText('积累与实践');
+  expect(await page.locator('.fb-cov img').getAttribute('src')).toContain('nc1939abe-cover');
+  expect(await page.locator('.fb-card').evaluate(el => getComputedStyle(el).filter)).toContain('grayscale');
 
-  const folder = page.locator('.fb-folder');
-  await folder.click();
-  await expect(folder).toHaveClass(/open/);
-
-  await page.locator('.fb-edit').click();
-  expect(await page.locator('.fb-copy h2').getAttribute('contenteditable')).toBe('true');
-  await page.locator('.fb-edit').click();
-
-  await page.locator('.fb-quad').click();
-  await expect(page.locator('.fb-handle')).toHaveCount(4);
-  const before = await page.locator('.fb-cover').evaluate(el => getComputedStyle(el).transform);
-  const handle = await page.locator('.fb-handle').first().boundingBox();
-  await page.mouse.move(handle.x + handle.width / 2, handle.y + handle.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(handle.x + 36, handle.y + 20, { steps: 8 });
-  await page.mouse.up();
-  const after = await page.locator('.fb-cover').evaluate(el => getComputedStyle(el).transform);
-  expect(after).not.toBe(before);
+  const card = page.locator('.fb-card');
+  await card.click();
+  await expect(card).toHaveClass(/open/);
+  await card.click();
+  await expect(card).not.toHaveClass(/open/);
 });
 
 test('article links are short English slugs and old article links redirect', async ({ page }) => {

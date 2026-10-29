@@ -1,7 +1,475 @@
 {
   "format": "jerry-templates/v1",
-  "generatedAt": "2026-10-29T07:19:51.175Z",
+  "generatedAt": "2026-10-29T07:24:40.638Z",
   "templates": [
+    {
+      "id": "asciisharks",
+      "name": "Shark Glass Chat",
+      "cat": "Glass",
+      "mat": "ASCII 海洋",
+      "tags": [
+        "Glass",
+        "Canvas",
+        "ASCII",
+        "Shark",
+        "Chat",
+        "Pointer"
+      ],
+      "spell": "深海里游着 ASCII 鲨鱼和小鱼，鼠标划过会扰动洋流；前景是一块半透明白色毛玻璃聊天框，可以直接和“深海”对话。",
+      "core": "ASCII 生物场做背景 · 真实 backdrop-filter 毛玻璃做前景 · 聊天输入驱动场景",
+      "knobs": [
+        {
+          "key": "SHARKS",
+          "label": "SHARKS 鲨鱼数量",
+          "default": 4,
+          "min": 1,
+          "max": 8,
+          "step": 1
+        },
+        {
+          "key": "FISH",
+          "label": "FISH 鱼群密度",
+          "default": 84,
+          "min": 20,
+          "max": 180,
+          "step": 4
+        },
+        {
+          "key": "SPEED",
+          "label": "SPEED 游速",
+          "default": 1,
+          "min": 0.2,
+          "max": 2.4,
+          "step": 0.1
+        },
+        {
+          "key": "GLASS",
+          "label": "GLASS 玻璃浓度",
+          "default": 1,
+          "min": 0.3,
+          "max": 1.8,
+          "step": 0.1
+        }
+      ],
+      "credit": {
+        "n": "ascii-sharks by stackedlol（ASCII 海洋与鲨鱼视觉方向，代码为独立重写）",
+        "u": "https://github.com/stackedlol/ascii-sharks",
+        "own": 1
+      },
+      "source": "/assets/templates/asciisharks.js"
+    },
+    {
+      "id": "confetti",
+      "name": "Confetti Click",
+      "cat": "Micro",
+      "mat": "纸屑",
+      "tags": [
+        "Micro",
+        "Canvas",
+        "Physics",
+        "Click"
+      ],
+      "spell": "点按钮或任意位置 → 纸屑向上炸开，被空气拖慢再飘落；按钮先被压扁，松手回弹过头。",
+      "core": "确认动作也可以有重量",
+      "knobs": [
+        {
+          "key": "COUNT",
+          "label": "COUNT 数量",
+          "default": 70,
+          "min": 10,
+          "max": 200,
+          "step": 5
+        },
+        {
+          "key": "GRAVITY",
+          "label": "GRAVITY 重力",
+          "default": 900,
+          "min": 200,
+          "max": 2000,
+          "step": 50
+        },
+        {
+          "key": "DRAG",
+          "label": "DRAG 阻力",
+          "default": 2.2,
+          "min": 0.5,
+          "max": 5,
+          "step": 0.1
+        },
+        {
+          "key": "SPREAD",
+          "label": "SPREAD 初速",
+          "default": 620,
+          "min": 200,
+          "max": 1100,
+          "step": 20
+        }
+      ],
+      "credit": {
+        "n": "Design Spells",
+        "u": "https://designspells.com/",
+        "own": 1
+      },
+      "source": "/assets/templates/confetti.js"
+    },
+    {
+      "id": "cursors",
+      "name": "Live Cursors",
+      "cat": "Interaction",
+      "mat": "在场",
+      "tags": [
+        "Interaction",
+        "Presence",
+        "Realtime"
+      ],
+      "spell": "打开第二个标签页 → 对方的光标带着名字滑进你的页面。",
+      "core": "别人的指针也在这一页",
+      "knobs": [
+        {
+          "key": "LAMBDA",
+          "label": "平滑 λ",
+          "default": 18,
+          "min": 4,
+          "max": 40,
+          "step": 1
+        },
+        {
+          "key": "GHOSTS",
+          "label": "幽灵数量",
+          "default": 4,
+          "min": 0,
+          "max": 8,
+          "step": 1
+        }
+      ],
+      "credit": {
+        "n": "Live Cursors",
+        "u": "https://carterogunsola.com/lab/live-cursors"
+      },
+      "source": "/assets/templates/cursors.js"
+    },
+    {
+      "id": "dial",
+      "name": "Dial",
+      "cat": "Interaction",
+      "mat": "金属",
+      "tags": [
+        "Interaction",
+        "Sound",
+        "Physics",
+        "Wheel"
+      ],
+      "spell": "拨动调谐旋钮 → 圆环带着重量转动，每过一格咔哒一声，音高随转速变化。",
+      "core": "“选一个”不一定是下拉框",
+      "knobs": [
+        {
+          "key": "DAMP_DRAG",
+          "label": "DAMP_DRAG 拖动阻尼",
+          "default": 15,
+          "min": 3,
+          "max": 40,
+          "step": 1
+        },
+        {
+          "key": "DAMP_IDLE",
+          "label": "DAMP_IDLE 静止阻尼",
+          "default": 25,
+          "min": 5,
+          "max": 50,
+          "step": 1
+        },
+        {
+          "key": "SNAP_DUR",
+          "label": "SNAP_DUR 吸附时长",
+          "default": 0.8,
+          "min": 0.2,
+          "max": 1.6,
+          "step": 0.05
+        },
+        {
+          "key": "ELASTIC_AMP",
+          "label": "弹性振幅",
+          "default": 2,
+          "min": 1,
+          "max": 4,
+          "step": 0.1
+        },
+        {
+          "key": "ELASTIC_PERIOD",
+          "label": "弹性周期",
+          "default": 0.6,
+          "min": 0.2,
+          "max": 1.2,
+          "step": 0.05
+        },
+        {
+          "key": "VIS",
+          "label": "可见弧度 °",
+          "default": 38,
+          "min": 20,
+          "max": 70,
+          "step": 1
+        },
+        {
+          "key": "CHANNELS",
+          "label": "频道数",
+          "default": 24,
+          "min": 8,
+          "max": 48,
+          "step": 1
+        }
+      ],
+      "credit": {
+        "n": "Dial",
+        "u": "https://carterogunsola.com/lab/dial"
+      },
+      "source": "/assets/templates/dial.js"
+    },
+    {
+      "id": "dotface",
+      "name": "Dot Avatar",
+      "cat": "Canvas",
+      "mat": "点阵",
+      "tags": [
+        "Canvas",
+        "Dots",
+        "Face",
+        "Pointer"
+      ],
+      "spell": "一张只由圆点组成的脸 → 眼睛盯着你的指针，靠近时会笑，点一下眨眼。",
+      "core": "头像也是一张会回应的场",
+      "knobs": [
+        {
+          "key": "GAP",
+          "label": "点间距",
+          "default": 12,
+          "min": 7,
+          "max": 22,
+          "step": 1
+        },
+        {
+          "key": "LOOK",
+          "label": "LOOK 视线范围",
+          "default": 1,
+          "min": 0,
+          "max": 2,
+          "step": 0.1
+        },
+        {
+          "key": "SMILE",
+          "label": "SMILE 笑意",
+          "default": 1,
+          "min": 0,
+          "max": 2,
+          "step": 0.1
+        }
+      ],
+      "credit": {
+        "n": "Skillry · Dot Avatar Maker（风格方向）",
+        "u": "https://skillry.dev/",
+        "own": 1
+      },
+      "source": "/assets/templates/dotface.js"
+    },
+    {
+      "id": "dots",
+      "name": "Polka Dots",
+      "cat": "Canvas",
+      "mat": "弹簧",
+      "tags": [
+        "Canvas",
+        "Physics",
+        "Spring",
+        "Pointer"
+      ],
+      "spell": "指针穿过点阵 → 圆点被推开、变大变黑；点一下，涟漪扩散。",
+      "core": "整片点阵只跑一个循环",
+      "knobs": [
+        {
+          "key": "SPRING",
+          "label": "SPRING 回弹",
+          "default": 0.055,
+          "min": 0.01,
+          "max": 0.15,
+          "step": 0.005
+        },
+        {
+          "key": "FRICTION",
+          "label": "FRICTION 摩擦",
+          "default": 0.82,
+          "min": 0.6,
+          "max": 0.95,
+          "step": 0.01
+        },
+        {
+          "key": "REPEL_R",
+          "label": "REPEL_R 推开半径",
+          "default": 116,
+          "min": 40,
+          "max": 260,
+          "step": 2
+        },
+        {
+          "key": "PUSH",
+          "label": "PUSH 推力",
+          "default": 1,
+          "min": 0,
+          "max": 3,
+          "step": 0.1
+        },
+        {
+          "key": "BLOOM",
+          "label": "BLOOM 绽放",
+          "default": 1,
+          "min": 0,
+          "max": 2,
+          "step": 0.1
+        },
+        {
+          "key": "GAP",
+          "label": "点间距",
+          "default": 22,
+          "min": 12,
+          "max": 40,
+          "step": 1
+        }
+      ],
+      "credit": {
+        "n": "Polka Dots",
+        "u": "https://carterogunsola.com/lab/polka-dots"
+      },
+      "source": "/assets/templates/dots.js"
+    },
+    {
+      "id": "egg",
+      "name": "Hidden Tap",
+      "cat": "Micro",
+      "mat": "彩蛋",
+      "tags": [
+        "Micro",
+        "Easter egg",
+        "Click",
+        "SVG"
+      ],
+      "spell": "连点 logo → 外圈一格格填满；点够了，它弹性旋转变形，说出一句话。",
+      "core": "留一个只给认真的人的出口",
+      "knobs": [
+        {
+          "key": "TAPS",
+          "label": "TAPS 次数",
+          "default": 5,
+          "min": 3,
+          "max": 12,
+          "step": 1
+        }
+      ],
+      "credit": {
+        "n": "Design Spells",
+        "u": "https://designspells.com/",
+        "own": 1
+      },
+      "source": "/assets/templates/egg.js"
+    },
+    {
+      "id": "feed",
+      "name": "What's New",
+      "cat": "UI",
+      "mat": "更新流",
+      "tags": [
+        "UI",
+        "List",
+        "Changelog",
+        "Filter"
+      ],
+      "spell": "一条按时间排的更新流：分类标签 + 日期 + 标题；按分类筛选，条目依次滑入。",
+      "core": "站点的“呼吸”：最近发生了什么",
+      "knobs": [
+        {
+          "key": "STAGGER",
+          "label": "STAGGER 错开 ms",
+          "default": 55,
+          "min": 0,
+          "max": 200,
+          "step": 5
+        }
+      ],
+      "credit": {
+        "n": "What's new",
+        "u": "https://carterogunsola.com/lab"
+      },
+      "source": "/assets/templates/feed.js"
+    },
+    {
+      "id": "fisheyewall",
+      "name": "Fisheye Music Wall",
+      "cat": "3D",
+      "mat": "音乐卡片墙",
+      "tags": [
+        "3D",
+        "Music",
+        "Wall",
+        "Player",
+        "Ambient"
+      ],
+      "spell": "封面卡片墙贴在球面上，边拖边换氛围色；点一张卡片，它飞到中央翻成播放器，唱片滑出来，墙退到后面，关掉后收成底部迷你条。",
+      "core": "球面鱼眼 × 封面主色氛围 × 卡片飞入播放器（FLIP）× 迷你条",
+      "knobs": [
+        {
+          "key": "RADIUS",
+          "label": "RADIUS 球半径（越小越弯）",
+          "default": 640,
+          "min": 300,
+          "max": 1200,
+          "step": 10
+        },
+        {
+          "key": "FACE",
+          "label": "FACE 卡片朝向球面程度",
+          "default": 1,
+          "min": 0,
+          "max": 1.5,
+          "step": 0.05
+        },
+        {
+          "key": "PAR",
+          "label": "PAR 鼠标视差强度",
+          "default": 0.3,
+          "min": 0,
+          "max": 1,
+          "step": 0.05
+        },
+        {
+          "key": "FRIC",
+          "label": "FRIC 惯性衰减（越大停得越快）",
+          "default": 3,
+          "min": 0.5,
+          "max": 10,
+          "step": 0.5
+        },
+        {
+          "key": "AMB",
+          "label": "AMB 氛围色强度",
+          "default": 1,
+          "min": 0,
+          "max": 1.6,
+          "step": 0.1
+        },
+        {
+          "key": "VOL",
+          "label": "VOL 音量",
+          "default": 0.5,
+          "min": 0,
+          "max": 1,
+          "step": 0.05
+        }
+      ],
+      "credit": {
+        "n": "forum.hanakos.cc/music 的卡片墙点歌页，以及 hanaforum-visual-skills · music-visual-system（只参考页面描述，数学、动效与代码为原创）",
+        "u": "https://forum.hanakos.cc/music",
+        "own": 1
+      },
+      "source": "/assets/templates/fisheyewall.js"
+    },
     {
       "id": "folderblog",
       "name": "Folder Blog",
@@ -10,27 +478,1293 @@
       "tags": [
         "UI",
         "Folder",
-        "Monochrome",
-        "Perspective"
+        "Blog",
+        "Copy"
       ],
-      "spell": "只复刻博客里的一个圆角文件夹：黑白背景、实体展开、四角可调，文字跟着封面扭曲。",
-      "core": "单个圆角文件夹 · 黑色/白色背景 · 四角透视 · 可编辑文字",
-      "knobs": [
-        {
-          "key": "OPEN",
-          "label": "OPEN 展开时长 ms",
-          "default": 620,
-          "min": 220,
-          "max": 1200,
-          "step": 20
-        }
-      ],
+      "spell": "把博客文件夹里的单个文件夹 1:1 放进模板：圆角、黑白背景、封面标题与摘要，点开时正面抬起。",
+      "core": "单个文件夹 = 博客 Folder 卡片原样复制",
+      "knobs": [],
       "credit": {
-        "n": "callmiruko.cc 博客文件夹的单个文件夹与「论平衡时间优先级」封面",
+        "n": "callmiruko.cc 博客 Folder 视图中的「论平衡时间优先级」卡片",
         "u": "https://callmiruko.cc/p/balance-time-priorities",
         "own": 1
       },
       "source": "/assets/templates/folderblog.js"
+    },
+    {
+      "id": "glass",
+      "name": "Liquid Glass",
+      "cat": "Glass",
+      "mat": "玻璃",
+      "tags": [
+        "Glass",
+        "CSS",
+        "backdrop-filter",
+        "Pointer"
+      ],
+      "spell": "一颗玻璃珠跟着指针走 → 身后的色块和文字被磨砂并提亮；动得越快，它越被拉成水滴。",
+      "core": "材质靠“背后的东西”才成立",
+      "knobs": [
+        {
+          "key": "SIZE",
+          "label": "SIZE 直径",
+          "default": 150,
+          "min": 80,
+          "max": 300,
+          "step": 5
+        },
+        {
+          "key": "BLUR",
+          "label": "BLUR 磨砂 px",
+          "default": 4,
+          "min": 0,
+          "max": 16,
+          "step": 0.5
+        },
+        {
+          "key": "STRETCH",
+          "label": "STRETCH 拉伸",
+          "default": 1,
+          "min": 0,
+          "max": 2.5,
+          "step": 0.1
+        },
+        {
+          "key": "LAMBDA",
+          "label": "λ 跟随",
+          "default": 10,
+          "min": 3,
+          "max": 30,
+          "step": 1
+        }
+      ],
+      "credit": {
+        "n": "Skillry · Liquid Glass Landing（风格方向）",
+        "u": "https://skillry.dev/",
+        "own": 1
+      },
+      "source": "/assets/templates/glass.js"
+    },
+    {
+      "id": "glassladder",
+      "name": "Glass Ladder",
+      "cat": "Glass",
+      "mat": "毛玻璃阶梯",
+      "tags": [
+        "Glass",
+        "Blur",
+        "Tokens",
+        "Drag"
+      ],
+      "spell": "十一档毛玻璃从清透排到厚重，卡片可以拖到彩色背景上看差别；再点三个“高斯模糊动效”重播。",
+      "core": "一档玻璃 = blur + saturate + brightness + 底色 + 描边，五个值配成一套",
+      "knobs": [
+        {
+          "key": "BLUR",
+          "label": "BLUR 模糊半径 ×",
+          "default": 1,
+          "min": 0,
+          "max": 2,
+          "step": 0.1
+        },
+        {
+          "key": "SAT",
+          "label": "SAT 饱和度 ×",
+          "default": 1,
+          "min": 0.5,
+          "max": 1.6,
+          "step": 0.05
+        },
+        {
+          "key": "TINT",
+          "label": "TINT 底色浓度 ×",
+          "default": 1,
+          "min": 0,
+          "max": 2.5,
+          "step": 0.1
+        },
+        {
+          "key": "FLOW",
+          "label": "FLOW 背景流动速度",
+          "default": 1,
+          "min": 0,
+          "max": 3,
+          "step": 0.1
+        },
+        {
+          "key": "HUE",
+          "label": "HUE 背景色相",
+          "default": 250,
+          "min": 0,
+          "max": 360,
+          "step": 1
+        }
+      ],
+      "credit": {
+        "n": "hanaforum-visual-skills · site-visual-system（十一档毛玻璃与高斯模糊动效的思路参考，数值与代码为原创）",
+        "u": "https://github.com/Miruko2/hanaforum-visual-skills",
+        "own": 1
+      },
+      "source": "/assets/templates/glassladder.js"
+    },
+    {
+      "id": "heart",
+      "name": "Heart",
+      "cat": "Canvas",
+      "mat": "点云",
+      "tags": [
+        "Canvas",
+        "3D",
+        "Math",
+        "Particles"
+      ],
+      "spell": "一个隐函数曲面，被解成点云，在画布上自转；拖动可以拨它。",
+      "core": "形状来自方程，不是图片",
+      "knobs": [
+        {
+          "key": "SPIN",
+          "label": "SPIN 自转 °/s",
+          "default": 26,
+          "min": 0,
+          "max": 120,
+          "step": 1
+        },
+        {
+          "key": "SIZE",
+          "label": "SIZE 点大小",
+          "default": 1.9,
+          "min": 0.8,
+          "max": 4,
+          "step": 0.1
+        },
+        {
+          "key": "BEAT",
+          "label": "BEAT 心跳",
+          "default": 0.04,
+          "min": 0,
+          "max": 0.15,
+          "step": 0.005
+        },
+        {
+          "key": "POINTS",
+          "label": "点数",
+          "default": 4500,
+          "min": 1500,
+          "max": 9000,
+          "step": 250
+        }
+      ],
+      "credit": {
+        "n": "Heart",
+        "u": "https://carterogunsola.com/lab/heart"
+      },
+      "source": "/assets/templates/heart.js"
+    },
+    {
+      "id": "homeone",
+      "name": "One-Screen Home",
+      "cat": "Layout",
+      "mat": "单屏主页",
+      "tags": [
+        "Layout",
+        "Profile",
+        "Tabs",
+        "No-scroll"
+      ],
+      "spell": "一屏装下整个主页：点标签、滚轮、方向键、左右滑动都能换页，不用往下滑。",
+      "core": "把长页面改成一屏里的四块面板，用“换页”代替“滚动”",
+      "knobs": [
+        {
+          "key": "AUTO",
+          "label": "AUTO 自动换页秒数（0=关）",
+          "default": 0,
+          "min": 0,
+          "max": 12,
+          "step": 1
+        },
+        {
+          "key": "HUE",
+          "label": "HUE 主题色相",
+          "default": 72,
+          "min": 0,
+          "max": 360,
+          "step": 1
+        },
+        {
+          "key": "TILT",
+          "label": "TILT 身份卡跟随鼠标倾斜",
+          "default": 6,
+          "min": 0,
+          "max": 15,
+          "step": 0.5
+        }
+      ],
+      "credit": {
+        "n": "callmiruko.cc 个人主页（只参考版块结构，文案和样式均为原创占位）",
+        "u": "https://callmiruko.cc/",
+        "own": 1
+      },
+      "source": "/assets/templates/homeone.js"
+    },
+    {
+      "id": "labindex",
+      "name": "Lab Index",
+      "cat": "UI",
+      "mat": "轮盘",
+      "tags": [
+        "UI",
+        "Navigation",
+        "Wheel",
+        "Layout"
+      ],
+      "spell": "同一组条目，三种浏览方式：LIST / WHEEL / GRID，切换时每一项自己走到新位置。",
+      "core": "条目只记得自己的目标位置",
+      "knobs": [
+        {
+          "key": "LAMBDA",
+          "label": "LAMBDA 跟随",
+          "default": 10,
+          "min": 3,
+          "max": 30,
+          "step": 1
+        }
+      ],
+      "credit": {
+        "n": "Lab 首页的 List / Wheel / Grid",
+        "u": "https://carterogunsola.com/lab"
+      },
+      "source": "/assets/templates/labindex.js"
+    },
+    {
+      "id": "lanyard",
+      "name": "Lanyard",
+      "cat": "Interaction",
+      "mat": "织带",
+      "tags": [
+        "Canvas",
+        "Physics",
+        "Verlet",
+        "Drag",
+        "Flip"
+      ],
+      "spell": "一张工牌挂在织带上：拖它、甩它、拉长它；轻点一下，翻到背面。",
+      "core": "织带是一条 Verlet 绳，工牌是绳末端的一根刚性杆",
+      "knobs": [
+        {
+          "key": "SIZE",
+          "label": "Size",
+          "default": 0.6,
+          "min": 0.3,
+          "max": 1,
+          "step": 0.05
+        },
+        {
+          "key": "BAND_LEN",
+          "label": "Band Length",
+          "default": 0.5,
+          "min": 0.2,
+          "max": 1,
+          "step": 0.05
+        },
+        {
+          "key": "BAND_W",
+          "label": "Band Width",
+          "default": 0.65,
+          "min": 0.3,
+          "max": 1,
+          "step": 0.05
+        },
+        {
+          "key": "GRAVITY",
+          "label": "Gravity",
+          "default": 1,
+          "min": 0.2,
+          "max": 2,
+          "step": 0.1
+        },
+        {
+          "key": "DAMPING",
+          "label": "Damping",
+          "default": 0.5,
+          "min": 0,
+          "max": 1,
+          "step": 0.05
+        },
+        {
+          "key": "ELASTIC",
+          "label": "Elasticity",
+          "default": 0.5,
+          "min": 0,
+          "max": 1,
+          "step": 0.05
+        },
+        {
+          "key": "BREEZE",
+          "label": "Breeze",
+          "default": 0.5,
+          "min": 0,
+          "max": 2,
+          "step": 0.1
+        },
+        {
+          "key": "RADIUS",
+          "label": "Corner Radius",
+          "default": 0.25,
+          "min": 0,
+          "max": 0.5,
+          "step": 0.01
+        },
+        {
+          "key": "GLOSS",
+          "label": "Gloss",
+          "default": 0.7,
+          "min": 0,
+          "max": 1,
+          "step": 0.05
+        },
+        {
+          "key": "CARD_L",
+          "label": "Card Light",
+          "default": 100,
+          "min": 40,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "key": "BAND_HUE",
+          "label": "Band Hue",
+          "default": 220,
+          "min": 0,
+          "max": 360,
+          "step": 5
+        },
+        {
+          "key": "BAND_TINT",
+          "label": "Band Tint",
+          "default": 0,
+          "min": 0,
+          "max": 90,
+          "step": 5
+        },
+        {
+          "key": "INTERACTIVE",
+          "label": "Interactive",
+          "default": 1,
+          "min": 0,
+          "max": 1,
+          "step": 1
+        },
+        {
+          "key": "INTRO",
+          "label": "Intro",
+          "default": 1,
+          "min": 0,
+          "max": 1,
+          "step": 1
+        }
+      ],
+      "credit": {
+        "n": "Lanyard",
+        "u": "",
+        "own": true
+      },
+      "source": "/assets/templates/lanyard.js"
+    },
+    {
+      "id": "magnet",
+      "name": "Magnetic Pills",
+      "cat": "Micro",
+      "mat": "磁力",
+      "tags": [
+        "Micro",
+        "Pointer",
+        "Spring",
+        "Hover"
+      ],
+      "spell": "指针靠近 → 按钮朝你伸过来，里面的字比按钮走得更远一点。",
+      "core": "按钮在“迎接”你，而不是等你",
+      "knobs": [
+        {
+          "key": "RADIUS",
+          "label": "RADIUS 感应半径",
+          "default": 150,
+          "min": 60,
+          "max": 300,
+          "step": 5
+        },
+        {
+          "key": "PULL",
+          "label": "PULL 拉力",
+          "default": 0.5,
+          "min": 0.1,
+          "max": 1,
+          "step": 0.05
+        },
+        {
+          "key": "INNER",
+          "label": "INNER 文字视差",
+          "default": 0.55,
+          "min": 0,
+          "max": 1.5,
+          "step": 0.05
+        },
+        {
+          "key": "LAMBDA",
+          "label": "λ 跟随",
+          "default": 14,
+          "min": 4,
+          "max": 40,
+          "step": 1
+        }
+      ],
+      "credit": {
+        "n": "Design Spells",
+        "u": "https://designspells.com/",
+        "own": 1
+      },
+      "source": "/assets/templates/magnet.js"
+    },
+    {
+      "id": "musicsys",
+      "name": "Music System",
+      "cat": "Interaction",
+      "mat": "音频",
+      "tags": [
+        "Audio",
+        "Player",
+        "WebAudio",
+        "Visualizer"
+      ],
+      "spell": "点播放：唱片转起来，唱臂落下，频谱跟着声音跳。也可以拖入自己的音乐文件。",
+      "core": "一个引擎（Web Audio）+ 一套界面：播放 / 拖动进度 / 切歌 / 播放列表 / 频谱",
+      "knobs": [
+        {
+          "key": "VOL",
+          "label": "VOL 音量",
+          "default": 0.6,
+          "min": 0,
+          "max": 1,
+          "step": 0.05
+        },
+        {
+          "key": "BARS",
+          "label": "BARS 频谱条数",
+          "default": 40,
+          "min": 12,
+          "max": 72,
+          "step": 2
+        },
+        {
+          "key": "SPIN",
+          "label": "SPIN 唱片转一圈秒数",
+          "default": 6,
+          "min": 2,
+          "max": 16,
+          "step": 0.5
+        },
+        {
+          "key": "HUE",
+          "label": "HUE 主题色相",
+          "default": 330,
+          "min": 0,
+          "max": 360,
+          "step": 1
+        }
+      ],
+      "credit": {
+        "n": "callmiruko.cc 站内音乐播放（交互思路参考，界面、引擎与示例音乐均为原创）",
+        "u": "https://callmiruko.cc/",
+        "own": 1
+      },
+      "source": "/assets/templates/musicsys.js"
+    },
+    {
+      "id": "newera",
+      "name": "New Era Motion",
+      "cat": "Motion",
+      "mat": "运镜",
+      "tags": [
+        "Motion",
+        "Camera",
+        "3D",
+        "Glass",
+        "Timeline"
+      ],
+      "spell": "页面倾斜着铺开 → 镜头依次推到标题、玻璃卡、人像、数据；右下角是整页缩略图：黄框是镜头此刻的位置，拖字母圆点改落点。",
+      "core": "镜头不是动画，是一条随时间变化的 transform",
+      "knobs": [
+        {
+          "key": "SPEED",
+          "label": "SPEED 运镜速度 ×",
+          "default": 1,
+          "min": 0.4,
+          "max": 2.5,
+          "step": 0.1
+        },
+        {
+          "key": "HOLD",
+          "label": "HOLD 停留时长 ×",
+          "default": 1,
+          "min": 0.4,
+          "max": 2.5,
+          "step": 0.1
+        },
+        {
+          "key": "TILT",
+          "label": "TILT 倾斜强度",
+          "default": 1,
+          "min": 0,
+          "max": 2,
+          "step": 0.1
+        },
+        {
+          "key": "MBLUR",
+          "label": "MBLUR 运动模糊 px",
+          "default": 3,
+          "min": 0,
+          "max": 8,
+          "step": 0.5
+        },
+        {
+          "key": "DRIFT",
+          "label": "DRIFT 停留漂移",
+          "default": 1,
+          "min": 0,
+          "max": 3,
+          "step": 0.1
+        },
+        {
+          "key": "MAP",
+          "label": "MAP 运镜小地图",
+          "default": 1,
+          "min": 0,
+          "max": 1,
+          "step": 1
+        },
+        {
+          "key": "GLASS",
+          "label": "GLASS 真毛玻璃（部分设备会闪）",
+          "default": 0,
+          "min": 0,
+          "max": 1,
+          "step": 1
+        },
+        {
+          "key": "A_X",
+          "label": "A·Logo 位置 X",
+          "default": 330,
+          "min": 0,
+          "max": 1400,
+          "step": 5
+        },
+        {
+          "key": "A_Y",
+          "label": "A·Logo 位置 Y",
+          "default": 200,
+          "min": 0,
+          "max": 960,
+          "step": 5
+        },
+        {
+          "key": "A_Z",
+          "label": "A·Logo 放大",
+          "default": 1.9,
+          "min": 0.5,
+          "max": 3.2,
+          "step": 0.05
+        },
+        {
+          "key": "B_X",
+          "label": "B·标题 位置 X",
+          "default": 400,
+          "min": 0,
+          "max": 1400,
+          "step": 5
+        },
+        {
+          "key": "B_Y",
+          "label": "B·标题 位置 Y",
+          "default": 600,
+          "min": 0,
+          "max": 960,
+          "step": 5
+        },
+        {
+          "key": "B_Z",
+          "label": "B·标题 放大",
+          "default": 1.55,
+          "min": 0.5,
+          "max": 3.2,
+          "step": 0.05
+        },
+        {
+          "key": "C_X",
+          "label": "C·玻璃卡 位置 X",
+          "default": 790,
+          "min": 0,
+          "max": 1400,
+          "step": 5
+        },
+        {
+          "key": "C_Y",
+          "label": "C·玻璃卡 位置 Y",
+          "default": 500,
+          "min": 0,
+          "max": 960,
+          "step": 5
+        },
+        {
+          "key": "C_Z",
+          "label": "C·玻璃卡 放大",
+          "default": 2.2,
+          "min": 0.5,
+          "max": 3.2,
+          "step": 0.05
+        },
+        {
+          "key": "D_X",
+          "label": "D·人像 位置 X",
+          "default": 1190,
+          "min": 0,
+          "max": 1400,
+          "step": 5
+        },
+        {
+          "key": "D_Y",
+          "label": "D·人像 位置 Y",
+          "default": 430,
+          "min": 0,
+          "max": 960,
+          "step": 5
+        },
+        {
+          "key": "D_Z",
+          "label": "D·人像 放大",
+          "default": 1.75,
+          "min": 0.5,
+          "max": 3.2,
+          "step": 0.05
+        },
+        {
+          "key": "E_X",
+          "label": "E·数据 位置 X",
+          "default": 320,
+          "min": 0,
+          "max": 1400,
+          "step": 5
+        },
+        {
+          "key": "E_Y",
+          "label": "E·数据 位置 Y",
+          "default": 830,
+          "min": 0,
+          "max": 960,
+          "step": 5
+        },
+        {
+          "key": "E_Z",
+          "label": "E·数据 放大",
+          "default": 2,
+          "min": 0.5,
+          "max": 3.2,
+          "step": 0.05
+        },
+        {
+          "key": "F_X",
+          "label": "F·全景 位置 X",
+          "default": 700,
+          "min": 0,
+          "max": 1400,
+          "step": 5
+        },
+        {
+          "key": "F_Y",
+          "label": "F·全景 位置 Y",
+          "default": 480,
+          "min": 0,
+          "max": 960,
+          "step": 5
+        },
+        {
+          "key": "F_Z",
+          "label": "F·全景 放大",
+          "default": 1,
+          "min": 0.5,
+          "max": 3.2,
+          "step": 0.05
+        }
+      ],
+      "credit": {
+        "n": "Dribbble · New Era – Your Project UI Motion",
+        "u": "https://dribbble.com/shots/26498015-New-Era-Your-Project-UI-Motion",
+        "own": 1
+      },
+      "source": "/assets/templates/newera.js"
+    },
+    {
+      "id": "orb",
+      "name": "Vocal Orb",
+      "cat": "3D",
+      "mat": "着色器",
+      "tags": [
+        "3D",
+        "WebGL",
+        "Audio",
+        "Shader"
+      ],
+      "spell": "一个会听的黑洞：点麦克风，它随你的声音起伏；不说话时几乎熄灭。",
+      "core": "画面里没有图片，只有一个着色器",
+      "knobs": [
+        {
+          "key": "REST",
+          "label": "REST 熄灭程度",
+          "default": 0.8,
+          "min": 0,
+          "max": 1,
+          "step": 0.05
+        },
+        {
+          "key": "SENS",
+          "label": "SENS 灵敏度",
+          "default": 1,
+          "min": 0.3,
+          "max": 3,
+          "step": 0.1
+        }
+      ],
+      "credit": {
+        "n": "Vocal Orb",
+        "u": "https://carterogunsola.com/lab/vocal-orb"
+      },
+      "source": "/assets/templates/orb.js"
+    },
+    {
+      "id": "palette",
+      "name": "Command Menu",
+      "cat": "UI",
+      "mat": "面板",
+      "tags": [
+        "UI",
+        "Keyboard",
+        "Navigation",
+        "Theme"
+      ],
+      "spell": "按 ⌘K → 一个可搜索的命令面板：页面、工具、主题，↑↓ 选择，回车执行。",
+      "core": "所有入口收进一个键盘优先的面板",
+      "knobs": [],
+      "credit": {
+        "n": "⌘K 菜单",
+        "u": "https://carterogunsola.com"
+      },
+      "source": "/assets/templates/palette.js"
+    },
+    {
+      "id": "paper",
+      "name": "Cut-Paper Stack",
+      "cat": "Layout",
+      "mat": "剪纸",
+      "tags": [
+        "Layout",
+        "Paper",
+        "Parallax",
+        "Click"
+      ],
+      "spell": "几张撕过边的纸叠成扇形，指针一动各层按深度错位；点一下，最上面那张飞到最底下。",
+      "core": "层次靠“撕边 + 投影 + 视差”，不靠渐变",
+      "knobs": [
+        {
+          "key": "DEPTH",
+          "label": "DEPTH 视差 px",
+          "default": 16,
+          "min": 0,
+          "max": 40,
+          "step": 1
+        },
+        {
+          "key": "STEP",
+          "label": "STEP 扇形间距",
+          "default": 24,
+          "min": 6,
+          "max": 60,
+          "step": 1
+        },
+        {
+          "key": "TILT",
+          "label": "TILT 倾斜 °",
+          "default": 3,
+          "min": 0,
+          "max": 8,
+          "step": 0.5
+        },
+        {
+          "key": "LAMBDA",
+          "label": "λ 跟随",
+          "default": 9,
+          "min": 3,
+          "max": 25,
+          "step": 1
+        },
+        {
+          "key": "LAYERS",
+          "label": "层数",
+          "default": 5,
+          "min": 3,
+          "max": 7,
+          "step": 1
+        }
+      ],
+      "credit": {
+        "n": "Skillry · Cut-Paper Collective Site（风格方向）",
+        "u": "https://skillry.dev/",
+        "own": 1
+      },
+      "source": "/assets/templates/paper.js"
+    },
+    {
+      "id": "pasteup",
+      "name": "Paste-Up",
+      "cat": "Transition",
+      "mat": "印刷",
+      "tags": [
+        "Transition",
+        "Layout",
+        "Canvas",
+        "Shared element"
+      ],
+      "spell": "同一组印刷品，三种版面：切换版面，所有图自己飞到新家。",
+      "core": "转场从没被写出来，只是被暗示",
+      "knobs": [
+        {
+          "key": "FOLLOW",
+          "label": "FOLLOW 跟随系数",
+          "default": 0.085,
+          "min": 0.02,
+          "max": 0.3,
+          "step": 0.005
+        },
+        {
+          "key": "FETCH_MS",
+          "label": "FETCH 假延迟 ms",
+          "default": 0,
+          "min": 0,
+          "max": 1200,
+          "step": 50
+        },
+        {
+          "key": "MEMORY",
+          "label": "MEMORY 位置缓存",
+          "default": 1,
+          "min": 0,
+          "max": 1,
+          "step": 1
+        },
+        {
+          "key": "BOW",
+          "label": "BOW 弯曲",
+          "default": 1,
+          "min": 0,
+          "max": 2.5,
+          "step": 0.1
+        }
+      ],
+      "credit": {
+        "n": "Paste-Up",
+        "u": "https://carterogunsola.com/lab/paste-up"
+      },
+      "source": "/assets/templates/pasteup.js"
+    },
+    {
+      "id": "reveal",
+      "name": "Mask Reveal",
+      "cat": "Motion",
+      "mat": "遮罩",
+      "tags": [
+        "Motion",
+        "Text",
+        "Mask",
+        "CSS"
+      ],
+      "spell": "标题逐字从遮罩下升起；之后一束聚光跟着指针，把空心字填成实心。",
+      "core": "一次入场 + 一次由人触发的揭示，其余静止",
+      "knobs": [
+        {
+          "key": "STAGGER",
+          "label": "STAGGER 错开 ms",
+          "default": 45,
+          "min": 10,
+          "max": 140,
+          "step": 5
+        },
+        {
+          "key": "DUR",
+          "label": "DUR 单字时长 ms",
+          "default": 900,
+          "min": 300,
+          "max": 1800,
+          "step": 50
+        },
+        {
+          "key": "RADIUS",
+          "label": "RADIUS 聚光半径",
+          "default": 130,
+          "min": 50,
+          "max": 300,
+          "step": 5
+        }
+      ],
+      "credit": {
+        "n": "Skillry · Minimal Motion Hero（风格方向）",
+        "u": "https://skillry.dev/",
+        "own": 1
+      },
+      "source": "/assets/templates/reveal.js"
+    },
+    {
+      "id": "ribbontear",
+      "name": "Ribbon Transition",
+      "cat": "Transition",
+      "mat": "撕纸转场",
+      "tags": [
+        "Transition",
+        "Paper",
+        "Ribbon",
+        "Swipe",
+        "State machine"
+      ],
+      "spell": "点底部圆环或左右滑：几条撕边色带斜着扫过来盖住旧页面，换页后再扫出去。",
+      "core": "一个时序状态机：盖住 → 换页 → 停一拍 → 掀开",
+      "knobs": [
+        {
+          "key": "DUR",
+          "label": "DUR 单程时长（秒）",
+          "default": 0.75,
+          "min": 0.3,
+          "max": 1.6,
+          "step": 0.05
+        },
+        {
+          "key": "HOLD",
+          "label": "HOLD 盖满后停留（秒）",
+          "default": 0.35,
+          "min": 0,
+          "max": 1,
+          "step": 0.05
+        },
+        {
+          "key": "RIB",
+          "label": "RIB 色带条数",
+          "default": 6,
+          "min": 3,
+          "max": 10,
+          "step": 1
+        },
+        {
+          "key": "ANGLE",
+          "label": "ANGLE 倾斜角度",
+          "default": -18,
+          "min": -40,
+          "max": 40,
+          "step": 1
+        },
+        {
+          "key": "JAG",
+          "label": "JAG 撕边粗糙度",
+          "default": 14,
+          "min": 0,
+          "max": 40,
+          "step": 1
+        },
+        {
+          "key": "HUE",
+          "label": "HUE 主色相",
+          "default": 350,
+          "min": 0,
+          "max": 360,
+          "step": 1
+        }
+      ],
+      "credit": {
+        "n": "hanaforum-visual-skills · page-transition-system（撕纸转场的思路参考，时序与代码为原创）",
+        "u": "https://github.com/Miruko2/hanaforum-visual-skills",
+        "own": 1
+      },
+      "source": "/assets/templates/ribbontear.js"
+    },
+    {
+      "id": "ring",
+      "name": "Rotating Gallery",
+      "cat": "Gallery",
+      "mat": "景深",
+      "tags": [
+        "Gallery",
+        "3D",
+        "Depth",
+        "Flip"
+      ],
+      "spell": "一圈图板只靠 translateZ 的景深转动；最前面的一张从灰变彩色；点 GRID，同一批卡片飞进网格。",
+      "core": "不旋转，只改变远近",
+      "knobs": [
+        {
+          "key": "AUTO_SPEED",
+          "label": "AUTO_SPEED °/s",
+          "default": 4,
+          "min": 0,
+          "max": 30,
+          "step": 0.5
+        },
+        {
+          "key": "PERSPECTIVE",
+          "label": "PERSPECTIVE",
+          "default": 4000,
+          "min": 800,
+          "max": 8000,
+          "step": 100
+        },
+        {
+          "key": "TILT",
+          "label": "TILT 倾斜",
+          "default": 0.1,
+          "min": 0,
+          "max": 0.3,
+          "step": 0.01
+        },
+        {
+          "key": "DECAY",
+          "label": "DECAY 动量衰减",
+          "default": 1.3,
+          "min": 0.4,
+          "max": 4,
+          "step": 0.1
+        },
+        {
+          "key": "FLIP_DUR",
+          "label": "FLIP_DUR s",
+          "default": 1.1,
+          "min": 0.4,
+          "max": 2.2,
+          "step": 0.1
+        }
+      ],
+      "credit": {
+        "n": "Rotating Gallery",
+        "u": "https://carterogunsola.com/lab/rotating-gallery"
+      },
+      "source": "/assets/templates/ring.js"
+    },
+    {
+      "id": "scene",
+      "name": "3D Scene",
+      "cat": "3D",
+      "mat": "网格",
+      "tags": [
+        "3D",
+        "Orbit",
+        "Software render",
+        "Basics"
+      ],
+      "spell": "一个只保留基本功的 3D 场景：拖动环绕，滚轮推拉。",
+      "core": "三角形、光、相机，仅此而已",
+      "knobs": [
+        {
+          "key": "AUTO",
+          "label": "AUTO 自转 °/s",
+          "default": 18,
+          "min": 0,
+          "max": 90,
+          "step": 1
+        },
+        {
+          "key": "FOV",
+          "label": "FOV 视野",
+          "default": 60,
+          "min": 30,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "key": "WIRE",
+          "label": "线框叠加",
+          "default": 0,
+          "min": 0,
+          "max": 1,
+          "step": 1
+        },
+        {
+          "key": "DETAIL",
+          "label": "细分",
+          "default": 2,
+          "min": 0,
+          "max": 3,
+          "step": 1
+        }
+      ],
+      "credit": {
+        "n": "ThreeJs Scene",
+        "u": "https://carterogunsola.com/lab/threejs-test"
+      },
+      "source": "/assets/templates/scene.js"
+    },
+    {
+      "id": "scrollbar",
+      "name": "Dynamic Scrollbar",
+      "cat": "UI",
+      "mat": "胶囊",
+      "tags": [
+        "UI",
+        "Scroll",
+        "Morph",
+        "Audio"
+      ],
+      "spell": "滚动 → 细条变黑并长成一个实时时钟；到“声音”那一屏，点音符，胶囊展开成播放器。",
+      "core": "同一个胶囊，三种尺寸",
+      "knobs": [
+        {
+          "key": "MORPH_IN",
+          "label": "MORPH_IN 展开 s",
+          "default": 0.65,
+          "min": 0.2,
+          "max": 1.4,
+          "step": 0.05
+        },
+        {
+          "key": "MORPH_OUT",
+          "label": "MORPH_OUT 收回 s",
+          "default": 0.6,
+          "min": 0.2,
+          "max": 1.4,
+          "step": 0.05
+        },
+        {
+          "key": "REST_DELAY",
+          "label": "REST_DELAY ms",
+          "default": 150,
+          "min": 0,
+          "max": 800,
+          "step": 10
+        },
+        {
+          "key": "SCROLL_LAMBDA",
+          "label": "滚动阻尼 λ",
+          "default": 9,
+          "min": 3,
+          "max": 25,
+          "step": 1
+        }
+      ],
+      "credit": {
+        "n": "Dynamic Scrollbar",
+        "u": "https://carterogunsola.com/lab/dynamic-scrollbar"
+      },
+      "source": "/assets/templates/scrollbar.js"
+    },
+    {
+      "id": "strings",
+      "name": "Rubber Strings",
+      "cat": "Interaction",
+      "mat": "橡皮弦",
+      "tags": [
+        "Interaction",
+        "SVG",
+        "Spring",
+        "Drag",
+        "Sound"
+      ],
+      "spell": "指针划过一根线 → 它被拨动并来回振荡；按住拖拽 → 拉成弓形，松手弹回。",
+      "core": "分隔线也可以是乐器",
+      "knobs": [
+        {
+          "key": "TENSION",
+          "label": "TENSION 张力",
+          "default": 220,
+          "min": 60,
+          "max": 600,
+          "step": 10
+        },
+        {
+          "key": "DAMP",
+          "label": "DAMP 阻尼",
+          "default": 4.5,
+          "min": 1,
+          "max": 14,
+          "step": 0.5
+        },
+        {
+          "key": "PLUCK",
+          "label": "PLUCK 拨力",
+          "default": 0.4,
+          "min": 0.1,
+          "max": 1,
+          "step": 0.05
+        },
+        {
+          "key": "STRINGS",
+          "label": "线数",
+          "default": 7,
+          "min": 3,
+          "max": 14,
+          "step": 1
+        }
+      ],
+      "credit": {
+        "n": "Design Spells",
+        "u": "https://designspells.com/",
+        "own": 1
+      },
+      "source": "/assets/templates/strings.js"
+    },
+    {
+      "id": "ticketplayer",
+      "name": "Ticket Player",
+      "cat": "UI",
+      "mat": "票据",
+      "tags": [
+        "UI",
+        "Audio",
+        "Scrollbar",
+        "Netease",
+        "Drag"
+      ],
+      "spell": "滚动时右侧细条长成时钟胶囊；底部是网易云迷你播放条，点开展开成票据，拖着甩、往下撕票根就关掉。",
+      "core": "一个播放引擎（<audio> + 网易云外链）+ 两种外形：玻璃条 ↔ 打孔票据",
+      "knobs": [
+        {
+          "key": "REST",
+          "label": "REST 胶囊收回延迟 ms",
+          "default": 700,
+          "min": 0,
+          "max": 2000,
+          "step": 50
+        },
+        {
+          "key": "MORPH",
+          "label": "MORPH 胶囊变形时长 s",
+          "default": 0.6,
+          "min": 0.2,
+          "max": 1.4,
+          "step": 0.05
+        },
+        {
+          "key": "VOL",
+          "label": "VOL 音量",
+          "default": 0.5,
+          "min": 0,
+          "max": 1,
+          "step": 0.05
+        },
+        {
+          "key": "SIM",
+          "label": "SIM 放不了时模拟播放（0关 1开）",
+          "default": 1,
+          "min": 0,
+          "max": 1,
+          "step": 1
+        }
+      ],
+      "credit": {
+        "n": "jerry-site / capsule-player.js（胶囊滚动条 + 网易云票据播放器）",
+        "u": "https://github.com/pingqimeng9-tech/jerry-site"
+      },
+      "source": "/assets/templates/ticketplayer.js"
     }
   ]
 }
