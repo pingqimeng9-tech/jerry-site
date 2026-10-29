@@ -971,7 +971,7 @@
 
 <script>
 let allPosts = [];
-const CATEGORY_ORDER = ['技术分享', '心情随笔', '思维日记'];
+const CATEGORY_ORDER = ['技术分享', '学会成长'];
 let currentViewMode = 'gallery'; // 默认试图模式
 
 let folderLayoutFrame = 0;
@@ -1486,7 +1486,9 @@ function buildStats(posts){
 }
 
 function normalizeCategory(raw){
-  const cat = (raw || '未分类').trim();
+  const cat = (raw || '').trim();
+  // 心情/思维/建站/未分类 统一并入「学会成长」；旧缓存或旧文章也按别名归并
+  if(!cat || ['心情随笔','心情','思维日记','思维','建站笔记','建站','未分类'].includes(cat)) return '学会成长';
   // Rumi英语技术 分类之前因为大小写/全半角不一致被当成了两个不同分类，这里统一按不区分大小写归并成同一个
   if(typeof LOCKED_CATEGORY !== 'undefined' && cat.toLowerCase() === LOCKED_CATEGORY.toLowerCase()) return LOCKED_CATEGORY;
   return cat;
