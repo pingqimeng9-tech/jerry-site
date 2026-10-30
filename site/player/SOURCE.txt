@@ -36,3 +36,10 @@ Mobile Bravais keeps Folia's infinite canvas and pans in both directions. The ho
 
 Visual effects: the site no longer forces Folia's 'still' lyric mode. Low-network/FPS adaptation
 only simplifies the background/frame rate, so lyric animations and text effects stay enabled.
+
+Additional local adaptation: /listen/index.html, /listen/desktop.html and /player/index.html load
+/assets/folia-vinyl.js, which adds a "vinyl" button whenever a track is loaded. Clicking it opens
+a full-screen Soft Static record-deck overlay (WebGL vinyl + word-level lyric typography) that
+mirrors Folia's current <audio> element — play/pause, seek, prev/next — and fetches word-level
+NetEase lyrics for the current track through /api/assist?do=search and /api/netease/lyric/new.
+The overlay is a site-level shell injection; it does not modify Folia's bundled source.

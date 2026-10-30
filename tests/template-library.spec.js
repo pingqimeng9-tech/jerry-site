@@ -2,8 +2,8 @@ const { test, expect } = require('@playwright/test');
 
 test('template library filters, favorites, and preview links work', async ({ page }) => {
   await page.goto('/admin/templates.html');
-  await expect(page.locator('.tpl-card')).toHaveCount(30);
-  await expect(page.locator('#statTotal')).toHaveText('30');
+  await expect(page.locator('.tpl-card')).toHaveCount(31);
+  await expect(page.locator('#statTotal')).toHaveText('31');
 
   await page.locator('#search').fill('glass');
   await expect(page.locator('.tpl-card')).toHaveCount(4);
@@ -36,4 +36,19 @@ test('shark glass chat template mounts and sends a message', async ({ page }) =>
   await page.locator('.as-form button').click();
   await expect(page.locator('.as-msg')).toHaveCount(3);
   await expect(page.locator('.as-msg').last()).toContainText('这里有鲨鱼吗？');
+});
+
+test('soft static vinyl template mounts and switches tracks', async ({ page }) => {
+  test.setTimeout(60000);
+  await page.goto('/#vinylplayer');
+  await expect(page.locator('.vd')).toBeVisible();
+  await expect(page.locator('.vd-pp')).toBeVisible();
+  await expect(page.locator('.vd-prev')).toBeVisible();
+  await expect(page.locator('.vd-next')).toBeVisible();
+  await expect(page.locator('.vd-pp')).toHaveAttribute('aria-pressed', 'false');
+  await page.locator('.vd-pp').click();
+  await expect(page.locator('.vd-pp')).toHaveAttribute('aria-pressed', 'true');
+  const before = await page.locator('.vd-tt b').textContent();
+  await page.locator('.vd-next').click();
+  await expect(page.locator('.vd-tt b')).not.toHaveText(before);
 });

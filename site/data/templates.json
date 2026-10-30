@@ -1,6 +1,6 @@
 {
   "format": "jerry-templates/v1",
-  "generatedAt": "2026-10-29T08:34:19.661Z",
+  "generatedAt": "2026-10-30T01:54:33.755Z",
   "templates": [
     {
       "id": "asciisharks",
@@ -1765,6 +1765,52 @@
         "u": "https://github.com/pingqimeng9-tech/jerry-site"
       },
       "source": "/assets/templates/ticketplayer.js"
+    },
+    {
+      "id": "vinylplayer",
+      "name": "Soft Static",
+      "cat": "Interaction",
+      "mat": "黑胶",
+      "tags": [
+        "Audio",
+        "Player",
+        "WebGL",
+        "Lyrics",
+        "Vinyl"
+      ],
+      "spell": "拖唱片搓碟、拖唱臂跳转，歌词逐字亮起并沿透视阶梯滚动；上一首 / 播放 / 下一首三大键，长按上一/下一首可快退快进 3 秒。",
+      "core": "一个 Web Audio 合成引擎 + 一块 WebGL 黑胶 + 逐字歌词透视排版",
+      "knobs": [
+        {
+          "key": "SPIN",
+          "label": "SPIN 唱片转一圈秒数",
+          "default": 1.8,
+          "min": 0.6,
+          "max": 4,
+          "step": 0.1
+        },
+        {
+          "key": "SCR",
+          "label": "SCR 搓碟灵敏度",
+          "default": 1,
+          "min": 0.2,
+          "max": 3,
+          "step": 0.1
+        },
+        {
+          "key": "FONT",
+          "label": "FONT 歌词字号倍数",
+          "default": 1,
+          "min": 0.7,
+          "max": 1.6,
+          "step": 0.05
+        }
+      ],
+      "credit": {
+        "n": "Soft Static（Claude Code 生成的本地演示页）",
+        "own": 1
+      },
+      "source": "/assets/templates/vinylplayer.js"
     }
   ]
 }
