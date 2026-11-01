@@ -91,7 +91,11 @@
   function cacheGet(key) {
     try {
       var v = sessionStorage.getItem('vinylv:' + key);
-      return v ? JSON.parse(v) : undefined;
+      if (!v) return undefined;
+      var lines = JSON.parse(v);
+      if (Array.isArray(lines) && lines.length) return lines;
+      sessionStorage.removeItem('vinylv:' + key);
+      return undefined;
     } catch (e) { return undefined; }
   }
   function cacheSet(key, val) {
@@ -107,6 +111,15 @@
     }
     return best;
   }
+  function parseLyrics(payload) {
+    var data = payload && payload.data ? payload.data : payload;
+    if (!data || !window.VinylDeck) return null;
+    var yrc = data.yrc && data.yrc.lyric;
+    var lrc = data.lrc && data.lrc.lyric;
+    var lines = yrc ? window.VinylDeck.parseYrc(yrc) : [];
+    if (!lines.length && lrc) lines = window.VinylDeck.parseLrc(lrc);
+    return lines && lines.length ? lines : null;
+  }
   function doResolve(track) {
     var q = encodeURIComponent(((track.name || '') + ' ' + (track.artist || '')).trim());
     return fetch('/api/assist?do=search&q=' + q, { cache: 'no-store' })
@@ -119,19 +132,11 @@
         return fetch('/api/netease/lyric/new?id=' + song.id, { cache: 'no-store' })
           .then(function (r) { return r.ok ? r.json() : null; })
           .then(function (d2) {
-            if (!d2) return null;
-            var yrc = d2.yrc && d2.yrc.lyric;
-            var lrc = d2.lrc && d2.lrc.lyric;
-            var lines = null;
-            if (yrc && window.VinylDeck) {
-              lines = window.VinylDeck.parseYrc(yrc);
-              if (!lines.length) lines = null;
-            }
-            if (!lines && lrc && window.VinylDeck) {
-              lines = window.VinylDeck.parseLrc(lrc);
-              if (!lines.length) lines = null;
-            }
-            return lines;
+            var lines = parseLyrics(d2);
+            if (lines) return lines;
+            return fetch('/api/netease/lyric?id=' + song.id, { cache: 'no-store' })
+              .then(function (r) { return r.ok ? r.json() : null; })
+              .then(parseLyrics);
           });
       })
       .catch(function () { return null; });
@@ -146,12 +151,16 @@
       return Promise.resolve(cached);
     }
     var p = doResolve(track).then(function (lines) {
-      lyricCache[key] = lines || null;
-      cacheSet(key, lines || null);
+      if (lines && lines.length) {
+        lyricCache[key] = lines;
+        cacheSet(key, lines);
+      } else {
+        delete lyricCache[key];
+      }
       delete inflight[key];
       return lines;
     }, function () {
-      lyricCache[key] = null;
+      delete lyricCache[key];
       delete inflight[key];
       return null;
     });
@@ -219,6 +228,8 @@
   /* ---------- 轨道轮询 ---------- */
   function poll() {
     var meta = readMeta();
+    if (!meta.name && currentTrack.name) meta = currentTrack;
+    if (!meta.name) return;
     var key = (meta.name || '') + ' | ' + (meta.artist || '');
     if (key !== lastKey) {
       lastKey = key;
@@ -274,7 +285,6 @@
     if (pollTimer) { window.clearInterval(pollTimer); pollTimer = 0; }
     if (cleanup) { try { cleanup(); } catch (e) { } cleanup = null; }
     host.innerHTML = '';
-    currentTrack = { name: '', artist: '', cover: '' };
     lastKey = '';
     currentLyrics = null;
     updateTrigger();

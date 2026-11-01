@@ -286,6 +286,7 @@
     var on = function (el, ev, fn, op) { el.addEventListener(ev, fn, Object.assign({}, op, { signal: ctrl.signal })); };
 
     var W = 2, H = 2, dpr = 1, C = { x: 0, y: 0 }, R = 1, fs = 16, x0 = 0, cy = 0, port = false, phi = 12;
+    var armProgress = 0, armReady = false, armFrameAt = 0;
     var toks = [], lines = [], noSync = false, en = 0, ea = 0, lf = 0;
     var drag = null, overrideTime = null, trackKey = '', lastLyrics = null, coverUrl = '', uiPlaying = null, lastTm = 0;
     var raf = 0, disposed = false, hintTimer = 0, ro = null;
@@ -632,9 +633,18 @@
       return { P: Pv, H: s1.y > s2.y ? s1 : s2, L: L };
     }
 
-    function drawOv(p) {
+    function drawOv(p, nowPlaying, now) {
       var g = o2;
       if (!g) return;
+      var targetProgress = clamp(p, 0, 1);
+      if (!armReady || !nowPlaying || drag) {
+        armProgress = targetProgress;
+        armReady = true;
+      } else {
+        var armDt = Math.min(.1, Math.max(0, now - armFrameAt) / 1000);
+        armProgress += (targetProgress - armProgress) * (1 - Math.exp(-armDt / .07));
+      }
+      armFrameAt = now;
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
       g.clearRect(0, 0, W, H);
       for (var i = 0; i <= 80; i++) {
@@ -658,11 +668,8 @@
       var ap = A0 + (A1 - A0) * p;
       g.strokeStyle = '#e2503c'; g.lineWidth = 1.6;
       g.beginPath(); g.arc(C.x, C.y, R * 1.06, A0, ap); g.stroke();
-      var mx = C.x + Math.cos(ap) * R * 1.06, my = C.y + Math.sin(ap) * R * 1.06;
-      g.fillStyle = '#0a0909'; g.beginPath(); g.arc(mx, my, 5, 0, 7); g.fill(); g.stroke();
-      g.fillStyle = '#e2503c'; g.beginPath(); g.arc(mx, my, 1.8, 0, 7); g.fill();
 
-      var arm = armHead(p), pv = arm.P, hd = arm.H, L = arm.L;
+      var arm = armHead(armProgress), pv = arm.P, hd = arm.H, L = arm.L;
       var ang = Math.atan2(hd.y - pv.y, hd.x - pv.x), w = R * .034;
       g.save();
       g.shadowColor = 'rgba(0,0,0,.65)'; g.shadowBlur = R * .05; g.shadowOffsetX = R * .03; g.shadowOffsetY = R * .04;
@@ -855,6 +862,7 @@
       var key = String(tr.name || '') + '\u0001' + String(tr.artist || '');
       if (key !== trackKey) {
         trackKey = key;
+        armReady = false;
         ttName.textContent = tr.name || 'Soft Static';
         ttSub.textContent = tr.artist || '';
         applyCover(tr);
@@ -893,7 +901,7 @@
         fbDisc.style.setProperty('--rot', (t / clamp(+P.SPIN || REV, .6, 4) * 360) + 'deg');
       }
 
-      drawOv(t / dur);
+      drawOv(t / dur, nowPlaying, now);
 
       var ci = 0;
       if (!noSync && toks.length) {

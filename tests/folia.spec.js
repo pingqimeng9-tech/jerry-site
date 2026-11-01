@@ -75,6 +75,39 @@ test('Folia mobile player exposes a persistent transport without overlap', async
 test('Folia mobile player opens the vinyl deck overlay', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile', 'mobile vinyl only');
   test.setTimeout(120000);
+  await page.addInitScript(() => {
+    window.__vinylArcCalls = [];
+    const arc = CanvasRenderingContext2D.prototype.arc;
+    CanvasRenderingContext2D.prototype.arc = function (x, y, radius) {
+      if (this.canvas.classList.contains('vd-ov') && window.__vinylArcCalls.length < 4000) {
+        window.__vinylArcCalls.push({ x, y, radius });
+      }
+      return arc.apply(this, arguments);
+    };
+  });
+  await page.route('**/api/assist**', route => {
+    const url = new URL(route.request().url());
+    if (url.searchParams.get('do') !== 'search') return route.continue();
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ ok: true, songs: [{ id: '1442466883', name: '花に亡霊', artists: 'ヨルシカ' }] })
+    });
+  });
+  await page.route('**/api/netease/lyric/new**', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ yrc: { lyric: '' }, lrc: { lyric: '' } })
+  }));
+  let lyricFallbackCalls = 0;
+  await page.route('**/api/netease/lyric?id=**', route => {
+    lyricFallbackCalls += 1;
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ lrc: { lyric: lyricFallbackCalls > 1 ? '[00:00.00]今夜の空\n[00:03.00]歌が流れる' : '' } })
+    });
+  });
   await page.route('**/api/netease/song/url/v1*', route => route.fulfill({
     status: 200,
     contentType: 'application/json',
@@ -93,10 +126,36 @@ test('Folia mobile player opens the vinyl deck overlay', async ({ page }, testIn
 
   const vinylButton = page.locator('#folia-vinyl-open');
   await expect(vinylButton).toHaveClass(/show/);
+  const cachedTrackKey = await page.evaluate(() => {
+    const marker = document.querySelector('button [data-toast-cover="image"]');
+    const player = marker && marker.closest('button');
+    const labels = player ? player.querySelectorAll('.truncate') : [];
+    return (labels[0] && labels[0].textContent || '') + ' | ' + (labels[1] && labels[1].textContent || '');
+  });
+  expect(cachedTrackKey).toContain('花に亡霊');
+  await page.evaluate(key => sessionStorage.setItem('vinylv:' + key, 'null'), cachedTrackKey);
   await vinylButton.click();
   await expect(page.locator('#folia-vinyl-stage')).toHaveClass(/open/);
   await expect(page.locator('#folia-vinyl-stage .vd')).toBeVisible();
   await expect(page.locator('#folia-vinyl-stage .vd-pp')).toBeVisible();
+  await expect.poll(() => lyricFallbackCalls).toBe(1);
+  await page.locator('#folia-vinyl-stage .fvs-close').click();
+  await expect(page.locator('#folia-vinyl-stage')).not.toHaveClass(/open/);
+  await page.locator('#folia-vinyl-open').click();
+  await expect(page.locator('#folia-vinyl-stage')).toHaveClass(/open/);
+  await expect.poll(() => lyricFallbackCalls).toBe(2);
+  await expect(page.locator('#folia-vinyl-stage .vd .ln .n').first()).toHaveText('今', { timeout: 10000 });
+  const outerDots = await page.evaluate(() => {
+    const rect = document.querySelector('#folia-vinyl-stage .vd').getBoundingClientRect();
+    const portrait = rect.width < rect.height * .9;
+    const radius = portrait ? Math.min(.4 * rect.width, .22 * rect.height) : .47 * rect.height;
+    const center = portrait ? { x: rect.width / 2, y: rect.height * .3 } : { x: 0, y: rect.height / 2 };
+    return window.__vinylArcCalls.filter(point => {
+      const distance = Math.hypot(point.x - center.x, point.y - center.y);
+      return distance > radius * 1.03 && distance < radius * 1.09 && point.radius < 6;
+    }).length;
+  });
+  expect(outerDots).toBe(0);
   await page.locator('#folia-vinyl-stage .fvs-close').click();
   await expect(page.locator('#folia-vinyl-stage')).not.toHaveClass(/open/);
 });
