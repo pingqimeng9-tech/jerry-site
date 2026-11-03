@@ -55,6 +55,24 @@
       ]
     },
     {
+      "source": "/listen/fusion/",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/listen/fusion/desktop.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
       "source": "/listen/build.txt",
       "headers": [
         {

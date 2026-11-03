@@ -1,0 +1,106 @@
+.cine-stage {
+    --cine-accent: #d7edff;
+    --cine-primary: #76c9e8;
+    --cine-secondary: #ee9474;
+    --cine-bg: #080c0c;
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    isolation: isolate;
+    color: #f3f5f8;
+    background:
+        radial-gradient(ellipse at 68% 48%, color-mix(in srgb, var(--cine-secondary) 18%, transparent), transparent 44%),
+        radial-gradient(ellipse at 22% 78%, color-mix(in srgb, var(--cine-primary) 22%, transparent), transparent 50%),
+        linear-gradient(118deg, #080b0c 4%, color-mix(in srgb, var(--cine-bg) 74%, #101918) 55%, #0b1010);
+    font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+}
+
+.cine-stage canvas { position: absolute; inset: 0; }
+.cine-grain {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: .13;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.32'/%3E%3C/svg%3E");
+    mix-blend-mode: soft-light;
+}
+
+.cine-topline,
+.cine-track-label,
+.cine-shelf-caption,
+.cine-time { position: absolute; z-index: 3; pointer-events: none; }
+.cine-topline {
+    inset: max(26px, env(safe-area-inset-top)) 34px auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+.cine-brand { display: flex; align-items: center; gap: 10px; font-size: 10px; font-weight: 700; letter-spacing: .16em; color: rgba(232,240,247,.72); }
+.cine-brand-mark { width: 7px; height: 7px; border-radius: 50%; background: var(--cine-secondary); box-shadow: 0 0 18px var(--cine-secondary); }
+.cine-weather { display: grid; grid-template-columns: auto auto; align-items: baseline; column-gap: 12px; text-align: right; color: rgba(238,244,249,.7); }
+.cine-weather-label { color: var(--cine-primary); font-size: 9px; font-weight: 700; letter-spacing: .18em; }
+.cine-weather-reading { font-size: 13px; font-variant-numeric: tabular-nums; }
+.cine-weather-city { grid-column: 2; font-size: 9px; letter-spacing: .1em; opacity: .62; }
+.cine-weather button { grid-column: 1; grid-row: 2; justify-self: end; padding: 2px 0; border: 0; background: none; color: inherit; font: inherit; font-size: 8px; letter-spacing: .12em; pointer-events: auto; cursor: pointer; }
+.cine-weather button:hover { color: white; }
+.cine-track-label { left: 7%; bottom: 11%; display: grid; gap: 6px; max-width: min(44vw, 520px); text-shadow: 0 2px 22px rgba(0,0,0,.68); }
+.cine-track-label span { color: var(--cine-secondary); font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+.cine-track-label strong { overflow: hidden; color: #f8fafc; font-size: 38px; font-weight: 600; line-height: 1.08; text-overflow: ellipsis; white-space: nowrap; }
+.cine-lyrics-world { width: min(60vw, 720px); text-align: center; transform: perspective(700px) rotateX(7deg); transform-origin: center; }
+.cine-lyric { min-height: 1.55em; color: rgba(225,234,232,.42); font-size: 22px; font-weight: 500; line-height: 1.5; transform: rotateX(12deg) translateZ(-18px) scale(.91); transition: color .45s, opacity .45s, transform .65s; opacity: .58; }
+.cine-lyric.is-active { color: #fff; font-size: 32px; font-weight: 650; opacity: 1; text-shadow: 0 0 28px color-mix(in srgb, var(--cine-accent) 46%, transparent); transform: rotateX(0) translateZ(0) scale(1); }
+.cine-shelf-caption { top: 29%; right: 6.5%; display: grid; gap: 5px; text-align: right; color: rgba(231,239,247,.62); font-size: 9px; letter-spacing: .15em; }
+.cine-shelf-caption small { color: rgba(231,239,247,.32); font-size: 8px; }
+.cine-time { right: 36px; bottom: 35px; color: rgba(240,245,249,.72); font-size: 12px; font-variant-numeric: tabular-nums; letter-spacing: .08em; }
+.cine-time span { padding: 0 2px; color: var(--cine-secondary); }
+.cine-cover-sample { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+.cine-record {
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr) 24px;
+    align-items: center;
+    gap: 11px;
+    width: 268px;
+    min-height: 66px;
+    padding: 8px 11px;
+    border: 1px solid rgba(222,237,248,.14);
+    border-radius: 3px;
+    background: linear-gradient(110deg, rgba(20,29,39,.91), rgba(11,17,25,.78));
+    color: #f4f6f8;
+    text-align: left;
+    box-shadow: 0 12px 30px rgba(0,0,0,.25);
+    transform: rotateY(-7deg);
+    transition: border-color .25s, transform .3s, background .25s;
+    cursor: pointer;
+    pointer-events: auto;
+    backdrop-filter: blur(12px);
+}
+.cine-record:hover,.cine-record.is-selected { border-color: color-mix(in srgb, var(--cine-accent) 72%, transparent); background: rgba(25,36,47,.96); transform: rotateY(0) translateX(-8px); }
+.cine-record-art { width: 46px; height: 46px; border-radius: 2px; background: linear-gradient(135deg, var(--cine-primary), var(--cine-secondary)); background-position: center; background-size: cover; box-shadow: inset 0 0 0 1px rgba(255,255,255,.16); }
+.cine-record-meta { display: grid; min-width: 0; gap: 2px; }
+.cine-record-meta small { color: var(--cine-primary); font-size: 8px; letter-spacing: .12em; }
+.cine-record-meta strong,.cine-record-meta em { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cine-record-meta strong { font-size: 12px; font-weight: 600; }
+.cine-record-meta em { color: rgba(225,234,242,.5); font-size: 9px; font-style: normal; }
+.cine-record-play { color: var(--cine-secondary); font-size: 12px; text-align: center; }
+
+.cine-stage-lite .cine-topline { inset-inline: 18px; }
+.cine-stage-lite .cine-track-label { left: 7%; bottom: 9%; max-width: 78vw; }
+.cine-stage-lite .cine-lyrics-world { width: 82vw; }
+.cine-stage-lite .cine-time { right: 20px; bottom: 22px; }
+
+@media (max-width: 767px) {
+    .cine-brand { font-size: 8px; }
+    .cine-weather { column-gap: 7px; }
+    .cine-weather-label { font-size: 7px; }
+    .cine-weather-reading { font-size: 11px; }
+    .cine-weather-city { font-size: 8px; }
+    .cine-track-label strong { font-size: 22px; }
+    .cine-lyric { font-size: 16px; }
+    .cine-lyric.is-active { font-size: 22px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cine-lyric,.cine-record { transition: none; }
+}

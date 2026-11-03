@@ -7,7 +7,7 @@ test('music route opens Folia', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop', 'Folia smoke test runs once');
   test.setTimeout(120000);
   await page.goto('/music.html');
-  await page.waitForURL('**/listen/', { timeout: 30000 });
+  await page.waitForURL('**/listen/fusion/', { timeout: 30000 });
   await expect(page).toHaveTitle(/callmiruko\.cc.*Folia/, { timeout: 30000 });
   await expect(page.locator('#root')).toHaveCount(1);
 });
@@ -19,6 +19,32 @@ test('Folia opens directly on the grid search home', async ({ page }, testInfo) 
   await expect(page).toHaveTitle(/callmiruko\.cc.*Folia/, { timeout: 30000 });
   await page.waitForTimeout(6500);
   await expect(page.locator('input[placeholder*="search" i], input[placeholder*="搜索"]')).toHaveCount(1);
+});
+
+test('Folia Cine fusion route renders the unified stage on desktop and mobile', async ({ page }, testInfo) => {
+  test.setTimeout(120000);
+  await page.route('https://api.open-meteo.com/v1/forecast**', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ current: { temperature_2m: 19, weather_code: 0, is_day: 1 } })
+  }));
+  await page.goto('/listen/fusion/');
+  await expect(page.locator('.cine-stage')).toBeVisible({ timeout: 60000 });
+  await expect(page.locator('.cine-track-label')).toBeVisible();
+  await expect(page.locator('.cine-weather-reading')).toHaveText('19° · CLEAR');
+  if (testInfo.project.name === 'mobile') {
+    await expect(page.locator('.cine-stage')).toHaveClass(/cine-stage-lite/);
+  } else {
+    await expect(page.locator('.cine-stage')).not.toHaveClass(/cine-stage-lite/);
+  }
+  const layout = await page.evaluate(() => ({
+    width: window.innerWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+    height: window.innerHeight,
+    scrollHeight: document.documentElement.scrollHeight,
+  }));
+  expect(layout.scrollWidth).toBeLessThanOrEqual(layout.width);
+  expect(layout.scrollHeight).toBeLessThanOrEqual(layout.height + 1);
 });
 
 test('Folia mobile portrait fits the viewport', async ({ page }, testInfo) => {

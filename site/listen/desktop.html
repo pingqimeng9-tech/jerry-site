@@ -10,12 +10,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Folia" />
-    <meta name="jerry-build" content="phase2h-2026-10-21" />
-    <script>window.__JERRY_DESKTOP__ = true;</script>
-    <link rel="icon" type="image/svg+xml" href="/player/icon.svg" />
-    <link rel="apple-touch-icon" href="/player/icon.svg" />
-    <title>callmiruko.cc · Folia（电脑版）</title>
-    <script src="/player/runtime-config.js"></script>
+    <meta name="jerry-build" content="folia-mineradio-cine" />
+    <script>location.replace('/listen/');</script>
+    <meta http-equiv="refresh" content="0; url=/listen/">
+    <link rel="icon" type="image/svg+xml" href="/player-fusion/icon.svg" />
+    <link rel="apple-touch-icon" href="/player-fusion/icon.svg" />
+    <title>callmiruko.cc · Folia Cine Stage (Desktop)</title>
+    <script src="/player-fusion/runtime-config.js"></script>
 
     <!-- 首屏加载遮罩：内联样式，随 HTML 首帧一起绘制，不等 index.css 与 JS bundle。
          由 src/utils/appSplash.ts 在 React 挂载后淡出并移除。 -->
@@ -35,11 +36,11 @@
   }
 }
 </script>
-  <script type="module" crossorigin src="/player/assets/main-2SbY_F6P.js"></script>
-  <link rel="modulepreload" crossorigin href="/player/assets/preload-helper-DOwwPQP2.js">
-  <link rel="modulepreload" crossorigin href="/player/assets/modulepreload-polyfill-P2Xu9kJm.js">
-  <link rel="modulepreload" crossorigin href="/player/assets/frameRateLimiter-DYVxXwkE.js">
-<link rel="manifest" href="/player/manifest.webmanifest"></head>
+  <script type="module" crossorigin src="/player-fusion/assets/main-DQe-buPb.js"></script>
+  <link rel="modulepreload" crossorigin href="/player-fusion/assets/preload-helper-vzYcMpc-.js">
+  <link rel="modulepreload" crossorigin href="/player-fusion/assets/modulepreload-polyfill-P2Xu9kJm.js">
+  <link rel="modulepreload" crossorigin href="/player-fusion/assets/frameRateLimiter-DYVxXwkE.js">
+<link rel="manifest" href="/player-fusion/manifest.webmanifest"></head>
   <body>
     <div id="app-splash" role="status" aria-live="polite" aria-label="Loading Folia">
       <div class="app-splash-inner">
@@ -184,8 +185,8 @@
       })();
     </script>
     <div id="root"></div>
-    <a id="jerry-desktop-return" href="/listen/">手机版</a>
-    <style>#jerry-desktop-return{position:fixed;right:14px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:2147483002;display:flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:999px;background:#fff;color:#09090b;font:700 13px 'Noto Sans SC',system-ui,sans-serif;text-decoration:none;box-shadow:0 8px 28px rgba(0,0,0,.35)}@media (min-width:769px){#jerry-desktop-return{display:none}}</style>
-  <script src="/assets/folia-vinyl.js" defer></script>
+    <a id="jerry-desktop-return" href="/listen/fusion/">手机版</a>
+    <a id="jerry-classic-return" href="/listen/desktop.html">经典版</a>
+    <style>#jerry-desktop-return{position:fixed;right:14px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:2147483002;display:flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:999px;background:#fff;color:#09090b;font:700 13px 'Noto Sans SC',system-ui,sans-serif;text-decoration:none;box-shadow:0 8px 28px rgba(0,0,0,.35)}@media (min-width:769px){#jerry-desktop-return{display:none}}#jerry-classic-return{position:fixed;right:14px;bottom:calc(68px + env(safe-area-inset-bottom,0px));z-index:2147483001;display:flex;align-items:center;justify-content:center;min-height:40px;padding:0 14px;border-radius:999px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.28);font:700 12px 'Noto Sans SC',system-ui,sans-serif;text-decoration:none;backdrop-filter:blur(8px)}@media (min-width:769px){#jerry-classic-return{bottom:24px}}</style>
   </body>
 </html>
