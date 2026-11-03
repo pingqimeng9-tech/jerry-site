@@ -7,7 +7,7 @@ test('music route opens Folia', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop', 'Folia smoke test runs once');
   test.setTimeout(120000);
   await page.goto('/music.html');
-  await page.waitForURL('**/listen/', { timeout: 30000 });
+  await page.waitForURL('**/listen/fusion/', { timeout: 30000 });
   await expect(page).toHaveTitle(/callmiruko\.cc.*Folia/, { timeout: 30000 });
   await expect(page.locator('#root')).toHaveCount(1);
 });
