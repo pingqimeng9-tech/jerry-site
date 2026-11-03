@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import type { VisualizerSharedProps } from '../definition';
 import { CineCamera, CineParticles, CinematicLyrics, PlaylistShelf } from './scene';
@@ -12,7 +12,7 @@ type WeatherReading = {
 };
 
 const WEATHER_ENDPOINT = 'https://api.open-meteo.com/v1/forecast';
-const DEFAULT_LOCATION = { city: 'Shanghai', latitude: 31.2304, longitude: 121.4737 };
+const DEFAULT_LOCATION = { city: '上海', latitude: 31.2304, longitude: 121.4737 };
 
 const weatherLabel = (code: number, isDay: boolean) => {
     if (code === 0) return isDay ? 'CLEAR' : 'STARRY';
@@ -25,7 +25,7 @@ const weatherLabel = (code: number, isDay: boolean) => {
     return 'STORM SIGNAL';
 };
 
-const readWeather = async (location: { city: string; latitude: number; longitude: number }) => {
+const readWeather = async (location: { city: string; latitude: number; longitude: number }, signal?: AbortSignal) => {
     const url = new URL(WEATHER_ENDPOINT);
     url.search = new URLSearchParams({
         latitude: String(location.latitude),
@@ -33,7 +33,7 @@ const readWeather = async (location: { city: string; latitude: number; longitude
         current: 'temperature_2m,weather_code,is_day',
         timezone: 'auto',
     }).toString();
-    const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    const response = await fetch(url, { signal });
     if (!response.ok) throw new Error('Weather unavailable');
     const payload = await response.json();
     return {
@@ -68,15 +68,24 @@ const MineradioCine: React.FC<VisualizerSharedProps> = (props) => {
         coverUrl,
         playlists = [],
         onOpenPlaylist,
+        songHandoff,
+        showText = true,
     } = props;
     const [lite, setLite] = useState(true);
     const [weather, setWeather] = useState<WeatherReading | null>(null);
     const [weatherState, setWeatherState] = useState<'loading' | 'ready' | 'error'>('loading');
     const [locationName, setLocationName] = useState(DEFAULT_LOCATION.city);
-    const [displayTime, setDisplayTime] = useState(0);
+    const timeRef = useRef<HTMLDivElement | null>(null);
+    const weatherRequest = useRef(0);
 
     useEffect(() => {
-        const syncTime = () => setDisplayTime(currentTime.get());
+        const syncTime = () => {
+            if (!timeRef.current) return;
+            const seconds = Math.max(0, currentTime.get());
+            const minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const remainder = (Math.floor(seconds) % 60).toString().padStart(2, '0');
+            timeRef.current.innerHTML = `${minutes}<span>:</span>${remainder}`;
+        };
         syncTime();
         const timer = window.setInterval(syncTime, 250);
         return () => window.clearInterval(timer);
@@ -91,15 +100,20 @@ const MineradioCine: React.FC<VisualizerSharedProps> = (props) => {
     }, []);
 
     useEffect(() => {
-        let cancelled = false;
-        readWeather(DEFAULT_LOCATION).then(result => {
-            if (cancelled) return;
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), 8000);
+        readWeather(DEFAULT_LOCATION, controller.signal).then(result => {
+            window.clearTimeout(timeout);
             setWeather(result);
             setWeatherState('ready');
         }).catch(() => {
-            if (!cancelled) setWeatherState('error');
+            window.clearTimeout(timeout);
+            setWeatherState('error');
         });
-        return () => { cancelled = true; };
+        return () => {
+            window.clearTimeout(timeout);
+            controller.abort();
+        };
     }, []);
 
     const requestLocalWeather = () => {
@@ -107,31 +121,54 @@ const MineradioCine: React.FC<VisualizerSharedProps> = (props) => {
             setWeatherState('error');
             return;
         }
+        const requestId = weatherRequest.current + 1;
+        weatherRequest.current = requestId;
         setWeatherState('loading');
         navigator.geolocation.getCurrentPosition(position => {
+            if (weatherRequest.current !== requestId) return;
+            const controller = new AbortController();
+            const timeout = window.setTimeout(() => controller.abort(), 8000);
             const location = {
-                city: 'LOCAL',
+                city: '当前位置',
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
             };
             setLocationName(location.city);
-            readWeather(location).then(result => {
+            readWeather(location, controller.signal).then(result => {
+                window.clearTimeout(timeout);
+                if (weatherRequest.current !== requestId) return;
                 setWeather(result);
                 setWeatherState('ready');
-            }).catch(() => setWeatherState('error'));
-        }, () => setWeatherState('error'), { timeout: 8000, maximumAge: 600000 });
+            }).catch(() => {
+                window.clearTimeout(timeout);
+                if (weatherRequest.current !== requestId) return;
+                setWeatherState('error');
+            });
+        }, () => {
+            if (weatherRequest.current === requestId) setWeatherState('error');
+        }, { timeout: 8000, maximumAge: 600000 });
     };
 
     const playlistItems = useMemo(
         () => playlists.filter(playlist => playlist.type === 'playlist').slice(0, 9),
         [playlists],
     );
+    const totalPlaylists = useMemo(
+        () => playlists.filter(playlist => playlist.type === 'playlist').length,
+        [playlists],
+    );
+    const hasLyrics = lines.length > 0;
+    const activeSong = songHandoff && songHandoff.lines.length ? songHandoff : null;
     const palette = useMemo(() => ({
         accent: theme.accentColor || theme.primaryColor,
         primary: theme.primaryColor,
         secondary: theme.secondaryColor,
         background: theme.backgroundColor,
     }), [theme.accentColor, theme.backgroundColor, theme.primaryColor, theme.secondaryColor]);
+    const reducedMotion = useMemo(
+        () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+        [],
+    );
 
     return (
         <div
@@ -147,14 +184,15 @@ const MineradioCine: React.FC<VisualizerSharedProps> = (props) => {
             <Canvas
                 dpr={lite ? [1, 1.15] : [1, 1.75]}
                 camera={{ position: [0, 0, 8], fov: 42, near: 0.1, far: 80 }}
-                gl={{ alpha: true, antialias: !lite, powerPreference: 'low-power' }}
-                frameloop={paused ? 'demand' : 'always'}
+                gl={{ alpha: true, antialias: !lite, powerPreference: 'low-power', failIfMajorPerformanceCaveat: false }}
+                frameloop={paused || reducedMotion ? 'demand' : 'always'}
+                fallback={<div className="cine-webgl-fallback">当前设备不支持 WebGL，已降级为静态歌词模式</div>}
                 aria-label="Cinematic music visualizer"
             >
                 <ambientLight intensity={0.75} />
                 <CineCamera audioBands={audioBands} audioPower={audioPower} paused={!!paused} lite={lite} />
-                <CineParticles audioBands={audioBands} audioPower={audioPower} lite={lite} accent={palette.accent} />
-                <CinematicLyrics lines={lines} currentLineIndex={currentLineIndex} />
+                <CineParticles audioBands={audioBands} audioPower={audioPower} paused={!!paused} lite={lite} accent={palette.accent} />
+                {showText && <CinematicLyrics lines={activeSong ? activeSong.lines : lines} currentLineIndex={activeSong ? -1 : currentLineIndex} />}
                 {!lite && (
                     <PlaylistShelf
                         playlists={playlistItems}
@@ -172,27 +210,36 @@ const MineradioCine: React.FC<VisualizerSharedProps> = (props) => {
                         {weather ? `${weather.temperature}° · ${weatherLabel(weather.code, weather.isDay)}` : weatherState === 'error' ? 'OFFLINE' : 'TUNING'}
                     </span>
                     <span className="cine-weather-city">{weather?.city || locationName}</span>
-                    <button type="button" onClick={requestLocalWeather} aria-label="Use current location for weather">LOCATE</button>
+                    <button type="button" onClick={requestLocalWeather} aria-label="使用当前位置获取天气">LOCATE</button>
                 </div>
             </header>
 
             <div className="cine-track-label" aria-live="polite">
                 <span>{songArtist || 'NOW PLAYING'}</span>
-                <strong>{songTitle || 'Waiting for a track'}</strong>
+                <strong>{activeSong ? activeSong.songTitle || 'Incoming track' : songTitle || '等待播放'}</strong>
             </div>
 
-            {!lite && playlistItems.length > 0 && (
+            {!lite && (
                 <div className="cine-shelf-caption">
-                    <span>PLAYLISTS / {String(playlistItems.length).padStart(2, '0')}</span>
-                    <small>OPEN A COLLECTION</small>
+                    {playlistItems.length > 0 ? (
+                        <>
+                            <span>PLAYLISTS / {String(totalPlaylists).padStart(2, '0')}</span>
+                            <small>{totalPlaylists > 9 ? `显示前 9 个，共 ${totalPlaylists} 个歌单` : 'OPEN A COLLECTION'}</small>
+                        </>
+                    ) : (
+                        <>
+                            <span>PLAYLISTS / --</span>
+                            <small>登录后可显示你的歌单</small>
+                        </>
+                    )}
                 </div>
             )}
 
-            <div className="cine-time" aria-label="Playback time">
-                {Math.floor(Math.max(0, displayTime) / 60).toString().padStart(2, '0')}
-                <span>:</span>
-                {(Math.floor(Math.max(0, displayTime)) % 60).toString().padStart(2, '0')}
-            </div>
+            {showText && !hasLyrics && !activeSong && (
+                <div className="cine-lyric-empty" aria-hidden="true">暂无歌词 · 播放歌曲后自动显示</div>
+            )}
+
+            <div className="cine-time" ref={timeRef} aria-label="播放时间">00<span>:</span>00</div>
             <img className="cine-cover-sample" src={coverUrl || undefined} alt="" aria-hidden="true" />
         </div>
     );

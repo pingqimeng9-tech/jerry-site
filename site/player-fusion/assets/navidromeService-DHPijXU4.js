@@ -1,1 +1,0 @@
-import{Yn as e,tr as t}from"./bootstrap-CIYX7jS1.js";export{e as getNavidromeConfig,t as navidromeApi};

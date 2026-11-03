@@ -42,11 +42,14 @@
 .cine-weather-label { color: var(--cine-primary); font-size: 9px; font-weight: 700; letter-spacing: .18em; }
 .cine-weather-reading { font-size: 13px; font-variant-numeric: tabular-nums; }
 .cine-weather-city { grid-column: 2; font-size: 9px; letter-spacing: .1em; opacity: .62; }
-.cine-weather button { grid-column: 1; grid-row: 2; justify-self: end; padding: 2px 0; border: 0; background: none; color: inherit; font: inherit; font-size: 8px; letter-spacing: .12em; pointer-events: auto; cursor: pointer; }
+.cine-weather button { grid-column: 1; grid-row: 2; justify-self: end; min-height: 44px; min-width: 44px; padding: 0 10px; border: 0; background: none; color: inherit; font: inherit; font-size: 10px; letter-spacing: .12em; pointer-events: auto; cursor: pointer; border-radius: 8px; }
 .cine-weather button:hover { color: white; }
+.cine-weather button:focus-visible { outline: 2px solid var(--cine-secondary); outline-offset: 2px; color: white; }
 .cine-track-label { left: 7%; bottom: 11%; display: grid; gap: 6px; max-width: min(44vw, 520px); text-shadow: 0 2px 22px rgba(0,0,0,.68); }
-.cine-track-label span { color: var(--cine-secondary); font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+.cine-track-label span { overflow: hidden; color: var(--cine-secondary); font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; text-overflow: ellipsis; white-space: nowrap; }
 .cine-track-label strong { overflow: hidden; color: #f8fafc; font-size: 38px; font-weight: 600; line-height: 1.08; text-overflow: ellipsis; white-space: nowrap; }
+.cine-lyric-empty { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 3; color: rgba(225,234,232,.4); font-size: 13px; letter-spacing: .08em; pointer-events: none; }
+.cine-webgl-fallback { position: absolute; inset: 0; display: grid; place-items: center; color: rgba(225,234,232,.55); font-size: 13px; letter-spacing: .06em; background: linear-gradient(118deg, #080b0c, #0b1010); }
 .cine-lyrics-world { width: min(60vw, 720px); text-align: center; transform: perspective(700px) rotateX(7deg); transform-origin: center; }
 .cine-lyric { min-height: 1.55em; color: rgba(225,234,232,.42); font-size: 22px; font-weight: 500; line-height: 1.5; transform: rotateX(12deg) translateZ(-18px) scale(.91); transition: color .45s, opacity .45s, transform .65s; opacity: .58; }
 .cine-lyric.is-active { color: #fff; font-size: 32px; font-weight: 650; opacity: 1; text-shadow: 0 0 28px color-mix(in srgb, var(--cine-accent) 46%, transparent); transform: rotateX(0) translateZ(0) scale(1); }

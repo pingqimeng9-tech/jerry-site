@@ -7,7 +7,7 @@ export default defineVisualizer({
     mode: 'cine',
     order: 130,
     labelKey: 'ui.visualizerCine',
-    labelFallback: 'Cine Stage',
+    labelFallback: '电影舞台',
     previewSeed: 'cine-stage',
     previewStartOffset: 0,
     glyph: (
@@ -20,8 +20,8 @@ export default defineVisualizer({
     ),
     command: {
         title: 'Visualizer: Cine Stage',
-        description: 'Lyrics, particles, and a cinematic playlist shelf',
-        keywords: ['cine', 'cinema', 'mineradio', 'particles', '歌单架', '电影镜头'],
+        description: '切换到电影舞台：粒子、电影镜头与 3D 歌单架',
+        keywords: ['cine', 'cinema', 'mineradio', 'particles', '歌单架', '电影镜头', '电影舞台'],
     },
     followsSongHandoff: true,
     render: props => <MineradioCine {...props} />,
