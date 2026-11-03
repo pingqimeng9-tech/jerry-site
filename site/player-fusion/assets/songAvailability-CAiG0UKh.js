@@ -1,1 +1,0 @@
-import{y as e}from"./workerClient-DKnh1jfT.js";import{n as t}from"./providerRegistry-BaHjAcjT.js";var n={state:`playable`},r={state:`unknown`},i=i=>e(i).kind===`online`?t(i)?.playback?.getAvailability?.(i)||r:n,a=e=>!!(e&&i(e).state===`unavailable`),o=(e,t)=>e&&i(e).label||t;export{a as n,o as t};
