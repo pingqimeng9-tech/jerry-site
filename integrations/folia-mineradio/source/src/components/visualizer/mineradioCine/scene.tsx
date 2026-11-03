@@ -7,6 +7,8 @@ import type { AudioBands, Line } from '../../../types';
 import type { ProviderCollection } from '../../../types/onlineMusic';
 import { beatImpact, downbeatImpact } from '../../../stores/motionSignals';
 
+const EMPTY_SPECTRUM = new Uint8Array(0);
+
 interface AudioSceneProps {
     audioBands: AudioBands;
     audioPower: MotionValue<number>;
@@ -26,7 +28,7 @@ export const CineCamera: React.FC<CameraProps> = ({ audioBands, audioPower, paus
         const dt = Math.min(delta, 0.05);
         const bass = audioBands.bass.get() / 255;
         const power = audioPower.get() / 255;
-        const spectrum = audioBands.spectrum?.get() ?? new Uint8Array(0);
+        const spectrum = audioBands.spectrum?.get() ?? EMPTY_SPECTRUM;
         let spectralAir = 0;
         for (let bin = Math.floor(spectrum.length * 0.62); bin < spectrum.length; bin += 8) {
             spectralAir += spectrum[bin] || 0;
@@ -49,9 +51,10 @@ export const CineCamera: React.FC<CameraProps> = ({ audioBands, audioPower, paus
 interface ParticleProps extends AudioSceneProps {
     lite: boolean;
     accent: string;
+    paused: boolean;
 }
 
-export const CineParticles: React.FC<ParticleProps> = ({ audioBands, audioPower, lite, accent }) => {
+export const CineParticles: React.FC<ParticleProps> = ({ audioBands, audioPower, lite, accent, paused }) => {
     const points = useRef<THREE.Points>(null);
     const material = useRef<THREE.PointsMaterial>(null);
     const geometry = useMemo(() => {
@@ -73,12 +76,12 @@ export const CineParticles: React.FC<ParticleProps> = ({ audioBands, audioPower,
     }, [lite]);
 
     useFrame((state, delta) => {
-        if (!points.current || !material.current) return;
+        if (!points.current || !material.current || paused) return;
         const dt = Math.min(delta, 0.05);
         const bass = audioBands.bass.get() / 255;
         const treble = audioBands.treble.get() / 255;
         const power = audioPower.get() / 255;
-        const spectrum = audioBands.spectrum?.get() ?? new Uint8Array(0);
+        const spectrum = audioBands.spectrum?.get() ?? EMPTY_SPECTRUM;
         let spectralAir = 0;
         for (let i = Math.floor(spectrum.length * 0.62); i < spectrum.length; i += 4) {
             spectralAir += spectrum[i] || 0;
