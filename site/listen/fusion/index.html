@@ -2,6 +2,8 @@
 <html lang="en">
   <head>
     <script>
+      // 响应式：桌面视口恢复 Folia 原始桌面布局，手机视口保留移动侧栏。
+      if (window.innerWidth >= 768) window.__JERRY_DESKTOP__ = true;
       // Skip Folia's one-time 0.7.21 release tour on first visit; keep any choice the user already made.
       try {
         var f=window.localStorage;
@@ -128,8 +130,6 @@
       .jerry-suite-switch{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:30px;margin-top:4px;padding:0;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.035);color:rgba(255,255,255,.34);cursor:pointer;z-index:8;opacity:.7;transition:opacity .18s,background .18s,color .18s}
       .jerry-suite-switch:hover,.jerry-suite-switch:active{opacity:1;color:#fff;background:rgba(255,255,255,.14)}
       .jerry-suite-switch svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.5}
-      .jerry-layout-switch{display:flex;align-items:center;justify-content:center;width:100%;height:34px;margin-top:4px;padding:0;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.62);cursor:pointer;font:700 11px 'Noto Sans SC',sans-serif;letter-spacing:.04em}
-      .jerry-layout-switch:active{color:#fff;background:rgba(255,255,255,.15)}
 
       #jerry-guest-preview{position:fixed;left:50%;top:96px;transform:translateX(-50%);z-index:105;width:min(560px,calc(100vw - 40px));max-height:52vh;overflow:auto;padding:14px;border:1px solid rgba(255,255,255,.16);border-radius:18px;background:rgba(10,10,16,.76);-webkit-backdrop-filter:blur(20px) saturate(1.25);backdrop-filter:blur(20px) saturate(1.25);box-shadow:0 22px 60px -24px #000;color:#fff;display:none;scrollbar-width:none}
       #jerry-guest-preview.show{display:block}
@@ -586,20 +586,6 @@
         }
         setInterval(ensureSuiteSwitch, 800);
         setTimeout(ensureSuiteSwitch, 1200);
-
-        function ensureLayoutSwitch() {
-          var home = document.querySelector('.bravais-seam-home');
-          if (!home || home.querySelector('.jerry-layout-switch')) return;
-          var link = document.createElement('a');
-          link.className = 'jerry-layout-switch';
-          link.href = '/listen/fusion/desktop.html';
-          link.textContent = '电脑版';
-          link.setAttribute('aria-label', '切换到电脑版');
-          var tabs = home.querySelector('.bravais-seam-tabs');
-          (tabs || home).appendChild(link);
-        }
-        setInterval(ensureLayoutSwitch, 800);
-        setTimeout(ensureLayoutSwitch, 1200);
 
       })();
     </script>
