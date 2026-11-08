@@ -2,8 +2,6 @@
 <html lang="en">
   <head>
     <script>
-      // 响应式：桌面视口恢复 Folia 原始桌面布局，手机视口保留移动侧栏。
-      if (window.innerWidth >= 768) window.__JERRY_DESKTOP__ = true;
       // Skip Folia's one-time 0.7.21 release tour on first visit; keep any choice the user already made.
       try {
         var f=window.localStorage;
@@ -130,6 +128,8 @@
       .jerry-suite-switch{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:30px;margin-top:4px;padding:0;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.035);color:rgba(255,255,255,.34);cursor:pointer;z-index:8;opacity:.7;transition:opacity .18s,background .18s,color .18s}
       .jerry-suite-switch:hover,.jerry-suite-switch:active{opacity:1;color:#fff;background:rgba(255,255,255,.14)}
       .jerry-suite-switch svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.5}
+      .jerry-layout-switch{display:flex;align-items:center;justify-content:center;width:100%;height:34px;margin-top:4px;padding:0;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.62);cursor:pointer;font:700 11px 'Noto Sans SC',sans-serif;letter-spacing:.04em}
+      .jerry-layout-switch:active{color:#fff;background:rgba(255,255,255,.15)}
 
       #jerry-guest-preview{position:fixed;left:50%;top:96px;transform:translateX(-50%);z-index:105;width:min(560px,calc(100vw - 40px));max-height:52vh;overflow:auto;padding:14px;border:1px solid rgba(255,255,255,.16);border-radius:18px;background:rgba(10,10,16,.76);-webkit-backdrop-filter:blur(20px) saturate(1.25);backdrop-filter:blur(20px) saturate(1.25);box-shadow:0 22px 60px -24px #000;color:#fff;display:none;scrollbar-width:none}
       #jerry-guest-preview.show{display:block}
@@ -171,7 +171,7 @@
       #jerry-guest-preview{display:none!important}
     </style>
     <meta charset="UTF-8" />
-    <meta name="jerry-build" content="folia-mineradio-cine" />
+    <meta name="jerry-build" content="phase2h-2026-10-21" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="referrer" content="no-referrer" />
     <meta name="description" content="一个动态歌词播放器，支持 AI 主题生成" />
@@ -180,10 +180,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Folia" />
-    <link rel="icon" type="image/svg+xml" href="/player-fusion/icon.svg" />
-    <link rel="apple-touch-icon" href="/player-fusion/icon.svg" />
-    <title>callmiruko.cc · Folia Cine Stage</title>
-    <script src="/player-fusion/runtime-config.js"></script>
+    <link rel="icon" type="image/svg+xml" href="/player/icon.svg" />
+    <link rel="apple-touch-icon" href="/player/icon.svg" />
+    <title>callmiruko.cc · Folia</title>
+    <script src="/player/runtime-config.js"></script>
 
     <!-- 首屏加载遮罩：内联样式，随 HTML 首帧一起绘制，不等 index.css 与 JS bundle。
          由 src/utils/appSplash.ts 在 React 挂载后淡出并移除。 -->
@@ -203,11 +203,11 @@
   }
 }
 </script>
-<link rel="manifest" href="/player-fusion/manifest.webmanifest">
-<link rel="modulepreload" crossorigin href="/player-fusion/assets/preload-helper-vzYcMpc-.js">
-<link rel="modulepreload" crossorigin href="/player-fusion/assets/modulepreload-polyfill-P2Xu9kJm.js">
-<link rel="modulepreload" crossorigin href="/player-fusion/assets/frameRateLimiter-DYVxXwkE.js">
-<script type="module" crossorigin src="/player-fusion/assets/main-D-sPsKN1.js"></script>
+<link rel="manifest" href="/player/manifest.webmanifest">
+<link rel="modulepreload" crossorigin href="/player/assets/preload-helper-DOwwPQP2.js">
+<link rel="modulepreload" crossorigin href="/player/assets/modulepreload-polyfill-P2Xu9kJm.js">
+<link rel="modulepreload" crossorigin href="/player/assets/frameRateLimiter-DYVxXwkE.js">
+<script type="module" crossorigin src="/player/assets/main-2SbY_F6P.js"></script>
 </head>
   <body>
     <div id="app-splash" role="status" aria-live="polite" aria-label="Loading Folia">
@@ -530,7 +530,7 @@
         var topNav = document.createElement('div');
         topNav.id = 'jerry-top-nav';
         topNav.innerHTML = '<a class="jtn-brand" href="/">callmiruko.cc</a><nav aria-label="站点导航">' +
-          '<a href="/">首页</a><a href="/blog.html">博客</a><a href="/rumi.html">Rumi</a><a href="/projects.html">项目</a><a href="/friends.html">友链</a><a href="/player/">经典版</a><a href="https://qishui.douyin.com/" target="_blank" rel="noopener">汽水音乐</a></nav>';
+          '<a href="/">首页</a><a href="/blog.html">博客</a><a href="/rumi.html">Rumi</a><a href="/projects.html">项目</a><a href="/friends.html">友链</a><a href="/listen/fusion/">Mineraio 播放器</a><a href="https://qishui.douyin.com/" target="_blank" rel="noopener">汽水音乐</a></nav>';
         document.body.appendChild(topNav);
         var topNavTimer = 0;
         function showTopNav() {
@@ -586,6 +586,20 @@
         }
         setInterval(ensureSuiteSwitch, 800);
         setTimeout(ensureSuiteSwitch, 1200);
+
+        function ensureLayoutSwitch() {
+          var home = document.querySelector('.bravais-seam-home');
+          if (!home || home.querySelector('.jerry-layout-switch')) return;
+          var link = document.createElement('a');
+          link.className = 'jerry-layout-switch';
+          link.href = '/listen/desktop.html';
+          link.textContent = '电脑版';
+          link.setAttribute('aria-label', '切换到电脑版');
+          var tabs = home.querySelector('.bravais-seam-tabs');
+          (tabs || home).appendChild(link);
+        }
+        setInterval(ensureLayoutSwitch, 800);
+        setTimeout(ensureLayoutSwitch, 1200);
 
       })();
     </script>
@@ -704,6 +718,8 @@
         sync();
       })();
     </script>
-    <script src="/assets/cine-guide.js" defer></script>
+    <script src="/assets/folia-vinyl.js" defer></script>
+    <a id="jmn-switch" href="/listen/fusion/" aria-label="切换到 Mineraio 播放器" title="切换到 Mineraio 播放器">Mineraio</a>
+    <style>#jmn-switch{position:fixed;right:14px;bottom:calc(70px + env(safe-area-inset-bottom,0px));z-index:2147483000;display:flex;align-items:center;justify-content:center;min-height:40px;padding:0 14px;border-radius:999px;background:linear-gradient(120deg,#7c3aed,#ff4d9d);color:#fff;font:700 12px 'Noto Sans SC',system-ui,sans-serif;text-decoration:none;box-shadow:0 8px 24px rgba(124,58,237,.4)}#jmn-switch:active{transform:scale(.96)}@media (min-width:769px){#jmn-switch{bottom:26px}}</style>
   </body>
 </html>

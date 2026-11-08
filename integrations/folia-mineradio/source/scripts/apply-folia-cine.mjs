@@ -40,7 +40,7 @@ const replacements = new Map([
         "const EMPTY_PROVIDER_COLLECTIONS: ProviderCollection[] = [];\n\ntype VisualizerRendererModelDeps = {",
     ], [
         "    const visualizerMode = useVisualizerSettingsStore(state => state.visualizerMode);",
-        "    const visualizerMode = useVisualizerSettingsStore(state => state.visualizerMode);\n    const isCineRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/listen');\n    const effectiveVisualizerMode = isCineRoute ? 'cine' : visualizerMode;",
+        "    const visualizerMode = useVisualizerSettingsStore(state => state.visualizerMode);\n    const isCineRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/listen/fusion');\n    const effectiveVisualizerMode = isCineRoute ? 'cine' : visualizerMode;",
     ], [
         "    const displaySong = usePlaybackStore(selectDisplaySong);",
         "    const displaySong = usePlaybackStore(selectDisplaySong);\n    const playlists = useOnlineProviderAccountStore(state => state.accounts[state.activeProviderId]?.collections ?? EMPTY_PROVIDER_COLLECTIONS);",
